@@ -1,10 +1,7 @@
-include("./julichem.jl")
-import Main.JuliChem
+Base.include(Main,"julichem.jl")
 
-#test script
-inp = JuliChem.input("test.inp")
-scf = JuliChem.scf(inp)
-#JuliChem.properties(scf)
-
-#inp = io.readin("test.inp")
-#coord = io.geomin(inp)
+Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
+    inp::String = ARGS[1]
+    scf::Data = exe(inp)
+    return 0
+end
