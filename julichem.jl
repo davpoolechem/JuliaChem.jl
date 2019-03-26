@@ -2,8 +2,14 @@
 #             IO.jl            #
 #------------------------------#
 """
-    readin(input::String)::Array{String,1}
+    readin(input::String)
+Summary
+======
 Read in input file and translate it to an input file object.
+
+Arguments
+======
+input = name of input file to read in
 """
 function readin(input::String)
     inp::IOStream = open(input)
@@ -14,8 +20,14 @@ function readin(input::String)
 end
 
 """
-    geomin(input::Array{String,1})::Matrix{Float64}
+    geomin(input::Array{String,1})
+Summary
+======
 Extract geometric coordinates from input file.
+
+Arguments
+======
+input = name of input file object to process
 """
 function geomin(input::Array{String,1})
     geom::Int64 = findnext(input.=="\$\$GEOM",1)
@@ -34,8 +46,14 @@ end
 #end
 
 """
-    enucin(input::Array{String,1})::Float64
+    enucin(input::Array{String,1})
+Summary
+======
 Extract nuclear repulsion energy value from input data file.
+
+Arguments
+======
+input = name of input file object to process
 """
 function enucin(input::Array{String,1})
     enuc_loc::Int64 = findnext(input.=="\$\$ENUC",1)
@@ -44,11 +62,20 @@ function enucin(input::Array{String,1})
 end
 
 """
-    oeiin(input::Array{String,1}, type::String)::Matrix{Float64}
-Extract one-electron integrals from input data file.
-Setting type=OVR returns overlap integrals.
-Setting type=KEI returns kinetic energy integrals.
-Setting type=NAI returns nuclear-electron attraction integrals.
+    oeiin(input::Array{String,1}, type::String)
+Summary
+======
+Extract one-electron integrals from input data file. Type dictates which
+one-electron integrals are returned.
+
+Arguments
+======
+input = name of input file object to process
+
+type = tag for determining which type of one-electron integrals are returned:
+1. type=OVR returns overlap integrals.
+2. type=KEI returns kinetic energy integrals.
+3. type=NAI returns nuclear-electron attraction integrals.
 """
 function oeiin(input::Array{String,1}, type::String)
     loc::Int64 = findnext(input.=="\$\$$type",1)
@@ -67,8 +94,14 @@ function oeiin(input::Array{String,1}, type::String)
 end
 
 """
-    teiin(input::Array{String,1})::Array{Float64,1}
+    teiin(input::Array{String,1})
+Summary
+======
 Extract two-electron integrals from input data file.
+
+Arguments
+======
+input = name of input file object to process
 """
 function teiin(input::Array{String,1})
     loc::Int64 = findnext(input.=="\$\$TEI",1)
@@ -92,8 +125,14 @@ function teiin(input::Array{String,1})
 end
 
 """
-    teiin(input::Array{String,1})::Array{Float64,1}
+    teiin(input::Array{String,1})
+Summary
+======
 Re-print input file to display.
+
+Arguments
+======
+input = name of input file object to process
 """
 function iocat(input::String)
     inp::IOStream = open(input)
@@ -141,16 +180,33 @@ end
 import LinearAlgebra
 
 """
-    ∑(array::Array{Float64})::Float64
+    Method #1 of ∑:
+    ∑(array::Array{Float64})
+Summary
+======
 Return sum of elements in an array.
+
+Arguments
+======
+array = array to be summed across
 """
 function ∑(array::Array{Float64})
     return sum(array)
 end
 
 """
-    ∑(array_1::Array{Float64},array_2::Array{Float64})::Float64
+    Method #2 of ∑:
+    ∑(array_1::Array{Float64},array_2::Array{Float64})
+Summary
+======
 Return dot product of two arrays.
+
+Arguments
+======
+array_1 = first array in the dot product
+
+array_2 = second array in the dot product
+
 """
 function ∑(array_1::Array{Float64},array_2::Array{Float64})
     return LinearAlgebra.dot(array_1,array_2)
@@ -161,8 +217,16 @@ end
 #------------------------------#
 """
     Data
-Core HF structures - Fock Matrix, Density Matrix, Molecular Orbital
-Coefficient Matrix, and Electronic Energy
+Summary
+======
+Core Hartree-Fock data structures
+
+Fields
+======
+1. Fock::Array{Float64,2} = Fock Matrix
+2. Density::Array{Float64,2} = Density Matrix
+3. Coeff::Array{Float64,2} = Molecular Orbital Coefficient Matrix
+4. Energy::Float64 = Electronic Energy
 """
 mutable struct Data
     Fock::Array{Float64,2}
@@ -174,8 +238,14 @@ end
 ioff = map((x) -> x*(x+1)/2, collect(1:7*8))
 
 """
-     energy(dat::Array{String,1})::Data
+     energy(dat::Array{String,1})
+Summary
+======
 Perform the core RHF SCF algorithm.
+
+Arguments
+======
+dat = Input data file object
 """
 function energy(dat::Array{String,1})
     println("----------------------------------------")
@@ -284,7 +354,13 @@ end
 
 """
      properties(scf::Data)
+Summary
+======
 Compute properties for RHF wave function.
+
+Arguments
+======
+scf = Core HF data structures
 """
 function properties(scf::Data)
     println("----------------------------------------")
@@ -298,7 +374,19 @@ end
 
 """
      iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
-Perform single SCF cycle iteration.
+Summary
+======
+Perform single SCF iteration.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+H = One-electron Hamiltonian Matrix
+
+ortho = Symmetric Orthogonalization Matrix
 """
 function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
 
@@ -323,7 +411,15 @@ end
 
 """
      index(a::Int64,b::Int64)
+Summary
+======
 Triangular indexing determination.
+
+Arguments
+======
+a = row index
+
+b = column index
 """
 function index(a::Int64,b::Int64)
     index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
@@ -517,7 +613,19 @@ end
 
 """
      twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+Summary
+======
 Perform Fock build step.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+tei = Two-electron integral array
+
+H = One-electron Hamiltonian Matrix
 """
 function twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
     F = deepcopy(H)
@@ -677,7 +785,13 @@ end
 #------------------------------#
 """
      do_input(file::String)
+Summary
+======
 Read in input file.
+
+Arguments
+======
+file = name of input file to read in
 """
 function do_input(file::String)
     #read in .inp and .dat files
@@ -698,7 +812,13 @@ end
 
 """
     do_scf(dat::Array{String,1})
+Summary
+======
 Execute the JuliChem SCF algorithm.
+
+Arguments
+======
+dat = input data file object
 """
 function do_scf(dat::Array{String,1})
     #determine and perform proper method
@@ -716,7 +836,13 @@ end
 
 """
     do_exe(file::String)
+Summary
+======
 Combined input file read-in + SCF execution.
+
+Arguments
+======
+file = name of input file to read in
 """
 function do_exe(file::String)
     println("----------------------------------------")
@@ -772,10 +898,6 @@ end
 #------------------------------#
 #           Script.jl          #
 #------------------------------#
-"""
-    julia_main(ARGS::Vector{String})::Cint
-Base function to call from binary.
-"""
 Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     inp::String = ARGS[1]
     scf = exe(inp)
