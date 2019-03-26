@@ -123,7 +123,7 @@ import LinearAlgebra
             scf.Coeff = C
             scf.Energy = E
 
-            return tei
+            return scf
         end
 
         function properties(scf::Data)
