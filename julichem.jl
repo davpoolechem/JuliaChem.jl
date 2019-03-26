@@ -586,6 +586,6 @@ end
 #------------------------------#
 Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     inp::String = ARGS[1]
-    scf = exe(inp)
+    scf = do_exe(inp)
     return 0
 end
