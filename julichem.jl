@@ -481,12 +481,19 @@ file = name of input file to read in
 """
 function do_input(file::String)
     #read in .inp and .dat files
-    print("Reading in input files...")
+    println("----------------------------------------")
+    println("           READING INPUT FILE           ")
+    println("----------------------------------------")
     inpname::String = file
     inp::Array{String,1} = readin(inpname)
+
+    iocat(inpname)
+
     datname::String = replace(inpname, ".inp"=>".dat")
     dat::Array{String,1} = readin(datname)
-    println("Done!")
+    println("----------------------------------------")
+    println("                END INPUT               ")
+    println("----------------------------------------")
     println("")
 
     #do file processing
