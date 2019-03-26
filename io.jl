@@ -1,4 +1,16 @@
-#read in input file
+#------------------------------#
+#             IO.jl            #
+#------------------------------#
+"""
+    readin(input::String)
+Summary
+======
+Read in input file and translate it to an input file object.
+
+Arguments
+======
+input = name of input file to read in
+"""
 function readin(input::String)
     inp::IOStream = open(input)
     file::Array{String,1} = readlines(input)
@@ -7,7 +19,16 @@ function readin(input::String)
     return file
 end
 
-#extract coordinates from input file
+"""
+    geomin(input::Array{String,1})
+Summary
+======
+Extract geometric coordinates from input file.
+
+Arguments
+======
+input = name of input file object to process
+"""
 function geomin(input::Array{String,1})
     geom::Int64 = findnext(input.=="\$\$GEOM",1)
     natoms::Int64 = parse(Int64, input[geom+1])
@@ -21,19 +42,41 @@ function geomin(input::Array{String,1})
 end
 
 #extract coordinates from input file
-function flagsin(input::Array{String,1})
-end
+#function flagsin(input::Array{String,1})
+#end
 
-#extract nuclear repulsion energy
+"""
+    enucin(input::Array{String,1})
+Summary
+======
+Extract nuclear repulsion energy value from input data file.
+
+Arguments
+======
+input = name of input file object to process
+"""
 function enucin(input::Array{String,1})
     enuc_loc::Int64 = findnext(input.=="\$\$ENUC",1)
     enuc::Float64 = parse(Float64, input[enuc_loc+1])
     return enuc
 end
 
-#extract one-electron integrals
-#type selects overlap (OVR), kinetic energy (KEI), or
-#nuclear attraction (NAI)
+"""
+    oeiin(input::Array{String,1}, type::String)
+Summary
+======
+Extract one-electron integrals from input data file. Type dictates which
+one-electron integrals are returned.
+
+Arguments
+======
+input = name of input file object to process
+
+type = tag for determining which type of one-electron integrals are returned:
+1. type=OVR returns overlap integrals.
+2. type=KEI returns kinetic energy integrals.
+3. type=NAI returns nuclear-electron attraction integrals.
+"""
 function oeiin(input::Array{String,1}, type::String)
     loc::Int64 = findnext(input.=="\$\$$type",1)
     nbf::Int64 = 7
@@ -50,7 +93,16 @@ function oeiin(input::Array{String,1}, type::String)
     return oei
 end
 
-#extract two-electron integrals
+"""
+    teiin(input::Array{String,1})
+Summary
+======
+Extract two-electron integrals from input data file.
+
+Arguments
+======
+input = name of input file object to process
+"""
 function teiin(input::Array{String,1})
     loc::Int64 = findnext(input.=="\$\$TEI",1)
     nint::Int64 = 228
@@ -72,6 +124,16 @@ function teiin(input::Array{String,1})
     return tei
 end
 
+"""
+    teiin(input::Array{String,1})
+Summary
+======
+Re-print input file to display.
+
+Arguments
+======
+input = name of input file object to process
+"""
 function iocat(input::String)
     inp::IOStream = open(input)
 

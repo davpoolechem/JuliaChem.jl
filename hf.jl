@@ -2,6 +2,22 @@
 Base.include(Main,"io.jl")
 Base.include(Main,"math.jl")
 
+#------------------------------#
+#             HF.jl            #
+#------------------------------#
+"""
+    Data
+Summary
+======
+Core Hartree-Fock data structures
+
+Fields
+======
+1. Fock::Array{Float64,2} = Fock Matrix
+2. Density::Array{Float64,2} = Density Matrix
+3. Coeff::Array{Float64,2} = Molecular Orbital Coefficient Matrix
+4. Energy::Float64 = Electronic Energy
+"""
 mutable struct Data
     Fock::Array{Float64,2}
     Density::Array{Float64,2}
@@ -11,7 +27,16 @@ end
 
 ioff = map((x) -> x*(x+1)/2, collect(1:7*8))
 
-#base hf algorithm
+"""
+     energy(dat::Array{String,1})
+Summary
+======
+Perform the core RHF SCF algorithm.
+
+Arguments
+======
+dat = Input data file object
+"""
 function energy(dat::Array{String,1})
     println("----------------------------------------")
     println("  RESTRICTED CLOSED-SHELL HARTREE-FOCK"  )
@@ -117,6 +142,16 @@ function energy(dat::Array{String,1})
     return scf
 end
 
+"""
+     properties(scf::Data)
+Summary
+======
+Compute properties for RHF wave function.
+
+Arguments
+======
+scf = Core HF data structures
+"""
 function properties(scf::Data)
     println("----------------------------------------")
     println("            SYSTEM PROPERTIES"           )
@@ -127,9 +162,22 @@ function properties(scf::Data)
     println("----------------------------------------")
 end
 
-#do a single hf iteration
-#start from diagonalizing F matrix
-#and end with new scf E
+"""
+     iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
+Summary
+======
+Perform single SCF iteration.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+H = One-electron Hamiltonian Matrix
+
+ortho = Symmetric Orthogonalization Matrix
+"""
 function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
 
     #Step #8: Build the New Density Matrix
@@ -151,6 +199,18 @@ function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}
     return (F, D, C, E_elec)
 end
 
+"""
+     index(a::Int64,b::Int64)
+Summary
+======
+Triangular indexing determination.
+
+Arguments
+======
+a = row index
+
+b = column index
+"""
 function index(a::Int64,b::Int64)
     index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
     return index
@@ -341,6 +401,22 @@ function twoei_fock2a(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float
 end
 =#
 
+"""
+     twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+Summary
+======
+Perform Fock build step.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+tei = Two-electron integral array
+
+H = One-electron Hamiltonian Matrix
+"""
 function twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
     F = deepcopy(H)
     #F = zeros(7,7)
