@@ -108,15 +108,15 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
 end
 
 #we want to precompile all involved modules to reduce cold runs
-#include("./precompile/precompile_Base.jl")
-#_precompile_()
-#include("./precompile/precompile_Core.jl")
-#_precompile_()
-#include("./precompile/precompile_LinearAlgebra.jl")
-#_precompile_()
-#include("./precompile/precompile_JuliChem.jl")
-#_precompile_()
-#include("./precompile/precompile_unknown.jl")
-#_precompile_()
+include("./snoop/precompile_Base.jl")
+_precompile_()
+include("./snoop/precompile_Core.jl")
+_precompile_()
+include("./snoop/precompile_LinearAlgebra.jl")
+_precompile_()
+include("./snoop/precompile_JuliChem.jl")
+_precompile_()
+include("./snoop/precompile_unknown.jl")
+_precompile_()
 
 end
