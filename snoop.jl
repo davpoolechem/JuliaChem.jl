@@ -14,4 +14,4 @@ end
 data = SnoopCompile.read("snoop.csv")
 
 pc = SnoopCompile.parcel(reverse!(data[2]))
-SnoopCompile.write("precompile", pc)
+SnoopCompile.write("snoop", pc)
