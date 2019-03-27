@@ -18,4 +18,4 @@ echo "----------------------------------------"
 if [ -d builddir ]; then
    rm -rf builddir
 fi
-julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Re julichem.jl
+julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Re --check-bounds=no --math-mode=fast julichem.jl 

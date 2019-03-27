@@ -1,102 +1,4 @@
-module JuliChem
-
-Base.include(@__MODULE__, "hf.jl")
-
-#------------------------------#
-#          JuliChem.jl         #
-#------------------------------#
-"""
-     do_input(file::String)
-Summary
-======
-Read in input file.
-
-Arguments
-======
-file = name of input file to read in
-"""
-function do_input(file::String)
-    #read in .inp and .dat files
-    println("----------------------------------------")
-    println("           READING INPUT FILE           ")
-    println("----------------------------------------")
-    inpname::String = file
-    inp::Array{String,1} = readin(inpname)
-
-    iocat(inpname)
-
-    datname::String = replace(inpname, ".inp"=>".dat")
-    dat::Array{String,1} = readin(datname)
-    println("----------------------------------------")
-    println("                END INPUT               ")
-    println("----------------------------------------")
-    println("")
-
-    #do file processing
-    #println("Processing input file...")
-    coord::Matrix{Float64} = geomin(inp)
-
-    return dat
-end
-
-"""
-    do_scf(dat::Array{String,1})
-Summary
-======
-Execute the JuliChem SCF algorithm.
-
-Arguments
-======
-dat = input data file object
-"""
-function do_scf(dat::Array{String,1})
-    #determine and perform proper method
-    GC.enable(false)
-    scf = energy(dat)
-    GC.enable(true)
-    GC.gc()
-
-    return scf
-end
-
-#function properties(scf::Data)
-#    properties(scf)
-#end
-
-"""
-    do_exe(file::String)
-Summary
-======
-Combined input file read-in + SCF execution.
-
-Arguments
-======
-file = name of input file to read in
-"""
-function do_exe(file::String)
-    println("----------------------------------------")
-    println("Welcome to JuliChem!")
-    println("JuliChem is a software package written")
-    println("in Julia for the purpose of quantum")
-    println("chemical calculations.")
-    println("Let's get this party started!")
-    println("----------------------------------------")
-    println(" ")
-
-    #read in input file
-    inp = do_input(file)
-
-    #perform scf calculation
-    scf = do_scf(inp)
-
-    #we have run to completion! :)
-    println("----------------------------------------")
-    println("The calculation has run to completion!")
-    println("Sayonara!")
-    println("----------------------------------------")
-
-    return scf
-end
+Base.include(@__MODULE__,"src/core.jl")
 
 #------------------------------#
 #           Script.jl          #
@@ -106,17 +8,16 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     @time scf = do_exe(inp)
     return 0
 end
-
+#=
 #we want to precompile all involved modules to reduce cold runs
-include("./snoop/precompile_Base.jl")
+include("snoop/precompile_Base.jl")
 _precompile_()
-include("./snoop/precompile_Core.jl")
+include("snoop/precompile_Core.jl")
 _precompile_()
-include("./snoop/precompile_LinearAlgebra.jl")
+include("snoop/precompile_LinearAlgebra.jl")
 _precompile_()
-include("./snoop/precompile_JuliChem.jl")
+include("snoop/precompile_Main.jl")
 _precompile_()
-include("./snoop/precompile_unknown.jl")
+include("snoop/precompile_unknown.jl")
 _precompile_()
-
-end
+=#
