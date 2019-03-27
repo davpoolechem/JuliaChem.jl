@@ -1,6 +1,6 @@
 #includes and Cdule imports
-Base.include(Main,"io.jl")
-Base.include(Main,"math.jl")
+Base.include(@__MODULE__,"io.jl")
+Base.include(@__MODULE__,"math.jl")
 
 #------------------------------#
 #             HF.jl            #
