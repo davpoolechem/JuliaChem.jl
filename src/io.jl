@@ -149,27 +149,3 @@ function iocat(input::String)
 
     close(inp)
 end
-
-#function compile()
-#    precompile(io.readin, tuple(String))
-#    precompile(io.geomin, tuple(Array{String,1}))
-#    precompile(io.enucin, tuple(Array{String,1}))
-#    precompile(io.oeiin, tuple(Array{String,1}, String))
-#    precompile(io.teiin, tuple(Array{String,1}))
-#end
-
-#we want to precompile all involved modules to reduce cold runs
-#include("./snoop/precompile_Base.jl")
-#_precompile_base()
-#include("./snoop/precompile_Core.jl")
-#_precompile_core()
-#include("./snoop/precompile_hf.jl")
-#_precompile_()
-#include("./snoop/precompile_io.jl")
-#_precompile_()
-#include("./snoop/precompile_LinearAlgebra.jl")
-#_precompile_()
-#include("./snoop/precompile_openchem.jl")
-#_precompile_()
-#include("./snoop/precompile_unknown.jl")
-#_precompile_()

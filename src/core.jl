@@ -32,7 +32,7 @@ function do_input(file::String)
 
     #do file processing
     #println("Processing input file...")
-    coord::Matrix{Float64} = geomin(inp)
+    coord::Array{Float64,2} = geomin(inp)
 
     return dat
 end
@@ -50,7 +50,7 @@ dat = input data file object
 function do_scf(dat::Array{String,1})
     #determine and perform proper method
     GC.enable(false)
-    scf = energy(dat)
+    scf::Data = energy(dat)
     GC.enable(true)
     GC.gc()
 
@@ -82,10 +82,10 @@ function do_exe(file::String)
     println(" ")
 
     #read in input file
-    inp = do_input(file)
+    inp::Array{String,1} = do_input(file)
 
     #perform scf calculation
-    scf = do_scf(inp)
+    scf::Data = do_scf(inp)
 
     #we have run to completion! :)
     println("----------------------------------------")

@@ -2,6 +2,9 @@
 Base.include(@__MODULE__,"io.jl")
 Base.include(@__MODULE__,"math.jl")
 
+import LinearAlgebra.eigvecs
+import LinearAlgebra.eigvals
+
 #------------------------------#
 #             HF.jl            #
 #------------------------------#
@@ -25,8 +28,6 @@ mutable struct Data
     Energy::Float64
 end
 
-ioff = map((x) -> x*(x+1)/2, collect(1:7*8))
-
 """
      energy(dat::Array{String,1})
 Summary
@@ -49,35 +50,35 @@ function energy(dat::Array{String,1})
     E_nuc::Float64 = enucin(dat)
 
     #Step #2: One-Electron Integrals
-    S::Matrix{Float64} = oeiin(dat,"OVR")
-    T::Matrix{Float64} = oeiin(dat,"KEI")
-    V::Matrix{Float64} = oeiin(dat,"NAI")
-    H::Matrix{Float64} = T+V
+    S::Array{Float64,2} = oeiin(dat,"OVR")
+    T::Array{Float64,2} = oeiin(dat,"KEI")
+    V::Array{Float64,2} = oeiin(dat,"NAI")
+    H::Array{Float64,2} = T+V
 
     #Step #3: Two-Electron Integrals
-    tei::Array{Float64} = teiin(dat)
+    tei::Array{Float64,1} = teiin(dat)
 
     #Step #4: Build the Orthogonalization Matrix
     #println("Initial S matrix:")
     #display(S)
     #println("")
-    S_evec::Array{Float64} = LinearAlgebra.eigvecs(S)
+    S_evec::Array{Float64,2} = eigvecs(S)
 
-    S_eval_diag::Array{Float64} = LinearAlgebra.eigvals(S)
+    S_eval_diag::Array{Float64,1} = eigvals(S)
     #println("Initial S_evec matrix:")
     #display(S_evec)
     #println("")
-    S_eval::Array{Float64} = zeros(7,7)
+    S_eval::Array{Float64,2} = zeros(7,7)
     for i::Int64 in 1:7
         S_eval[i,i] = S_eval_diag[i]
     end
 
-    ortho::Array{Float64} = S_evec*(S_eval^-0.5)*transpose(S_evec)
+    ortho::Array{Float64,2} = S_evec*(S_eval^-0.5)*transpose(S_evec)
 
     #Step #5: Build the Initial (Guess) Density
-    F::Array{Float64} = transpose(ortho)*H*ortho
-    D::Array{Float64} = zeros(7,7)
-    C::Array{Float64} = zeros(7,7)
+    F::Array{Float64,2} = transpose(ortho)*H*ortho
+    D::Array{Float64,2} = zeros(7,7)
+    C::Array{Float64,2} = zeros(7,7)
 
     println("----------------------------------------")
     println("        Starting SCF iterations...")
@@ -181,9 +182,9 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
 
     #Step #8: Build the New Density Matrix
-    F_eval::Array{Float64,1} = LinearAlgebra.eigvals(F)
+    F_eval::Array{Float64,1} = eigvals(F)
 
-    F_evec::Array{Float64,2} = LinearAlgebra.eigvecs(F)
+    F_evec::Array{Float64,2} = eigvecs(F)
     F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
     C::Array{Float64,2} = ortho*F_evec
@@ -211,7 +212,7 @@ a = row index
 
 b = column index
 """
-function index(a::Int64,b::Int64)
+@inline function index(a::Int64,b::Int64,ioff::Array{Int64,1})
     index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
     return index
 end
@@ -417,33 +418,35 @@ tei = Two-electron integral array
 
 H = One-electron Hamiltonian Matrix
 """
-function twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1}, H::Array{Float64,2})
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
+
     F = deepcopy(H)
     #F = zeros(7,7)
-    coulomb::Array{Float64} = zeros(7,7)
-    exchange::Array{Float64} = zeros(7,7)
+    coulomb::Array{Float64,2} = zeros(7,7)
+    exchange::Array{Float64,2} = zeros(7,7)
     for μ::Int64 in 1:7
-        μμ = ioff[μ]
+        μμ::Int64 = ioff[μ]
         for ν::Int64 in 1:μ
-            νν = ioff[ν]
+            νν::Int64 = ioff[ν]
             μν::Int64 = μμ + ν
             for λ::Int64 in 1:7
-                λλ = ioff[λ]
+                λλ::Int64 = ioff[λ]
                 μλ::Int64 = (μ > λ) ? μμ + λ : μ + λλ
                 νλ::Int64 = (ν > λ) ? νν + λ : ν + λλ
                 for σ::Int64 in 1:λ
-                    σσ = ioff[σ]
+                    σσ::Int64 = ioff[σ]
                     μσ::Int64 = (μ > σ) ? μμ + σ : μ + σσ
                     νσ::Int64 = (ν > σ) ? νν + σ : ν + σσ
                     λσ::Int64 = (λ > σ) ? λλ + σ : λ + σσ
-                    μνλσ::Int64 = index(μν,λσ)
-                    μλνσ::Int64 = index(μλ,νσ)
-                    μσνλ::Int64 = index(μσ,νλ)
+                    μνλσ::Int64 = index(μν,λσ,ioff)
+                    μλνσ::Int64 = index(μλ,νσ,ioff)
+                    μσνλ::Int64 = index(μσ,νλ,ioff)
                     #eri = tei[ijkl]
                     #eri1 = 2*tei[ijkl] - tei[ikjl]
                     #eri2 = 2*tei[ijkl] - tei[iljk]
                     #eri = eri1 + eri2
-                    val = (λ == σ) ? 0.5 : 1
+                    val::Float64 = (λ == σ) ? 0.5 : 1.0
                     #if (k == l)
                 #        eri1 *= 0.5
             #            eri2 *= 0.5
@@ -547,25 +550,3 @@ function twoei_six(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H:
     return F
 end
 =#
-
-#function compile()
-#    precompile(hf.E, tuple(Array{String,1}))
-#    precompile(hf.iteration, tuple(Array{Float64},Array{Float64},Array{Float64},Array{Float64}))
-#    precompile(hf.twoei_base, tuple(Array{Float64},Array{Float64},Array{Float64},Array{Float64}))
-#end
-
-#we want to precompile all involved Cdules to reduce cold runs
-#include("./snoop/precompile_Base.jl")
-#_precompile_base()
-#include("./snoop/precompile_Core.jl")
-#_precompile_core()
-#include("./snoop/precompile_hf.jl")
-#_precompile_()
-#include("./snoop/precompile_io.jl")
-#_precompile_()
-#include("./snoop/precompile_LinearAlgebra.jl")
-#_precompile_()
-#include("./snoop/precompile_openchem.jl")
-#_precompile_()
-#include("./snoop/precompile_unknown.jl")
-#_precompile_()
