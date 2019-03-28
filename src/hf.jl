@@ -1,5 +1,5 @@
 #includes and Cdule imports
-Base.include(@__MODULE__,"io.jl")
+Base.include(@__MODULE__,"datafile.jl")
 Base.include(@__MODULE__,"math.jl")
 
 import LinearAlgebra.eigvecs
@@ -48,16 +48,16 @@ function energy(dat::Array{String,1}, FLAGS::Flags)
     scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
 
     #Step #1: Nuclear Repulsion Energy
-    E_nuc::Float64 = enucin(dat)
+    E_nuc::Float64 = read_in_enuc(dat)
 
     #Step #2: One-Electron Integrals
-    S::Array{Float64,2} = oeiin(dat,"OVR")
-    T::Array{Float64,2} = oeiin(dat,"KEI")
-    V::Array{Float64,2} = oeiin(dat,"NAI")
+    S::Array{Float64,2} = read_in_oei(dat,"OVR")
+    T::Array{Float64,2} = read_in_oei(dat,"KEI")
+    V::Array{Float64,2} = read_in_oei(dat,"NAI")
     H::Array{Float64,2} = T+V
 
     #Step #3: Two-Electron Integrals
-    tei::Array{Float64,1} = teiin(dat)
+    tei::Array{Float64,1} = read_in_tei(dat)
 
     #Step #4: Build the Orthogonalization Matrix
     #println("Initial S matrix:")

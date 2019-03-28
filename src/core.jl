@@ -20,7 +20,7 @@ function do_input(file::String)
     println("========================================")
     println("         READING INPUT DATA FILE        ")
     println("========================================")
-    dat::Array{String,1} = readin(file)
+    dat::Array{String,1} = process_data_file(file)
     println("========================================")
     println("                END INPUT               ")
     println("========================================")
@@ -31,6 +31,15 @@ function do_input(file::String)
     coord::Array{Float64,2} = input_geometry()
 
     return dat
+end
+
+function input_flags()
+    CTRL::Ctrl_Flags = input_ctrl_flags()
+    BASIS::Basis_Flags = input_basis_flags()
+    HF::HF_Flags = input_hf_flags()
+
+    FLAGS::Flags = Flags(CTRL,BASIS,HF)
+    return FLAGS
 end
 
 """
