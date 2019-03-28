@@ -18,4 +18,8 @@ echo "----------------------------------------"
 if [ -d builddir ]; then
    rm -rf builddir
 fi
-julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Re --check-bounds=no --cc=gcc --cc-flag="-O3" julichem.jl julichem.c 
+
+MODULE_OPT="--compile=no --sysimage-native-code=yes --compiled-modules=yes"
+CODE_OPT="-O3 --inline=yes --check-bounds=no --math-mode=fast"
+CC_COMP="--cc=gcc" 
+julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Re $MODULE_OPT $CODE_OPT $CC_COMP julichem.jl julichem.c 
