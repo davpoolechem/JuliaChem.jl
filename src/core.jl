@@ -1,3 +1,5 @@
+Base.include(@__MODULE__, "../input.jl")
+
 Base.include(@__MODULE__, "hf.jl")
 
 #------------------------------#
@@ -16,15 +18,9 @@ file = name of input file to read in
 function do_input(file::String)
     #read in .inp and .dat files
     println("========================================")
-    println("           READING INPUT FILE           ")
+    println("         READING INPUT DATA FILE        ")
     println("========================================")
-    inpname::String = file
-    inp::Array{String,1} = readin(inpname)
-
-    iocat(inpname)
-
-    datname::String = replace(inpname, ".inp"=>".dat")
-    dat::Array{String,1} = readin(datname)
+    dat::Array{String,1} = readin(file)
     println("========================================")
     println("                END INPUT               ")
     println("========================================")
@@ -32,21 +28,9 @@ function do_input(file::String)
 
     #do file processing
     #println("Processing input file...")
-    coord::Array{Float64,2} = geomin(inp)
+    coord::Array{Float64,2} = input_geometry()
 
-    return (inp, dat)
-end
-
-function do_flags(input::Array{String,1})
-    CTRL::Ctrl_Flags = Ctrl_Flags(read_in_string_flag(input,"RUNTYP"))
-    BASIS::Basis_Flags = Basis_Flags(read_in_numeric_flag(input,"NORB", Int64),
-                                     read_in_numeric_flag(input,"NOCC", Int64))
-    HF::HF_Flags = HF_Flags(read_in_numeric_flag(input,"NITER", Int64),
-                            read_in_numeric_flag(input,"DELE", Float64),
-                            read_in_numeric_flag(input,"RMSD", Float64))
-
-    FLAGS::Flags = Flags(CTRL,BASIS,HF)
-    return FLAGS
+    return dat
 end
 
 """
@@ -94,10 +78,10 @@ function do_exe(file::String)
     println(" ")
 
     #read in input file
-    inp, dat = do_input(file)
+    dat::Array{String,1} = do_input(file)
 
     #collect flags from input file
-    flags::Flags = do_flags(inp)
+    flags::Flags = input_flags()
 
     #perform scf calculation
     scf::Data = do_scf(dat,flags)
