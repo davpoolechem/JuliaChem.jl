@@ -1,3 +1,5 @@
+Base.include(@__MODULE__,"io_structs.jl")
+
 #------------------------------#
 #             IO.jl            #
 #------------------------------#
@@ -143,9 +145,43 @@ function iocat(input::String)
         println(line)
     end
 
-    #flags::Int64 = findnext(file.=="\$FLAGS",1)
-    #geom::Int64 = findnext(file.=="\$GEOM",flags)
-    #vec::Int64 = findnext(file.=="\$VEC",geom)
-
     close(inp)
+end
+
+function read_in_numeric_flag(input::Array{String,1}, flag::String, datatype::DataType)
+    value = datatype(0.0)
+    for i::String in input
+        if (occursin(flag*"=",i))
+            flag_loc::UnitRange{Int64} = findnext(flag*"=",i,1)
+
+            read_in_start::Int64 = (flag_loc)[1] + size(flag_loc)[1]
+            read_in_end::Int64 = findnext(" ",i,(flag_loc)[1])[1]
+            read_in_range::UnitRange{Int64} = read_in_start:read_in_end
+
+            value = parse(datatype, i[read_in_range])
+        end
+    end
+
+    return value
+end
+
+function read_in_string_flag(input::Array{String,1}, flag::String)
+    value = "0.0"
+    for i::String in input
+        if (occursin(flag*"=",i))
+            flag_loc::UnitRange{Int64} = findnext(flag*"=",i,1)
+
+            read_in_start::Int64 = (flag_loc)[1] + size(flag_loc)[1]
+            read_in_end::Int64 = findnext(" ",i,(flag_loc)[1])[1] - 1
+            read_in_range::UnitRange{Int64} = read_in_start:read_in_end
+
+            value = i[read_in_range]
+        end
+    end
+
+    return value
+end
+
+function test_check_2(datatype::DataType)
+    return datatype(2.0)
 end

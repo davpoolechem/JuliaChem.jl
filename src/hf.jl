@@ -38,13 +38,14 @@ Arguments
 ======
 dat = Input data file object
 """
-function energy(dat::Array{String,1})
+function energy(dat::Array{String,1}, FLAGS::Flags)
     println("========================================")
     println("  RESTRICTED CLOSED-SHELL HARTREE-FOCK"  )
     println("========================================")
     println("")
 
-    scf::Data = Data(zeros(7,7), zeros(7,7), zeros(7,7), 0)
+    norb::Int64 = FLAGS.BASIS.NORB
+    scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
 
     #Step #1: Nuclear Repulsion Energy
     E_nuc::Float64 = enucin(dat)
@@ -68,8 +69,8 @@ function energy(dat::Array{String,1})
     #println("Initial S_evec matrix:")
     #display(S_evec)
     #println("")
-    S_eval::Array{Float64,2} = zeros(7,7)
-    for i::Int64 in 1:7
+    S_eval::Array{Float64,2} = zeros(norb,norb)
+    for i::Int64 in 1:norb
         S_eval[i,i] = S_eval_diag[i]
     end
 
@@ -77,8 +78,8 @@ function energy(dat::Array{String,1})
 
     #Step #5: Build the Initial (Guess) Density
     F::Array{Float64,2} = transpose(ortho)*H*ortho
-    D::Array{Float64,2} = zeros(7,7)
-    C::Array{Float64,2} = zeros(7,7)
+    D::Array{Float64,2} = zeros(norb,norb)
+    C::Array{Float64,2} = zeros(norb,norb)
 
     println("----------------------------------------")
     println("        Starting SCF iterations...")
@@ -86,7 +87,7 @@ function energy(dat::Array{String,1})
     println(" ")
     println("Iter      Energy                   ΔE                   Drms")
 
-    F, D, C, E_elec = iteration(F, D, H, ortho)
+    F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
     E::Float64 = E_elec + E_nuc
 
     println(0,"     ", E)
@@ -97,7 +98,7 @@ function energy(dat::Array{String,1})
     while(!converged)
 
         #Step #7: Compute the New Fock Matrix
-        F = twoei(F, D, tei, H)
+        F = twoei(F, D, tei, H, FLAGS)
         #println("Initial Fock matrix:")
         #display(F)
         #println("")
@@ -107,7 +108,7 @@ function energy(dat::Array{String,1})
         E_old::Float64 = E
 
         F = transpose(ortho)*F*ortho
-        F, D, C, E_elec = iteration(F, D, H, ortho)
+        F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
         E = E_elec+E_nuc
 
         #Step #10: Test for Convergence
@@ -118,9 +119,9 @@ function energy(dat::Array{String,1})
 
         println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
 
-        converged = (ΔE <= 1E-6) && (D_rms <= 1E-4)
+        converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
         iter += 1
-        if (iter > 50) break end
+        if (iter > FLAGS.HF.NITER) break end
     end
 
     println(" ")
@@ -179,7 +180,8 @@ H = One-electron Hamiltonian Matrix
 
 ortho = Symmetric Orthogonalization Matrix
 """
-function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
+function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2},
+    ortho::Array{Float64,2}, FLAGS::Flags)
 
     #Step #8: Build the New Density Matrix
     F_eval::Array{Float64,1} = eigvals(F)
@@ -189,8 +191,8 @@ function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}
 
     C::Array{Float64,2} = ortho*F_evec
 
-    for i::Int64 in 1:7, j::Int64 in 1:i
-        D[i,j] = ∑(C[i,1:5],C[j,1:5])
+    for i::Int64 in 1:FLAGS.BASIS.NORB, j::Int64 in 1:i
+        D[i,j] = ∑(C[i,1:FLAGS.BASIS.NELS],C[j,1:FLAGS.BASIS.NELS])
         D[j,i] = D[i,j]
     end
 
@@ -418,19 +420,20 @@ tei = Two-electron integral array
 
 H = One-electron Hamiltonian Matrix
 """
-function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1}, H::Array{Float64,2})
+function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
+    H::Array{Float64,2}, FLAGS::Flags)
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
 
     F = deepcopy(H)
     #F = zeros(7,7)
     coulomb::Array{Float64,2} = zeros(7,7)
     exchange::Array{Float64,2} = zeros(7,7)
-    for μ::Int64 in 1:7
+    for μ::Int64 in 1:FLAGS.BASIS.NORB
         μμ::Int64 = ioff[μ]
         for ν::Int64 in 1:μ
             νν::Int64 = ioff[ν]
             μν::Int64 = μμ + ν
-            for λ::Int64 in 1:7
+            for λ::Int64 in 1:FLAGS.BASIS.NORB
                 λλ::Int64 = ioff[λ]
                 μλ::Int64 = (μ > λ) ? μμ + λ : μ + λλ
                 νλ::Int64 = (ν > λ) ? νν + λ : ν + λλ

@@ -34,7 +34,19 @@ function do_input(file::String)
     #println("Processing input file...")
     coord::Array{Float64,2} = geomin(inp)
 
-    return dat
+    return (inp, dat)
+end
+
+function do_flags(input::Array{String,1})
+    CTRL::Ctrl_Flags = Ctrl_Flags(read_in_string_flag(input,"RUNTYP"))
+    BASIS::Basis_Flags = Basis_Flags(read_in_numeric_flag(input,"NORB", Int64),
+                                     read_in_numeric_flag(input,"NELS", Int64))
+    HF::HF_Flags = HF_Flags(read_in_numeric_flag(input,"NITER", Int64),
+                            read_in_numeric_flag(input,"DELE", Float64),
+                            read_in_numeric_flag(input,"RMSD", Float64))
+
+    FLAGS::Flags = Flags(CTRL,BASIS,HF)
+    return FLAGS
 end
 
 """
@@ -47,10 +59,10 @@ Arguments
 ======
 dat = input data file object
 """
-function do_scf(dat::Array{String,1})
+function do_scf(dat::Array{String,1},flags::Flags)
     #determine and perform proper method
     GC.enable(false)
-    scf::Data = energy(dat)
+    scf::Data = energy(dat,flags)
     GC.enable(true)
     GC.gc()
 
@@ -82,10 +94,13 @@ function do_exe(file::String)
     println(" ")
 
     #read in input file
-    inp::Array{String,1} = do_input(file)
+    inp, dat = do_input(file)
+
+    #collect flags from input file
+    flags::Flags = do_flags(inp)
 
     #perform scf calculation
-    scf::Data = do_scf(inp)
+    scf::Data = do_scf(dat,flags)
 
     #we have run to completion! :)
     println("========================================")
