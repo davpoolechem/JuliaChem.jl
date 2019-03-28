@@ -39,9 +39,9 @@ Arguments
 dat = Input data file object
 """
 function energy(dat::Array{String,1})
-    println("----------------------------------------")
+    println("========================================")
     println("  RESTRICTED CLOSED-SHELL HARTREE-FOCK"  )
-    println("----------------------------------------")
+    println("========================================")
     println("")
 
     scf::Data = Data(zeros(7,7), zeros(7,7), zeros(7,7), 0)
@@ -129,10 +129,10 @@ function energy(dat::Array{String,1})
     println("----------------------------------------")
     println("Total SCF Energy: ",E," h")
     println(" ")
-    println("----------------------------------------")
+    println("========================================")
     println("      END RESTRICTED CLOSED-SHELL"       )
     println("              HARTREE-FOCK"              )
-    println("----------------------------------------")
+    println("========================================")
     println(" ")
 
     scf.Fock = F
@@ -154,13 +154,13 @@ Arguments
 scf = Core HF data structures
 """
 function properties(scf::Data)
-    println("----------------------------------------")
+    println("========================================")
     println("            SYSTEM PROPERTIES"           )
-    println("----------------------------------------")
+    println("========================================")
     println("")
-    println("----------------------------------------")
+    println("========================================")
     println("          END SYSTEM PROPERTIES"         )
-    println("----------------------------------------")
+    println("========================================")
 end
 
 """

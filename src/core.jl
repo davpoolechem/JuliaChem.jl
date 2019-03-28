@@ -15,9 +15,9 @@ file = name of input file to read in
 """
 function do_input(file::String)
     #read in .inp and .dat files
-    println("----------------------------------------")
+    println("========================================")
     println("           READING INPUT FILE           ")
-    println("----------------------------------------")
+    println("========================================")
     inpname::String = file
     inp::Array{String,1} = readin(inpname)
 
@@ -25,9 +25,9 @@ function do_input(file::String)
 
     datname::String = replace(inpname, ".inp"=>".dat")
     dat::Array{String,1} = readin(datname)
-    println("----------------------------------------")
+    println("========================================")
     println("                END INPUT               ")
-    println("----------------------------------------")
+    println("========================================")
     println("")
 
     #do file processing
@@ -72,13 +72,13 @@ Arguments
 file = name of input file to read in
 """
 function do_exe(file::String)
-    println("----------------------------------------")
+    println("========================================")
     println("Welcome to JuliChem!")
     println("JuliChem is a software package written")
     println("in Julia for the purpose of quantum")
     println("chemical calculations.")
     println("Let's get this party started!")
-    println("----------------------------------------")
+    println("========================================")
     println(" ")
 
     #read in input file
@@ -88,10 +88,10 @@ function do_exe(file::String)
     scf::Data = do_scf(inp)
 
     #we have run to completion! :)
-    println("----------------------------------------")
+    println("========================================")
     println("The calculation has run to completion!")
     println("Sayonara!")
-    println("----------------------------------------")
+    println("========================================")
 
     return scf
 end
