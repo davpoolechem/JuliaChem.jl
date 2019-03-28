@@ -9,21 +9,29 @@ computations.
 #------------
 # How to run
 #------------
-JuliChem can be run in one of two ways:
+JuliChem can be run in one of three ways:
 1. Interactively, though the REPL. This can be done by loading the Main.JuliChem
 module into the REPL and running
 
 julia> JuliChem.julia_main(["path/to/data/file.dat"])
 
-where file.dat is the data file, discussed below.
+where file.dat is the data file, discussed in more detail below.
 
-2. As a statically compiled binary. The binary can be created by simply running
-the build-julichem script, which builds the binary to builddir/julichem. The
-binary can then be executed by running
+2. Through the shell as a statically compiled binary. The binary can be created
+by simply running the build-julichem script, which builds the binary to
+builddir/julichem. The binary can then be executed by running
 
 builddir/julichem path/to/data/file.dat
 
-where file.dat is the data file, in the shell.
+in the shell, where file.dat is the data file.
+
+3. Through the shell dynamically. This can be done by running
+
+julia julichem_shell.jl path/to/data/file.dat
+
+in the shell, where file.dat is the data file. Note that running JuliChem
+through the shell dynamically yields significantly lower performance compared
+to running JuliChem through the shell via statically compiled binary.
 
 #-------------------
 # Input information
