@@ -4,7 +4,7 @@ end
 
 mutable struct Basis_Flags
     NORB::Int64
-    NELS::Int64
+    NOCC::Int64
 end
 
 mutable struct HF_Flags

@@ -192,7 +192,7 @@ function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}
     C::Array{Float64,2} = ortho*F_evec
 
     for i::Int64 in 1:FLAGS.BASIS.NORB, j::Int64 in 1:i
-        D[i,j] = ∑(C[i,1:FLAGS.BASIS.NELS],C[j,1:FLAGS.BASIS.NELS])
+        D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
         D[j,i] = D[i,j]
     end
 

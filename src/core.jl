@@ -40,7 +40,7 @@ end
 function do_flags(input::Array{String,1})
     CTRL::Ctrl_Flags = Ctrl_Flags(read_in_string_flag(input,"RUNTYP"))
     BASIS::Basis_Flags = Basis_Flags(read_in_numeric_flag(input,"NORB", Int64),
-                                     read_in_numeric_flag(input,"NELS", Int64))
+                                     read_in_numeric_flag(input,"NOCC", Int64))
     HF::HF_Flags = HF_Flags(read_in_numeric_flag(input,"NITER", Int64),
                             read_in_numeric_flag(input,"DELE", Float64),
                             read_in_numeric_flag(input,"RMSD", Float64))
