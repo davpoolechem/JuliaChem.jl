@@ -6,7 +6,8 @@ Base.include(@__MODULE__,"src/rhf/rhf_interface.jl")
 #------------------------------#
 #           Script.jl          #
 #------------------------------#
-Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
+#Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
+function julia_main(ARGS::Vector{String})
     println("========================================")
     println("          Welcome to JuliChem!          ")
     println(" JuliChem is a software package written ")
@@ -27,7 +28,7 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     println(" The calculation has run to completion! ")
     println("                Sayonara!               ")
     println("========================================")
-    return 0
+    return scf.Fock
 end
 
 #we want to precompile all involved modules to reduce cold runs

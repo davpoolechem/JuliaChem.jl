@@ -35,10 +35,11 @@ function do_input(file::String)
 end
 
 function input_flags()
-    CTRL::Ctrl_Flags = input_ctrl_flags()
+    #CTRL::Ctrl_Flags = input_ctrl_flags()
     BASIS::Basis_Flags = input_basis_flags()
     HF::HF_Flags = input_hf_flags()
 
-    FLAGS::Flags = Flags(CTRL,BASIS,HF)
+    #FLAGS::Flags = Flags(CTRL,BASIS,HF)
+    FLAGS::Flags = Flags(BASIS,HF)
     return FLAGS
 end

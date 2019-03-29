@@ -1,4 +1,4 @@
-Base.include(@__MODULE__,"rhf.jl")
+Base.include(@__MODULE__,"rhf_scf.jl")
 
 """
     do_rhf(dat::Array{String,1})
