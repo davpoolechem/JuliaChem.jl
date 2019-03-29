@@ -1,4 +1,4 @@
-Base.include(@__MODULE__,"../src/input_structs.jl")
+Base.include(@__MODULE__,"../src/input/input_structs.jl")
 
 #------------------------------#
 #      Control input flags     #

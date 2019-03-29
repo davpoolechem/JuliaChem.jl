@@ -1,5 +1,5 @@
 #includes and Cdule imports
-Base.include(@__MODULE__,"datafile.jl")
+Base.include(@__MODULE__,"../input/datafile.jl")
 Base.include(@__MODULE__,"../math.jl")
 
 import LinearAlgebra
@@ -31,7 +31,7 @@ mutable struct Data
 end
 
 """
-     energy(dat::Array{String,1})
+     rhf_energy(dat::Array{String,1})
 Summary
 ======
 Perform the core RHF SCF algorithm.
@@ -40,7 +40,7 @@ Arguments
 ======
 dat = Input data file object
 """
-function energy(dat::Array{String,1}, FLAGS::Flags)
+function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
     println("========================================")
     println("  RESTRICTED CLOSED-SHELL HARTREE-FOCK"  )
     println("========================================")
