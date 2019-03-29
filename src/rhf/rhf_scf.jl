@@ -404,18 +404,19 @@ H = One-electron Hamiltonian Matrix
 """
 function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags)
+    
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
-
     F = deepcopy(H)
-    #F = zeros(7,7)
-    coulomb::Array{Float64,2} = zeros(7,7)
-    exchange::Array{Float64,2} = zeros(7,7)
-    for μ::Int64 in 1:FLAGS.BASIS.NORB
+    norb::Int64 = FLAGS.BASIS.NORB
+
+    coulomb::Array{Float64,2} = zeros(norb,norb)
+    exchange::Array{Float64,2} = zeros(norb,norb)
+    for μ::Int64 in 1:norb
         μμ::Int64 = ioff[μ]
         for ν::Int64 in 1:μ
             νν::Int64 = ioff[ν]
             μν::Int64 = μμ + ν
-            for λ::Int64 in 1:FLAGS.BASIS.NORB
+            for λ::Int64 in 1:norb
                 λλ::Int64 = ioff[λ]
                 μλ::Int64 = (μ > λ) ? μμ + λ : μ + λλ
                 νλ::Int64 = (ν > λ) ? νν + λ : ν + λλ
