@@ -84,7 +84,7 @@ function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
     C::Array{Float64,2} = zeros(norb,norb)
 
     println("----------------------------------------")
-    println("        Starting SCF iterations...")
+    println("        Starting RHF iterations...")
     println("----------------------------------------")
     println(" ")
     println("Iter      Energy                   ΔE                   Drms")
