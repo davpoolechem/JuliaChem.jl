@@ -1,14 +1,10 @@
-#----------
 # JuliChem
-#----------
 A electronic structure theory program written in Julia, designed to combine
 the ease of use of interactive Julia with the performance of statically
 compiled Julia to offer users the best of both worlds for quantum chemistry
 computations.
 
-#------------
 # How to run
-#------------
 JuliChem can be run in one of three ways:
 1. Interactively, though the REPL. This can be done by loading the Main.JuliChem
 module into the REPL and running
@@ -33,9 +29,7 @@ in the shell, where file.dat is the data file. Note that running JuliChem
 through the shell dynamically yields significantly lower performance compared
 to running JuliChem through the shell via statically compiled binary.
 
-#-------------------
 # Input information
-#-------------------
 A few steps must be taken to create a proper input for JuliChem:
 1. JuliChem uses a .jl script to input calculation flag and geometry
 information. Such a script must be created for the calculation to be performed.
