@@ -8,9 +8,9 @@ Flags
 ======
 1. RUNTYP::String = Determines calculation type (no default setting)
 """
-struct Ctrl_Flags
-    RUNTYP::String
-end
+#struct Ctrl_Flags
+#    RUNTYP::String
+#end
 
 """
     Basis_Flags
@@ -59,7 +59,7 @@ Flag fields
 3. HF::HF_Flags = Flags relevant to a Hartree-Fock calculation
 """
 struct Flags
-    CTRL::Ctrl_Flags
+#    CTRL::Ctrl_Flags
     BASIS::Basis_Flags
     HF::HF_Flags
 end
