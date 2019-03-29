@@ -18,10 +18,10 @@ function julia_main(ARGS::Vector{String})
     println(" ")
 
     #read in input file
-    @time dat::Array{String,1}, flags::Flags = do_input(ARGS[1])
+    dat::Array{String,1}, flags::Flags = do_input(ARGS[1])
 
     #perform scf calculation
-    @time scf::Data = do_rhf(dat,flags)
+    scf::Data = do_rhf(dat,flags)
 
     #we have run to completion! :)
     println("========================================")

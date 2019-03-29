@@ -25,8 +25,8 @@ end
 function input_hf_flags()
     #Set flags
     niter::Int64 = 50
-    dele::Float64 = 1E-8
-    rmsd::Float64 = 1E-6
+    dele::Float64 = 1E-6
+    rmsd::Float64 = 1E-4
 
     #Form HF struct
     HF::HF_Flags = HF_Flags(niter, dele, rmsd)

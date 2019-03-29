@@ -18,11 +18,16 @@ function do_input(file::String)
     println("========================================")
     println("         READING INPUT DATA FILE        ")
     println("========================================")
+    println(" ")
+    directory::String = pwd()
+    println("Input file: ", directory*"/"*input_file)
+    println(" ")
+
     dat::Array{String,1} = process_data_file(file)
     println("========================================")
     println("                END INPUT               ")
     println("========================================")
-    println("")
+    println(" ")
 
     #do file processing
     #println("Processing input file...")
