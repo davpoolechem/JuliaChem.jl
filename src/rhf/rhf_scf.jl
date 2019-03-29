@@ -147,26 +147,6 @@ function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
 end
 
 """
-     properties(scf::Data)
-Summary
-======
-Compute properties for RHF wave function.
-
-Arguments
-======
-scf = Core HF data structures
-"""
-function properties(scf::Data)
-    println("========================================")
-    println("            SYSTEM PROPERTIES"           )
-    println("========================================")
-    println("")
-    println("========================================")
-    println("          END SYSTEM PROPERTIES"         )
-    println("========================================")
-end
-
-"""
      iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
 Summary
 ======
