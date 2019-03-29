@@ -1,6 +1,6 @@
 Base.include(@__MODULE__, "../input.jl")
 
-Base.include(@__MODULE__, "hf.jl")
+Base.include(@__MODULE__, "rhf/rhf.jl")
 
 #------------------------------#
 #          JuliChem.jl         #
