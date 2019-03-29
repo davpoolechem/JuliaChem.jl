@@ -28,7 +28,10 @@ function do_input(file::String)
     #println("Processing input file...")
     coord::Array{Float64,2} = input_geometry()
 
-    return dat
+    #collect flags from input file
+    flags::Flags = input_flags()
+
+    return (dat, flags)
 end
 
 function input_flags()
