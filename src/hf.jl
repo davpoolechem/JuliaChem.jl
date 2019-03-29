@@ -2,6 +2,8 @@
 Base.include(@__MODULE__,"datafile.jl")
 Base.include(@__MODULE__,"math.jl")
 
+import LinearAlgebra
+import SparseArrays
 import LinearAlgebra.eigvecs
 import LinearAlgebra.eigvals
 
@@ -63,9 +65,9 @@ function energy(dat::Array{String,1}, FLAGS::Flags)
     #println("Initial S matrix:")
     #display(S)
     #println("")
-    S_evec::Array{Float64,2} = eigvecs(S)
+    S_evec::Array{Float64,2} = eigvecs(LinearAlgebra.Hermitian(S))
 
-    S_eval_diag::Array{Float64,1} = eigvals(S)
+    S_eval_diag::Array{Float64,1} = eigvals(LinearAlgebra.Hermitian(S))
     #println("Initial S_evec matrix:")
     #display(S_evec)
     #println("")
@@ -74,7 +76,7 @@ function energy(dat::Array{String,1}, FLAGS::Flags)
         S_eval[i,i] = S_eval_diag[i]
     end
 
-    ortho::Array{Float64,2} = S_evec*(S_eval^-0.5)*transpose(S_evec)
+    ortho::Array{Float64,2} = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
 
     #Step #5: Build the Initial (Guess) Density
     F::Array{Float64,2} = transpose(ortho)*H*ortho
@@ -184,9 +186,9 @@ function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}
     ortho::Array{Float64,2}, FLAGS::Flags)
 
     #Step #8: Build the New Density Matrix
-    F_eval::Array{Float64,1} = eigvals(F)
+    F_eval::Array{Float64,1} = eigvals(LinearAlgebra.Hermitian(F))
 
-    F_evec::Array{Float64,2} = eigvecs(F)
+    F_evec::Array{Float64,2} = eigvecs(LinearAlgebra.Hermitian(F))
     F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
     C::Array{Float64,2} = ortho*F_evec
