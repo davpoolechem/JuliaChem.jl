@@ -36,7 +36,7 @@ function do_input(file::String)
     #collect flags from input file
     flags::Flags = input_flags()
 
-    return (dat, flags)
+    return (dat, coord, flags)
 end
 
 function input_flags()

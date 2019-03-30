@@ -41,12 +41,6 @@ Arguments
 dat = Input data file object
 """
 function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
-    println("--------------------------------------------------------------------------------------")
-    println("                       ========================================          ")
-    println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
-    println("                       ========================================          ")
-    println("")
-
     norb::Int64 = FLAGS.BASIS.NORB
     scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
 
@@ -133,10 +127,6 @@ function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
     println("----------------------------------------")
     println("Total SCF Energy: ",E," h")
     println(" ")
-    println("                       ========================================          ")
-    println("                             END RESTRICTED CLOSED-SHELL                 ")
-    println("                                     HARTREE-FOCK                        ")
-    println("                       ========================================          ")
 
     scf.Fock = F
     scf.Density = D

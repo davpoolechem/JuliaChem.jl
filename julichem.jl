@@ -1,6 +1,7 @@
 module JuliChem
 
 Base.include(@__MODULE__,"src/input/input_interface.jl")
+Base.include(@__MODULE__,"src/molecule/molecule_interface.jl")
 Base.include(@__MODULE__,"src/rhf/rhf_interface.jl")
 
 #------------------------------#
@@ -19,10 +20,13 @@ function julia_main(ARGS::Vector{String})
     println("                                 Authors: David Poole                          ")
     println(" ")
     #read in input file
-    dat::Array{String,1}, flags::Flags = do_input(ARGS[1])
+    @time dat::Array{String,1}, coord::Array{Float64,2}, flags::Flags = do_input(ARGS[1])
+
+    #analyze molecular coordinates
+    @time do_coordinate_analysis(coord)
 
     #perform scf calculation
-    scf::Data = do_rhf(dat,flags)
+    @time scf::Data = do_rhf(dat,flags)
 
     #we have run to completion! :)
     println("--------------------------------------------------------------------------------------")
@@ -30,7 +34,7 @@ function julia_main(ARGS::Vector{String})
     println("                        The calculation has run to completion!                        ")
     println("                                       Sayonara!                                      ")
     println("                       ========================================                       ")
-    return scf.Fock
+    #return scf.Fock
 end
 
 #we want to precompile all involved modules to reduce cold runs
