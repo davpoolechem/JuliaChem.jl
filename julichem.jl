@@ -26,7 +26,7 @@ function julia_main(ARGS::Vector{String})
     @time do_coordinate_analysis(coord)
 
     #perform scf calculation
-    @time scf::Data = do_rhf(dat,flags)
+    #@time scf::Data = do_rhf(dat,flags)
 
     #we have run to completion! :)
     println("--------------------------------------------------------------------------------------")

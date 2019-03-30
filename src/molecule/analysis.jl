@@ -26,9 +26,11 @@ function coordinate_analysis(coord::Array{Float64,2})
     println(" ")
     println("Atom #1   Atom #2     Bond length")
     for iatom in 1:natoms, jatom in 1:natoms
-        if (iatom < jatom)
+        if (iatom > jatom)
             println("   ",iatom,"         ",jatom,"     ",bond_lengths[iatom,jatom])
         end
     end
     println(" ")
+
+    #bond angles
 end
