@@ -4,6 +4,7 @@ Base.include(@__MODULE__,"../math.jl")
 
 import LinearAlgebra
 import SparseArrays
+import Base.Threads
 import LinearAlgebra.eigvecs
 import LinearAlgebra.eigvals
 
@@ -402,7 +403,7 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
 
     coulomb::Array{Float64,2} = zeros(norb,norb)
     exchange::Array{Float64,2} = zeros(norb,norb)
-    for μ::Int64 in 1:norb
+    Threads.@threads for μ::Int64 in 1:norb
         μμ::Int64 = ioff[μ]
         for ν::Int64 in 1:μ
             νν::Int64 = ioff[ν]
@@ -446,6 +447,65 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
 end
 
 #=
+function twoei_parallel(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
+    H::Array{Float64,2}, FLAGS::Flags)
+
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
+    F = deepcopy(H)
+    norb::Int64 = FLAGS.BASIS.NORB
+
+    coulomb::Array{Float64,2} = zeros(norb,norb)
+    exchange::Array{Float64,2} = zeros(norb,norb)
+    Threads.@threads for μν_idx::Int64 in 1:(norb*(norb+1)/2)
+        μ::Int64 = ceil(((1+sqrt(1+8*μν_idx))/2))
+        ν::Int64 = μν_idx%μ + 1
+
+        μμ::Int64 = ioff[μ]
+        νν::Int64 = ioff[ν]
+        μν::Int64 = μμ + ν
+        for λ::Int64 in 1:norb
+            λλ::Int64 = ioff[λ]
+            μλ::Int64 = (μ > λ) ? μμ + λ : μ + λλ
+            νλ::Int64 = (ν > λ) ? νν + λ : ν + λλ
+            for σ::Int64 in 1:λ
+                σσ::Int64 = ioff[σ]
+                μσ::Int64 = (μ > σ) ? μμ + σ : μ + σσ
+                νσ::Int64 = (ν > σ) ? νν + σ : ν + σσ
+                λσ::Int64 = (λ > σ) ? λλ + σ : λ + σσ
+                μνλσ::Int64 = index(μν,λσ,ioff)
+                μλνσ::Int64 = index(μλ,νσ,ioff)
+                μσνλ::Int64 = index(μσ,νλ,ioff)
+                #eri = tei[ijkl]
+                #eri1 = 2*tei[ijkl] - tei[ikjl]
+                #eri2 = 2*tei[ijkl] - tei[iljk]
+                #eri = eri1 + eri2
+                val::Float64 = (λ == σ) ? 0.5 : 1.0
+                #if (k == l)
+        #        eri1 *= 0.5
+        #            eri2 *= 0.5
+        #        end
+                #F[i,j] += D[k,l] * eri1
+                #F[i,j] += D[l,k] * eri2
+                coulomb[μ,ν] += val*D[λ,σ]*tei[μνλσ]
+                exchange[μ,ν] += val*D[λ,σ]*tei[μλνσ]
+                coulomb[μ,ν] += val*D[σ,λ]*tei[μνλσ]
+                exchange[μ,ν] += val*D[σ,λ]*tei[μσνλ]
+            end
+        end
+        coulomb[ν,μ] = coulomb[μ,ν]
+        exchange[ν,μ] = exchange[μ,ν]
+        #F[j,i] = F[i,j]
+    end
+    F += 2*coulomb - exchange
+    return F
+end
+
+function test(idx::Int64)
+    u::Int64 = ceil(((-1+sqrt(1+8*idx))/2))
+    v::Int64 =idx%u
+    println(u,",",v)
+end
+
 function twoei_edit(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
     F = deepcopy(H)
     #F = zeros(7,7)
@@ -480,26 +540,30 @@ function twoei_edit(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H
     return F
 end
 
-function twoei_six(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
-    #F = deepcopy(H)
-    F = zeros(7,7)
+function twoei_six(F::Array{Float64,2}, D::Array{Float64,2},
+    tei::Array{Float64,1}, H::Array{Float64,2}, FLAGS::Flags)
+
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
+    F = deepcopy(H)
+    norb::Int64 = FLAGS.BASIS.NORB
+
     J::Array{Float64,2} = zeros(7,7)
     K::Array{Float64,2} = zeros(7,7)
     for i::Int64 in 1:7
         for j::Int64 in 1:i
             for k::Int64 in 1:7
                 for l::Int64 in 1:k
-                    ij::Int64 = index(i,j)
-                    kl::Int64 = index(k,l)
+                    ij::Int64 = index(i,j,ioff)
+                    kl::Int64 = index(k,l,ioff)
                     if (ij < kl) continue end
-                    ijkl::Int64 = index(ij,kl)
-                    ik::Int64 = index(i,k)
-                    jl::Int64 = index(j,l)
-                    ikjl::Int64 = index(ik,jl)
-                    il::Int64 = index(i,k)
-                    jk::Int64 = index(j,l)
-                    iljk::Int64 = index(il,jk)
-                    val = (k == l) ? 0.5 : 1
+                    ijkl::Int64 = index(ij,kl,ioff)
+                    ik::Int64 = index(i,k,ioff)
+                    jl::Int64 = index(j,l,ioff)
+                    ikjl::Int64 = index(ik,jl,ioff)
+                    il::Int64 = index(i,k,ioff)
+                    jk::Int64 = index(j,l,ioff)
+                    iljk::Int64 = index(il,jk,ioff)
+                    val::Float64 = (k == l) ? 0.5 : 1.0
                     F[i,j] += val * D[k,l] * (4*tei[ijkl] - tei[ikjl] - tei[iljk])
                     F[k,l] += val * D[i,j] * (4*tei[ijkl] - tei[ikjl] - tei[iljk])
                     #val = (i == j) ? 0.5 : 1

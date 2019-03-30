@@ -17,10 +17,10 @@ function do_rhf(flags::Flags)
     println("                       ========================================          ")
     println("")
 
-    GC.enable(false)
+    #GC.enable(false)
     scf::Data = rhf_energy(flags)
-    GC.enable(true)
-    GC.gc()
+    #GC.enable(true)
+    #GC.gc()
 
     println("                       ========================================          ")
     println("                             END RESTRICTED CLOSED-SHELL                 ")

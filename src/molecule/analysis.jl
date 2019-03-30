@@ -1,3 +1,5 @@
+import Base.Threads
+
 """
      coordinate_analysis(coord::Array{Float64,2})
 Summary
@@ -15,9 +17,11 @@ function coordinate_analysis(coord::Array{Float64,2})
     #bond lengths
     bond_lengths::Array{Float64,2} = zeros(natoms,natoms)
 
-    for iatom in 1:natoms, jatom in 1:natoms
-        diff::Array{Float64,1} = (coord[iatom,2:4].-coord[jatom,2:4]).^2
-        bond_lengths[iatom,jatom] = sqrt(reduce(+,diff))
+    Threads.@threads for iatom in 1:natoms
+        for jatom in 1:natoms
+            diff::Array{Float64,1} = (coord[iatom,2:4].-coord[jatom,2:4]).^2
+            bond_lengths[iatom,jatom] = sqrt(reduce(+,diff))
+        end
     end
 
     println("----------------------------------------          ")

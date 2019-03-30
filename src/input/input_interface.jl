@@ -1,4 +1,5 @@
 Base.include(@__MODULE__, "../../input.jl")
+import Base.Threads
 
 #------------------------------#
 #          JuliChem.jl         #
@@ -23,7 +24,7 @@ function do_input()
 
     directory::String = pwd()
     println("Input file: ", directory*"/"*input_file)
-
+    println("Threads: ", Threads.nthreads())
     flags::Flags = input_flags()
 
     coord::Array{Float64,2} = input_geometry()

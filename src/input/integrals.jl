@@ -1,3 +1,5 @@
+import Base.Threads
+
 #------------------------------------#
 #            integrals.jl            #
 #------------------------------------#
@@ -22,7 +24,7 @@ function get_oei_matrix(oei::Array{Float64,2})
     nbf2::Int64 = nbf*(nbf+1)/2
 
     oei_matrix::Array{Float64,2} = zeros(nbf,nbf)
-    for index::Int64 in 1:nbf2
+    Threads.@threads for index::Int64 in 1:nbf2
         i::Int64 = oei[index,1]
         j::Int64 = oei[index,2]
 
@@ -47,7 +49,7 @@ function get_tei_matrix(tei::Array{Float64,2})
     nint::Int64 = 228
 
     tei_array::Array{Float64,1} = zeros(2401)
-    for index::Int64 in 1:nint
+    Threads.@threads for index::Int64 in 1:nint
         i::Int64 = tei[index,1]
         j::Int64 = tei[index,2]
         k::Int64 = tei[index,3]
