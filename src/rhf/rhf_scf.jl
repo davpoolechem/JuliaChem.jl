@@ -41,9 +41,9 @@ Arguments
 dat = Input data file object
 """
 function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
-    println("========================================")
-    println("  RESTRICTED CLOSED-SHELL HARTREE-FOCK"  )
-    println("========================================")
+    println("               ========================================          ")
+    println("                 RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
+    println("               ========================================          ")
     println("")
 
     norb::Int64 = FLAGS.BASIS.NORB
@@ -83,9 +83,9 @@ function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
     D::Array{Float64,2} = zeros(norb,norb)
     C::Array{Float64,2} = zeros(norb,norb)
 
-    println("----------------------------------------")
-    println("       Starting RHF iterations...       ")
-    println("----------------------------------------")
+    println("----------------------------------------          ")
+    println("       Starting RHF iterations...                 ")
+    println("----------------------------------------          ")
     println(" ")
     println("Iter      Energy                   ΔE                   Drms")
 
@@ -132,10 +132,10 @@ function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
     println("----------------------------------------")
     println("Total SCF Energy: ",E," h")
     println(" ")
-    println("========================================")
-    println("      END RESTRICTED CLOSED-SHELL"       )
-    println("              HARTREE-FOCK"              )
-    println("========================================")
+    println("                ========================================         ")
+    println("                      END RESTRICTED CLOSED-SHELL                ")
+    println("                              HARTREE-FOCK                       ")
+    println("                ========================================         ")
     println(" ")
 
     scf.Fock = F
@@ -404,7 +404,7 @@ H = One-electron Hamiltonian Matrix
 """
 function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags)
-    
+
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
     F = deepcopy(H)
     norb::Int64 = FLAGS.BASIS.NORB

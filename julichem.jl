@@ -8,13 +8,13 @@ Base.include(@__MODULE__,"src/rhf/rhf_interface.jl")
 #------------------------------#
 #Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
 function julia_main(ARGS::Vector{String})
-    println("========================================")
-    println("          Welcome to JuliChem!          ")
-    println(" JuliChem is a software package written ")
-    println("   in Julia for the purpose of quantum  ")
-    println("         chemical calculations.         ")
-    println("     Let's get this party started!      ")
-    println("========================================")
+    println("                ========================================               ")
+    println("                          Welcome to JuliChem!                         ")
+    println("                 JuliChem is a software package written                ")
+    println("                   in Julia for the purpose of quantum                 ")
+    println("                          chemical calculations.                       ")
+    println("                      Let's get this party started!                    ")
+    println("                ========================================               ")
     println(" ")
 
     #read in input file
@@ -24,10 +24,10 @@ function julia_main(ARGS::Vector{String})
     scf::Data = do_rhf(dat,flags)
 
     #we have run to completion! :)
-    println("========================================")
-    println(" The calculation has run to completion! ")
-    println("                Sayonara!               ")
-    println("========================================")
+    println("                ========================================               ")
+    println("                 The calculation has run to completion!                ")
+    println("                                Sayonara!                              ")
+    println("                ========================================               ")
     return scf.Fock
 end
 
