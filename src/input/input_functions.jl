@@ -20,27 +20,27 @@ end
 function read_in_ovr()
     ovr::Array{Float64,2} = input_ovr()
 
-    ovr_matrix::Array{Float64,2} = read_in_oei(ovr)
+    ovr_matrix::Array{Float64,2} = get_oei_matrix(ovr)
     return ovr_matrix
 end
 
 function read_in_kei()
     kei::Array{Float64,2} = input_kei()
 
-    kei_matrix::Array{Float64,2} = read_in_oei(kei)
+    kei_matrix::Array{Float64,2} = get_oei_matrix(kei)
     return kei_matrix
 end
 
 function read_in_nai()
     nai::Array{Float64,2} = input_nai()
 
-    nai_matrix::Array{Float64,2} = read_in_oei(nai)
+    nai_matrix::Array{Float64,2} = get_oei_matrix(nai)
     return nai_matrix
 end
 
 function read_in_tei()
     tei::Array{Float64,2} = input_tei()
 
-    tei_array::Array{Float64,1} = read_in_tei(tei)
+    tei_array::Array{Float64,1} = get_tei_matrix(tei)
     return tei_array
 end

@@ -46,6 +46,7 @@ function rhf_energy(FLAGS::Flags)
 
     #Step #1: Nuclear Repulsion Energy
     E_nuc::Float64 = read_in_enuc()
+    #println(E_nuc)
 
     #Step #2: One-Electron Integrals
     S::Array{Float64,2} = read_in_ovr()

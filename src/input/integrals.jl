@@ -17,17 +17,17 @@ type = tag for determining which type of one-electron integrals are returned:
 2. type=KEI returns kinetic energy integrals.
 3. type=NAI returns nuclear-electron attraction integrals.
 """
-function read_in_oei(oei::Array{Float64,2})
+function get_oei_matrix(oei::Array{Float64,2})
     nbf::Int64 = 7
     nbf2::Int64 = nbf*(nbf+1)/2
 
     oei_matrix::Array{Float64,2} = zeros(nbf,nbf)
-    for index::Int64 in 1:(nbf2/2)
+    for index::Int64 in 1:nbf2
         i::Int64 = oei[index,1]
         j::Int64 = oei[index,2]
 
         oei_matrix[i,j] = oei[index,3]
-        oei_matrix[j,i] = oei[i,j]
+        oei_matrix[j,i] = oei_matrix[i,j]
     end
 
     return oei_matrix
@@ -43,7 +43,7 @@ Arguments
 ======
 data = name of data file object to process
 """
-function read_in_tei(tei::Array{Float64,2})
+function get_tei_matrix(tei::Array{Float64,2})
     nint::Int64 = 228
 
     tei_array::Array{Float64,1} = zeros(2401)
