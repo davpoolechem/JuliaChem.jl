@@ -10,7 +10,7 @@ Arguments
 ======
 dat = input data file object
 """
-function do_rhf(dat::Array{String,1},flags::Flags)
+function do_rhf(flags::Flags)
     println("--------------------------------------------------------------------------------------")
     println("                       ========================================          ")
     println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
@@ -18,7 +18,7 @@ function do_rhf(dat::Array{String,1},flags::Flags)
     println("")
 
     GC.enable(false)
-    scf::Data = rhf_energy(dat,flags)
+    scf::Data = rhf_energy(flags)
     GC.enable(true)
     GC.gc()
 

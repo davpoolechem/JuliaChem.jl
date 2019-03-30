@@ -20,13 +20,13 @@ function julia_main(ARGS::Vector{String})
     println("                                 Authors: David Poole                          ")
     println(" ")
     #read in input file
-    @time dat::Array{String,1}, coord::Array{Float64,2}, flags::Flags = do_input(ARGS[1])
+    @time flags::Flags, coord::Array{Float64,2} = do_input()
 
     #analyze molecular coordinates
     @time do_coordinate_analysis(coord)
 
     #perform scf calculation
-    #@time scf::Data = do_rhf(dat,flags)
+    @time scf::Data = do_rhf(flags)
 
     #we have run to completion! :)
     println("--------------------------------------------------------------------------------------")

@@ -33,4 +33,5 @@ function coordinate_analysis(coord::Array{Float64,2})
     println(" ")
 
     #bond angles
+
 end

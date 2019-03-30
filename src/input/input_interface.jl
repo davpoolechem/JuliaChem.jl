@@ -13,38 +13,24 @@ Arguments
 ======
 file = name of input file to read in
 """
-function do_input(file::String)
+function do_input()
     #read in .inp and .dat files
     println("--------------------------------------------------------------------------------------")
     println("                       ========================================          ")
     println("                                READING INPUT DATA FILE                  ")
     println("                       ========================================          ")
     println(" ")
+
     directory::String = pwd()
     println("Input file: ", directory*"/"*input_file)
-    println(" ")
 
-    dat::Array{String,1} = process_data_file(file)
+    flags::Flags = input_flags()
+
+    coord::Array{Float64,2} = input_geometry()
+
+    println(" ")
     println("                       ========================================          ")
     println("                                       END INPUT                         ")
     println("                       ========================================          ")
-
-    #do file processing
-    #println("Processing input file...")
-    coord::Array{Float64,2} = input_geometry()
-
-    #collect flags from input file
-    flags::Flags = input_flags()
-
-    return (dat, coord, flags)
-end
-
-function input_flags()
-    #CTRL::Ctrl_Flags = input_ctrl_flags()
-    BASIS::Basis_Flags = input_basis_flags()
-    HF::HF_Flags = input_hf_flags()
-
-    #FLAGS::Flags = Flags(CTRL,BASIS,HF)
-    FLAGS::Flags = Flags(BASIS,HF)
-    return FLAGS
+    return (flags,coord)
 end

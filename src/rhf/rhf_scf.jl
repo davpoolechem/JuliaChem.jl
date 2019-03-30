@@ -1,5 +1,5 @@
 #includes and Cdule imports
-Base.include(@__MODULE__,"../input/datafile.jl")
+Base.include(@__MODULE__,"../input/input_functions.jl")
 Base.include(@__MODULE__,"../math.jl")
 
 import LinearAlgebra
@@ -40,21 +40,21 @@ Arguments
 ======
 dat = Input data file object
 """
-function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
+function rhf_energy(FLAGS::Flags)
     norb::Int64 = FLAGS.BASIS.NORB
     scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
 
     #Step #1: Nuclear Repulsion Energy
-    E_nuc::Float64 = read_in_enuc(dat)
+    E_nuc::Float64 = read_in_enuc()
 
     #Step #2: One-Electron Integrals
-    S::Array{Float64,2} = read_in_oei(dat,"OVR")
-    T::Array{Float64,2} = read_in_oei(dat,"KEI")
-    V::Array{Float64,2} = read_in_oei(dat,"NAI")
+    S::Array{Float64,2} = read_in_ovr()
+    T::Array{Float64,2} = read_in_kei()
+    V::Array{Float64,2} = read_in_nai()
     H::Array{Float64,2} = T+V
 
     #Step #3: Two-Electron Integrals
-    tei::Array{Float64,1} = read_in_tei(dat)
+    tei::Array{Float64,1} = read_in_tei()
 
     #Step #4: Build the Orthogonalization Matrix
     #println("Initial S matrix:")
