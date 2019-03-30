@@ -15,7 +15,9 @@ function julia_main(ARGS::Vector{String})
     println("                                 chemical calculations.                        ")
     println("                             Let's get this party started!                     ")
     println("                       ========================================                ")
-
+    println(" ")
+    println("                                 Authors: David Poole                          ")
+    println(" ")
     #read in input file
     dat::Array{String,1}, flags::Flags = do_input(ARGS[1])
 
