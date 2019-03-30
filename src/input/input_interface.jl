@@ -15,19 +15,19 @@ file = name of input file to read in
 """
 function do_input(file::String)
     #read in .inp and .dat files
-    println("                ========================================         ")
-    println("                         READING INPUT DATA FILE                 ")
-    println("                ========================================         ")
+    println("--------------------------------------------------------------------------------------")
+    println("                       ========================================          ")
+    println("                                READING INPUT DATA FILE                  ")
+    println("                       ========================================          ")
     println(" ")
     directory::String = pwd()
     println("Input file: ", directory*"/"*input_file)
     println(" ")
 
     dat::Array{String,1} = process_data_file(file)
-    println("                ========================================         ")
-    println("                                END INPUT                        ")
-    println("                ========================================         ")
-    println(" ")
+    println("                       ========================================          ")
+    println("                                       END INPUT                         ")
+    println("                       ========================================          ")
 
     #do file processing
     #println("Processing input file...")
