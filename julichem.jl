@@ -8,7 +8,7 @@ Base.include(@__MODULE__,"src/rhf/rhf_interface.jl")
 #           Script.jl          #
 #------------------------------#
 #Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
-function julia_main(ARGS::Vector{String})
+function julia_main()
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")
