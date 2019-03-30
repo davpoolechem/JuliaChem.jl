@@ -41,9 +41,9 @@ Arguments
 dat = Input data file object
 """
 function rhf_energy(dat::Array{String,1}, FLAGS::Flags)
-    println("               ========================================          ")
-    println("                 RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
-    println("               ========================================          ")
+    println("                ========================================         ")
+    println("                  RESTRICTED CLOSED-SHELL HARTREE-FOCK           ")
+    println("                ========================================         ")
     println("")
 
     norb::Int64 = FLAGS.BASIS.NORB
