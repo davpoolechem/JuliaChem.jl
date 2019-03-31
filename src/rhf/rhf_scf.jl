@@ -433,7 +433,7 @@ function twoei_tasked(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float
 
         μν::Int64 = index(μ,ν,ioff)
 
-        @sync @async for λσ_idx::Int64 in 1:ioff[norb]
+        for λσ_idx::Int64 in 1:ioff[norb]
             λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
             σ::Int64 = λσ_idx%λ + 1
 

@@ -1,4 +1,5 @@
 import Base.Threads
+import LinearAlgebra
 
 """
      coordinate_analysis(coord::Array{Float64,2})
