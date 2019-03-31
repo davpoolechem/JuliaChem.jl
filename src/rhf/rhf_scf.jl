@@ -102,7 +102,9 @@ function rhf_energy(FLAGS::Flags)
         F = deepcopy(H)
 
         for μ::Int64 in 1:norb
-            F_task = @async twoei_distributed(F, D, tei, H, FLAGS, μ)
+            F_task = Distributed.@spawn twoei_distributed(F, D, tei, H, FLAGS, μ)
+            println(typeof(F_task))
+            println(typeof(fetch(F_task)))
             F = F + fetch(F_task)
         end
         #println("Initial Fock matrix:")
@@ -404,21 +406,24 @@ H = One-electron Hamiltonian Matrix
 function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags, μ::Int64)
 
-    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
     norb::Int64 = FLAGS.BASIS.NORB
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
-    F = zeros(norb,norb)
+    #F = zeros(norb,norb)
     μμ::Int64 = ioff[μ]
 
-    coulomb::Array{Float64,2} = zeros(norb,norb)
-    exchange::Array{Float64,2} = zeros(norb,norb)
+    coulomb::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
+    exchange::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
+
     for ν::Int64 in 1:μ
         νν::Int64 = ioff[ν]
         μν::Int64 = μμ + ν
-        for λ::Int64 in 1:norb
+
+        Threads.@threads for λ::Int64 in 1:norb
             λλ::Int64 = ioff[λ]
             μλ::Int64 = (μ > λ) ? μμ + λ : μ + λλ
             νλ::Int64 = (ν > λ) ? νν + λ : ν + λλ
+
             for σ::Int64 in 1:λ
                 σσ::Int64 = ioff[σ]
                 μσ::Int64 = (μ > σ) ? μμ + σ : μ + σσ
@@ -438,18 +443,19 @@ function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{
         #        end
                 #F[i,j] += D[k,l] * eri1
                 #F[i,j] += D[l,k] * eri2
-                coulomb[μ,ν] += val*D[λ,σ]*tei[μνλσ]
-                exchange[μ,ν] += val*D[λ,σ]*tei[μλνσ]
-                coulomb[μ,ν] += val*D[σ,λ]*tei[μνλσ]
-                exchange[μ,ν] += val*D[σ,λ]*tei[μσνλ]
+                Threads.atomic_add!(coulomb[μ,ν], val*D[λ,σ]*tei[μνλσ])
+                Threads.atomic_add!(exchange[μ,ν], val*D[λ,σ]*tei[μλνσ])
+                Threads.atomic_add!(coulomb[μ,ν], val*D[σ,λ]*tei[μνλσ])
+                Threads.atomic_add!(exchange[μ,ν], val*D[σ,λ]*tei[μσνλ])
             end
         end
         coulomb[ν,μ] = coulomb[μ,ν]
         exchange[ν,μ] = exchange[μ,ν]
         #F[j,i] = F[i,j]
     end
-    F += 2*coulomb - exchange
-    return F
+    for i in 1:norb, j in 1:norb
+        F[i,j] += 2*coulomb[i,j][] - exchange[i,j][]
+    end
 end
 
 """
@@ -625,7 +631,7 @@ function twoei_six(F::Array{Float64,2}, D::Array{Float64,2},
     K::Array{Float64,2} = zeros(7,7)
     for i::Int64 in 1:7
         for j::Int64 in 1:i
-            for k::Int64 in 1:7
+            for k::Int64 in 1:j
                 for l::Int64 in 1:k
                     ij::Int64 = index(i,j,ioff)
                     kl::Int64 = index(k,l,ioff)
