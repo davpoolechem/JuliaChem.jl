@@ -2,8 +2,8 @@ module JuliChem
 
 Base.include(@__MODULE__,"src/input/module_includes.jl")
 
-#Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
-function julia_main()
+Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
+#function julia_main()
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")
@@ -27,19 +27,34 @@ function julia_main()
 end
 
 #we want to precompile all involved modules to reduce cold runs
-include("snoop/precompile_Base.jl")
-_precompile_()
-#include("snoop/precompile_Core.jl")
-#_precompile_()
-#include("snoop/precompile_Distributed.jl")
-#_precompile_()
-include("snoop/precompile_Logging.jl")
-_precompile_()
-#include("snoop/precompile_LinearAlgebra.jl")
-#_precompile_()
-#include("snoop/precompile_JuliChem.jl")
-#_precompile_()
-include("snoop/precompile_unknown.jl")
-_precompile_()
+
+if (isfile("snoop/precompile_Base.jl"))
+    include("snoop/precompile_Base.jl")
+    _precompile_()
+end
+if (isfile("snoop/precompile_Core.jl"))
+    include("snoop/precompile_Core.jl")
+    _precompile_()
+end
+if (isfile("snoop/precompile_Distributed.jl"))
+    include("snoop/precompile_Distributed.jl")
+    _precompile_()
+end
+if (isfile("snoop/precompile_Logging.jl"))
+    include("snoop/precompile_Logging.jl")
+    _precompile_()
+end
+if (isfile("snoop/precompile_LinearAlgebra.jl"))
+    include("snoop/precompile_LinearAlgebra.jl")
+    _precompile_()
+end
+if (isfile("snoop/precompile_JuliChem.jl"))
+    include("snoop/precompile_JuliChem.jl")
+    _precompile_()
+end
+if (isfile("snoop/precompile_unknown.jl"))
+    include("snoop/precompile_unknown.jl")
+    _precompile_()
+end
 
 end

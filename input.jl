@@ -19,5 +19,5 @@ function script()
     @time scf::Data = do_rhf(flags)
 
     #determine wavefunction properties
-    #@time do_properties(scf,flags)
+    @time do_properties(scf,flags)
 end
