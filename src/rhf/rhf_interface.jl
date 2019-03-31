@@ -1,5 +1,3 @@
-module RHF
-
 Base.include(@__MODULE__,"rhf_scf.jl")
 Base.include(@__MODULE__,"../input/input_structs.jl")
 
@@ -31,7 +29,4 @@ function do_rhf(flags::Flags)
     println("                       ========================================          ")
 
     return scf
-end
-export do_rhf
-
 end

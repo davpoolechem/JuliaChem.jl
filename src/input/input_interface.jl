@@ -1,5 +1,3 @@
-module Input
-
 Base.include(@__MODULE__, "../../input.jl")
 Base.include(@__MODULE__, "input_functions.jl")
 
@@ -38,7 +36,4 @@ function do_input()
     println("                                       END INPUT                         ")
     println("                       ========================================          ")
     return (flags,coord)
-end
-export do_input
-
 end

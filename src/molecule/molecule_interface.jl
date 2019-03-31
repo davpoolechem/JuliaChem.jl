@@ -1,5 +1,3 @@
-module Molecule
-
 Base.include(@__MODULE__, "analysis.jl")
 
 """
@@ -24,7 +22,4 @@ function do_coordinate_analysis(coord::Array{Float64,2})
     println("                       ========================================          ")
     println("                                END COORDINATE ANALYSIS                  ")
     println("                       ========================================          ")
-end
-export do_coordinate_analysis
-
 end
