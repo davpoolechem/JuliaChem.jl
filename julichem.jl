@@ -7,8 +7,8 @@ Base.include(@__MODULE__,"src/rhf/rhf_interface.jl")
 #------------------------------#
 #           Script.jl          #
 #------------------------------#
-#Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
-function julia_main()
+Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
+#function julia_main()
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")
@@ -38,17 +38,17 @@ function julia_main()
 end
 
 #we want to precompile all involved modules to reduce cold runs
-include("snoop/precompile_Base.jl")
-_precompile_()
-include("snoop/precompile_Core.jl")
-_precompile_()
-include("snoop/precompile_Distributed.jl")
-_precompile_()
-include("snoop/precompile_LinearAlgebra.jl")
-_precompile_()
-include("snoop/precompile_JuliChem.jl")
-_precompile_()
-include("snoop/precompile_unknown.jl")
-_precompile_()
+#include("snoop/precompile_Base.jl")
+#_precompile_()
+#include("snoop/precompile_Core.jl")
+#_precompile_()
+#include("snoop/precompile_Distributed.jl")
+#_precompile_()
+#include("snoop/precompile_LinearAlgebra.jl")
+#_precompile_()
+#include("snoop/precompile_JuliChem.jl")
+#_precompile_()
+#include("snoop/precompile_unknown.jl")
+#_precompile_()
 
 end
