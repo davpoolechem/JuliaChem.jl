@@ -99,11 +99,11 @@ function rhf_energy(FLAGS::Flags)
 
         #Step #7: Compute the New Fock Matrix
         #worker-based distributed-memory algorithm
-        #F = deepcopy(H)
-        #for μν::Int64 in 1:((norb*(norb+1))/2)
-        #    F_task = Distributed.@spawn twoei_distributed(F, D, tei, H, FLAGS, μν)
-        #    F += fetch(F_task)
-        #end
+        F = deepcopy(H)
+        for μν::Int64 in 1:((norb*(norb+1))/2)
+            F_task = Distributed.@spawnat (μν%Distributed.nworkers() + 1) twoei_distributed(F, D, tei, H, FLAGS, μν)
+            F += fetch(F_task)
+        end
 
         #thread-based shared-memory algorithm
         #F = twoei_threaded(F, D, tei, H, FLAGS)
@@ -116,7 +116,7 @@ function rhf_energy(FLAGS::Flags)
         #end
 
         #task-based algorithm
-        F = twoei_tasked(F, D, tei, H, FLAGS)
+        #F = twoei_tasked(F, D, tei, H, FLAGS)
 
         #println("Initial Fock matrix:")
         #display(F)
