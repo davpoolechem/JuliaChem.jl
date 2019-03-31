@@ -1,6 +1,6 @@
 #includes and Cdule imports
 Base.include(@__MODULE__,"../input/input_functions.jl")
-Base.include(@__MODULE__,"../math.jl")
+Base.include(@__MODULE__,"../math/math.jl")
 
 import LinearAlgebra
 import SparseArrays

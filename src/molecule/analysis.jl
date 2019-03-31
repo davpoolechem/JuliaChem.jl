@@ -1,6 +1,5 @@
 import Base.Threads
 
-
 """
      coordinate_analysis(coord::Array{Float64,2})
 Summary

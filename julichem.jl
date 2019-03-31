@@ -3,6 +3,7 @@ module JuliChem
 Base.include(@__MODULE__,"src/input/input_interface.jl")
 Base.include(@__MODULE__,"src/molecule/molecule_interface.jl")
 Base.include(@__MODULE__,"src/rhf/rhf_interface.jl")
+Base.include(@__MODULE__,"src/properties/properties_interface.jl")
 
 #------------------------------#
 #           Script.jl          #
@@ -23,10 +24,13 @@ function julia_main()
     @time flags::Flags, coord::Array{Float64,2} = do_input()
 
     #analyze molecular coordinates
-    @time do_coordinate_analysis(coord)
+    #@time do_coordinate_analysis(coord)
 
     #perform scf calculation
-    #@time scf::Data = do_rhf(flags)
+    @time scf::Data = do_rhf(flags)
+
+    #determine wavefunction properties
+    @time do_properties(scf,flags)
 
     #we have run to completion! :)
     println("--------------------------------------------------------------------------------------")
