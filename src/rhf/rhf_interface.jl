@@ -1,4 +1,7 @@
+module RHF
+
 Base.include(@__MODULE__,"rhf_scf.jl")
+Base.include(@__MODULE__,"../input/input_structs.jl")
 
 """
     do_rhf(dat::Array{String,1})
@@ -28,4 +31,7 @@ function do_rhf(flags::Flags)
     println("                       ========================================          ")
 
     return scf
+end
+export do_rhf
+
 end

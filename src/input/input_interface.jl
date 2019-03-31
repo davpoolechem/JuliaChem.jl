@@ -1,9 +1,11 @@
-Base.include(@__MODULE__, "../../input.jl")
-import Base.Threads
+module Input
 
-#------------------------------#
-#          JuliChem.jl         #
-#------------------------------#
+Base.include(@__MODULE__, "../../input.jl")
+Base.include(@__MODULE__, "input_functions.jl")
+
+import Base.Threads
+import Distributed
+
 """
      do_input(file::String)
 Summary
@@ -16,7 +18,7 @@ file = name of input file to read in
 """
 function do_input()
     #read in .inp and .dat files
-    println("--------------------------------------------------------------------------------------")
+    println("-------------------------------------------------------------------------------------")
     println("                       ========================================          ")
     println("                                READING INPUT DATA FILE                  ")
     println("                       ========================================          ")
@@ -36,4 +38,7 @@ function do_input()
     println("                                       END INPUT                         ")
     println("                       ========================================          ")
     return (flags,coord)
+end
+export do_input
+
 end

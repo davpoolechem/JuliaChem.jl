@@ -49,7 +49,6 @@ struct HF_Flags
     DELE::Float64
     RMSD::Float64
 end
-
 #=
 """
     Flags
@@ -64,6 +63,7 @@ Flag fields
 3. HF::HF_Flags = Flags relevant to a Hartree-Fock calculation
 """
 =#
+
 struct Flags
 #    CTRL::Ctrl_Flags
     BASIS::Basis_Flags
