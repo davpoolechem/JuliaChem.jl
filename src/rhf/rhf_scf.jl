@@ -98,12 +98,11 @@ function rhf_energy(FLAGS::Flags)
     while(!converged)
 
         #Step #7: Compute the New Fock Matrix
-        F = twoei_threaded(F, D, tei, H, FLAGS)
+        F = twoei_kl_opt(F, D, tei, H, FLAGS)
 
         #F = deepcopy(H)
-        #for μ::Int64 in 1:norb
-        #    F_task = @async twoei_distributed(F, D, tei, H, FLAGS, μ)
-        #    F = F + fetch(F_task)
+        #@sync Distributed.@distributed reducer for μ::Int64 in 1:norb
+        #    F_task = twoei_distributed(F, D, tei, H, FLAGS, μ)
         #end
         #println("Initial Fock matrix:")
         #display(F)
@@ -281,8 +280,10 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
     F = deepcopy(H)
     J::Array{Float64,2} = zeros(norb,norb)
     K::Array{Float64,2} = zeros(norb,norb)
+    #K::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
 
-    Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
+    #Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
+    for μν_idx::Int64 in 1:ioff[norb]
         μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
         ν::Int64 = μν_idx%μ + 1
 
@@ -302,14 +303,23 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
             J[λ,σ] += 2.0 * D[μ,ν] * eri
             J[σ,λ] += 2.0 * D[μ,ν] * eri
 
-            K[μ,λ] += D[ν,σ] * eri
-            K[μ,σ] += D[ν,λ] * eri
-            K[ν,λ] += D[μ,σ] * eri
-            K[ν,σ] += D[μ,λ] * eri
+            @async begin
+                K[μ,λ] += D[ν,σ] * eri
+                K[μ,σ] += D[ν,λ] * eri
+                K[ν,λ] += D[μ,σ] * eri
+                K[ν,σ] += D[μ,λ] * eri
+            end
+            #Threads.atomic_add!(K[μ,λ], D[ν,σ] * eri)
+            #Threads.atomic_add!(K[μ,σ], D[ν,λ] * eri)
+            #Threads.atomic_add!(K[ν,λ], D[μ,σ] * eri)
+            #Threads.atomic_add!(K[ν,σ], D[μ,λ] * eri)
         end
     end
 
     F += 2*J - K
+    #for i in 1:norb, j in 1:norb
+    #    F[i,j] = 2*J[i,j] - K[i,j][]
+    #end
     return F
 end
 
@@ -385,6 +395,75 @@ function twoei_multilevel(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{F
     return F
 end
 
+"""
+     twoei_threaded(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+Summary
+======
+Perform Fock build step, using multithreading.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+tei = Two-electron integral array
+
+H = One-electron Hamiltonian Matrix
+"""
+function twoei_tasks(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
+    H::Array{Float64,2}, FLAGS::Flags)
+
+    norb::Int64 = FLAGS.BASIS.NORB
+
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+
+    F = deepcopy(H)
+    J::Array{Float64,2} = zeros(norb,norb)
+    K::Array{Float64,2} = zeros(norb,norb)
+    #K::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
+
+    #Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
+    @sync @async for μν_idx::Int64 in 1:ioff[norb]
+        μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+        ν::Int64 = μν_idx%μ + 1
+
+        μν::Int64 = index(μ,ν,ioff)
+
+        for λσ_idx::Int64 in 1:ioff[norb]
+            λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+            σ::Int64 = λσ_idx%λ + 1
+
+            λσ::Int64 = index(λ,σ,ioff)
+            μνλσ::Int64 = index(μν,λσ,ioff)
+
+            val::Float64 = (μ == ν) ? 0.5 : 1.0
+            val::Float64 *= (λ == σ) ? 0.5 : 1.0
+            eri::Float64 = val * tei[μνλσ]
+
+            J[λ,σ] += 2.0 * D[μ,ν] * eri
+            J[σ,λ] += 2.0 * D[μ,ν] * eri
+
+            @async begin
+                K[μ,λ] += D[ν,σ] * eri
+                K[μ,σ] += D[ν,λ] * eri
+                K[ν,λ] += D[μ,σ] * eri
+                K[ν,σ] += D[μ,λ] * eri
+            end
+            #Threads.atomic_add!(K[μ,λ], D[ν,σ] * eri)
+            #Threads.atomic_add!(K[μ,σ], D[ν,λ] * eri)
+            #Threads.atomic_add!(K[ν,λ], D[μ,σ] * eri)
+            #Threads.atomic_add!(K[ν,σ], D[μ,λ] * eri)
+        end
+    end
+
+    F += 2*J - K
+    #for i in 1:norb, j in 1:norb
+    #    F[i,j] = 2*J[i,j] - K[i,j][]
+    #end
+    return F
+end
+
 function twoei_kl_opt(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64},
     H::Array{Float64,2}, FLAGS::Flags)
 
@@ -395,17 +474,23 @@ function twoei_kl_opt(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float
 
     J::Array{Float64,2} = zeros(norb,norb)
     K::Array{Float64,2} = zeros(norb,norb)
+
     for i::Int64 in 1:norb
         for j::Int64 in 1:i
             ij::Int64 = index(i,j,ioff)
+
             for k::Int64 in 1:norb
                 for l::Int64 in 1:k
+
                     kl::Int64 = index(k,l,ioff)
                     ijkl::Int64 = index(ij,kl,ioff)
+
                     val::Float64 = (i == j) ? 0.5 : 1.0
                     val::Float64 *= (k == l) ? 0.5 : 1.0
+
                     J[k,l] += 2.0 * val * D[i,j] * tei[ijkl]
                     J[l,k] += 2.0 * val * D[i,j] * tei[ijkl]
+
                     K[i,k] += val * D[j,l] * tei[ijkl]
                     K[i,l] += val * D[j,k] * tei[ijkl]
                     K[j,k] += val * D[i,l] * tei[ijkl]
