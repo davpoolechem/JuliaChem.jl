@@ -12,6 +12,7 @@ Flags
 #    RUNTYP::String
 #end
 
+#=
 """
     Basis_Flags
 Summary
@@ -23,11 +24,13 @@ Flags
 1. NORB = Number of orbitals overall (no default value)
 2. NOCC = Number of occupied orbitals (no default value)
 """
+=#
 struct Basis_Flags
     NORB::Int64
     NOCC::Int64
 end
 
+#=
 """
     HF_Flags
 Summary
@@ -40,12 +43,14 @@ Flags
 2. DELE = Change-in-energy convergence threshold (default = 1E-8)
 3. RMSD = Change-in-root-mean-square-density convergence threshold (default = 1E-6)
 """
+=#
 struct HF_Flags
     NITER::Int64
     DELE::Float64
     RMSD::Float64
 end
 
+#=
 """
     Flags
 Summary
@@ -58,6 +63,7 @@ Flag fields
 2. BASIS::Basis_Flags = Flags setting basis set information
 3. HF::HF_Flags = Flags relevant to a Hartree-Fock calculation
 """
+=#
 struct Flags
 #    CTRL::Ctrl_Flags
     BASIS::Basis_Flags

@@ -3,6 +3,10 @@ Base.include(@__MODULE__,"../src/input/input_structs.jl")
 #------------------------------#
 #      Control input flags     #
 #------------------------------#
+
+#------------------------------#
+#      Control input flags     #
+#------------------------------#
 #function input_ctrl_flags()
     #Set flags
 #    runtyp::String = "HF"

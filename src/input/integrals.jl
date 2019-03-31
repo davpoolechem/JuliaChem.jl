@@ -3,22 +3,19 @@ import Base.Threads
 #------------------------------------#
 #            integrals.jl            #
 #------------------------------------#
+#=
 """
-    read_in_oei(data::Array{String,1}, type::String)
+    get_oei_matrix(oei::Array{Float64,2})
 Summary
 ======
-Extract one-electron integrals from data file object. Type dictates which
-one-electron integrals are returned.
+Extract one-electron integrals from data file object. Kinetic energy integrals,
+overlap integrals, and nuclear attraction integrals can all be extracted.
 
 Arguments
 ======
-data = name of data file object to process
-
-type = tag for determining which type of one-electron integrals are returned:
-1. type=OVR returns overlap integrals.
-2. type=KEI returns kinetic energy integrals.
-3. type=NAI returns nuclear-electron attraction integrals.
+oei = array of one-electron integrals to extract
 """
+=#
 function get_oei_matrix(oei::Array{Float64,2})
     nbf::Int64 = 7
     nbf2::Int64 = nbf*(nbf+1)/2
@@ -35,6 +32,7 @@ function get_oei_matrix(oei::Array{Float64,2})
     return oei_matrix
 end
 
+#=
 """
     read_in_tei(data::Array{String,1})
 Summary
@@ -45,6 +43,7 @@ Arguments
 ======
 data = name of data file object to process
 """
+=#
 function get_tei_matrix(tei::Array{Float64,2})
     nint::Int64 = 228
 

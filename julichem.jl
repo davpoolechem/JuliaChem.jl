@@ -1,9 +1,6 @@
 module JuliChem
 
-Base.include(@__MODULE__,"src/input/input_interface.jl")
-Base.include(@__MODULE__,"src/molecule/molecule_interface.jl")
-Base.include(@__MODULE__,"src/rhf/rhf_interface.jl")
-Base.include(@__MODULE__,"src/properties/properties_interface.jl")
+Base.include(@__MODULE__,"src/input/module_includes.jl")
 
 #------------------------------#
 #           Script.jl          #
@@ -24,13 +21,13 @@ function julia_main()
     @time flags::Flags, coord::Array{Float64,2} = do_input()
 
     #analyze molecular coordinates
-    #@time do_coordinate_analysis(coord)
+    @time do_coordinate_analysis(coord)
 
     #perform scf calculation
     @time scf::Data = do_rhf(flags)
 
     #determine wavefunction properties
-    @time do_properties(scf,flags)
+    #@time do_properties(scf,flags)
 
     #we have run to completion! :)
     println("--------------------------------------------------------------------------------------")
@@ -42,17 +39,19 @@ function julia_main()
 end
 
 #we want to precompile all involved modules to reduce cold runs
-#include("snoop/precompile_Base.jl")
-#_precompile_()
+include("snoop/precompile_Base.jl")
+_precompile_()
 #include("snoop/precompile_Core.jl")
 #_precompile_()
 #include("snoop/precompile_Distributed.jl")
 #_precompile_()
+include("snoop/precompile_Logging.jl")
+_precompile_()
 #include("snoop/precompile_LinearAlgebra.jl")
 #_precompile_()
 #include("snoop/precompile_JuliChem.jl")
 #_precompile_()
-#include("snoop/precompile_unknown.jl")
-#_precompile_()
+include("snoop/precompile_unknown.jl")
+_precompile_()
 
 end

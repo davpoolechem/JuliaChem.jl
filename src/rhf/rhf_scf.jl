@@ -9,9 +9,7 @@ import LinearAlgebra.eigvecs
 import LinearAlgebra.eigvals
 import Distributed
 
-#------------------------------#
-#             HF.jl            #
-#------------------------------#
+#=
 """
     Data
 Summary
@@ -25,6 +23,7 @@ Fields
 3. Coeff::Array{Float64,2} = Molecular Orbital Coefficient Matrix
 4. Energy::Float64 = Electronic Energy
 """
+=#
 mutable struct Data
     Fock::Array{Float64,2}
     Density::Array{Float64,2}
@@ -32,6 +31,7 @@ mutable struct Data
     Energy::Float64
 end
 
+#=
 """
      rhf_energy(dat::Array{String,1})
 Summary
@@ -42,6 +42,7 @@ Arguments
 ======
 dat = Input data file object
 """
+=#
 function rhf_energy(FLAGS::Flags)
     norb::Int64 = FLAGS.BASIS.NORB
     scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
@@ -158,6 +159,7 @@ function rhf_energy(FLAGS::Flags)
     return scf
 end
 
+#=
 """
      iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
 Summary
@@ -174,6 +176,7 @@ H = One-electron Hamiltonian Matrix
 
 ortho = Symmetric Orthogonalization Matrix
 """
+=#
 function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2},
     ortho::Array{Float64,2}, FLAGS::Flags)
 
@@ -195,7 +198,7 @@ function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}
 
     return (F, D, C, E_elec)
 end
-
+#=
 """
      index(a::Int64,b::Int64)
 Summary
@@ -208,11 +211,13 @@ a = row index
 
 b = column index
 """
+=#
 @inline function index(a::Int64,b::Int64,ioff::Array{Int64,1})
     index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
     return index
 end
 
+#=
 """
      twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
 Summary
@@ -229,6 +234,7 @@ tei = Two-electron integral array
 
 H = One-electron Hamiltonian Matrix
 """
+=#
 function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags, μν_idx::Int64)
 
@@ -269,7 +275,7 @@ function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{
     F = 2*J - K
     return F
 end
-
+#=
 """
      twoei_threaded(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
 Summary
@@ -286,6 +292,7 @@ tei = Two-electron integral array
 
 H = One-electron Hamiltonian Matrix
 """
+=#
 function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags)
 
@@ -340,6 +347,7 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
     return F
 end
 
+#=
 """
      twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
 Summary
@@ -356,6 +364,7 @@ tei = Two-electron integral array
 
 H = One-electron Hamiltonian Matrix
 """
+=#
 function twoei_multilevel(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags, μν_idx::Int64)
 
@@ -398,6 +407,7 @@ function twoei_multilevel(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{F
     return F
 end
 
+#=
 """
      twoei_threaded(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
 Summary
@@ -414,6 +424,7 @@ tei = Two-electron integral array
 
 H = One-electron Hamiltonian Matrix
 """
+=#
 function twoei_tasked(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags)
 
