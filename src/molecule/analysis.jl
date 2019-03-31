@@ -20,7 +20,7 @@ function coordinate_analysis(coord::Array{Float64,2})
     Threads.@threads for ijatom in 1:natoms*natoms
         iatom::Int64 = ceil(ijatom/natoms)
         jatom::Int64 =ijatom%natoms + 1
-        
+
         diff::Array{Float64,1} = (coord[iatom,2:4].-coord[jatom,2:4]).^2
         bond_lengths[iatom,jatom] = sqrt(reduce(+,diff))
     end

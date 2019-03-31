@@ -253,15 +253,17 @@ function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{
 
         val::Float64 = (μ == ν) ? 0.5 : 1.0
         val::Float64 *= (λ == σ) ? 0.5 : 1.0
-
-        J[λ,σ] += 2.0 * val * D[μ,ν] * tei[μνλσ]
-        J[σ,λ] += 2.0 * val * D[μ,ν] * tei[μνλσ]
         eri::Float64 = val * tei[μνλσ]
 
-        K[μ,λ] += val * D[ν,σ] * tei[μνλσ]
-        K[μ,σ] += val * D[ν,λ] * tei[μνλσ]
-        K[ν,λ] += val * D[μ,σ] * tei[μνλσ]
-        K[ν,σ] += val * D[μ,λ] * tei[μνλσ]
+        if (eri <= 1E-10) continue end
+
+        J[λ,σ] += 2.0 * D[μ,ν] * eri
+        J[σ,λ] += 2.0 * D[μ,ν] * eri
+
+        K[μ,λ] += D[ν,σ] * eri
+        K[μ,σ] += D[ν,λ] * eri
+        K[ν,λ] += D[μ,σ] * eri
+        K[ν,σ] += D[μ,λ] * eri
     end
 
     F = 2*J - K
@@ -313,6 +315,8 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
             val::Float64 = (μ == ν) ? 0.5 : 1.0
             val::Float64 *= (λ == σ) ? 0.5 : 1.0
             eri::Float64 = val * tei[μνλσ]
+
+            if (eri <= 1E-10) continue end
 
             J[λ,σ] += 2.0 * D[μ,ν] * eri
             J[σ,λ] += 2.0 * D[μ,ν] * eri
@@ -439,6 +443,8 @@ function twoei_tasked(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float
             val::Float64 = (μ == ν) ? 0.5 : 1.0
             val::Float64 *= (λ == σ) ? 0.5 : 1.0
             eri::Float64 = val * tei[μνλσ]
+
+            if (eri <= 1E-10) continue end
 
             J[λ,σ] += 2.0 * D[μ,ν] * eri
             J[σ,λ] += 2.0 * D[μ,ν] * eri
