@@ -2,8 +2,25 @@ module JuliChem
 
 Base.include(@__MODULE__,"src/input/module_includes.jl")
 
-Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
-#function julia_main()
+#----------------------------------------------------#
+# julia_main function for statically-compiled binary #
+#----------------------------------------------------#
+Base.@ccallable function julia_main()::Cint
+    julia_main_exe()
+    return 0
+end
+
+#--------------------------------------------#
+# julia_main function for dynamic julia runs #
+#--------------------------------------------#
+function julia_main()
+    julia_main_exe()
+end
+
+#-----------------------------------#
+# core julichem execution algorithm #
+#-----------------------------------#
+function julia_main_exe()
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")
@@ -23,11 +40,12 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     println("                        The calculation has run to completion!                        ")
     println("                                       Sayonara!                                      ")
     println("                       ========================================                       ")
-    #return 0
+    return 0
 end
 
-#we want to precompile all involved modules to reduce cold runs
-
+#--------------------------------------------#
+# we want to precompile all involved modules #
+#--------------------------------------------#
 if (isfile("snoop/precompile_Base.jl"))
     include("snoop/precompile_Base.jl")
     _precompile_()
