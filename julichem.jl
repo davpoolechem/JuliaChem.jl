@@ -26,7 +26,7 @@ function julia_main()
     @time do_coordinate_analysis(coord)
 
     #perform scf calculation
-    @time scf::Data = do_rhf(flags)
+    #@time scf::Data = do_rhf(flags)
 
     #we have run to completion! :)
     println("--------------------------------------------------------------------------------------")
