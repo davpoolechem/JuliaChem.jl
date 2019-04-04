@@ -1,4 +1,5 @@
-module RHFInterface
+__precompile__(false)
+module RHF
 
 using RHFSCF
 
@@ -14,7 +15,7 @@ Arguments
 ======
 dat = input data file object
 """
-function do_rhf(flags::Flags)
+function run(flags::Flags)
     println("--------------------------------------------------------------------------------------")
     println("                       ========================================          ")
     println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")

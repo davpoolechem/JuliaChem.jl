@@ -1,4 +1,4 @@
-module InputInterface
+module Input
 
 using Base.Threads
 using Distributed
@@ -17,7 +17,7 @@ Arguments
 ======
 file = name of input file to read in
 """
-function do_input()
+function run()
     #read in .inp and .dat files
     println("-------------------------------------------------------------------------------------")
     println("                       ========================================          ")

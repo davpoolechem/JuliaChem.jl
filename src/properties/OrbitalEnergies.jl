@@ -1,3 +1,4 @@
+__precompile__(false)
 module OrbitalEnergies
 
 using InputStructs

@@ -1,6 +1,8 @@
+__precompile__(false)
 module InputFunctions
 
-using Input
+using InputSetup
+
 using InputIntegrals
 using InputStructs
 
