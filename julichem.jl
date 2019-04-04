@@ -32,6 +32,7 @@ function julia_main_exe()
     println("                                 Authors: David Poole                          ")
     println(" ")
 
+    #script()
     script()
 
     #we have run to completion! :)

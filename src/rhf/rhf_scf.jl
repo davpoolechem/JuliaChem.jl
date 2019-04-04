@@ -76,6 +76,7 @@ function rhf_energy(FLAGS::Flags)
     end
 
     ortho::Array{Float64,2} = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
+    #ortho::Array{Float64,2} = S_evec*(LinearAlgebra.sqrt(LinearAlgebra.inv(S_eval)))*transpose(S_evec)
 
     #Step #5: Build the Initial (Guess) Density
     F::Array{Float64,2} = transpose(ortho)*H*ortho
@@ -438,7 +439,7 @@ function twoei_tasked(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float
     #K::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
 
     #Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
-    for μν_idx::Int64 in 1:ioff[norb]
+    @sync @async for μν_idx::Int64 in 1:ioff[norb]
         μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
         ν::Int64 = μν_idx%μ + 1
 

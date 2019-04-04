@@ -1,7 +1,7 @@
 #------------------------#
 # select input file here #
 #------------------------#
-input_file = "examples/sto3g-water.jl"
+input_file = "examples/ones.jl"
 
 Base.include(@__MODULE__,input_file)
 
