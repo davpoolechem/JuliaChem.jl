@@ -1,3 +1,4 @@
+module MATH
 #------------------------------#
 #            Math.jl           #
 #------------------------------#
@@ -19,6 +20,8 @@ array = array to be summed across
 function ∑(array::Array{Float64})
     return sum(array)
 end
+export ∑
+
 #=
 """
     Method #2 of ∑:
@@ -57,6 +60,7 @@ array_2 = second array in the dot product
 function ∑(array_1::Array{Float64,2},array_2::Array{Float64,2})
     return LinearAlgebra.dot(array_1,array_2)
 end
+export ∑
 
 #=
 """
@@ -81,4 +85,7 @@ function ∑(array_1::Array{Float64},array_2::Array{Float64},array_center::Array
     #array = (array .* array).^0.5
     #return reduce(+,array)
     return array
+end
+export ∑
+
 end

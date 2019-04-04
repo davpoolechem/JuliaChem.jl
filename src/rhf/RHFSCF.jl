@@ -1,13 +1,15 @@
-#includes and Cdule imports
-Base.include(@__MODULE__,"../input/input_functions.jl")
-Base.include(@__MODULE__,"../math/math.jl")
+module RHFSCF
 
-import LinearAlgebra
-import SparseArrays
+using InputFunctions
+using InputStructs
+using MATH
+
 import Base.Threads
+import Distributed
+import LinearAlgebra
 import LinearAlgebra.eigvecs
 import LinearAlgebra.eigvals
-import Distributed
+import SparseArrays
 
 #=
 """
@@ -30,6 +32,7 @@ mutable struct Data
     Coeff::Array{Float64,2}
     Energy::Float64
 end
+export Data
 
 #=
 """
@@ -159,6 +162,7 @@ function rhf_energy(FLAGS::Flags)
 
     return scf
 end
+export rhf_energy
 
 #=
 """
@@ -477,4 +481,6 @@ function twoei_tasked(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float
     #    F[i,j] = 2*J[i,j] - K[i,j][]
     #end
     return F
+end
+
 end

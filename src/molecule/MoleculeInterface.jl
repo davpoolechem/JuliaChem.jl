@@ -1,25 +1,29 @@
-Base.include(@__MODULE__,"orbital_energies.jl")
+module MoleculeInterface
 
+using MoleculeAnalysis
 """
-     properties(scf::Data,FLAGS::Flags)
+     do_coordinate_analysis(coord::Array{Float64,2})
 Summary
 ======
-Compute properties for RHF wave function.
+Execute the JuliChem molecular coordinate analysis algorithm.
 
 Arguments
 ======
-scf = Core HF data structures
+coord = molecular coordinates
 """
-function do_properties(scf::Data,flags::Flags)
+function do_coordinate_analysis(coord::Array{Float64,2})
     println("--------------------------------------------------------------------------------------")
     println("                       ========================================          ")
-    println("                                   SYSTEM PROPERTIES                     ")
+    println("                             MOLECULAR COORDINATE ANALYSIS               ")
     println("                       ========================================          ")
     println("")
 
-    orbital_energies(scf,flags)
+    coordinate_analysis(coord)
 
     println("                       ========================================          ")
-    println("                                 END SYSTEM PROPERTIES                   ")
+    println("                                END COORDINATE ANALYSIS                  ")
     println("                       ========================================          ")
+end
+export do_coordinate_analysis
+
 end

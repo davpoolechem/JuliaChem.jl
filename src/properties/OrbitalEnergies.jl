@@ -1,5 +1,8 @@
-Base.include(@__MODULE__,"../rhf/rhf_scf.jl")
-Base.include(@__MODULE__,"../math/math.jl")
+module OrbitalEnergies
+
+using InputStructs
+using MATH
+using RHFSCF
 
 function orbital_energies(scf::Data,FLAGS::Flags)
     norb = FLAGS.BASIS.NORB
@@ -20,4 +23,7 @@ function orbital_energies(scf::Data,FLAGS::Flags)
         println("   ",index,"       ",F_mo[index,index])
     end
     println(" ")
+end
+export orbital_energies
+
 end
