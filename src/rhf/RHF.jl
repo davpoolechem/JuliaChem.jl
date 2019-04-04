@@ -2,6 +2,7 @@ __precompile__(false)
 module RHF
 
 using RHFSCF
+using RHFStructs
 
 using InputStructs
 

@@ -4,7 +4,7 @@ module Properties
 using OrbitalEnergies
 
 using InputStructs
-using RHFSCF
+using RHFStructs
 
 """
      properties(scf::Data,FLAGS::Flags)

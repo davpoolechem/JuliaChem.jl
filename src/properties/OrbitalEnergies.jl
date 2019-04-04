@@ -3,7 +3,7 @@ module OrbitalEnergies
 
 using InputStructs
 using MATH
-using RHFSCF
+using RHFStructs
 
 function orbital_energies(scf::Data,FLAGS::Flags)
     norb = FLAGS.BASIS.NORB
