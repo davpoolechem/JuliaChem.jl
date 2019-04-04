@@ -1,4 +1,6 @@
-import Base.Threads
+module InputIntegrals
+
+using Base.Threads
 
 #------------------------------------#
 #            integrals.jl            #
@@ -31,6 +33,7 @@ function get_oei_matrix(oei::Array{Float64,2})
 
     return oei_matrix
 end
+export get_oei_matrix
 
 #=
 """
@@ -62,4 +65,7 @@ function get_tei_matrix(tei::Array{Float64,2})
     end
 
     return tei_array
+end
+export get_tei_matrix
+
 end

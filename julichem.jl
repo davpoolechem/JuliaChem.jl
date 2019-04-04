@@ -2,25 +2,12 @@ module JuliChem
 
 Base.include(@__MODULE__,"src/input/module_includes.jl")
 
-#----------------------------------------------------#
-# julia_main function for statically-compiled binary #
-#----------------------------------------------------#
+using Input
+
+#---------------------#
+# julia_main function #
+#---------------------#
 Base.@ccallable function julia_main()::Cint
-    julia_main_exe()
-    return 0
-end
-
-#--------------------------------------------#
-# julia_main function for dynamic julia runs #
-#--------------------------------------------#
-function julia_main()
-    julia_main_exe()
-end
-
-#-----------------------------------#
-# core julichem execution algorithm #
-#-----------------------------------#
-function julia_main_exe()
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")
@@ -32,7 +19,6 @@ function julia_main_exe()
     println("                                 Authors: David Poole                          ")
     println(" ")
 
-    #script()
     script()
 
     #we have run to completion! :)

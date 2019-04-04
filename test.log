@@ -1,0 +1,65 @@
+WARNING: eval from module __toplevel__ to Main:    
+Expr(:const, Symbol("##meta#110") = Base.IdDict{Any, Any}(ht=Array{Any, (32,)}[#<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>], count=0, ndel=0))
+  ** incremental compilation may be broken for this module **
+
+ERROR: LoadError: syntax: unexpected "end"
+Stacktrace:
+ [1] include at ./boot.jl:317 [inlined]
+ [2] include_relative(::Module, ::String) at ./loading.jl:1044
+ [3] include(::Module, ::String) at ./sysimg.jl:29
+ [4] top-level scope at none:2
+ [5] eval at ./boot.jl:319 [inlined]
+ [6] eval(::Expr) at ./client.jl:393
+ [7] top-level scope at ./none:3
+in expression starting at /Users/davpoole/Documents/Codes/julia/JuliChem/src/input/InputInterface.jl:44
+ERROR: LoadError: On worker 2:
+LoadError: Failed to precompile InputInterface [top-level] to /Users/davpoole/.julia/compiled/v1.0/InputInterface.ji.
+error at ./error.jl:33
+macro expansion at ./logging.jl:311 [inlined]
+compilecache at ./loading.jl:1190
+_require at ./logging.jl:309
+require at ./loading.jl:858
+macro expansion at ./logging.jl:309 [inlined]
+require at ./loading.jl:840
+include at ./boot.jl:317 [inlined]
+include_relative at ./loading.jl:1044
+include at ./sysimg.jl:29
+top-level scope at none:0
+eval at ./boot.jl:319
+#116 at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/process_messages.jl:276
+run_work_thunk at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/process_messages.jl:56
+run_work_thunk at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/process_messages.jl:65
+#102 at ./task.jl:259
+in expression starting at /Users/davpoole/Documents/Codes/julia/JuliChem/julichem.jl:6
+#remotecall_wait#154(::Base.Iterators.Pairs{Union{},Union{},Tuple{},NamedTuple{(),Tuple{}}}, ::Function, ::Function, ::Distributed.Worker, ::Module, ::Vararg{Any,N} where N) at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/remotecall.jl:421
+remotecall_wait(::Function, ::Distributed.Worker, ::Module, ::Vararg{Any,N} where N) at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/remotecall.jl:412
+#remotecall_wait#157(::Base.Iterators.Pairs{Union{},Union{},Tuple{},NamedTuple{(),Tuple{}}}, ::Function, ::Function, ::Int64, ::Module, ::Vararg{Any,N} where N) at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/remotecall.jl:433
+remotecall_wait(::Function, ::Int64, ::Module, ::Vararg{Any,N} where N) at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/remotecall.jl:433
+(::getfield(Distributed, Symbol("##163#165")){Module,Expr})() at ./task.jl:259
+
+...and 1 more exception(s).
+
+Stacktrace:
+ [1] sync_end(::Array{Any,1}) at ./task.jl:226
+ [2] remotecall_eval(::Module, ::Array{Int64,1}, ::Expr) at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/macros.jl:207
+ [3] top-level scope at /Users/osx/buildbot/slave/package_osx64/build/usr/share/julia/stdlib/v1.0/Distributed/src/macros.jl:190
+ [4] include at ./boot.jl:317 [inlined]
+ [5] include_relative(::Module, ::String) at ./loading.jl:1044
+ [6] include(::Module, ::String) at ./sysimg.jl:29
+ [7] exec_options(::Base.JLOptions) at ./client.jl:231
+ [8] _start() at ./client.jl:425
+in expression starting at /Users/davpoole/Documents/Codes/julia/JuliChem/julichem_shell.jl:2
+      From worker 2:	WARNING: eval from module __toplevel__ to Main:    
+      From worker 2:	Expr(:const, Symbol("##meta#110") = Base.IdDict{Any, Any}(ht=Array{Any, (32,)}[#<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>, #<null>], count=0, ndel=0))
+      From worker 2:	  ** incremental compilation may be broken for this module **
+      From worker 2:	
+      From worker 2:	ERROR: LoadError: syntax: unexpected "end"
+      From worker 2:	Stacktrace:
+      From worker 2:	 [1] include at ./boot.jl:317 [inlined]
+      From worker 2:	 [2] include_relative(::Module, ::String) at ./loading.jl:1044
+      From worker 2:	 [3] include(::Module, ::String) at ./sysimg.jl:29
+      From worker 2:	 [4] top-level scope at none:2
+      From worker 2:	 [5] eval at ./boot.jl:319 [inlined]
+      From worker 2:	 [6] eval(::Expr) at ./client.jl:393
+      From worker 2:	 [7] top-level scope at ./none:3
+      From worker 2:	in expression starting at /Users/davpoole/Documents/Codes/julia/JuliChem/src/input/InputInterface.jl:44

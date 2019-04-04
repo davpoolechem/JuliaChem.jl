@@ -1,8 +1,11 @@
-Base.include(@__MODULE__, "../../input.jl")
-Base.include(@__MODULE__, "input_functions.jl")
+module InputInterface
 
-import Base.Threads
-import Distributed
+using Base.Threads
+using Distributed
+
+#using Input
+using InputFunctions
+using InputStructs
 
 """
      do_input(file::String)
@@ -23,17 +26,20 @@ function do_input()
     println(" ")
 
     directory::String = pwd()
-    println("Input file: ", directory*"/"*input_file)
+    #println("Input file: ", directory*"/"*input_file)
     println(" ")
     println("Number of worker processes: ", Distributed.nworkers())
     println("Number of threads: ", Threads.nthreads())
     flags::Flags = input_flags()
 
-    coord::Array{Float64,2} = input_geometry()
+    coord::Array{Float64,2} = input_coord()
 
     println(" ")
     println("                       ========================================          ")
     println("                                       END INPUT                         ")
     println("                       ========================================          ")
     return (flags,coord)
+end
+export do_input
+
 end

@@ -1,3 +1,4 @@
+module InputStructs
 """
     Ctrl_Flags
 Summary
@@ -29,6 +30,7 @@ struct Basis_Flags
     NORB::Int64
     NOCC::Int64
 end
+export Basis_Flags
 
 #=
 """
@@ -49,6 +51,7 @@ struct HF_Flags
     DELE::Float64
     RMSD::Float64
 end
+export HF_Flags
 #=
 """
     Flags
@@ -68,4 +71,7 @@ struct Flags
 #    CTRL::Ctrl_Flags
     BASIS::Basis_Flags
     HF::HF_Flags
+end
+export Flags
+
 end
