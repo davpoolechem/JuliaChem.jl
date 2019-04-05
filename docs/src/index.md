@@ -1,8 +1,12 @@
-# Introduction
-
-Below is a list of the different modules that exist within JuliChem:  
+# Table of Contents
 ```@contents
 ```
+
+# Modules
+
+The different modules available for use in JuliChem can be seen in the
+Table of Contents above; clicking on a module will take you to its'
+documentation section.
 
 A given module Foo can be "executed" in the script by:
 1. Adding "using Foo" to the module list in InputScript.jl
@@ -13,7 +17,7 @@ create a more expansive computation within a single calculation. Different
 modules' run functions may require certain inputs and output certain outputs;
 these are discussed in the module's individual documentation sections.
 
-# Input
+## Input
 
 ```@meta
 CurrentModule = Input
@@ -23,7 +27,7 @@ CurrentModule = Input
 Input
 run()
 ```
-# Molecule
+## Molecule
 
 ```@meta
 CurrentModule = Molecule
@@ -34,7 +38,7 @@ Molecule
 run(coord::Array{Float64,2})
 ```
 
-# RHF
+## RHF
 
 ```@meta
 CurrentModule = RHF
@@ -45,7 +49,7 @@ RHF
 run(flags::Flags)
 ```
 
-# Properties
+## Properties
 
 ```@meta
 CurrentModule = Properties
@@ -55,3 +59,10 @@ CurrentModule = Properties
 Properties
 run(scf::Data,flags::Flags)
 ```
+
+# Flags
+
+The input file contains different flags that control various aspects of the
+calculation. These flags can be divided into certain subsections, which can
+be seen in the table of contents above. Clicking on a section will take
+you to that section's available flags.
