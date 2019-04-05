@@ -1,14 +1,11 @@
-__precompile__(false)
 module JuliChem
-
-Base.include(@__MODULE__,"src/input/ModuleIncludes.jl")
 
 using InputScript
 
 #---------------------#
 # julia_main function #
 #---------------------#
-Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
+function julia_main(ARGS::Vector{String})
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")

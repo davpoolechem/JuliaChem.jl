@@ -1,5 +1,5 @@
 import Distributed
-@everywhere Base.include(@__MODULE__,"julichem.jl")
+Base.include(@__MODULE__,"julichem.jl")
 
 function juliachem_shell(input_file::String)
     JuliChem.julia_main([input_file])

@@ -1,8 +1,7 @@
-__precompile__(false)
 module OrbitalEnergies
 
 using InputStructs
-using MATH
+#using MATH
 using RHFStructs
 
 function orbital_energies(scf::Data,FLAGS::Flags)

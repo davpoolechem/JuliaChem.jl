@@ -1,4 +1,3 @@
-__precompile__(false)
 module Input
 
 using Base.Threads
