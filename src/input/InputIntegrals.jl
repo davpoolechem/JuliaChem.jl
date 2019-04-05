@@ -19,7 +19,7 @@ oei = array of one-electron integrals to extract
 """
 =#
 function get_oei_matrix(oei::Array{Float64,2})
-    nbf::Int64 = 1
+    nbf::Int64 = 7
     nbf2::Int64 = nbf*(nbf+1)/2
 
     oei_matrix::Array{Float64,2} = zeros(nbf,nbf)
@@ -48,7 +48,7 @@ data = name of data file object to process
 """
 =#
 function get_tei_matrix(tei::Array{Float64,2})
-    nint::Int64 = 1
+    nint::Int64 = 228
 
     tei_array::Array{Float64,1} = zeros(2401)
     Threads.@threads for index::Int64 in 1:nint

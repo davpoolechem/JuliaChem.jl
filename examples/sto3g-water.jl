@@ -1,8 +1,4 @@
-Base.include(@__MODULE__,"../src/input/input_structs.jl")
-
-#------------------------------#
-#      Control input flags     #
-#------------------------------#
+using InputStructs
 
 #------------------------------#
 #      Control input flags     #
@@ -25,6 +21,7 @@ function input_basis_flags()
     BASIS::Basis_Flags = Basis_Flags(norb, nocc)
     return BASIS
 end
+export input_basis_flags
 
 function input_hf_flags()
     #Set flags
@@ -36,6 +33,7 @@ function input_hf_flags()
     HF::HF_Flags = HF_Flags(niter, dele, rmsd)
     return HF
 end
+export input_hf_flags
 
 #------------------------------#
 #    Control input geometry    #
@@ -49,6 +47,7 @@ function input_geometry()
 
     return geometry
 end
+export input_geometry
 
 #------------------------------#
 #   Control data input info    #
@@ -58,6 +57,7 @@ function input_enuc()
 
     return enuc
 end
+export input_enuc
 
 function input_ovr()
     ovr::Array{Float64,2} =
@@ -92,6 +92,7 @@ function input_ovr()
 
     return ovr
 end
+export input_ovr
 
 function input_kei()
     kei::Array{Float64,2} =
@@ -126,6 +127,7 @@ function input_kei()
 
     return kei
 end
+export input_kei
 
 function input_nai()
     nai::Array{Float64,2} =
@@ -160,6 +162,7 @@ function input_nai()
 
     return nai
 end
+export input_nai
 
 function input_tei()
     tei::Array{Float64,2} =
@@ -394,3 +397,4 @@ function input_tei()
 
     return tei
 end
+export input_tei
