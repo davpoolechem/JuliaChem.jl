@@ -1,3 +1,4 @@
+__precompile__(false)
 module JuliChem
 
 Base.include(@__MODULE__,"src/input/ModuleIncludes.jl")
@@ -7,7 +8,7 @@ using InputScript
 #---------------------#
 # julia_main function #
 #---------------------#
-Base.@ccallable function julia_main()::Cint
+Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")
@@ -19,6 +20,7 @@ Base.@ccallable function julia_main()::Cint
     println("                                 Authors: David Poole                          ")
     println(" ")
 
+    #generate_input_file(ARGS[1])
     script()
 
     #we have run to completion! :)
