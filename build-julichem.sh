@@ -4,11 +4,11 @@
 echo "----------------------------------------"
 echo "    PERFORMING SNOOPCOMPILE ANALYSIS    "
 echo "----------------------------------------"
-if [ -d snoop ]; then
-   rm -rf snoop
-   rm snoop.csv
+if [ -d src/core/snoop ]; then
+   rm -rf src/core/snoop
+   rm src/core/snoop.csv
 fi
-julia snoop.jl
+~/Local/Documents/Programs/julia-1.1.0/julia src/core/snoop.jl
 
 #do actual build
 echo ""
@@ -22,4 +22,4 @@ fi
 MODULE_OPT="--compile=all --sysimage-native-code=yes --compiled-modules=yes"
 CODE_OPT="-O3 --inline=yes --check-bounds=no --math-mode=fast"
 CC_COMP="--cc=gcc"
-julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Re $MODULE_OPT $CODE_OPT $CC_COMP julichem.jl julichem.c
+~/Local/Documents/Programs/julia-1.1.0/julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Re $MODULE_OPT $CODE_OPT $CC_COMP src/core/julichem.jl src/core/julichem.c
