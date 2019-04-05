@@ -11,3 +11,13 @@ CurrentModule = Input
 Input
 run()
 ```
+# Molecule
+
+```@meta
+CurrentModule = Molecule
+```
+
+```@docs
+Molecule
+run(coord::Array{Float64,2})
+```

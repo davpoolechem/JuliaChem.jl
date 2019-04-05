@@ -1,6 +1,7 @@
-using Documenter, Input
+using Documenter, Input, Molecule, RHF, Properties
 
 makedocs(
     sitename="JuliChem Documentation",
-    modules = [Input],
+    modules = [Input,
+               Molecule],
 )

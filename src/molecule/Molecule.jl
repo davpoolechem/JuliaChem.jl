@@ -1,21 +1,19 @@
 """
-     module Input
-The module required for reading in and processing the selected input file.
-Import this module into the script when you need to process an input file
-(which will be every single calculation).
+     module Molecule
+The module required for determination of molecular coordinate-based properties
+(such as bond lengths, bond angles, and dihedral angles). Import this module
+into the script when you wish to determine such information. Note that this
+module is not strictly necessary for every calculation.
 """
 module Molecule
 
 using MoleculeAnalysis
+
 """
      do_coordinate_analysis(coord::Array{Float64,2})
-Summary
-======
-Execute the JuliChem molecular coordinate analysis algorithm.
-
-Arguments
-======
-coord = molecular coordinates
+Execute the JuliChem molecular coordinate analysis functions.
+The core function from the Molecule module; put Molecule.run()
+into the script to perform a coordinate analysis of the molecule.
 """
 function run(coord::Array{Float64,2})
     println("--------------------------------------------------------------------------------------")
