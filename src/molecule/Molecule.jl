@@ -1,3 +1,9 @@
+"""
+     module Input
+The module required for reading in and processing the selected input file.
+Import this module into the script when you need to process an input file
+(which will be every single calculation).
+"""
 module Molecule
 
 using MoleculeAnalysis

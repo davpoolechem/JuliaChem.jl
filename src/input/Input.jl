@@ -1,3 +1,9 @@
+"""
+     module Input
+The module required for reading in and processing the selected input file.
+Import this module into the script when you need to process an input file
+(which will be every single calculation).
+"""
 module Input
 
 using Base.Threads
@@ -7,14 +13,10 @@ using InputFunctions
 using InputStructs
 
 """
-     do_input(file::String)
-Summary
-======
-Read in input file.
-
-Arguments
-======
-file = name of input file to read in
+     run(file::String)
+Performs operations necessary to read in, process, and extract data from the
+selected input file. The core function from the Input module; put Input.run()
+into the script to read in the input file.
 """
 function run()
     #read in .inp and .dat files
