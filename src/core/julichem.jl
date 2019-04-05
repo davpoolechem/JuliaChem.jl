@@ -5,7 +5,7 @@ using InputScript
 #---------------------#
 # julia_main function #
 #---------------------#
-function julia_main(ARGS::Vector{String})
+function julia_main()
     println("                       ========================================                ")
     println("                                 Welcome to JuliChem!                          ")
     println("                        JuliChem is a software package written                 ")
@@ -17,7 +17,6 @@ function julia_main(ARGS::Vector{String})
     println("                                 Authors: David Poole                          ")
     println(" ")
 
-    #generate_input_file(ARGS[1])
     script()
 
     #we have run to completion! :)

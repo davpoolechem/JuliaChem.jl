@@ -13,7 +13,7 @@ using Properties
 #-----------------------------#
 function script()
     #read in input file
-    @time flags, coord::Array{Float64,2} = Input.run()
+    @time flags, coord = Input.run()
 
     #analyze molecular coordinates
     @time Molecule.run(coord)
