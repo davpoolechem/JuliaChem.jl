@@ -10,7 +10,7 @@ module Molecule
 using MoleculeAnalysis
 
 """
-     do_coordinate_analysis(coord::Array{Float64,2})
+     run(coord::Array{Float64,2})
 Execute the JuliChem molecular coordinate analysis functions.
 The core function from the Molecule module; put Molecule.run()
 into the script to perform a coordinate analysis of the molecule.

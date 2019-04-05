@@ -21,3 +21,14 @@ CurrentModule = Molecule
 Molecule
 run(coord::Array{Float64,2})
 ```
+
+# Properties
+
+```@meta
+CurrentModule = Properties
+```
+
+```@docs
+Properties
+run(scf::Data,flags::Flags)
+```
