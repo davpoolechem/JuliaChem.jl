@@ -1,4 +1,3 @@
-module MATH
 #------------------------------#
 #            Math.jl           #
 #------------------------------#
@@ -85,7 +84,4 @@ function ∑(array_1::Array{Float64},array_2::Array{Float64},array_center::Array
     #array = (array .* array).^0.5
     #return reduce(+,array)
     return array
-end
-export ∑
-
 end

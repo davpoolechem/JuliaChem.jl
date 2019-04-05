@@ -1,10 +1,11 @@
 module RHFSCF
 
+Base.include(@__MODULE__,"../math/math.jl")
+
 using RHFStructs
 
 using InputFunctions
 using InputStructs
-#using MATH
 
 import Base.Threads
 import Distributed
