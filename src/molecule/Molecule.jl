@@ -14,6 +14,14 @@ using MoleculeAnalysis
 Execute the JuliChem molecular coordinate analysis functions.
 The core function from the Molecule module; put Molecule.run()
 into the script to perform a coordinate analysis of the molecule.
+
+One input variable is required:
+1. coord = The molecular coordinates.
+
+No variables are output.
+
+Thus, proper use of the Molecule.run() would look like this:
+>Molecule.run(coord)
 """
 function run(coord::Array{Float64,2})
     println("--------------------------------------------------------------------------------------")

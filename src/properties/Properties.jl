@@ -18,6 +18,15 @@ Compute the dipole moment, Mulliken charges, and orbital energies of the
 system in question. The core function from the Properties module;
 put Properties.run() into the script to compute aforementioned molecular
 properties.
+
+Two input variables are required:
+1. scf = Data saved from the SCF calculation.
+2. flags = The calculation flags from the input file.
+
+No variables are output.
+
+Thus, proper use of the Molecule.run() would look like this:
+>Properties.run(scf, flags)
 """
 function run(scf::Data,flags::Flags)
     println("--------------------------------------------------------------------------------------")

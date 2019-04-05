@@ -13,10 +13,19 @@ using InputFunctions
 using InputStructs
 
 """
-     run(file::String)
+     run()
 Performs operations necessary to read in, process, and extract data from the
 selected input file. The core function from the Input module; put Input.run()
 into the script to read in the input file.
+
+No input variables are required.
+
+Two variables are output:
+1. flags = The calculation flags from the input file.
+2. coord = The molecular coordinates.
+
+Thus, proper use of the Input.run() would look like this:
+>flags, coord = Input.run()
 """
 function run()
     #read in .inp and .dat files
