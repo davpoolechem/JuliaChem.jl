@@ -1,3 +1,10 @@
+"""
+     module Properties
+The module required for computation of the wave function using the *Restricted
+Hartree-Fock* (RHF) method in a Self-Consistent Field (SCF) calculation. This
+module will be used often, as the RHF wave function is often the zeroth-order
+wave function for closed-shell systems.
+"""
 module RHF
 
 using RHFSCF
@@ -6,14 +13,18 @@ using RHFStructs
 using InputStructs
 
 """
-    do_rhf(dat::Array{String,1})
-Summary
-======
+    run(flags::Flags)
+
 Execute the JuliChem RHF algorithm.
 
-Arguments
-======
-dat = input data file object
+One input variable is required:
+1. flags = The calculation flags from the input file.
+
+One variable is output:
+1. scf = Data saved from the SCF calculation.
+
+Thus, proper use of the RHF.run() function would look like this:
+>scf = RHF.run(flags)
 """
 function run(flags::Flags)
     println("--------------------------------------------------------------------------------------")

@@ -4,5 +4,6 @@ makedocs(
     sitename="JuliChem Documentation",
     modules = [Input,
                Molecule,
+               RHF,
                Properties],
 )

@@ -15,9 +15,7 @@ using RHFStructs
 """
      run(scf::Data,flags::Flags)
 Compute the dipole moment, Mulliken charges, and orbital energies of the
-system in question. The core function from the Properties module;
-put Properties.run() into the script to compute aforementioned molecular
-properties.
+system in question.
 
 Two input variables are required:
 1. scf = Data saved from the SCF calculation.
@@ -25,7 +23,7 @@ Two input variables are required:
 
 No variables are output.
 
-Thus, proper use of the Molecule.run() would look like this:
+Thus, proper use of the Properties.run() function would look like this:
 >Properties.run(scf, flags)
 """
 function run(scf::Data,flags::Flags)

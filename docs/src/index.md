@@ -34,6 +34,17 @@ Molecule
 run(coord::Array{Float64,2})
 ```
 
+# RHF
+
+```@meta
+CurrentModule = RHF
+```
+
+```@docs
+RHF
+run(flags::Flags)
+```
+
 # Properties
 
 ```@meta
