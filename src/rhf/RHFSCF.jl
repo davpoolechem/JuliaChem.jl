@@ -91,7 +91,7 @@ function rhf_energy(FLAGS::Flags)
         #nd
 
         #thread-based shared-memory algorithm
-        #F = twoei_threaded(F, D, tei, H, FLAGS)
+        F = twoei_threaded(F, D, tei, H, FLAGS)
 
         #multilevel parallel algorithm
         #F = deepcopy(H)
@@ -101,7 +101,7 @@ function rhf_energy(FLAGS::Flags)
         #end
 
         #task-based algorithm
-        F = twoei_tasked(F, D, tei, H, FLAGS)
+        #F = twoei_tasked(F, D, tei, H, FLAGS)
 
         #println("Initial Fock matrix:")
         #display(F)
@@ -290,8 +290,8 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
     #K::Array{Float64,2} = zeros(norb,norb)
     K::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
 
-    Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
     #for μν_idx::Int64 in 1:ioff[norb]
+    Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
         μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
         ν::Int64 = μν_idx%μ + 1
 
