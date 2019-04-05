@@ -2,7 +2,7 @@ module JuliChem
 
 Base.include(@__MODULE__,"src/input/ModuleIncludes.jl")
 
-using InputSetup
+using InputScript
 
 #---------------------#
 # julia_main function #

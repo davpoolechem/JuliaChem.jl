@@ -1,20 +1,12 @@
-__precompile__(false)
-module InputSetup
-
-#------------------------#
-# select input file here #
-#------------------------#
-input_file = "examples/ones.jl"
-
-Base.include(@__MODULE__,input_file)
+module InputScript
 
 #-------------------------#
 # put needed modules here #
 #-------------------------#
 using Input
-using Molecule
-using RHF
-using Properties
+#using Molecule
+#using RHF
+#using Properties
 
 #-----------------------------#
 # build execution script here #
@@ -24,13 +16,13 @@ function script()
     @time flags, coord::Array{Float64,2} = Input.run()
 
     #analyze molecular coordinates
-    @time Molecule.run(coord)
+#    @time Molecule.run(coord)
 
     #perform scf calculation
-    @time scf = RHF.run(flags)
+#    @time scf = RHF.run(flags)
 
     #determine wavefunction properties
-    @time Properties.run(scf,flags)
+#    @time Properties.run(scf,flags)
 end
 export script
 

@@ -3,7 +3,6 @@ module Input
 using Base.Threads
 using Distributed
 
-#using Input
 using InputFunctions
 using InputStructs
 
