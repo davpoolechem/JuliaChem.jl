@@ -5,8 +5,8 @@ module InputScript
 #-------------------------#
 using Input
 using Molecule
-#using RHF
-#using Properties
+using RHF
+using Properties
 
 #-----------------------------#
 # build execution script here #
@@ -19,10 +19,10 @@ function script()
     @time Molecule.run(coord)
 
     #perform scf calculation
-#    @time scf = RHF.run(flags)
+    @time scf = RHF.run(flags)
 
     #determine wavefunction properties
-#    @time Properties.run(scf,flags)
+    @time Properties.run(scf,flags)
 end
 export script
 
