@@ -1,3 +1,9 @@
+"""
+     module Input
+The module required for reading in and processing the selected input file.
+Import this module into the script when you need to process an input file
+(which will be every single calculation).
+"""
 module Input
 
 using Base.Threads
@@ -7,14 +13,18 @@ using InputFunctions
 using InputStructs
 
 """
-     do_input(file::String)
-Summary
-======
-Read in input file.
+     run()
+Perform the operations necessary to read in, process, and extract data from the
+selected input file.
 
-Arguments
-======
-file = name of input file to read in
+No input variables are required.
+
+Two variables are output:
+1. flags = The calculation flags from the input file.
+2. coord = The molecular coordinates.
+
+Thus, proper use of the Input.run() function would look like this:
+>flags, coord = Input.run()
 """
 function run()
     #read in .inp and .dat files
