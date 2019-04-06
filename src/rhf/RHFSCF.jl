@@ -89,15 +89,20 @@ function rhf_energy(FLAGS::Flags)
     while(!converged)
 
         #Step #7: Compute the New Fock Matrix
-        #worker-based distributed-memory algorithm
-        #F = deepcopy(H)
-        #for μν::Int64 in 1:((norb*(norb+1))/2)
-        #    F_task = Distributed.@spawnat (μν%Distributed.nworkers() + 1) twoei_distributed(F, D, tei, H, FLAGS, μν)
-        #    F += fetch(F_task)
-        #nd
+        #MPI-based replicated-memory parallel algorithm
+        F_local = deepcopy(H)
+        for μν::Int64 in 1:((norb*(norb+1))/2)
+            if(μν%(MPI.Comm_rank(comm)+1) == 0)
+                F_local += twoei_distributed(F, D, tei, H, FLAGS, μν)
+            end
+        end
 
-        #thread-based shared-memory algorithm
-        F = twoei_threaded(F, D, tei, H, FLAGS)
+        MPI.Barrier(comm)
+        F = MPI.Allreduce(F_local,MPI.SUM,comm)
+        MPI.Barrier(comm)
+
+        #thread-based shared-memory parallel algorithm
+        #F = twoei_threaded(F, D, tei, H, FLAGS)
 
         #multilevel parallel algorithm
         #F = deepcopy(H)
