@@ -1,5 +1,7 @@
 module RHF
 
+import MPI
+
 using RHFSCF
 using RHFStructs
 
@@ -16,21 +18,27 @@ Arguments
 dat = input data file object
 """
 function run(flags::Flags)
-    println("--------------------------------------------------------------------------------------")
-    println("                       ========================================          ")
-    println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
-    println("                       ========================================          ")
-    println("")
+    comm=MPI.COMM_WORLD
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("--------------------------------------------------------------------------------------")
+        println("                       ========================================          ")
+        println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
+        println("                       ========================================          ")
+        println("")
+    end
 
     #GC.enable(false)
     scf::Data = rhf_energy(flags)
     #GC.enable(true)
     #GC.gc()
 
-    println("                       ========================================          ")
-    println("                             END RESTRICTED CLOSED-SHELL                 ")
-    println("                                     HARTREE-FOCK                        ")
-    println("                       ========================================          ")
+    if (MPI.Comm_rank(comm) == 0)
+        println("                       ========================================          ")
+        println("                             END RESTRICTED CLOSED-SHELL                 ")
+        println("                                     HARTREE-FOCK                        ")
+        println("                       ========================================          ")
+    end
 
     return scf
 end
