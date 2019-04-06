@@ -1,11 +1,11 @@
 module RHF
 
-import MPI
-
 using RHFSCF
 using RHFStructs
 
 using InputStructs
+
+import MPI
 
 """
     do_rhf(dat::Array{String,1})

@@ -1,11 +1,11 @@
 module Input
 
+using InputFunctions
+using InputStructs
+
 import MPI
 using Base.Threads
 using Distributed
-
-using InputFunctions
-using InputStructs
 
 """
      do_input(file::String)

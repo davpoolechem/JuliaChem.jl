@@ -1,10 +1,11 @@
 module OrbitalEnergies
 
 Base.include(@__MODULE__,"../math/math.jl")
-import MPI
 
 using InputStructs
 using RHFStructs
+
+import MPI
 
 function orbital_energies(scf::Data,FLAGS::Flags)
     norb = FLAGS.BASIS.NORB

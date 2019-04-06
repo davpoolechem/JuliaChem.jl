@@ -1,8 +1,8 @@
 module Molecule
 
-import MPI
-
 using MoleculeAnalysis
+
+import MPI
 """
      do_coordinate_analysis(coord::Array{Float64,2})
 Summary
