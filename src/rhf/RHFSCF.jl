@@ -286,9 +286,8 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = deepcopy(H)
-    J::Array{Float64,2} = zeros(norb,norb)
+    #J::Array{Float64,2} = zeros(norb,norb)
     #K::Array{Float64,2} = zeros(norb,norb)
-    K::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
 
     #for μν_idx::Int64 in 1:ioff[norb]
     Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
@@ -297,6 +296,8 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
 
         μν::Int64 = index(μ,ν,ioff)
 
+        #K_priv::Array{Float64,2} = zeros(norb,norb)
+        F_priv::Array{Float64,2} = zeros(norb,norb)
         for λσ_idx::Int64 in 1:ioff[norb]
             λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
             σ::Int64 = λσ_idx%λ + 1
@@ -310,25 +311,27 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
 
             if (eri <= 1E-10) continue end
 
-            J[λ,σ] += 2.0 * D[μ,ν] * eri
-            J[σ,λ] += 2.0 * D[μ,ν] * eri
+            F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+            F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
 
-            #K[μ,λ] += D[ν,σ] * eri
-            #K[μ,σ] += D[ν,λ] * eri
-            #K[ν,λ] += D[μ,σ] * eri
-            #K[ν,σ] += D[μ,λ] * eri
+            F_priv[μ,λ] -= D[ν,σ] * eri
+            F_priv[μ,σ] -= D[ν,λ] * eri
+            F_priv[ν,λ] -= D[μ,σ] * eri
+            F_priv[ν,σ] -= D[μ,λ] * eri
 
-            Threads.atomic_add!(K[μ,λ], D[ν,σ] * eri)
-            Threads.atomic_add!(K[μ,σ], D[ν,λ] * eri)
-            Threads.atomic_add!(K[ν,λ], D[μ,σ] * eri)
-            Threads.atomic_add!(K[ν,σ], D[μ,λ] * eri)
+            #Threads.atomic_add!(K[μ,λ], D[ν,σ] * eri)
+            #Threads.atomic_add!(K[μ,σ], D[ν,λ] * eri)
+            #hreads.atomic_add!(K[ν,λ], D[μ,σ] * eri)
+            #Threads.atomic_add!(K[ν,σ], D[μ,λ] * eri)
         end
+
+        F += F_priv
     end
 
     #F += 2*J - K
-    for i in 1:norb, j in 1:norb
-        F[i,j] = 2*J[i,j] - K[i,j][]
-    end
+    #for i in 1:norb, j in 1:norb
+    #    F[i,j] = 2*J[i,j] - K[i,j][]
+    #end
     return F
 end
 
