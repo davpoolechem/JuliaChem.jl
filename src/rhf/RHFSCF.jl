@@ -7,6 +7,7 @@ using RHFStructs
 using InputFunctions
 using InputStructs
 
+import MPI
 import Base.Threads
 import Distributed
 import LinearAlgebra
@@ -29,6 +30,7 @@ dat = Input data file object
 function rhf_energy(FLAGS::Flags)
     norb::Int64 = FLAGS.BASIS.NORB
     scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
+    comm=MPI.COMM_WORLD
 
     #Step #1: Nuclear Repulsion Energy
     E_nuc::Float64 = read_in_enuc()
@@ -66,16 +68,20 @@ function rhf_energy(FLAGS::Flags)
     D::Array{Float64,2} = zeros(norb,norb)
     C::Array{Float64,2} = zeros(norb,norb)
 
-    println("----------------------------------------          ")
-    println("       Starting RHF iterations...                 ")
-    println("----------------------------------------          ")
-    println(" ")
-    println("Iter      Energy                   ΔE                   Drms")
+    if (MPI.Comm_rank(comm) == 0)
+        println("----------------------------------------          ")
+        println("       Starting RHF iterations...                 ")
+        println("----------------------------------------          ")
+        println(" ")
+        println("Iter      Energy                   ΔE                   Drms")
+    end
 
     F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
     E::Float64 = E_elec + E_nuc
 
-    println(0,"     ", E)
+    if (MPI.Comm_rank(comm) == 0)
+        println(0,"     ", E)
+    end
 
     #start scf cycles: #7-10
     converged::Bool = false
@@ -83,15 +89,22 @@ function rhf_energy(FLAGS::Flags)
     while(!converged)
 
         #Step #7: Compute the New Fock Matrix
-        #worker-based distributed-memory algorithm
-        #F = deepcopy(H)
-        #for μν::Int64 in 1:((norb*(norb+1))/2)
-        #    F_task = Distributed.@spawnat (μν%Distributed.nworkers() + 1) twoei_distributed(F, D, tei, H, FLAGS, μν)
-        #    F += fetch(F_task)
-        #nd
+        #MPI-based replicated-memory parallel algorithm
+        F_local = zeros(norb,norb)
+        for μν::Int64 in 1:((norb*(norb+1))/2)
+            if(MPI.Comm_rank(comm) == μν%MPI.Comm_size(comm))
+                F_local += twoei_distributed(F, D, tei, H, FLAGS, μν)
+            end
+        end
+        MPI.Barrier(comm)
 
-        #thread-based shared-memory algorithm
-        F = twoei_threaded(F, D, tei, H, FLAGS)
+        F = MPI.Allreduce(F_local,MPI.SUM,comm)
+        MPI.Barrier(comm)
+
+        F += deepcopy(H)
+
+        #thread-based shared-memory parallel algorithm
+        #F = twoei_threaded(F, D, tei, H, FLAGS)
 
         #multilevel parallel algorithm
         #F = deepcopy(H)
@@ -121,19 +134,23 @@ function rhf_energy(FLAGS::Flags)
         ΔD::Array{Float64,2} = D - D_old
         D_rms::Float64 = √(∑(ΔD,ΔD))
 
-        println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+        if (MPI.Comm_rank(comm) == 0)
+            println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+        end
 
         converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
         iter += 1
         if (iter > FLAGS.HF.NITER) break end
     end
 
-    println(" ")
-    println("----------------------------------------")
-    println("   The SCF calculation has converged!   ")
-    println("----------------------------------------")
-    println("Total SCF Energy: ",E," h")
-    println(" ")
+    if (MPI.Comm_rank(comm) == 0)
+        println(" ")
+        println("----------------------------------------")
+        println("   The SCF calculation has converged!   ")
+        println("----------------------------------------")
+        println("Total SCF Energy: ",E," h")
+        println(" ")
+    end
 
     scf.Fock = F
     scf.Density = D
@@ -228,8 +245,6 @@ function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
-    J::Array{Float64,2} = zeros(norb,norb)
-    K::Array{Float64,2} = zeros(norb,norb)
 
     μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
     ν::Int64 = μν_idx%μ + 1
@@ -248,16 +263,14 @@ function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{
 
         if (eri <= 1E-10) continue end
 
-        J[λ,σ] += 2.0 * D[μ,ν] * eri
-        J[σ,λ] += 2.0 * D[μ,ν] * eri
-
-        K[μ,λ] += D[ν,σ] * eri
-        K[μ,σ] += D[ν,λ] * eri
-        K[ν,λ] += D[μ,σ] * eri
-        K[ν,σ] += D[μ,λ] * eri
+        F[λ,σ] += 4.0 * D[μ,ν] * eri
+        F[σ,λ] += 4.0 * D[μ,ν] * eri
+        F[μ,λ] -= D[ν,σ] * eri
+        F[μ,σ] -= D[ν,λ] * eri
+        F[ν,λ] -= D[μ,σ] * eri
+        F[ν,σ] -= D[μ,λ] * eri
     end
 
-    F = 2*J - K
     return F
 end
 #=

@@ -1,5 +1,6 @@
 module MoleculeAnalysis
 
+import MPI
 import Base.Threads
 import LinearAlgebra
 
@@ -16,6 +17,7 @@ coord = molecular coordinates
 function analyze_bond_lengths(coord::Array{Float64,2})
     #determine some pre-information
     natoms::Int64 = size(coord)[1]
+    comm=MPI.COMM_WORLD
 
     #calculate bond lengths
     bond_lengths::Array{Float64,2} = zeros(natoms,natoms)
@@ -31,17 +33,23 @@ function analyze_bond_lengths(coord::Array{Float64,2})
     end
 
     #print bond lengths
-    println("----------------------------------------          ")
-    println("        Printing bond lengths...                  ")
-    println("----------------------------------------          ")
-    println(" ")
-    println("Atom #1   Atom #2     Bond length")
+    if (MPI.Comm_rank(comm) == 0)
+        println("----------------------------------------          ")
+        println("        Printing bond lengths...                  ")
+        println("----------------------------------------          ")
+        println(" ")
+        println("Atom #1   Atom #2     Bond length")
+    end
     for iatom in 1:natoms, jatom in 1:natoms
         if (iatom > jatom)
-            println("   ",iatom,"         ",jatom,"     ",bond_lengths[iatom,jatom])
+            if (MPI.Comm_rank(comm) == 0)
+                println("   ",iatom,"         ",jatom,"     ",bond_lengths[iatom,jatom])
+            end
         end
     end
-    println(" ")
+    if (MPI.Comm_rank(comm) == 0)
+        println(" ")
+    end
 
     return bond_lengths
 end
@@ -59,6 +67,7 @@ coord = molecular coordinates
 function analyze_bond_angles(coord::Array{Float64,2}, bond_lengths::Array{Float64,2})
     #determine some pre-information
     natoms::Int64 = size(coord)[1]
+    comm=MPI.COMM_WORLD
 
     #calculate bond angles
     bond_angles::Array{Float64,3} = zeros(natoms,natoms,natoms)
@@ -87,19 +96,25 @@ function analyze_bond_angles(coord::Array{Float64,2}, bond_lengths::Array{Float6
     end
 
     #print bond angles
-    println("----------------------------------------          ")
-    println("         Printing bond angles...                  ")
-    println("----------------------------------------          ")
-    println(" ")
-    println("Atom #1   Atom #2   Atom #3     Bond angle")
+    if (MPI.Comm_rank(comm) == 0)
+        println("----------------------------------------          ")
+        println("         Printing bond angles...                  ")
+        println("----------------------------------------          ")
+        println(" ")
+        println("Atom #1   Atom #2   Atom #3     Bond angle")
+    end
     for iatom in 1:natoms, jatom in 1:natoms, katom in 1:natoms
         if (iatom > jatom && jatom > katom)
             if (bond_lengths[iatom,jatom] < 4.0 && bond_lengths[jatom,katom] < 4.0)
-                println("   ",iatom,"         ",jatom,"         ",katom,"     ",bond_angles[iatom,jatom,katom])
+                if (MPI.Comm_rank(comm) == 0)
+                    println("   ",iatom,"         ",jatom,"         ",katom,"     ",bond_angles[iatom,jatom,katom])
+                end
             end
         end
     end
-    println(" ")
+    if (MPI.Comm_rank(comm) == 0)
+        println(" ")
+    end
 
     return bond_lengths
 end
