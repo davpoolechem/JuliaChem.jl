@@ -1,4 +1,11 @@
+"""
+    module InputStructs
+The input file contains different flags that control various aspects of the
+calculation. These flags can be divided into certain subsections. This module
+contains these different sections of flags for use in the code.
+"""
 module InputStructs
+#=
 """
     Ctrl_Flags
 Summary
@@ -9,43 +16,38 @@ Flags
 ======
 1. RUNTYP::String = Determines calculation type (no default setting)
 """
+=#
 #struct Ctrl_Flags
 #    RUNTYP::String
 #end
 
-#=
 """
-    Basis_Flags
-Summary
-======
-Flags setting basis set information
+    struct Basis_Flags
+Flags which control infomation about basis set information and orbital
+occupancy. These flags should be set in the input_basis_flags() function
+in the input file.
 
-Flags
-======
-1. NORB = Number of orbitals overall (no default value)
-2. NOCC = Number of occupied orbitals (no default value)
+The flags are as follows:
+1. NORB = Number of orbitals in the system overall (no default value)
+2. NOCC = Number of doubly occupied orbitals (no default value)
 """
-=#
 struct Basis_Flags
     NORB::Int64
     NOCC::Int64
 end
 export Basis_Flags
 
-#=
 """
     HF_Flags
-Summary
-======
-Flags relevant to a Hartree-Fock calculation
 
-Flags
-======
+Flags which control the minutiae of a Hartree-Fock calculation. These flags
+should be set in the input_hf_flags() function in the input file.
+
+The flags are as follows:
 1. NITER = Maximum number of SCF iterations (default = 50)
 2. DELE = Change-in-energy convergence threshold (default = 1E-8)
 3. RMSD = Change-in-root-mean-square-density convergence threshold (default = 1E-6)
 """
-=#
 struct HF_Flags
     NITER::Int64
     DELE::Float64

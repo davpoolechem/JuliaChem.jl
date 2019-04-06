@@ -1,4 +1,4 @@
-using Documenter, Input, Molecule, RHF, Properties
+using Documenter, Input, Molecule, RHF, Properties, InputStructs
 using DocumenterLaTeX
 
 makedocs(
@@ -7,6 +7,7 @@ makedocs(
     modules = [Input,
                Molecule,
                RHF,
-               Properties],
+               Properties,
+               InputStructs],
     #format = LaTeX()
 )
