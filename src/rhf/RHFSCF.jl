@@ -90,16 +90,18 @@ function rhf_energy(FLAGS::Flags)
 
         #Step #7: Compute the New Fock Matrix
         #MPI-based replicated-memory parallel algorithm
-        F_local = deepcopy(H)
+        F_local = zeros(norb,norb)
         for μν::Int64 in 1:((norb*(norb+1))/2)
-            if(μν%(MPI.Comm_rank(comm)+1) == 0)
+            if(MPI.Comm_rank(comm) == μν%MPI.Comm_size(comm))
                 F_local += twoei_distributed(F, D, tei, H, FLAGS, μν)
             end
         end
-
         MPI.Barrier(comm)
+
         F = MPI.Allreduce(F_local,MPI.SUM,comm)
         MPI.Barrier(comm)
+
+        F += deepcopy(H)
 
         #thread-based shared-memory parallel algorithm
         #F = twoei_threaded(F, D, tei, H, FLAGS)
@@ -243,8 +245,6 @@ function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
-    J::Array{Float64,2} = zeros(norb,norb)
-    K::Array{Float64,2} = zeros(norb,norb)
 
     μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
     ν::Int64 = μν_idx%μ + 1
@@ -263,16 +263,14 @@ function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{
 
         if (eri <= 1E-10) continue end
 
-        J[λ,σ] += 2.0 * D[μ,ν] * eri
-        J[σ,λ] += 2.0 * D[μ,ν] * eri
-
-        K[μ,λ] += D[ν,σ] * eri
-        K[μ,σ] += D[ν,λ] * eri
-        K[ν,λ] += D[μ,σ] * eri
-        K[ν,σ] += D[μ,λ] * eri
+        F[λ,σ] += 4.0 * D[μ,ν] * eri
+        F[σ,λ] += 4.0 * D[μ,ν] * eri
+        F[μ,λ] -= D[ν,σ] * eri
+        F[μ,σ] -= D[ν,λ] * eri
+        F[ν,λ] -= D[μ,σ] * eri
+        F[ν,σ] -= D[μ,λ] * eri
     end
 
-    F = 2*J - K
     return F
 end
 #=
