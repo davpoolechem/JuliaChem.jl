@@ -1,8 +1,8 @@
 import Distributed
 Base.include(@__MODULE__,"julichem.jl")
 
-function juliachem_shell(input_file::String)
-    JuliChem.julia_main([input_file])
+function juliachem_shell()
+    JuliChem.julia_main()
 end
 
-juliachem_shell(ARGS[1])
+juliachem_shell()

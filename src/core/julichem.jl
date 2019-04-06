@@ -17,7 +17,6 @@ function julia_main(ARGS::Vector{String})
     println("                                 Authors: David Poole                          ")
     println(" ")
 
-    #generate_input_file(ARGS[1])
     script()
 
     #we have run to completion! :)
