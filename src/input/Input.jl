@@ -6,11 +6,12 @@ Import this module into the script when you need to process an input file
 """
 module Input
 
-using Base.Threads
-using Distributed
-
 using InputFunctions
 using InputStructs
+
+import MPI
+using Base.Threads
+using Distributed
 
 """
      run()
@@ -28,25 +29,35 @@ Thus, proper use of the Input.run() function would look like this:
 """
 function run()
     #read in .inp and .dat files
-    println("-------------------------------------------------------------------------------------")
-    println("                       ========================================          ")
-    println("                                READING INPUT DATA FILE                  ")
-    println("                       ========================================          ")
-    println(" ")
+    comm=MPI.COMM_WORLD
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("-------------------------------------------------------------------------------------")
+        println("                       ========================================          ")
+        println("                                READING INPUT DATA FILE                  ")
+        println("                       ========================================          ")
+        println(" ")
+    end
 
     directory::String = pwd()
     #println("Input file: ", directory*"/"*input_file)
-    println(" ")
-    println("Number of worker processes: ", Distributed.nworkers())
-    println("Number of threads: ", Threads.nthreads())
+    if (MPI.Comm_rank(comm) == 0)
+        println(" ")
+        println("Number of worker processes: ", MPI.Comm_size(comm))
+        println("Number of threads per process: ", Threads.nthreads())
+        println("Number of threads in total: ", MPI.Comm_size(comm)*Threads.nthreads())
+    end
+
     flags::Flags = input_flags()
 
     coord::Array{Float64,2} = input_coord()
+    if (MPI.Comm_rank(comm) == 0)
+        println(" ")
+        println("                       ========================================          ")
+        println("                                       END INPUT                         ")
+        println("                       ========================================          ")
+    end
 
-    println(" ")
-    println("                       ========================================          ")
-    println("                                       END INPUT                         ")
-    println("                       ========================================          ")
     return (flags,coord)
 end
 export do_input

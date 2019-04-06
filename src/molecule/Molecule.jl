@@ -9,6 +9,7 @@ module Molecule
 
 using MoleculeAnalysis
 
+import MPI
 """
      run(coord::Array{Float64,2})
 Execute the JuliChem molecular coordinate analysis functions.
@@ -22,17 +23,23 @@ Thus, proper use of the Molecule.run() function would look like this:
 >Molecule.run(coord)
 """
 function run(coord::Array{Float64,2})
-    println("--------------------------------------------------------------------------------------")
-    println("                       ========================================          ")
-    println("                             MOLECULAR COORDINATE ANALYSIS               ")
-    println("                       ========================================          ")
-    println("")
+    comm=MPI.COMM_WORLD
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("--------------------------------------------------------------------------------------")
+        println("                       ========================================          ")
+        println("                             MOLECULAR COORDINATE ANALYSIS               ")
+        println("                       ========================================          ")
+        println("")
+    end
 
     coordinate_analysis(coord)
 
-    println("                       ========================================          ")
-    println("                                END COORDINATE ANALYSIS                  ")
-    println("                       ========================================          ")
+    if (MPI.Comm_rank(comm) == 0)
+        println("                       ========================================          ")
+        println("                                END COORDINATE ANALYSIS                  ")
+        println("                       ========================================          ")
+    end
 end
 export do_coordinate_analysis
 

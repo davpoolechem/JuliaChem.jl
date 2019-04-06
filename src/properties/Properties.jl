@@ -12,6 +12,8 @@ using OrbitalEnergies
 using InputStructs
 using RHFStructs
 
+import MPI
+
 """
      run(scf::Data,flags::Flags)
 Compute the dipole moment, Mulliken charges, and orbital energies of the
@@ -27,17 +29,23 @@ Thus, proper use of the Properties.run() function would look like this:
 >Properties.run(scf, flags)
 """
 function run(scf::Data,flags::Flags)
-    println("--------------------------------------------------------------------------------------")
-    println("                       ========================================          ")
-    println("                                   SYSTEM PROPERTIES                     ")
-    println("                       ========================================          ")
-    println("")
+    comm=MPI.COMM_WORLD
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("--------------------------------------------------------------------------------------")
+        println("                       ========================================          ")
+        println("                                   SYSTEM PROPERTIES                     ")
+        println("                       ========================================          ")
+        println("")
+    end
 
     orbital_energies(scf,flags)
 
-    println("                       ========================================          ")
-    println("                                 END SYSTEM PROPERTIES                   ")
-    println("                       ========================================          ")
+    if (MPI.Comm_rank(comm) == 0)
+        println("                       ========================================          ")
+        println("                                 END SYSTEM PROPERTIES                   ")
+        println("                       ========================================          ")
+    end
 end
 export do_properties
 

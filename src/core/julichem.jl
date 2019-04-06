@@ -1,31 +1,39 @@
 module JuliChem
 
+import MPI
 using InputScript
 
 #---------------------#
 # julia_main function #
 #---------------------#
 function julia_main()
-    println("                       ========================================                ")
-    println("                                 Welcome to JuliChem!                          ")
-    println("                        JuliChem is a software package written                 ")
-    println("                          in Julia for the purpose of quantum                  ")
-    println("                                 chemical calculations.                        ")
-    println("                             Let's get this party started!                     ")
-    println("                       ========================================                ")
-    println(" ")
-    println("                                 Authors: David Poole                          ")
-    println(" ")
+    comm=MPI.COMM_WORLD
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("                       ========================================                ")
+        println("                                 Welcome to JuliChem!                          ")
+        println("                        JuliChem is a software package written                 ")
+        println("                          in Julia for the purpose of quantum                  ")
+        println("                                 chemical calculations.                        ")
+        println("                             Let's get this party started!                     ")
+        println("                       ========================================                ")
+        println(" ")
+        println("                                 Authors: David Poole                          ")
+        println(" ")
+    end
 
     script()
 
     #we have run to completion! :)
-    println("--------------------------------------------------------------------------------------")
-    println("                       ========================================                       ")
-    println("                        The calculation has run to completion!                        ")
-    println("                                       Sayonara!                                      ")
-    println("                       ========================================                       ")
-    return 0
+    if (MPI.Comm_rank(comm) == 0)
+        println("--------------------------------------------------------------------------------------")
+        println("                       ========================================                       ")
+        println("                        The calculation has run to completion!                        ")
+        println("                                       Sayonara!                                      ")
+        println("                       ========================================                       ")
+    end
+
+    MPI.Barrier(comm)
 end
 
 #--------------------------------------------#
