@@ -15,7 +15,6 @@ import MPI
 # JuliaChem execution script #
 #----------------------------#
 function script()
-
     #initialize MPI
     MPI.Init()
 
