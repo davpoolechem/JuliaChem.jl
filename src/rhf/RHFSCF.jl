@@ -88,6 +88,7 @@ function rhf_energy(FLAGS::Flags)
     iter::Int64 = 1
     while(!converged)
 
+        #=
         #Step #7: Compute the New Fock Matrix
         #MPI-based replicated-memory parallel algorithm
         F_local = zeros(norb,norb)
@@ -102,9 +103,10 @@ function rhf_energy(FLAGS::Flags)
         MPI.Barrier(comm)
 
         F += deepcopy(H)
+        =#
 
         #thread-based shared-memory parallel algorithm
-        #F = twoei_threaded(F, D, tei, H, FLAGS)
+        F = twoei_threaded(F, D, tei, H, FLAGS)
 
         #multilevel parallel algorithm
         #F = deepcopy(H)
@@ -295,21 +297,16 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
     H::Array{Float64,2}, FLAGS::Flags)
 
     norb::Int64 = FLAGS.BASIS.NORB
-
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
-
     F = deepcopy(H)
-    #J::Array{Float64,2} = zeros(norb,norb)
-    #K::Array{Float64,2} = zeros(norb,norb)
+    mutex = Base.Threads.SpinLock()
 
-    #for μν_idx::Int64 in 1:ioff[norb]
     Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
         μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
         ν::Int64 = μν_idx%μ + 1
 
         μν::Int64 = index(μ,ν,ioff)
 
-        #K_priv::Array{Float64,2} = zeros(norb,norb)
         F_priv::Array{Float64,2} = zeros(norb,norb)
         for λσ_idx::Int64 in 1:ioff[norb]
             λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
@@ -331,20 +328,13 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
             F_priv[μ,σ] -= D[ν,λ] * eri
             F_priv[ν,λ] -= D[μ,σ] * eri
             F_priv[ν,σ] -= D[μ,λ] * eri
-
-            #Threads.atomic_add!(K[μ,λ], D[ν,σ] * eri)
-            #Threads.atomic_add!(K[μ,σ], D[ν,λ] * eri)
-            #hreads.atomic_add!(K[ν,λ], D[μ,σ] * eri)
-            #Threads.atomic_add!(K[ν,σ], D[μ,λ] * eri)
         end
 
+        lock(mutex)
         F += F_priv
+        unlock(mutex)
     end
 
-    #F += 2*J - K
-    #for i in 1:norb, j in 1:norb
-    #    F[i,j] = 2*J[i,j] - K[i,j][]
-    #end
     return F
 end
 
