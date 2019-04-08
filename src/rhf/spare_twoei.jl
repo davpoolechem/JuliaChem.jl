@@ -278,4 +278,189 @@ function twoei_six(F::Array{Float64,2}, D::Array{Float64,2},
     #F += 2*J - K
     return F
 end
+
+"""
+     twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+Summary
+======
+Perform Fock build step.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+tei = Two-electron integral array
+
+H = One-electron Hamiltonian Matrix
+"""
+function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
+    H::Array{Float64,2}, FLAGS::Flags, μν_idx::Int64)
+
+    norb::Int64 = FLAGS.BASIS.NORB
+
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+
+    F = zeros(norb,norb)
+
+    μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+    ν::Int64 = μν_idx%μ + 1
+    μν::Int64 = index(μ,ν,ioff)
+
+    for λσ_idx::Int64 in 1:ioff[norb]
+        λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+        σ::Int64 = λσ_idx%λ + 1
+
+        λσ::Int64 = index(λ,σ,ioff)
+        μνλσ::Int64 = index(μν,λσ,ioff)
+
+        val::Float64 = (μ == ν) ? 0.5 : 1.0
+        val::Float64 *= (λ == σ) ? 0.5 : 1.0
+        eri::Float64 = val * tei[μνλσ]
+
+        if (eri <= 1E-10) continue end
+
+        F[λ,σ] += 4.0 * D[μ,ν] * eri
+        F[σ,λ] += 4.0 * D[μ,ν] * eri
+        F[μ,λ] -= D[ν,σ] * eri
+        F[μ,σ] -= D[ν,λ] * eri
+        F[ν,λ] -= D[μ,σ] * eri
+        F[ν,σ] -= D[μ,λ] * eri
+    end
+
+    return F
+end
+
+"""
+     twoei_threaded(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+Summary
+======
+Perform Fock build step, using multithreading.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+tei = Two-electron integral array
+
+H = One-electron Hamiltonian Matrix
+"""
+
+function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
+    H::Array{Float64,2}, FLAGS::Flags)
+
+    norb::Int64 = FLAGS.BASIS.NORB
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    F = deepcopy(H)
+    mutex = Base.Threads.Mutex()
+
+    Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
+        μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+        ν::Int64 = μν_idx%μ + 1
+
+        μν::Int64 = index(μ,ν,ioff)
+
+        F_priv::Array{Float64,2} = zeros(norb,norb)
+        for λσ_idx::Int64 in 1:ioff[norb]
+            λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+            σ::Int64 = λσ_idx%λ + 1
+
+            λσ::Int64 = index(λ,σ,ioff)
+            μνλσ::Int64 = index(μν,λσ,ioff)
+
+            val::Float64 = (μ == ν) ? 0.5 : 1.0
+            val::Float64 *= (λ == σ) ? 0.5 : 1.0
+            eri::Float64 = val * tei[μνλσ]
+
+            if (eri <= 1E-10) continue end
+
+            F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+            F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
+
+            F_priv[μ,λ] -= D[ν,σ] * eri
+            F_priv[μ,σ] -= D[ν,λ] * eri
+            F_priv[ν,λ] -= D[μ,σ] * eri
+            F_priv[ν,σ] -= D[μ,λ] * eri
+        end
+
+        lock(mutex)
+        F += F_priv
+        unlock(mutex)
+    end
+
+    return F
+end
+
+"""
+     twoei_threaded(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+Summary
+======
+Perform Fock build step, using multithreading.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+tei = Two-electron integral array
+
+H = One-electron Hamiltonian Matrix
+"""
+function twoei_tasked(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
+    H::Array{Float64,2}, FLAGS::Flags)
+
+    norb::Int64 = FLAGS.BASIS.NORB
+
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+
+    F = deepcopy(H)
+    J::Array{Float64,2} = zeros(norb,norb)
+    K::Array{Float64,2} = zeros(norb,norb)
+    #K::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
+
+    #Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
+    @sync @async for μν_idx::Int64 in 1:ioff[norb]
+        μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+        ν::Int64 = μν_idx%μ + 1
+
+        μν::Int64 = index(μ,ν,ioff)
+
+        for λσ_idx::Int64 in 1:ioff[norb]
+            λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+            σ::Int64 = λσ_idx%λ + 1
+
+            λσ::Int64 = index(λ,σ,ioff)
+            μνλσ::Int64 = index(μν,λσ,ioff)
+
+            val::Float64 = (μ == ν) ? 0.5 : 1.0
+            val::Float64 *= (λ == σ) ? 0.5 : 1.0
+            eri::Float64 = val * tei[μνλσ]
+
+            if (eri <= 1E-10) continue end
+
+            J[λ,σ] += 2.0 * D[μ,ν] * eri
+            J[σ,λ] += 2.0 * D[μ,ν] * eri
+
+            K[μ,λ] += D[ν,σ] * eri
+            K[μ,σ] += D[ν,λ] * eri
+            K[ν,λ] += D[μ,σ] * eri
+            K[ν,σ] += D[μ,λ] * eri
+            #Threads.atomic_add!(K[μ,λ], D[ν,σ] * eri)
+            #Threads.atomic_add!(K[μ,σ], D[ν,λ] * eri)
+            #Threads.atomic_add!(K[ν,λ], D[μ,σ] * eri)
+            #Threads.atomic_add!(K[ν,σ], D[μ,λ] * eri)
+        end
+    end
+
+    F += 2*J - K
+    #for i in 1:norb, j in 1:norb
+    #    F[i,j] = 2*J[i,j] - K[i,j][]
+    #end
+    return F
+end
+
 =#
