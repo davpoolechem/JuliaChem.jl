@@ -5,4 +5,4 @@ SYSIMG=""
 
 DO_MPIRUN='mpirun'
 DO_JULIARUN='~/Local/Documents/Programs/julia-1.1.0/julia'
-JULIA_NUM_THREADS=${2} $DO_MPIRUN -np ${1} julia $SYSIMG $MODULE_OPT $CODE_OPT src/core/juliachem_shell.jl
+JULIA_NUM_THREADS=${3} $DO_MPIRUN -np ${2} julia $SYSIMG $MODULE_OPT $CODE_OPT ${1}

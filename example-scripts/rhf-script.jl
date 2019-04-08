@@ -1,4 +1,8 @@
-module InputScript
+#----------------------------------------------#
+#    This script executes the rhf algorithm    #
+# and analyzes molecular properties, including #
+#   bond length and one-electron properties.   #
+#----------------------------------------------#
 
 #-------------------------#
 # put needed modules here #
@@ -8,10 +12,16 @@ using JCMolecule
 using JCRHF
 using JCProperties
 
-#-----------------------------#
-# build execution script here #
-#-----------------------------#
+import MPI
+
+#----------------------------#
+# JuliaChem execution script #
+#----------------------------#
 function script()
+
+    #initialize MPI
+    MPI.Init()
+
     #read in input file
     flags, coord::Array{Float64,2} = JCInput.run()
 
@@ -23,7 +33,9 @@ function script()
 
     #determine wavefunction properties
     JCProperties.run(scf,flags)
-end
-export script
 
+    #finalize MPI
+    MPI.Finalize()
 end
+
+script()
