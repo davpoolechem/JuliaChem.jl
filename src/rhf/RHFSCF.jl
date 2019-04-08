@@ -112,7 +112,7 @@ function rhf_energy(FLAGS::Flags)
         F_local = zeros(norb,norb)
         for μν::Int64 in 1:((norb*(norb+1))/2)
             if(MPI.Comm_rank(comm) == μν%MPI.Comm_size(comm))
-                F_local += twoei_multilevel(F, D, tei, H, FLAGS, μν)
+                F_local += twoei(F, D, tei, H, FLAGS, μν)
             end
         end
         MPI.Barrier(comm)
