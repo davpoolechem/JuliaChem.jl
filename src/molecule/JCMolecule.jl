@@ -1,11 +1,11 @@
 """
-     module Molecule
+     module JCMolecule
 The module required for determination of molecular coordinate-based properties
 (such as bond lengths, bond angles, and dihedral angles). Import this module
 into the script when you wish to determine such information. Note that this
 module is not strictly necessary for every calculation.
 """
-module Molecule
+module JCMolecule
 
 using MoleculeAnalysis
 
@@ -41,6 +41,6 @@ function run(coord::Array{Float64,2})
         println("                       ========================================          ")
     end
 end
-export do_coordinate_analysis
+export run
 
 end

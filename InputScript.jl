@@ -3,26 +3,26 @@ module InputScript
 #-------------------------#
 # put needed modules here #
 #-------------------------#
-using Input
-using Molecule
-using RHF
-using Properties
+using JCInput
+using JCMolecule
+using JCRHF
+using JCProperties
 
 #-----------------------------#
 # build execution script here #
 #-----------------------------#
 function script()
     #read in input file
-    flags, coord::Array{Float64,2} = Input.run()
+    flags, coord::Array{Float64,2} = JCInput.run()
 
     #analyze molecular coordinates
-    Molecule.run(coord)
+    JCMolecule.run(coord)
 
     #perform scf calculation
-    scf = RHF.run(flags)
+    scf = JCRHF.run(flags)
 
     #determine wavefunction properties
-    Properties.run(scf,flags)
+    JCProperties.run(scf,flags)
 end
 export script
 

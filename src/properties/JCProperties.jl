@@ -1,11 +1,11 @@
 """
-     module Properties
+     module JCProperties
 The module required for computation of a variety of properties, including
 dipole moment, Mulliken charges, and orbital energies. Import this module
 into the script when you wish to determine such information. Note that this
 module is not strictly necessary for every calculation.
 """
-module Properties
+module JCProperties
 
 using OrbitalEnergies
 
@@ -47,6 +47,6 @@ function run(scf::Data,flags::Flags)
         println("                       ========================================          ")
     end
 end
-export do_properties
+export run
 
 end
