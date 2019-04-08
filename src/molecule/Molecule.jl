@@ -12,7 +12,7 @@ using MoleculeAnalysis
 import MPI
 """
      run(coord::Array{Float64,2})
-Execute the JuliChem molecular coordinate analysis functions.
+Execute the JuliaChem molecular coordinate analysis functions.
 
 One input variable is required:
 1. coord = The molecular coordinates.

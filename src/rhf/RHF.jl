@@ -17,7 +17,7 @@ import MPI
 """
     run(flags::Flags)
 
-Execute the JuliChem RHF algorithm.
+Execute the JuliaChem RHF algorithm.
 
 One input variable is required:
 1. flags = The calculation flags from the input file.

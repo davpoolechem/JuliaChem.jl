@@ -1,4 +1,4 @@
-module JuliChem
+module JuliaChem
 
 import MPI
 using InputScript
@@ -11,8 +11,8 @@ function julia_main()
 
     if (MPI.Comm_rank(comm) == 0)
         println("                       ========================================                ")
-        println("                                 Welcome to JuliChem!                          ")
-        println("                        JuliChem is a software package written                 ")
+        println("                                 Welcome to juliachem!                          ")
+        println("                        juliachem is a software package written                 ")
         println("                          in Julia for the purpose of quantum                  ")
         println("                                 chemical calculations.                        ")
         println("                             Let's get this party started!                     ")
@@ -59,8 +59,8 @@ if (isfile("snoop/precompile_LinearAlgebra.jl"))
     include("snoop/precompile_LinearAlgebra.jl")
     _precompile_()
 end
-if (isfile("snoop/precompile_JuliChem.jl"))
-    include("snoop/precompile_JuliChem.jl")
+if (isfile("snoop/precompile_juliachem.jl"))
+    include("snoop/precompile_juliachem.jl")
     _precompile_()
 end
 if (isfile("snoop/precompile_unknown.jl"))

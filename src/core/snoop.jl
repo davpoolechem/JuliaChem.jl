@@ -5,7 +5,7 @@ using SnoopCompile
 
 SnoopCompile.@snoop "snoop.csv" begin
     using Pkg
-    include("julichem.jl")
+    include("juliachem.jl")
 end
 
 ### Parse the compiles and generate precompilation scripts
