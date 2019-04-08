@@ -64,5 +64,25 @@ run(scf::Data,flags::Flags)
 
 The input file contains different flags that control various aspects of the
 calculation. These flags can be divided into certain subsections, which can
-be seen in the table of contents above. Clicking on a section will take
-you to that section's available flags.
+be seen in the table of contents at the beginning of the manual. Clicking on
+a section will take you to that section's available flags.
+
+## Basis Set Flags
+
+```@meta
+CurrentModule = InputStructs
+```
+
+```@docs
+Basis_Flags
+```
+
+## Hartree-Fock Flags
+
+```@meta
+CurrentModule = InputStructs
+```
+
+```@docs
+HF_Flags
+```
