@@ -26,7 +26,10 @@ One variable is output:
 1. scf = Data saved from the SCF calculation.
 
 Thus, proper use of the RHF.run() function would look like this:
->scf = RHF.run(flags)
+
+```
+scf = RHF.run(flags)
+```
 """
 function run(flags::Flags)
     comm=MPI.COMM_WORLD

@@ -26,7 +26,10 @@ Two input variables are required:
 No variables are output.
 
 Thus, proper use of the Properties.run() function would look like this:
->Properties.run(scf, flags)
+
+```
+Properties.run(scf, flags)
+```
 """
 function run(scf::Data,flags::Flags)
     comm=MPI.COMM_WORLD

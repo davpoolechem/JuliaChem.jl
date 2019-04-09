@@ -25,7 +25,10 @@ Two variables are output:
 2. coord = The molecular coordinates.
 
 Thus, proper use of the Input.run() function would look like this:
->flags, coord = Input.run()
+
+```
+flags, coord = Input.run()
+```
 """
 function run()
     #read in .inp and .dat files

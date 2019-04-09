@@ -35,7 +35,9 @@ defined for the calculation in a special manner, which is done via the
 JCInputFile.assign function. JCInputFile.assign can be called either via
 the shell (using julia -e) or via the REPL with the command:
 
->import JCInputFile; JCInputFile.assign(path/to/input/file.jl)
+```
+import JCInputFile; JCInputFile.assign(path/to/input/file.jl)
+```
 
 This marks the selected input file as the file to use for JuliaChem computations.
 The input file can be changed by simply rerunning the command above.
@@ -65,22 +67,30 @@ and finalized once the module calculations are complete. If running module calcu
 in sequence through the REPL, Julia must be started on multiple processes via mpirun
 to do so:
 
->mpirun -np <nprocs> julia
+```
+mpirun -np <nprocs> julia
+```
 
 When running a JuliaChem script via shell, this must also be executed via mpirun:
 
->mpirun -np <nprocs> julia
+```
+mpirun -np <nprocs> julia
+```
 
 If one wished to take full advantage of the hybrid parallelism present within
 JuliaChem, the JULIA_NUM_THREADS environmental variable can also be defined:
 
->JULIA_NUM_THREADS=<nthreads> mpirun -np <nprocs> julia
+```
+JULIA_NUM_THREADS=<nthreads> mpirun -np <nprocs> julia
+```
 
 For ease of use to the user, the above command exists in a shell script provided
-to the user. The juliachem.sh enables automatic marking of the input file
-and execution of the above statement through the following shell command:
+to the user. The juliachem.sh shell script enables automatic marking of the input
+file and execution of the above statement through the following shell command:
 
->./juliachem.sh </path/to/script/file.jl> <path/to/input/file.jl> <nprocs> <nthreads>
+```
+./juliachem.sh </path/to/script/file.jl> <path/to/input/file.jl> <nprocs> <nthreads>
+```
 
 # Modules
 
@@ -100,43 +110,43 @@ these are discussed in the module's individual documentation sections.
 ## Input
 
 ```@meta
-CurrentModule = Input
+CurrentModule = JCInput
 ```
 
 ```@docs
-Input
+JCInput
 run()
 ```
 ## Molecule
 
 ```@meta
-CurrentModule = Molecule
+CurrentModule = JCMolecule
 ```
 
 ```@docs
-Molecule
+JCMolecule
 run(coord::Array{Float64,2})
 ```
 
 ## RHF
 
 ```@meta
-CurrentModule = RHF
+CurrentModule = JCRHF
 ```
 
 ```@docs
-RHF
+JCRHF
 run(flags::Flags)
 ```
 
 ## Properties
 
 ```@meta
-CurrentModule = Properties
+CurrentModule = JCProperties
 ```
 
 ```@docs
-Properties
+JCProperties
 run(scf::Data,flags::Flags)
 ```
 

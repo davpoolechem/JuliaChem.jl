@@ -20,7 +20,10 @@ One input variable is required:
 No variables are output.
 
 Thus, proper use of the Molecule.run() function would look like this:
->Molecule.run(coord)
+
+```
+Molecule.run(coord)
+```
 """
 function run(coord::Array{Float64,2})
     comm=MPI.COMM_WORLD
