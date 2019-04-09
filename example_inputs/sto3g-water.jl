@@ -3,14 +3,15 @@ using InputStructs
 #------------------------------#
 #      Control input flags     #
 #------------------------------#
-#function input_ctrl_flags()
+function input_ctrl_flags()
     #Set flags
-#    runtyp::String = "HF"
+    prec::DataType = Float64
 
     #Form CTRL struct
-#    CTRL::Ctrl_Flags = Ctrl_Flags(runtyp)
-#    return CTRL
-#end
+    CTRL::Ctrl_Flags = Ctrl_Flags(prec)
+    return CTRL
+end
+export input_ctrl_flags
 
 function input_basis_flags()
     #Set flags

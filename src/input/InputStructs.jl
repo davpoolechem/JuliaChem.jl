@@ -17,9 +17,10 @@ Flags
 1. RUNTYP::String = Determines calculation type (no default setting)
 """
 =#
-#struct Ctrl_Flags
-#    RUNTYP::String
-#end
+struct Ctrl_Flags
+    PREC::DataType
+end
+export Ctrl_Flags
 
 """
     struct Basis_Flags
@@ -70,7 +71,7 @@ Flag fields
 =#
 
 struct Flags
-#    CTRL::Ctrl_Flags
+    CTRL::Ctrl_Flags
     BASIS::Basis_Flags
     HF::HF_Flags
 end
