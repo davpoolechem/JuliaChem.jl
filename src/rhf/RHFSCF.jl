@@ -29,7 +29,10 @@ dat = Input data file object
 =#
 function rhf_energy(FLAGS::Flags)
     norb::Int64 = FLAGS.BASIS.NORB
-    scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
+    scf::Data{Float64} = Data(Matrix{Float64}(undef,norb,norb),
+                              Matrix{Float64}(undef,norb,norb),
+                              Matrix{Float64}(undef,norb,norb),
+                              0.0)
     comm=MPI.COMM_WORLD
 
     #Step #1: Nuclear Repulsion Energy
@@ -65,8 +68,8 @@ function rhf_energy(FLAGS::Flags)
 
     #Step #5: Build the Initial (Guess) Density
     F::Array{Float64,2} = transpose(ortho)*H*ortho
-    D::Array{Float64,2} = zeros(norb,norb)
-    C::Array{Float64,2} = zeros(norb,norb)
+    D = Matrix{Float64}(undef,norb,norb)
+    C = Matrix{Float64}(undef,norb,norb)
 
     if (MPI.Comm_rank(comm) == 0)
         println("----------------------------------------          ")
@@ -188,16 +191,16 @@ H = One-electron Hamiltonian Matrix
 ortho = Symmetric Orthogonalization Matrix
 """
 =#
-function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2},
-    ortho::Array{Float64,2}, FLAGS::Flags)
+function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
+    ortho::Array{T,2}, FLAGS::Flags) where {T<:Number}
 
     #Step #8: Build the New Density Matrix
-    F_eval::Array{Float64,1} = eigvals(LinearAlgebra.Hermitian(F))
+    F_eval::Array{T,1} = eigvals(LinearAlgebra.Hermitian(F))
 
-    F_evec::Array{Float64,2} = eigvecs(LinearAlgebra.Hermitian(F))
+    F_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(F))
     F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-    C::Array{Float64,2} = ortho*F_evec
+    C::Array{T,2} = ortho*F_evec
 
     for i::Int64 in 1:FLAGS.BASIS.NORB, j::Int64 in 1:i
         D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
@@ -205,7 +208,7 @@ function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}
     end
 
     #Step #9: Compute the New SCF Energy
-    E_elec::Float64 = ∑(D,H + F)
+    E_elec::T = ∑(D,H + F)
 
     return (F, D, C, E_elec)
 end
@@ -246,8 +249,8 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 =#
-function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
-    H::Array{Float64,2}, FLAGS::Flags, μν_idx::Int64)
+function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
+    H::Array{T,2}, FLAGS::Flags, μν_idx::Int64) where {T<:Number}
 
     norb::Int64 = FLAGS.BASIS.NORB
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
@@ -265,13 +268,13 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
         λσ::Int64 = index(λ,σ,ioff)
         μνλσ::Int64 = index(μν,λσ,ioff)
 
-        val::Float64 = (μ == ν) ? 0.5 : 1.0
-        val::Float64 *= (λ == σ) ? 0.5 : 1.0
-        eri::Float64 = val * tei[μνλσ]
+        val::T = (μ == ν) ? 0.5 : 1.0
+        val::T *= (λ == σ) ? 0.5 : 1.0
+        eri::T = val * tei[μνλσ]
 
         if (eri <= 1E-10) continue end
 
-        F_priv::Array{Float64,2} = zeros(norb,norb)
+        F_priv::Array{T,2} = zeros(norb,norb)
 
         F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
         F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
