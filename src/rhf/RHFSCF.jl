@@ -258,7 +258,7 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
         val *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
         eri::Float64 = val * tei[μνλσ]
 
-        if (eri <= 1E-10) continue end
+        #if (eri <= 1E-10) continue end
 
         F_priv::Array{Float64,2} = zeros(norb,norb)
 
@@ -282,7 +282,7 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
         unlock(mutex)
     end
 
-    #display(sort(debug_array))
+    display(sort(debug_array))
 
     return F
 end

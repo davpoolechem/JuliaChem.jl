@@ -25,7 +25,7 @@ export input_basis_flags
 
 function input_hf_flags()
     #Set flags
-    niter::Int64 = 50
+    niter::Int64 = 1
     dele::Float64 = 1E-6
     rmsd::Float64 = 1E-4
 
