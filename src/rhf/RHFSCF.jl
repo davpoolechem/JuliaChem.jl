@@ -91,9 +91,14 @@ function rhf_energy(FLAGS::Flags, basis::Basis)
 
         #multilevel MPI+threads parallel algorithm
         F_local = zeros(norb,norb)
-        for μν::Int64 in 1:((norb*(norb+1))/2)
-            if(MPI.Comm_rank(comm) == μν%MPI.Comm_size(comm))
-                F_local += twoei(F, D, tei, H, FLAGS, μν)
+        nsh = length(basis.shells)
+        for bra_pairs::Int64 in 1:((nsh*(nsh+1))/2)
+            if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
+                sh_a::Int64 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
+                sh_b::Int64 = bra_pairs%sh_a + 1
+                bra::ShPair = ShPair(basis.shells[sh_a], basis.shells[sh_b])
+
+                F_local += twoei(F, D, tei, H, FLAGS, bra, basis)
             end
         end
         MPI.Barrier(comm)
@@ -225,45 +230,53 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
-    H::Array{Float64,2}, FLAGS::Flags, μν_idx::Int64)
+    H::Array{Float64,2}, FLAGS::Flags, bra::ShPair, basis::Basis)
 
     norb::Int64 = FLAGS.BASIS.NORB
+    nsh::Int64 = length(basis.shells)
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-    ν::Int64 = μν_idx%μ + 1
-    μν::Int64 = index(μ,ν,ioff)
+    for μν_idx::Int64 in 1:bra.nbas2
+        μ::Int64 = bra.sh_a.pos - 1 + ceil(((-1+sqrt(1+8*μν_idx))/2))
+        ν::Int64 = bra.sh_b.pos + μν_idx%μ
+        μν::Int64 = index(μ,ν,ioff)
 
-    Threads.@threads for λσ_idx::Int64 in 1:ioff[norb]
-        λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-        σ::Int64 = λσ_idx%λ + 1
+        Threads.@threads for ket_pairs::Int64 in 1:ioff[nsh]
+            sh_a::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
+            sh_b::Int64 = ket_pairs%sh_a + 1
+            ket::ShPair = ShPair(basis.shells[sh_a], basis.shells[sh_b])
 
-        λσ::Int64 = index(λ,σ,ioff)
-        μνλσ::Int64 = index(μν,λσ,ioff)
+            for λσ_idx::Int64 in 1:ket.nbas2
+                λ::Int64 = ket.sh_a.pos - 1 + ceil(((-1+sqrt(1+8*λσ_idx))/2))
+                σ::Int64 = ket.sh_b.pos + λσ_idx%λ
 
-        val::Float64 = (μ == ν) ? 0.5 : 1.0
-        val::Float64 *= (λ == σ) ? 0.5 : 1.0
-        eri::Float64 = val * tei[μνλσ]
+                λσ::Int64 = index(λ,σ,ioff)
+                μνλσ::Int64 = index(μν,λσ,ioff)
 
-        if (eri <= 1E-10) continue end
+                val::Float64 = (μ == ν) ? 0.5 : 1.0
+                val::Float64 *= (λ == σ) ? 0.5 : 1.0
+                eri::Float64 = val * tei[μνλσ]
 
-        F_priv::Array{Float64,2} = zeros(norb,norb)
+                if (eri <= 1E-10) continue end
 
-        F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-        F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
+                F_priv::Array{Float64,2} = zeros(norb,norb)
 
-        F_priv[μ,λ] -= D[ν,σ] * eri
-        F_priv[μ,σ] -= D[ν,λ] * eri
-        F_priv[ν,λ] -= D[μ,σ] * eri
-        F_priv[ν,σ] -= D[μ,λ] * eri
+                F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+                F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
 
-        lock(mutex)
-        F += F_priv
-        unlock(mutex)
+                F_priv[μ,λ] -= D[ν,σ] * eri
+                F_priv[μ,σ] -= D[ν,λ] * eri
+                F_priv[ν,λ] -= D[μ,σ] * eri
+                F_priv[ν,σ] -= D[μ,λ] * eri
+
+                lock(mutex)
+                F += F_priv
+                unlock(mutex)
+            end
+        end
     end
-
     return F
 end
 

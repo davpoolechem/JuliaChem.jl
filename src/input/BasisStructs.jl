@@ -21,7 +21,7 @@ mutable struct ShPair
 end
 export ShPair
 
-ShPair(sh_a,sh_b) = ShPair(sh_a,sh_b,sh_a.am2+sh_b.am2,sh_a.nbas2*sh_b.nbas2)
+ShPair(sh_a,sh_b) = ShPair(sh_a,sh_b,sh_a.am+sh_b.am,sh_a.nbas*sh_b.nbas)
 
 mutable struct ShQuartet
     bra::ShPair
