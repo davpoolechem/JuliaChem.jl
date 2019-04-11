@@ -24,6 +24,14 @@ function input_coord()
 end
 export input_coord
 
+function input_basis_set()
+    #CTRL::Ctrl_Flags = input_ctrl_flags()
+    basis_set::Array{Int64,1} = input_basis()
+
+    return basis_set
+end
+export input_basis_set
+
 function read_in_enuc()
     enuc::Float64 = input_enuc()
 

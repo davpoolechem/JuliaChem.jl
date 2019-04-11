@@ -88,26 +88,6 @@ function rhf_energy(FLAGS::Flags)
     iter::Int64 = 1
     while(!converged)
 
-        #=
-        #Step #7: Compute the New Fock Matrix
-        #MPI-based replicated-memory parallel algorithm
-        F_local = zeros(norb,norb)
-        for μν::Int64 in 1:((norb*(norb+1))/2)
-            if(MPI.Comm_rank(comm) == μν%MPI.Comm_size(comm))
-                F_local += twoei_distributed(F, D, tei, H, FLAGS, μν)
-            end
-        end
-        MPI.Barrier(comm)
-
-        F = MPI.Allreduce(F_local,MPI.SUM,comm)
-        MPI.Barrier(comm)
-
-        F += deepcopy(H)
-        =#
-
-        #thread-based shared-memory parallel algorithm
-        #F = twoei_threaded(F, D, tei, H, FLAGS)
-
         #multilevel MPI+threads parallel algorithm
         F_local = zeros(norb,norb)
         for μν::Int64 in 1:((norb*(norb+1))/2)
@@ -121,9 +101,6 @@ function rhf_energy(FLAGS::Flags)
         MPI.Barrier(comm)
 
         F += deepcopy(H)
-
-        #task-based algorithm
-        #F = twoei_tasked(F, D, tei, H, FLAGS)
 
         #println("Initial Fock matrix:")
         #display(F)

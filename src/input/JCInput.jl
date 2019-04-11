@@ -6,6 +6,7 @@ Import this module into the script when you need to process an input file
 """
 module JCInput
 
+using BasisStructs
 using InputFunctions
 using InputStructs
 
@@ -54,6 +55,14 @@ function run()
     flags::Flags = input_flags()
 
     coord::Array{Float64,2} = input_coord()
+
+    shells::Array{Int64,1} = input_basis_set()
+    basis::Basis = Basis()
+    for i in 1:length(shells)
+        shell::Shell = Shell(shells[i])
+        add_shell(basis,deepcopy(shell))
+    end
+
     if (MPI.Comm_rank(comm) == 0)
         println(" ")
         println("                       ========================================          ")
@@ -61,7 +70,7 @@ function run()
         println("                       ========================================          ")
     end
 
-    return (flags,coord)
+    return (flags,coord,basis)
 end
 export run
 

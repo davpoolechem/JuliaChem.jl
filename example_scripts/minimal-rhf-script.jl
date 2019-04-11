@@ -19,10 +19,10 @@ function script()
     MPI.Init()
 
     #read in input file
-    flags, coord::Array{Float64,2} = JCInput.run()
+    flags, coord, basis = JCInput.run()
 
     #perform scf calculation
-    scf = JCRHF.run(flags)
+    #scf = JCRHF.run(flags)
 
     #finalize MPI
     MPI.Finalize()

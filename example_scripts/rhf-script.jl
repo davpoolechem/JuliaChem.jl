@@ -23,7 +23,7 @@ function script()
     MPI.Init()
 
     #read in input file
-    flags, coord::Array{Float64,2} = JCInput.run()
+    flags, coord, basis = JCInput.run()
 
     #analyze molecular coordinates
     JCMolecule.run(coord)
