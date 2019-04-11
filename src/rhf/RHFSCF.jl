@@ -4,6 +4,7 @@ Base.include(@__MODULE__,"../math/math.jl")
 
 using RHFStructs
 
+using BasisStructs
 using InputFunctions
 using InputStructs
 
@@ -27,7 +28,7 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_energy(FLAGS::Flags)
+function rhf_energy(FLAGS::Flags, basis::Basis)
     norb::Int64 = FLAGS.BASIS.NORB
     scf::Data = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
     comm=MPI.COMM_WORLD

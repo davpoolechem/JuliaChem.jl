@@ -22,7 +22,7 @@ function script()
     flags, coord, basis = JCInput.run()
 
     #perform scf calculation
-    #scf = JCRHF.run(flags)
+    scf = JCRHF.run(flags, basis)
 
     #finalize MPI
     MPI.Finalize()

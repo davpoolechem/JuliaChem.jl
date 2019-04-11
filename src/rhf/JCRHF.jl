@@ -10,6 +10,7 @@ module JCRHF
 using RHFSCF
 using RHFStructs
 
+using BasisStructs
 using InputStructs
 
 import MPI
@@ -31,7 +32,7 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(flags)
 ```
 """
-function run(flags::Flags)
+function run(flags::Flags, basis::Basis)
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
@@ -43,7 +44,7 @@ function run(flags::Flags)
     end
 
     #GC.enable(false)
-    scf::Data = rhf_energy(flags)
+    scf::Data = rhf_energy(flags, basis)
     #GC.enable(true)
     #GC.gc()
 
