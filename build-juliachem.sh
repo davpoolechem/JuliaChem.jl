@@ -8,7 +8,7 @@ if [ -d src/core/snoop ]; then
    rm -rf src/core/snoop
    rm src/core/snoop.csv
 fi
-julia src/core/snoop.jl
+#julia src/core/snoop.jl
 
 #do actual build
 echo ""
@@ -21,5 +21,5 @@ fi
 
 MODULE_OPT="--compile=all --sysimage-native-code=yes --compiled-modules=yes"
 CODE_OPT="-O3 --inline=yes --check-bounds=no --math-mode=fast"
-CC_COMP="--cc=gcc"
-julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Re $MODULE_OPT $CODE_OPT $CC_COMP src/core/juliachem.jl src/core/juliachem.c
+CC_COMP="--cc=gcc --startup-file=yes"
+julia ~/.julia/packages/PackageCompiler/oT98U/juliac.jl -Rs $MODULE_OPT $CODE_OPT $CC_COMP example_scripts/minimal-rhf-script.jl

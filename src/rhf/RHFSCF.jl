@@ -262,17 +262,19 @@ function dirfck(D::Array{Float64,2}, tei::Array{Float64,1},quartet::ShQuartet)
     F_priv::Array{Float64,2} = fill(0.0,(norb,norb))
 
     for μν_idx::Int64 in 1:quartet.bra.nbas2
-        μ::Int64 = quartet.bra.sh_a.pos - 1 + ceil(((-1+sqrt(1+8*μν_idx))/2))
-        ν::Int64 = quartet.bra.sh_b.pos + μν_idx%μ
+        μ::Int64 = quartet.bra.sh_a.pos + ceil(μν_idx/quartet.bra.nbas2) - 1
+        ν::Int64 = quartet.bra.sh_b.pos + μν_idx%quartet.bra.nbas2
         μν::Int64 = index(μ,ν,ioff)
 
         if (μ < ν) continue end
 
         for λσ_idx::Int64 in 1:quartet.ket.nbas2
-            λ::Int64 = quartet.ket.sh_a.pos - 1 + ceil(((-1+sqrt(1+8*λσ_idx))/2))
-            σ::Int64 = quartet.ket.sh_b.pos + λσ_idx%λ
+            λ::Int64 = quartet.ket.sh_a.pos + ceil(λσ_idx/quartet.ket.nbas2) - 1
+            σ::Int64 = quartet.ket.sh_b.pos + λσ_idx%quartet.ket.nbas2
 
-            if (σ < λ) continue end
+            if (λ < σ) continue end
+
+            #println("\"$μ, $ν, $λ, $σ\"")
 
             #μνλσ::Int64 = μν + (ket.sh_b.nbas*λ+σ)
             λσ::Int64 = index(λ,σ,ioff)
