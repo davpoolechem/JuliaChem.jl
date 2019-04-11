@@ -243,15 +243,22 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
         ν::Int64 = bra.sh_b.pos + μν_idx%μ
         μν::Int64 = index(μ,ν,ioff)
 
+        if (μ < ν) continue end
+
         Threads.@threads for ket_pairs::Int64 in 1:ioff[nsh]
             sh_a::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
             sh_b::Int64 = ket_pairs%sh_a + 1
             ket::ShPair = ShPair(basis.shells[sh_a], basis.shells[sh_b])
 
+            #μν::Int64 = ket.nbas2*(bra.sh_b.nbas*μ+ν)
+
             for λσ_idx::Int64 in 1:ket.nbas2
                 λ::Int64 = ket.sh_a.pos - 1 + ceil(((-1+sqrt(1+8*λσ_idx))/2))
                 σ::Int64 = ket.sh_b.pos + λσ_idx%λ
 
+                if (σ < λ) continue end
+
+                #μνλσ::Int64 = μν + (ket.sh_b.nbas*λ+σ)
                 λσ::Int64 = index(λ,σ,ioff)
                 μνλσ::Int64 = index(μν,λσ,ioff)
 
