@@ -261,6 +261,62 @@ function dirfck(D::Array{Float64,2}, tei::Array{Float64,1},quartet::ShQuartet)
 
     F_priv::Array{Float64,2} = fill(0.0,(norb,norb))
 
+    nμ = quartet.bra.sh_a.nbas
+    nν = quartet.bra.sh_b.nbas
+    nλ = quartet.ket.sh_a.nbas
+    nσ = quartet.ket.sh_b.nbas
+
+    for μμ::Int64 in 1:nμ
+        μ::Int64 = quartet.bra.sh_a.pos + μμ
+
+        for νν::Int64 in 1:nν
+            ν::Int64 = quartet.bra.sh_b.pos + νν
+            μν::Int64 = index(μ,ν,ioff)
+
+            if (μ < ν) continue end
+
+            for λλ::Int64 in 1:nλ
+                λ::Int64 = quartet.ket.sh_a.pos + λλ
+
+                for σσ::Int64 in 1:nσ
+                    σ::Int64 = quartet.ket.sh_b.pos + σσ
+
+                    if (λ < σ) continue end
+
+                    #println("\"$μ, $ν, $λ, $σ\"")
+
+                    #μνλσ::Int64 = μν + (ket.sh_b.nbas*λ+σ)
+                    λσ::Int64 = index(λ,σ,ioff)
+                    μνλσ::Int64 = index(μν,λσ,ioff)
+
+                    val::Float64 = (μ == ν) ? 0.5 : 1.0
+                    val::Float64 *= (λ == σ) ? 0.5 : 1.0
+                    eri::Float64 = val * tei[μνλσ]
+
+                    if (eri <= 1E-10) continue end
+
+                    F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+                    F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
+
+                    F_priv[μ,λ] -= D[ν,σ] * eri
+                    F_priv[μ,σ] -= D[ν,λ] * eri
+                    F_priv[ν,λ] -= D[μ,σ] * eri
+                    F_priv[ν,σ] -= D[μ,λ] * eri
+                end
+            end
+        end
+    end
+    return F_priv
+end
+
+#=
+function dirfck(D::Array{Float64,2}, tei::Array{Float64,1},quartet::ShQuartet)
+
+    norb = size(D)[1]
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+
+    F_priv::Array{Float64,2} = fill(0.0,(norb,norb))
+
     for μν_idx::Int64 in 1:quartet.bra.nbas2
         μ::Int64 = quartet.bra.sh_a.pos + ceil(μν_idx/quartet.bra.nbas2) - 1
         ν::Int64 = quartet.bra.sh_b.pos + μν_idx%quartet.bra.nbas2
@@ -297,5 +353,6 @@ function dirfck(D::Array{Float64,2}, tei::Array{Float64,1},quartet::ShQuartet)
     end
     return F_priv
 end
+=#
 
 end
