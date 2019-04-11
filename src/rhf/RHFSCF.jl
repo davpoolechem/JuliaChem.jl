@@ -90,7 +90,7 @@ function rhf_energy(FLAGS::Flags, basis::Basis)
     while(!converged)
 
         #multilevel MPI+threads parallel algorithm
-        F_temp = twoei(F, D, tei, H, FLAGS)
+        F_temp = twoei(F, D, tei, H, FLAGS, basis)
 
         F = MPI.Allreduce(F_temp,MPI.SUM,comm)
         MPI.Barrier(comm)
@@ -229,34 +229,20 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    for μν_idx::Int64 in 1:ioff[norb]
-        if(MPI.Comm_rank(comm) == μν_idx%MPI.Comm_size(comm))
-            μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-            ν::Int64 = μν_idx%μ + 1
-            μν::Int64 = index(μ,ν,ioff)
+    for bra_pairs::Int64 in 1:ioff[nsh]
+        if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
+            bra_sh_a::Int64 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
+            bra_sh_b::Int64 = bra_pairs%bra_sh_a + 1
+            bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
 
-            Threads.@threads for λσ_idx::Int64 in 1:ioff[norb]
-                λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-                σ::Int64 = λσ_idx%λ + 1
+            Threads.@threads for ket_pairs::Int64 in 1:ioff[nsh]
+                ket_sh_a::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
+                ket_sh_b::Int64 = ket_pairs%ket_sh_a + 1
 
-                λσ::Int64 = index(λ,σ,ioff)
-                μνλσ::Int64 = index(μν,λσ,ioff)
+                ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
+                quartet::ShQuartet = ShQuartet(bra,ket)
 
-                val::Float64 = (μ == ν) ? 0.5 : 1.0
-                val::Float64 *= (λ == σ) ? 0.5 : 1.0
-                eri::Float64 = val * tei[μνλσ]
-
-                if (eri <= 1E-10) continue end
-
-                F_priv::Array{Float64,2} = zeros(norb,norb)
-
-                F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-                F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
-
-                F_priv[μ,λ] -= D[ν,σ] * eri
-                F_priv[μ,σ] -= D[ν,λ] * eri
-                F_priv[ν,λ] -= D[μ,σ] * eri
-                F_priv[ν,σ] -= D[μ,λ] * eri
+                F_priv::Array{Float64,2} = dirfck(D, tei, quartet)
 
                 lock(mutex)
                 F += F_priv
@@ -266,6 +252,48 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
         MPI.Barrier(comm)
     end
     return F
+end
+
+function dirfck(D::Array{Float64,2}, tei::Array{Float64,1},quartet::ShQuartet)
+
+    norb = size(D)[1]
+    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+
+    F_priv::Array{Float64,2} = fill(0.0,(norb,norb))
+
+    for μν_idx::Int64 in 1:quartet.bra.nbas2
+        μ::Int64 = quartet.bra.sh_a.pos - 1 + ceil(((-1+sqrt(1+8*μν_idx))/2))
+        ν::Int64 = quartet.bra.sh_b.pos + μν_idx%μ
+        μν::Int64 = index(μ,ν,ioff)
+
+        if (μ < ν) continue end
+
+        for λσ_idx::Int64 in 1:quartet.ket.nbas2
+            λ::Int64 = quartet.ket.sh_a.pos - 1 + ceil(((-1+sqrt(1+8*λσ_idx))/2))
+            σ::Int64 = quartet.ket.sh_b.pos + λσ_idx%λ
+
+            if (σ < λ) continue end
+
+            #μνλσ::Int64 = μν + (ket.sh_b.nbas*λ+σ)
+            λσ::Int64 = index(λ,σ,ioff)
+            μνλσ::Int64 = index(μν,λσ,ioff)
+
+            val::Float64 = (μ == ν) ? 0.5 : 1.0
+            val::Float64 *= (λ == σ) ? 0.5 : 1.0
+            eri::Float64 = val * tei[μνλσ]
+
+            if (eri <= 1E-10) continue end
+
+            F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+            F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
+
+            F_priv[μ,λ] -= D[ν,σ] * eri
+            F_priv[μ,σ] -= D[ν,λ] * eri
+            F_priv[ν,λ] -= D[μ,σ] * eri
+            F_priv[ν,σ] -= D[μ,λ] * eri
+        end
+    end
+    return F_priv
 end
 
 end
