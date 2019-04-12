@@ -195,10 +195,10 @@ a = row index
 b = column index
 """
 =#
-@inline function index(a::Int64,b::Int64,ioff::Array{Int64,1})
-    index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
-    return index
-end
+#@inline function index(a::Int64,b::Int64,ioff::Array{Int64,1})
+#    index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
+#    return index
+#end
 
 #=
 """
@@ -266,28 +266,27 @@ function dirfck(D::Array{Float64,2}, tei::Array{Float64,1},quartet::ShQuartet)
     nλ = quartet.ket.sh_a.nbas
     nσ = quartet.ket.sh_b.nbas
 
-    for μμ::Int64 in 1:nμ
+    for μμ::Int64 in 0:nμ-1
         μ::Int64 = quartet.bra.sh_a.pos + μμ
+        μ_idx::Int64 = nν*nλ*nσ*μμ
 
-        for νν::Int64 in 1:nν
+        for νν::Int64 in 0:nν-1
             ν::Int64 = quartet.bra.sh_b.pos + νν
-            μν::Int64 = index(μ,ν,ioff)
+            μν_idx::Int64 = μ_idx + nλ*nσ*νν
 
             if (μ < ν) continue end
 
-            for λλ::Int64 in 1:nλ
+            for λλ::Int64 in 0:nλ-1
                 λ::Int64 = quartet.ket.sh_a.pos + λλ
+                μνλ_idx::Int64 = μν_idx + nσ*λλ
 
-                for σσ::Int64 in 1:nσ
+                for σσ::Int64 in 0:nσ-1
                     σ::Int64 = quartet.ket.sh_b.pos + σσ
-
-                    if (λ < σ) continue end
+                    μνλσ::Int64 = μνλ_idx + σσ
 
                     #println("\"$μ, $ν, $λ, $σ\"")
 
-                    #μνλσ::Int64 = μν + (ket.sh_b.nbas*λ+σ)
-                    λσ::Int64 = index(λ,σ,ioff)
-                    μνλσ::Int64 = index(μν,λσ,ioff)
+                    if (λ < σ) continue end
 
                     val::Float64 = (μ == ν) ? 0.5 : 1.0
                     val::Float64 *= (λ == σ) ? 0.5 : 1.0
