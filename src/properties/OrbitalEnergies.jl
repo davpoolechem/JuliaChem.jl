@@ -2,7 +2,7 @@ Base.include(@__MODULE__,"../math/math.jl")
 
 using JCStructs
 
-import MPI
+using MPI
 
 function orbital_energies(scf::Data,FLAGS::Flags)
     norb = FLAGS.BASIS.NORB

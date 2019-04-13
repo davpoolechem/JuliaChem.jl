@@ -11,7 +11,7 @@ include("RHFSCF.jl")
 
 using JCStructs
 
-import MPI
+using MPI
 
 """
     run(flags::Flags)

@@ -10,7 +10,7 @@ include("InputFunctions.jl")
 
 using JCStructs
 
-import MPI
+using MPI
 using Base.Threads
 using Distributed
 

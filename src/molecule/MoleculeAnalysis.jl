@@ -1,6 +1,6 @@
-import MPI
-import Base.Threads
-import LinearAlgebra
+using MPI
+using Base.Threads
+using LinearAlgebra
 
 """
      coordinate_analysis(coord::Array{Float64,2})

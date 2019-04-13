@@ -4,13 +4,10 @@ include("../input/InputFunctions.jl")
 
 using JCStructs
 
-import MPI
-import Base.Threads
-import Distributed
-import LinearAlgebra
-import LinearAlgebra.eigvecs
-import LinearAlgebra.eigvals
-import SparseArrays
+using MPI
+using Base.Threads
+using Distributed
+using LinearAlgebra
 
 #=
 """

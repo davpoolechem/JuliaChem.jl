@@ -11,7 +11,7 @@ include("OrbitalEnergies.jl")
 
 using JCStructs
 
-import MPI
+using MPI
 
 """
      run(scf::Data,flags::Flags)
