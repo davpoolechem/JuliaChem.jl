@@ -8,9 +8,8 @@ wave function for closed-shell systems.
 module JCRHF
 
 include("RHFSCF.jl")
-include("RHFStructs.jl")
 
-include("../input/InputStructs.jl")
+using JCStructs
 
 import MPI
 

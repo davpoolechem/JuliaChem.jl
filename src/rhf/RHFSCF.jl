@@ -3,7 +3,8 @@ Base.include(@__MODULE__,"../math/math.jl")
 include("RHFStructs.jl")
 
 include("../input/InputFunctions.jl")
-include("../input/InputStructs.jl")
+
+using JCStructs
 
 import MPI
 import Base.Threads

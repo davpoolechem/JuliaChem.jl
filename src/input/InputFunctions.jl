@@ -1,7 +1,8 @@
 include("../../InputFile.jl")
 
 include("InputIntegrals.jl")
-include("InputStructs.jl")
+
+using JCStructs
 
 function input_flags()
     #CTRL::Ctrl_Flags = input_ctrl_flags()

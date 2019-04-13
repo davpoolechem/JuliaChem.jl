@@ -1,6 +1,6 @@
 Base.include(@__MODULE__,"../math/math.jl")
-include("../input/InputStructs.jl")
-include("../rhf/RHFStructs.jl")
+
+using JCStructs
 
 import MPI
 

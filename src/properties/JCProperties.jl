@@ -9,8 +9,7 @@ module JCProperties
 
 include("OrbitalEnergies.jl")
 
-include("../input/InputStructs.jl")
-include("../rhf/RHFStructs.jl")
+using JCStructs
 
 import MPI
 
