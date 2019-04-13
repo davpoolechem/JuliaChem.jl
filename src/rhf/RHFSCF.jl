@@ -68,7 +68,7 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
     end
 
     ortho::Array{T,2} = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
-    #ortho::Array{Float64,2} = S_evec*(LinearAlgebra.sqrt(LinearAlgebra.inv(S_eval)))*transpose(S_evec)
+    #ortho::Array{T,2} = S_evec*(LinearAlgebra.sqrt(LinearAlgebra.inv(S_eval)))*transpose(S_evec)
 
     #Step #5: Build the Initial (Guess) Density
     F::Array{T,2} = transpose(ortho)*H*ortho
@@ -153,7 +153,7 @@ export rhf_energy
 
 #=
 """
-     iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})
+     iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2}, ortho::Array{T,2})
 Summary
 ======
 Perform single SCF iteration.
@@ -211,7 +211,7 @@ end
 
 #=
 """
-     twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+     twoei(F::Array{T}, D::Array{T}, tei::Array{T}, H::Array{T})
 Summary
 ======
 Perform Fock build step.
