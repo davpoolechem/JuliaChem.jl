@@ -1,7 +1,5 @@
 Base.include(@__MODULE__,"../math/math.jl")
 
-include("RHFStructs.jl")
-
 include("../input/InputFunctions.jl")
 
 using JCStructs

@@ -19,3 +19,4 @@ mutable struct Data
     Coeff::Array{Float64,2}
     Energy::Float64
 end
+export Data
