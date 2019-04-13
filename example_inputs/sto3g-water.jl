@@ -5,7 +5,7 @@ using InputStructs
 #------------------------------#
 function input_ctrl_flags()
     #Set flags
-    prec::DataType = Float64
+    prec::DataType = Float32
 
     #Form CTRL struct
     CTRL::Ctrl_Flags = Ctrl_Flags(prec)
