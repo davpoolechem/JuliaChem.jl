@@ -1,5 +1,3 @@
-module RHFStructs
-
 #=
 """
     Data
@@ -20,7 +18,4 @@ mutable struct Data
     Density::Array{Float64,2}
     Coeff::Array{Float64,2}
     Energy::Float64
-end
-export Data
-
 end
