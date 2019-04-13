@@ -7,7 +7,7 @@ module is not strictly necessary for every calculation.
 """
 module JCMolecule
 
-using MoleculeAnalysis
+include("MoleculeAnalysis.jl")
 
 import MPI
 """

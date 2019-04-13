@@ -1,5 +1,3 @@
-module MoleculeAnalysis
-
 import MPI
 import Base.Threads
 import LinearAlgebra
@@ -145,7 +143,4 @@ function coordinate_analysis(coord::Array{Float64,2})
 
     #bond angles
     analyze_bond_angles(coord,bond_lengths)
-end
-export coordinate_analysis
-
 end

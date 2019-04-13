@@ -1,11 +1,9 @@
-module RHFSCF
-
 Base.include(@__MODULE__,"../math/math.jl")
 
-using RHFStructs
+include("RHFStructs.jl")
 
-using InputFunctions
-using InputStructs
+include("../input/InputFunctions.jl")
+include("../input/InputStructs.jl")
 
 import MPI
 import Base.Threads
@@ -142,7 +140,6 @@ function rhf_energy(FLAGS::Flags)
 
     return scf
 end
-export rhf_energy
 
 #=
 """
@@ -268,6 +265,4 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
         MPI.Barrier(comm)
     end
     return F
-end
-
 end

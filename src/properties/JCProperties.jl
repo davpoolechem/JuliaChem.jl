@@ -7,10 +7,10 @@ module is not strictly necessary for every calculation.
 """
 module JCProperties
 
-using OrbitalEnergies
+include("OrbitalEnergies.jl")
 
-using InputStructs
-using RHFStructs
+include("../input/InputStructs.jl")
+include("../rhf/RHFStructs.jl")
 
 import MPI
 

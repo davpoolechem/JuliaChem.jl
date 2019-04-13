@@ -1,9 +1,6 @@
-module OrbitalEnergies
-
 Base.include(@__MODULE__,"../math/math.jl")
-
-using InputStructs
-using RHFStructs
+include("../input/InputStructs.jl")
+include("../rhf/RHFStructs.jl")
 
 import MPI
 
@@ -28,7 +25,4 @@ function orbital_energies(scf::Data,FLAGS::Flags)
         end
         println(" ")
     end
-end
-export orbital_energies
-
 end

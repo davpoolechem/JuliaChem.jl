@@ -7,10 +7,10 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-using RHFSCF
-using RHFStructs
+include("RHFSCF.jl")
+include("RHFStructs.jl")
 
-using InputStructs
+include("../input/InputStructs.jl")
 
 import MPI
 

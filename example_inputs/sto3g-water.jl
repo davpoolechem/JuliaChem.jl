@@ -1,4 +1,4 @@
-using InputStructs
+include("../src/input/InputStructs.jl")
 
 #------------------------------#
 #      Control input flags     #
