@@ -7,6 +7,9 @@ DO_JULIARUN='~/Local/Documents/Programs/julia-1.1.0/julia'
 
 echo "Printing input file..."
 julia -e "import JCInputFile; JCInputFile.assign(\"${2}\")"
+<<<<<<< HEAD
 
+=======
+>>>>>>> development
 echo "Performing calculation..."
 JULIA_NUM_THREADS=${4} $DO_MPIRUN -np ${3} julia $SYSIMG $MODULE_OPT $CODE_OPT ${1}

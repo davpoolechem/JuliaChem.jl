@@ -91,36 +91,10 @@ function rhf_energy(FLAGS::Flags)
     iter::Int64 = 1
     while(!converged)
 
-        #=
-        #Step #7: Compute the New Fock Matrix
-        #MPI-based replicated-memory parallel algorithm
-        F_local = zeros(norb,norb)
-        for μν::Int64 in 1:((norb*(norb+1))/2)
-            if(MPI.Comm_rank(comm) == μν%MPI.Comm_size(comm))
-                F_local += twoei_distributed(F, D, tei, H, FLAGS, μν)
-            end
-        end
-        MPI.Barrier(comm)
-
-        F = MPI.Allreduce(F_local,MPI.SUM,comm)
-        MPI.Barrier(comm)
-
-        F += deepcopy(H)
-        =#
-
-        #thread-based shared-memory parallel algorithm
-        #F = twoei_threaded(F, D, tei, H, FLAGS)
-
         #multilevel MPI+threads parallel algorithm
-        F_local = zeros(norb,norb)
-        for μν::Int64 in 1:((norb*(norb+1))/2)
-            if(MPI.Comm_rank(comm) == μν%MPI.Comm_size(comm))
-                F_local += twoei(F, D, tei, H, FLAGS, μν)
-            end
-        end
-        MPI.Barrier(comm)
+        F_temp = twoei(F, D, tei, H, FLAGS)
 
-        F = MPI.Allreduce(F_local,MPI.SUM,comm)
+        F = MPI.Allreduce(F_temp,MPI.SUM,comm)
         MPI.Barrier(comm)
 
         F += deepcopy(H)
@@ -250,45 +224,52 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::Flags, μν_idx::Int64) where {T<:Number}
+    H::Array{T,2}, FLAGS::Flags, FLAGS::Flags) where {T<:Number}
 
+    comm=MPI.COMM_WORLD
     norb::Int64 = FLAGS.BASIS.NORB
+
     ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-    ν::Int64 = μν_idx%μ + 1
-    μν::Int64 = index(μ,ν,ioff)
+    for μν_idx::Int64 in 1:ioff[norb]
+        if(MPI.Comm_rank(comm) == μν_idx%MPI.Comm_size(comm))
+            μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+            ν::Int64 = μν_idx%μ + 1
+            μν::Int64 = index(μ,ν,ioff)
 
-    Threads.@threads for λσ_idx::Int64 in 1:ioff[norb]
-        λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-        σ::Int64 = λσ_idx%λ + 1
+            Threads.@threads for λσ_idx::Int64 in 1:ioff[norb]
+                λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+                σ::Int64 = λσ_idx%λ + 1
 
-        λσ::Int64 = index(λ,σ,ioff)
-        μνλσ::Int64 = index(μν,λσ,ioff)
+                λσ::Int64 = index(λ,σ,ioff)
+                μνλσ::Int64 = index(μν,λσ,ioff)
 
-        val::T = (μ == ν) ? 0.5 : 1.0
-        val::T *= (λ == σ) ? 0.5 : 1.0
-        eri::T = val * tei[μνλσ]
+                val::T = (μ == ν) ? 0.5 : 1.0
+                val::T *= (λ == σ) ? 0.5 : 1.0
+                eri::T = val * tei[μνλσ]
 
-        if (eri <= 1E-10) continue end
+                if (eri <= 1E-10) continue end
 
-        F_priv::Array{T,2} = zeros(norb,norb)
+                F_priv::Array{T,2} = zeros(norb,norb)
 
-        F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-        F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
+                F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+                F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
 
-        F_priv[μ,λ] -= D[ν,σ] * eri
-        F_priv[μ,σ] -= D[ν,λ] * eri
-        F_priv[ν,λ] -= D[μ,σ] * eri
-        F_priv[ν,σ] -= D[μ,λ] * eri
+                F_priv[μ,λ] -= D[ν,σ] * eri
+                F_priv[μ,σ] -= D[ν,λ] * eri
+                F_priv[ν,λ] -= D[μ,σ] * eri
+                F_priv[ν,σ] -= D[μ,λ] * eri
 
-        lock(mutex)
-        F += F_priv
-        unlock(mutex)
+                lock(mutex)
+                F += F_priv
+                unlock(mutex)
+            end
+        end
+        MPI.Barrier(comm)
     end
-
     return F
 end
 
