@@ -32,7 +32,7 @@ dat = Input data file object
 """
 =#
 function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
-    norb::Int64 = FLAGS.BASIS.NORB
+    norb::Int32 = FLAGS.BASIS.NORB
     scf::Data{T} = Data(Matrix{T}(undef,norb,norb),
                         Matrix{T}(undef,norb,norb),
                         Matrix{T}(undef,norb,norb),
@@ -63,7 +63,7 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
     #display(S_evec)
     #println("")
     S_eval::Array{T,2} = zeros(norb,norb)
-    for i::Int64 in 1:norb
+    for i::Int32 in 1:norb
         S_eval[i,i] = S_eval_diag[i]
     end
 
@@ -92,7 +92,7 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
 
     #start scf cycles: #7-10
     converged::Bool = false
-    iter::Int64 = 1
+    iter::Int32 = 1
     while(!converged)
 
         #multilevel MPI+threads parallel algorithm
@@ -180,7 +180,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
     C::Array{T,2} = ortho*F_evec
 
-    for i::Int64 in 1:FLAGS.BASIS.NORB, j::Int64 in 1:i
+    for i::Int32 in 1:FLAGS.BASIS.NORB, j::Int32 in 1:i
         D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
         D[j,i] = D[i,j]
     end
@@ -192,7 +192,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 end
 #=
 """
-     index(a::Int64,b::Int64)
+     index(a::Int32,b::Int32)
 Summary
 ======
 Triangular indexing determination.
@@ -204,8 +204,8 @@ a = row index
 b = column index
 """
 =#
-@inline function index(a::Int64,b::Int64,ioff::Array{Int64,1})
-    index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
+@inline function index(a::Int32,b::Int32,ioff::Array{Int32,1})
+    index::Int32 = (a > b) ? ioff[a] + b : ioff[b] + a
     return index
 end
 
@@ -231,25 +231,25 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     H::Array{T,2}, FLAGS::Flags) where {T<:Number}
 
     comm=MPI.COMM_WORLD
-    norb::Int64 = FLAGS.BASIS.NORB
+    norb::Int32 = FLAGS.BASIS.NORB
 
-    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    for μν_idx::Int64 in 1:ioff[norb]
+    for μν_idx::Int32 in 1:ioff[norb]
         if(MPI.Comm_rank(comm) == μν_idx%MPI.Comm_size(comm))
-            μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-            ν::Int64 = μν_idx%μ + 1
-            μν::Int64 = index(μ,ν,ioff)
+            μ::Int32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+            ν::Int32 = μν_idx%μ + 1
+            μν::Int32 = index(μ,ν,ioff)
 
-            Threads.@threads for λσ_idx::Int64 in 1:ioff[norb]
-                λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-                σ::Int64 = λσ_idx%λ + 1
+            Threads.@threads for λσ_idx::Int32 in 1:ioff[norb]
+                λ::Int32 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+                σ::Int32 = λσ_idx%λ + 1
 
-                λσ::Int64 = index(λ,σ,ioff)
-                μνλσ::Int64 = index(μν,λσ,ioff)
+                λσ::Int32 = index(λ,σ,ioff)
+                μνλσ::Int32 = index(μν,λσ,ioff)
 
                 val::T = (μ == ν) ? 0.5 : 1.0
                 val::T *= (λ == σ) ? 0.5 : 1.0
