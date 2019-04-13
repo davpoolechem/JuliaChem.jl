@@ -22,7 +22,7 @@ function script()
     flags, coord::Array{Float64,2} = JCInput.run()
 
     #perform scf calculation
-    scf = JCRHF.run(flags)
+    @time scf = JCRHF.run(flags)
 
     #finalize MPI
     MPI.Finalize()

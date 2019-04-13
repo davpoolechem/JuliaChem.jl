@@ -24,41 +24,41 @@ function input_coord()
 end
 export input_coord
 
-function read_in_enuc()
-    enuc::Float64 = input_enuc()
+function read_in_enuc(type::T) where {T<:Number}
+    enuc::T = input_enuc()
 
     return enuc
 end
 export read_in_enuc
 
-function read_in_ovr()
-    ovr::Array{Float64,2} = input_ovr()
+function read_in_ovr(type::T) where {T<:Number}
+    ovr::Array{T,2} = input_ovr()
 
-    ovr_matrix::Array{Float64,2} = get_oei_matrix(ovr)
+    ovr_matrix::Array{T,2} = get_oei_matrix(ovr)
     return ovr_matrix
 end
 export read_in_ovr
 
-function read_in_kei()
-    kei::Array{Float64,2} = input_kei()
+function read_in_kei(type::T) where {T<:Number}
+    kei::Array{T,2} = input_kei()
 
-    kei_matrix::Array{Float64,2} = get_oei_matrix(kei)
+    kei_matrix::Array{T,2} = get_oei_matrix(kei)
     return kei_matrix
 end
 export read_in_kei
 
-function read_in_nai()
-    nai::Array{Float64,2} = input_nai()
+function read_in_nai(type::T) where {T<:Number}
+    nai::Array{T,2} = input_nai()
 
-    nai_matrix::Array{Float64,2} = get_oei_matrix(nai)
+    nai_matrix::Array{T,2} = get_oei_matrix(nai)
     return nai_matrix
 end
 export read_in_nai
 
-function read_in_tei()
-    tei::Array{Float64,2} = input_tei()
+function read_in_tei(type::T) where {T<:Number}
+    tei::Array{T,2} = input_tei()
 
-    tei_array::Array{Float64,1} = get_tei_matrix(tei)
+    tei_array::Array{T,1} = get_tei_matrix(tei)
     return tei_array
 end
 export read_in_tei

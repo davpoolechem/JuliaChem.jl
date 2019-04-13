@@ -13,7 +13,11 @@ import Distributed
 import LinearAlgebra
 import LinearAlgebra.eigvecs
 import LinearAlgebra.eigvals
-import SparseArrays
+
+function rhf_energy(FLAGS::Flags)
+    scf::Data = rhf_kernel(FLAGS,oneunit(FLAGS.CTRL.PREC))
+    return scf
+end
 
 #=
 """
@@ -27,49 +31,49 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_energy(FLAGS::Flags)
+function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
     norb::Int64 = FLAGS.BASIS.NORB
-    scf::Data{Float64} = Data(Matrix{Float64}(undef,norb,norb),
-                              Matrix{Float64}(undef,norb,norb),
-                              Matrix{Float64}(undef,norb,norb),
-                              0.0)
+    scf::Data{T} = Data(Matrix{T}(undef,norb,norb),
+                        Matrix{T}(undef,norb,norb),
+                        Matrix{T}(undef,norb,norb),
+                        zero(T))
     comm=MPI.COMM_WORLD
 
     #Step #1: Nuclear Repulsion Energy
-    E_nuc::Float64 = read_in_enuc()
+    E_nuc::T = read_in_enuc(type)
     #println(E_nuc)
 
     #Step #2: One-Electron Integrals
-    S::Array{Float64,2} = read_in_ovr()
-    T::Array{Float64,2} = read_in_kei()
-    V::Array{Float64,2} = read_in_nai()
-    H::Array{Float64,2} = T+V
+    S::Array{T,2} = read_in_ovr(type)
+    T_oei::Array{T,2} = read_in_kei(type)
+    V::Array{T,2} = read_in_nai(type)
+    H::Array{T,2} = T_oei+V
 
     #Step #3: Two-Electron Integrals
-    tei::Array{Float64,1} = read_in_tei()
+    tei::Array{T,1} = read_in_tei(type)
 
     #Step #4: Build the Orthogonalization Matrix
     #println("Initial S matrix:")
     #display(S)
     #println("")
-    S_evec::Array{Float64,2} = eigvecs(LinearAlgebra.Hermitian(S))
+    S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
 
-    S_eval_diag::Array{Float64,1} = eigvals(LinearAlgebra.Hermitian(S))
+    S_eval_diag::Array{T,1} = eigvals(LinearAlgebra.Hermitian(S))
     #println("Initial S_evec matrix:")
     #display(S_evec)
     #println("")
-    S_eval::Array{Float64,2} = zeros(norb,norb)
+    S_eval::Array{T,2} = zeros(norb,norb)
     for i::Int64 in 1:norb
         S_eval[i,i] = S_eval_diag[i]
     end
 
-    ortho::Array{Float64,2} = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
+    ortho::Array{T,2} = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
     #ortho::Array{Float64,2} = S_evec*(LinearAlgebra.sqrt(LinearAlgebra.inv(S_eval)))*transpose(S_evec)
 
     #Step #5: Build the Initial (Guess) Density
-    F::Array{Float64,2} = transpose(ortho)*H*ortho
-    D = Matrix{Float64}(undef,norb,norb)
-    C = Matrix{Float64}(undef,norb,norb)
+    F::Array{T,2} = transpose(ortho)*H*ortho
+    D = Matrix{T}(undef,norb,norb)
+    C = Matrix{T}(undef,norb,norb)
 
     if (MPI.Comm_rank(comm) == 0)
         println("----------------------------------------          ")
@@ -80,7 +84,7 @@ function rhf_energy(FLAGS::Flags)
     end
 
     F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
-    E::Float64 = E_elec + E_nuc
+    E::T = E_elec + E_nuc
 
     if (MPI.Comm_rank(comm) == 0)
         println(0,"     ", E)
@@ -107,18 +111,18 @@ function rhf_energy(FLAGS::Flags)
         #println("")
 
         #Step #8: Build the New Density Matrix
-        D_old::Array{Float64,2} = deepcopy(D)
-        E_old::Float64 = E
+        D_old::Array{T,2} = deepcopy(D)
+        E_old::T = E
 
         F = transpose(ortho)*F*ortho
         F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
         E = E_elec+E_nuc
 
         #Step #10: Test for Convergence
-        ΔE::Float64 = E - E_old
+        ΔE::T = E - E_old
 
-        ΔD::Array{Float64,2} = D - D_old
-        D_rms::Float64 = √(∑(ΔD,ΔD))
+        ΔD::Array{T,2} = D - D_old
+        D_rms::T = √(∑(ΔD,ΔD))
 
         if (MPI.Comm_rank(comm) == 0)
             println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
