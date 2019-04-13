@@ -224,7 +224,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::Flags, FLAGS::Flags) where {T<:Number}
+    H::Array{T,2}, FLAGS::Flags) where {T<:Number}
 
     comm=MPI.COMM_WORLD
     norb::Int64 = FLAGS.BASIS.NORB
