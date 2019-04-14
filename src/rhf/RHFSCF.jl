@@ -137,6 +137,106 @@ function rhf_energy(FLAGS::Flags)
     return scf
 end
 
+function rhf_energy(FLAGS::Flags, scf::Data)
+    norb::Int64 = FLAGS.BASIS.NORB
+    comm = MPI.COMM_WORLD
+
+    #Step #1: Nuclear Repulsion Energy
+    E_nuc::Float64 = read_in_enuc()
+    #println(E_nuc)
+
+    #Step #2: One-Electron Integrals
+    S::Array{Float64,2} = read_in_ovr()
+    T::Array{Float64,2} = read_in_kei()
+    V::Array{Float64,2} = read_in_nai()
+    H::Array{Float64,2} = T+V
+
+    #Step #3: Two-Electron Integrals
+    tei::Array{Float64,1} = read_in_tei()
+
+    #Step #4: Build the Orthogonalization Matrix
+    #println("Initial S matrix:")
+    #display(S)
+    #println("")
+    S_evec::Array{Float64,2} = eigvecs(LinearAlgebra.Hermitian(S))
+
+    S_eval_diag::Array{Float64,1} = eigvals(LinearAlgebra.Hermitian(S))
+    #println("Initial S_evec matrix:")
+    #display(S_evec)
+    #println("")
+    S_eval::Array{Float64,2} = zeros(norb,norb)
+    for i::Int64 in 1:norb
+        S_eval[i,i] = S_eval_diag[i]
+    end
+
+    ortho::Array{Float64,2} = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
+    #ortho::Array{Float64,2} = S_evec*(LinearAlgebra.sqrt(LinearAlgebra.inv(S_eval)))*transpose(S_evec)
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("----------------------------------------          ")
+        println("      Continuing RHF iterations...                ")
+        println("----------------------------------------          ")
+        println(" ")
+        println("Iter      Energy                   ΔE                   Drms")
+    end
+
+    #start scf cycles: #7-10
+    converged::Bool = false
+    iter::Int64 = 1
+    while(!converged)
+
+        #multilevel MPI+threads parallel algorithm
+        F_temp = twoei(F, D, tei, H, FLAGS)
+
+        F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+        MPI.Barrier(comm)
+
+        F += deepcopy(H)
+
+        #println("Initial Fock matrix:")
+        #display(F)
+        #println("")
+
+        #Step #8: Build the New Density Matrix
+        D_old::Array{Float64,2} = deepcopy(D)
+        E_old::Float64 = E
+
+        F = transpose(ortho)*F*ortho
+        F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
+        E = E_elec+E_nuc
+
+        #Step #10: Test for Convergence
+        ΔE::Float64 = E - E_old
+
+        ΔD::Array{Float64,2} = D - D_old
+        D_rms::Float64 = √(∑(ΔD,ΔD))
+
+        if (MPI.Comm_rank(comm) == 0)
+            println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+        end
+
+        converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
+        iter += 1
+        if (iter > FLAGS.HF.NITER) break end
+    end
+
+    if (MPI.Comm_rank(comm) == 0)
+        println(" ")
+        println("----------------------------------------")
+        println("   The SCF calculation has converged!   ")
+        println("----------------------------------------")
+        println("Total SCF Energy: ",E," h")
+        println(" ")
+    end
+
+    scf.Fock = F
+    scf.Density = D
+    scf.Coeff = C
+    scf.Energy = E
+
+    return scf
+end
+
 #=
 """
      iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2}, ortho::Array{Float64,2})

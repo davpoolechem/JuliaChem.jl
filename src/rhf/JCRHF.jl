@@ -69,4 +69,42 @@ function run(flags::Flags)
 end
 export run
 
+function run(flags::Flags, scf::Data)
+    comm=MPI.COMM_WORLD
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("--------------------------------------------------------------------------------------")
+        println("                       ========================================          ")
+        println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
+        println("                       ========================================          ")
+        println("")
+    end
+
+    #GC.enable(false)
+    scf = rhf_energy(flags,scf)
+    #GC.enable(true)
+    #GC.gc()
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("                       ========================================          ")
+        println("                             END RESTRICTED CLOSED-SHELL                 ")
+        println("                                     HARTREE-FOCK                        ")
+        println("                       ========================================          ")
+    end
+
+    output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
+    output_density = Dict([("Structure","Density"),("Data",scf.Density)])
+    output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
+    if (MPI.Comm_rank(comm) == 0)
+        json_output = open("test.json","w")
+            write(json_output,JSON.json(output_fock))
+            write(json_output,JSON.json(output_density))
+            write(json_output,JSON.json(output_coeff))
+        close(json_output)
+    end
+
+    return scf
+end
+export run
+
 end
