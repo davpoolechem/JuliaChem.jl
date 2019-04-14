@@ -7,12 +7,11 @@ module is not strictly necessary for every calculation.
 """
 module JCProperties
 
-using OrbitalEnergies
+include("OrbitalEnergies.jl")
 
-using InputStructs
-using RHFStructs
+using JCStructs
 
-import MPI
+using MPI
 
 """
      run(scf::Data,flags::Flags)

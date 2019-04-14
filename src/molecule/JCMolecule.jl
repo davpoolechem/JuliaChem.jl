@@ -7,9 +7,10 @@ module is not strictly necessary for every calculation.
 """
 module JCMolecule
 
-using MoleculeAnalysis
+include("MoleculeAnalysis.jl")
 
-import MPI
+using MPI
+
 """
      run(coord::Array{Float64,2})
 Execute the JuliaChem molecular coordinate analysis functions.

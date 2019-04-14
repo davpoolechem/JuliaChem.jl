@@ -1,10 +1,3 @@
-"""
-    module InputStructs
-The input file contains different flags that control various aspects of the
-calculation. These flags can be divided into certain subsections. This module
-contains these different sections of flags for use in the code.
-"""
-module InputStructs
 #=
 """
     Ctrl_Flags
@@ -54,6 +47,7 @@ struct HF_Flags
     RMSD::Float64
 end
 export HF_Flags
+
 #=
 """
     Flags
@@ -75,5 +69,3 @@ struct Flags
     HF::HF_Flags
 end
 export Flags
-
-end

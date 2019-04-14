@@ -12,7 +12,7 @@ using JCMolecule
 using JCRHF
 using JCProperties
 
-import MPI
+using MPI
 
 #----------------------------#
 # JuliaChem execution script #

@@ -6,11 +6,11 @@ Import this module into the script when you need to process an input file
 """
 module JCInput
 
-using BasisStructs
-using InputFunctions
-using InputStructs
+include("InputFunctions.jl")
 
-import MPI
+using JCStructs
+
+using MPI
 using Base.Threads
 using Distributed
 

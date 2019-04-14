@@ -12,7 +12,17 @@ so this necessitates an MPI library to take advantage of them. As MPI is
 required to run JuliaChem, the MPI.jl package must also be installed via the Julia
 package manager.
 
-Aside from this, JuliaChem has no other external dependencies.
+JuliaChem uses the JSON format to output data from calculations, and future support
+is planned for parsing data from JSON files for checkpointing and restarting calculations.
+Thus, the JSON.jl package must also be downloaded and installed to use JuliaChem.
+
+Support for SnoopCompile.jl exists within JuliaChem, so SnoopCompile can be taken advantage
+of to reduce package loading times when running JuliaChem in the shell. However, this is
+an optional dependency and is not required. Future support for compilation via PackageCompiler.jl
+is planned; however, this is also optional and is not yet implemented yet.
+ 
+Documenter.jl is required to view the JuliaChem documentation; but if you are reading
+this, then you have already fulfilled that dependency. 
 
 ## Running JuliaChem
 
@@ -61,27 +71,47 @@ REPL or via shell. Example script files can be found in the example_scripts
 directory. *Note that the call to JCInputFile.assign cannot occur within the
 script file; these two must occur separately!*
 
-Finally, the MPI requirement must be account for. In both running on the REPL and
-via shell, the MPI library must be initialized before module calculations start,
-and finalized once the module calculations are complete. If running module calculations
-in sequence through the REPL, Julia must be started on multiple processes via mpirun
-to do so:
+Finally, the MPI requirement must be account for. While Julia can be run interactively
+over MPI, doing so comes with a few quirks. To run the Julia REPL over MPI, type the
+following command into the shell:
 
 ```
-mpirun -np <nprocs> julia
+mpirun -np <nprocs> --xterm <list of ranks, one per proc> julia
 ```
 
-When running a JuliaChem script via shell, this must also be executed via mpirun:
+This will open a new Julia REPL for each proc. To fully initialize MPI, the
+MPI.Init() function must then be executed in each Julia REPL. This is
+easily handled by putting the line 
 
 ```
-mpirun -np <nprocs> julia
+import MPI; MPI.Init()
+```
+
+into your Julia startup file. 
+
+Deviating from these instructions leads to the aforementioned quirks:
+
+-Not including the --xterm flag will cause the shell command to hang, as there is
+no output for the Julia REPL to go to.
+-Including only a subset of the processes in the --xterm flag list will cause
+the REPL to open for each rank in the subset, but the REPLs will immediately
+crash. This is the case even if MPI.Init() is included in the startup file.
+I'll admit I have no idea why this is the case.
+
+So while running Julia via the REPL over MPI required a bit of knowledge
+to work, it can indeed be done.
+
+To run a Julia script in Julia via the shell, type the following command into
+the shell: 
+```
+mpirun -np <nprocs> julia <path/to/script.jl>
 ```
 
 If one wished to take full advantage of the hybrid parallelism present within
 JuliaChem, the JULIA_NUM_THREADS environmental variable can also be defined:
 
 ```
-JULIA_NUM_THREADS=<nthreads> mpirun -np <nprocs> julia
+JULIA_NUM_THREADS=<nthreads> mpirun -np <nprocs> julia <path/to/script.jl>
 ```
 
 For ease of use to the user, the above command exists in a shell script provided
@@ -89,7 +119,7 @@ to the user. The juliachem.sh shell script enables automatic marking of the inpu
 file and execution of the above statement through the following shell command:
 
 ```
-./juliachem.sh </path/to/script/file.jl> <path/to/input/file.jl> <nprocs> <nthreads>
+./juliachem.sh <path/to/script/file.jl> <path/to/input/file.jl> <nprocs> <nthreads>
 ```
 
 # Modules
@@ -99,8 +129,8 @@ Table of Contents above; clicking on a module will take you to its'
 documentation section.
 
 A given module Foo can be "executed" in the script by:
-1. Adding "using Foo" to the module list in InputScript.jl
-2. Adding Foo.run to the script() function in InputScript.jl.
+1. Adding "using Foo" to the module list in YourInputScript.jl
+2. Adding Foo.run to the script() function in YourInputScript.jl.
 
 In this manner, the different modules can be combined, building-block style, to
 create a more expansive computation within a single calculation. Different
@@ -160,17 +190,18 @@ a section will take you to that section's available flags.
 ## Basis Set Flags
 
 ```@meta
-CurrentModule = InputStructs
+CurrentModule = JCStructs
 ```
 
 ```@docs
 Basis_Flags
+HF_Flags
 ```
 
 ## Hartree-Fock Flags
 
 ```@meta
-CurrentModule = InputStructs
+CurrentModule = JCStructs
 ```
 
 ```@docs
