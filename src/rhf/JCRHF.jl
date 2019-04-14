@@ -12,6 +12,7 @@ include("RHFSCF.jl")
 using JCStructs
 
 using MPI
+using JSON
 
 """
     run(flags::Flags)
@@ -51,6 +52,17 @@ function run(flags::Flags)
         println("                             END RESTRICTED CLOSED-SHELL                 ")
         println("                                     HARTREE-FOCK                        ")
         println("                       ========================================          ")
+    end
+
+    output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
+    output_density = Dict([("Structure","Density"),("Data",scf.Density)])
+    output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
+    if (MPI.Comm_rank(comm) == 0)
+        json_output = open("test.json","w")
+            write(json_output,JSON.json(output_fock))
+            write(json_output,JSON.json(output_density))
+            write(json_output,JSON.json(output_coeff))
+        close(json_output)
     end
 
     return scf
