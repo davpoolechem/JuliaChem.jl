@@ -51,8 +51,8 @@ function run(input_info::Dict{String,Dict{String,Any}})
 
     scf_info::Dict{String,Any} = input_info["SCF Flags"]
     scf_flags::SCF_Flags = SCF_Flags(scf_info["niter"], scf_info["dele"],
-                                        scf_info["rmsd"], scf_info["direct"],
-                                        scf_info["debug"])
+                                        scf_info["rmsd"], scf_info["prec"],
+                                        scf_info["direct"], scf_info["debug"])
 
     rhf_flags::RHF_Flags = RHF_Flags(ctrl_flags,basis_flags,scf_flags)
 
