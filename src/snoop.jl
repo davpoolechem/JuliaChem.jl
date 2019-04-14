@@ -5,7 +5,7 @@ using SnoopCompile
 
 SnoopCompile.@snoopc "snoop.csv" begin
     using Pkg
-    include("example_scripts/minimal-rhf-script.jl")
+    include("../example_scripts/minimal-rhf-script.jl")
 end
 
 ### Parse the compiles and generate precompilation scripts
