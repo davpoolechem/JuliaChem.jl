@@ -8,7 +8,7 @@
 }
 
 {
-  "Input":"HF Flags",
+  "Input":"SCF Flags",
   "niter":10,
   "dele":1E-6,
   "rmsd":1E-4

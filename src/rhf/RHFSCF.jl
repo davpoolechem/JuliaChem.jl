@@ -21,7 +21,7 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_energy(FLAGS::Flags)
+function rhf_energy(FLAGS::RHF_Flags)
     norb::Int64 = FLAGS.BASIS.NORB
     scf = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
     comm=MPI.COMM_WORLD
@@ -115,12 +115,12 @@ function rhf_energy(FLAGS::Flags)
             println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
         end
 
-        converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
+        converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
         iter += 1
-        if (iter > FLAGS.HF.NITER) break end
+        if (iter > FLAGS.SCF.NITER) break end
     end
 
-    if (iter > FLAGS.HF.NITER)
+    if (iter > FLAGS.SCF.NITER)
         if (MPI.Comm_rank(comm) == 0)
             println(" ")
             println("----------------------------------------")
@@ -149,7 +149,7 @@ function rhf_energy(FLAGS::Flags)
     end
 end
 
-function rhf_energy(FLAGS::Flags, restart::RHFRestartData)
+function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
     norb::Int64 = FLAGS.BASIS.NORB
     comm = MPI.COMM_WORLD
 
@@ -199,12 +199,12 @@ function rhf_energy(FLAGS::Flags, restart::RHFRestartData)
             println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
         end
 
-        converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
+        converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
         iter += 1
-        if (iter > FLAGS.HF.NITER) break end
+        if (iter > FLAGS.SCF.NITER) break end
     end
 
-    if (iter > FLAGS.HF.NITER)
+    if (iter > FLAGS.SCF.NITER)
         if (MPI.Comm_rank(comm) == 0)
             println(" ")
             println("----------------------------------------")
@@ -252,7 +252,7 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F::Array{Float64,2}, D::Array{Float64,2}, H::Array{Float64,2},
-    ortho::Array{Float64,2}, FLAGS::Flags)
+    ortho::Array{Float64,2}, FLAGS::RHF_Flags)
 
     #Step #8: Build the New Density Matrix
     F_eval::Array{Float64,1} = eigvals(LinearAlgebra.Hermitian(F))
@@ -310,7 +310,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
-    H::Array{Float64,2}, FLAGS::Flags)
+    H::Array{Float64,2}, FLAGS::RHF_Flags)
 
     comm=MPI.COMM_WORLD
     norb::Int64 = FLAGS.BASIS.NORB
