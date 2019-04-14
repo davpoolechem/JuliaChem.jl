@@ -13,11 +13,11 @@ Fields
 4. Energy::Float64 = Electronic Energy
 """
 =#
-mutable struct Data
-    Fock::Array{Float64,2}
-    Density::Array{Float64,2}
-    Coeff::Array{Float64,2}
-    Energy::Float64
+mutable struct Data{T<:Number}
+    Fock::Array{T,2}
+    Density::Array{T,2}
+    Coeff::Array{T,2}
+    Energy::T
 end
 export Data
 
@@ -48,6 +48,7 @@ struct SCF_Flags
     NITER::Int64
     DELE::Float64
     RMSD::Float64
+    PREC::String
     DIRECT::Bool
     DEBUG::Bool
 end
