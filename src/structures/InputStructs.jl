@@ -10,8 +10,9 @@ Flags
 """
 
 struct Ctrl_Flags
-    CALC::String
+    NAME::String
 end
+export Ctrl_Flags
 
 """
     struct Basis_Flags
