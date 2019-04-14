@@ -6,11 +6,10 @@ Import this module into the script when you need to process an input file
 """
 module JCInput
 
-include("InputFunctions.jl")
-
 using JCStructs
 
 using MPI
+using JSON
 using Base.Threads
 using Distributed
 
@@ -31,7 +30,7 @@ Thus, proper use of the Input.run() function would look like this:
 flags, coord = Input.run()
 ```
 """
-function run()
+function run(args::String)
     #read in .inp and .dat files
     comm=MPI.COMM_WORLD
 
@@ -70,7 +69,37 @@ function run()
         println("                       ========================================          ")
     end
 
-    return (flags,coord,basis)
+    input_file::IOStream = open(args)
+        input_string::Array{String,1} = readlines(input_file)
+    close(input_file)
+
+    input_info::Dict{String,Dict{String,Any}} = Dict([])
+    i::Int64 = 1
+    while (i <= length(input_string))
+        if (input_string[i] != "{")
+            i += 1
+        else
+            j::Int64 = i
+            json_subsection::String = ""
+            input_name::String = ""
+            while (input_string[j] != "}")
+                json_subsection *= input_string[j]
+                if (occursin(r"\\\"Input\\\"\:(.*)",input_string[j]))
+                    input_name = match(r"\\\"Input\\\"\:(.*)",input_string[j])[1]
+                    input_name = input_name[2:end-2]
+                end
+                j += 1
+            end
+            json_subsection *= "}"
+            json_parse::Dict{String,Any} = JSON.parse(json_subsection)
+            merge!(input_info,Dict([(input_name,json_parse)]))
+
+            i = j
+        end
+    end
+
+    #display(input_info["Enuc"])
+    return (input_info,basis)
 end
 export run
 

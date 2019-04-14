@@ -7,7 +7,7 @@ module is not strictly necessary for every calculation.
 """
 module JCMolecule
 
-include("MoleculeAnalysis.jl")
+Base.include(@__MODULE__,"MoleculeAnalysis.jl")
 
 using MPI
 
@@ -26,7 +26,7 @@ Thus, proper use of the Molecule.run() function would look like this:
 Molecule.run(coord)
 ```
 """
-function run(coord::Array{Float64,2})
+function run(input_info::Dict{String,Dict{String,Any}})
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
@@ -35,6 +35,13 @@ function run(coord::Array{Float64,2})
         println("                             MOLECULAR COORDINATE ANALYSIS               ")
         println("                       ========================================          ")
         println("")
+    end
+
+    coord_dict::Array{Any,1} = input_info["Geometry"]["Coordinates"]
+
+    coord::Array{Float64,2} = Matrix{Float64}(undef,(length(coord_dict),4))
+    for i in 1:length(coord_dict), j in 1:4
+        coord[i,j] = coord_dict[i][j]
     end
 
     coordinate_analysis(coord)

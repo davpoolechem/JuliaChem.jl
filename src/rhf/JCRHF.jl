@@ -7,7 +7,7 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-include("RHFSCF.jl")
+Base.include(@__MODULE__,"RHFSCF.jl")
 
 using JCStructs
 
@@ -31,7 +31,7 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(flags)
 ```
 """
-function run(flags::Flags, basis::Basis)
+function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
@@ -42,8 +42,33 @@ function run(flags::Flags, basis::Basis)
         println("")
     end
 
+    #set up rhf flags
+    ctrl_info::Dict{String,Any} = input_info["Control Flags"]
+    ctrl_flags::Ctrl_Flags = Ctrl_Flags(ctrl_info["name"])
+
+    basis_info::Dict{String,Any} = input_info["Basis Flags"]
+    basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"], basis_info["nocc"])
+
+    scf_info::Dict{String,Any} = input_info["SCF Flags"]
+    scf_flags::SCF_Flags = SCF_Flags(scf_info["niter"], scf_info["dele"],
+                                        scf_info["rmsd"], scf_info["direct"],
+                                        scf_info["debug"])
+
+    rhf_flags::RHF_Flags = RHF_Flags(ctrl_flags,basis_flags,scf_flags)
+
+    #set up values to read in if not doing direct
+    read_in::Dict{String,Any} = Dict([])
+
+    merge!(read_in, input_info["Enuc"])
+    merge!(read_in, input_info["Overlap"])
+    merge!(read_in, input_info["Kinetic Energy"])
+    merge!(read_in, input_info["Nuclear Attraction"])
+    merge!(read_in, input_info["Two-Electron"])
+
     #GC.enable(false)
-    scf = rhf_energy(flags, basis)
+    if (scf_flags.DIRECT == false)
+        scf = rhf_energy(rhf_flags, basis read_in)
+    end
     #GC.enable(true)
     #GC.gc()
 
@@ -54,11 +79,14 @@ function run(flags::Flags, basis::Basis)
         println("                       ========================================          ")
     end
 
-    json_output = open("test.json","w")
+    calculation_name::String = ctrl_flags.NAME
+    json_output = open("$calculation_name"*"-output.json","w")
+        output_name = Dict([("Calculation",calculation_name)])
         output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
         output_density = Dict([("Structure","Density"),("Data",scf.Density)])
         output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
         if (MPI.Comm_rank(comm) == 0)
+            write(json_output,JSON.json(output_name))
             write(json_output,JSON.json(output_fock))
             write(json_output,JSON.json(output_density))
             write(json_output,JSON.json(output_coeff))
@@ -80,7 +108,8 @@ function run(flags::Flags, basis::Basis)
 end
 export run
 
-function run(flags::Flags, restart::RHFRestartData)
+#=
+function run(flags::RHF_Flags, restart::RHFRestartData)
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
@@ -117,5 +146,6 @@ function run(flags::Flags, restart::RHFRestartData)
     return scf
 end
 export run
+=#
 
 end
