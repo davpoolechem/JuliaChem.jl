@@ -14,12 +14,12 @@ using MPI
 #----------------------------#
 # JuliaChem execution script #
 #----------------------------#
-function script(args::String)
+function script(input_file::String)
     #initialize MPI
     MPI.Init()
 
     #read in input file
-    input_info = JCInput.run(args)
+    input_info = JCInput.run(input_file)
 
     #perform scf calculation
     scf = JCRHF.run(input_info)
@@ -72,4 +72,4 @@ if (isfile("../snoop/precompile_unknown.jl"))
     _precompile_()
 end
 
-script("example_inputs/sto3g-water.json")
+script(ARGS[1])

@@ -17,12 +17,12 @@ using MPI
 #----------------------------#
 # JuliaChem execution script #
 #----------------------------#
-function script(args::String)
+function script(input_file::String)
     #initialize MPI
     MPI.Init()
 
     #read in input file
-    input_info = JCInput.run(args)
+    input_info = JCInput.run(input_file)
 
     #analyze molecular coordinates
     JCMolecule.run(input_info)
@@ -37,4 +37,4 @@ function script(args::String)
     MPI.Finalize()
 end
 
-script("example_inputs/sto3g-water.json")
+script(ARGS[1])
