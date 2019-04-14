@@ -1,4 +1,3 @@
-#=
 """
     Ctrl_Flags
 Summary
@@ -9,10 +8,10 @@ Flags
 ======
 1. RUNTYP::String = Determines calculation type (no default setting)
 """
-=#
-#struct Ctrl_Flags
-#    RUNTYP::String
-#end
+
+struct Ctrl_Flags
+    CALC::String
+end
 
 """
     struct Basis_Flags

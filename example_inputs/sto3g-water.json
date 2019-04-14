@@ -2,6 +2,11 @@
 #      Control input flags     #
 #------------------------------#
 {
+  "Input":"Control Flags",
+  "name":"sto3g-water"
+}
+
+{
   "Input":"Basis Flags",
   "norb":7,
   "nocc":5

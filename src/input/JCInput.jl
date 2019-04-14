@@ -70,18 +70,18 @@ function run(args::String)
             i += 1
         else
             j::Int64 = i
-            test::String = ""
+            json_subsection::String = ""
             input_name::String = ""
             while (input_string[j] != "}")
-                test *= input_string[j]
+                json_subsection *= input_string[j]
                 if (occursin(r"\\\"Input\\\"\:(.*)",input_string[j]))
                     input_name = match(r"\\\"Input\\\"\:(.*)",input_string[j])[1]
                     input_name = input_name[2:end-2]
                 end
                 j += 1
             end
-            test *= "}"
-            json_parse::Dict{String,Any} = JSON.parse(test)
+            json_subsection *= "}"
+            json_parse::Dict{String,Any} = JSON.parse(json_subsection)
             merge!(input_info,Dict([(input_name,json_parse)]))
 
             i = j

@@ -61,13 +61,6 @@ function run(input_info::Dict{String,Dict{String,Any}})
     merge!(read_in, input_info["Nuclear Attraction"])
     merge!(read_in, input_info["Two-Electron"])
 
-    #read_in::Dict{String,Dict{String,Any}} = Dict([
-    #                                                ("Enuc",input_info["Enuc"]),
-    #                                                ("Ovr",input_info["Overlap"]),
-    #                                                ("Kei",input_info["Kinetic Energy"]),
-    #                                                ("Nai",input_info["Nuclear Attraction"]),
-    #                                                ("Tei",input_info["Two-Electron"])
-    #                                             ])
     #GC.enable(false)
     if (scf_flags.DIRECT == false)
         scf = rhf_energy(rhf_flags, read_in)
@@ -82,11 +75,14 @@ function run(input_info::Dict{String,Dict{String,Any}})
         println("                       ========================================          ")
     end
 
-    json_output = open("test.json","w")
+    calculation_name::String = input_info["Control Flags"]["name"]
+    json_output = open("$calculation_name"*"-output.json","w")
+        output_name = Dict([("Calculation",calculation_name)])
         output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
         output_density = Dict([("Structure","Density"),("Data",scf.Density)])
         output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
         if (MPI.Comm_rank(comm) == 0)
+            write(json_output,JSON.json(output_name))
             write(json_output,JSON.json(output_fock))
             write(json_output,JSON.json(output_density))
             write(json_output,JSON.json(output_coeff))
