@@ -7,12 +7,12 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-using RHFSCF
-using RHFStructs
+include("RHFSCF.jl")
 
-using InputStructs
+using JCStructs
 
-import MPI
+using MPI
+using JSON
 
 """
     run(flags::Flags)
@@ -43,7 +43,7 @@ function run(flags::Flags)
     end
 
     #GC.enable(false)
-    scf::Data = rhf_energy(flags)
+    scf = rhf_energy(flags)
     #GC.enable(true)
     #GC.gc()
 
@@ -52,6 +52,66 @@ function run(flags::Flags)
         println("                             END RESTRICTED CLOSED-SHELL                 ")
         println("                                     HARTREE-FOCK                        ")
         println("                       ========================================          ")
+    end
+
+    json_output = open("test.json","w")
+        output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
+        output_density = Dict([("Structure","Density"),("Data",scf.Density)])
+        output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
+        if (MPI.Comm_rank(comm) == 0)
+            write(json_output,JSON.json(output_fock))
+            write(json_output,JSON.json(output_density))
+            write(json_output,JSON.json(output_coeff))
+        end
+
+        if (typeof(scf) == RHFRestartData)
+            output_hcore = Dict([("Structure","Hcore"),("Data",scf.H)])
+            output_ortho = Dict([("Structure","Ortho"),("Data",scf.Ortho)])
+            output_iter = Dict([("Structure","Iteration"),("Data",scf.iter)])
+            if (MPI.Comm_rank(comm) == 0)
+                write(json_output,JSON.json(output_hcore))
+                write(json_output,JSON.json(output_ortho))
+                write(json_output,JSON.json(output_iter))
+            end
+        end
+    close(json_output)
+
+    return scf
+end
+export run
+
+function run(flags::Flags, restart::RHFRestartData)
+    comm=MPI.COMM_WORLD
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("--------------------------------------------------------------------------------------")
+        println("                       ========================================          ")
+        println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
+        println("                       ========================================          ")
+        println("")
+    end
+
+    #GC.enable(false)
+    scf = rhf_energy(flags,restart)
+    #GC.enable(true)
+    #GC.gc()
+
+    if (MPI.Comm_rank(comm) == 0)
+        println("                       ========================================          ")
+        println("                             END RESTRICTED CLOSED-SHELL                 ")
+        println("                                     HARTREE-FOCK                        ")
+        println("                       ========================================          ")
+    end
+
+    output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
+    output_density = Dict([("Structure","Density"),("Data",scf.Density)])
+    output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
+    if (MPI.Comm_rank(comm) == 0)
+        json_output = open("test.json","w")
+            write(json_output,JSON.json(output_fock))
+            write(json_output,JSON.json(output_density))
+            write(json_output,JSON.json(output_coeff))
+        close(json_output)
     end
 
     return scf

@@ -9,7 +9,7 @@
 using JCInput
 using JCRHF
 
-import MPI
+using MPI
 
 #----------------------------#
 # JuliaChem execution script #

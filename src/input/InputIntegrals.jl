@@ -1,5 +1,3 @@
-module InputIntegrals
-
 using Base.Threads
 
 #------------------------------------#
@@ -33,7 +31,6 @@ function get_oei_matrix(oei::Array{T,2}) where {T<:Number}
 
     return oei_matrix
 end
-export get_oei_matrix
 
 #=
 """
@@ -65,7 +62,4 @@ function get_tei_matrix(tei::Array{T,2}) where {T<:Number}
     end
 
     return tei_array
-end
-export get_tei_matrix
-
 end

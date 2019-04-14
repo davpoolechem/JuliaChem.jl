@@ -1,5 +1,3 @@
-module RHFStructs
-
 #=
 """
     Data
@@ -23,4 +21,14 @@ mutable struct Data{T<:Number}
 end
 export Data
 
+mutable struct RHFRestartData
+    H::Array{Float64,2}
+    Ortho::Array{Float64,2}
+    iter::Int64
+
+    Fock::Array{Float64,2}
+    Density::Array{Float64,2}
+    Coeff::Array{Float64,2}
+    Energy::Float64
 end
+export RHFRestartData

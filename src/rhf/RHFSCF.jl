@@ -1,18 +1,13 @@
-module RHFSCF
-
 Base.include(@__MODULE__,"../math/math.jl")
 
-using RHFStructs
+include("../input/InputFunctions.jl")
 
-using InputFunctions
-using InputStructs
+using JCStructs
 
-import MPI
-import Base.Threads
-import Distributed
-import LinearAlgebra
-import LinearAlgebra.eigvecs
-import LinearAlgebra.eigvals
+using MPI
+using Base.Threads
+using Distributed
+using LinearAlgebra
 
 function rhf_energy(FLAGS::Flags)
     scf::Data = rhf_kernel(FLAGS,oneunit(FLAGS.CTRL.PREC))
@@ -133,23 +128,118 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
         if (iter > FLAGS.HF.NITER) break end
     end
 
+    if (iter > FLAGS.HF.NITER)
+        if (MPI.Comm_rank(comm) == 0)
+            println(" ")
+            println("----------------------------------------")
+            println("   The SCF calculation not converged.   ")
+            println("      Restart data is being output.     ")
+            println("----------------------------------------")
+            println(" ")
+        end
+
+        #restart = RHFRestartData(H, ortho, iter, F, D, C, E)
+
+        return RHFRestartData(H, ortho, iter, F, D, C, E)
+    else
+        if (MPI.Comm_rank(comm) == 0)
+            println(" ")
+            println("----------------------------------------")
+            println("   The SCF calculation has converged!   ")
+            println("----------------------------------------")
+            println("Total SCF Energy: ",E," h")
+            println(" ")
+        end
+
+        #scf = Data(F, D, C, E)
+
+        return Data(F, D, C, E)
+    end
+end
+
+function rhf_energy(FLAGS::Flags, restart::RHFRestartData)
+    norb::Int64 = FLAGS.BASIS.NORB
+    comm = MPI.COMM_WORLD
+
+    H::Array{Float64,2} = T+V
+    tei::Array{Float64,1} = read_in_tei()
+
     if (MPI.Comm_rank(comm) == 0)
+        println("----------------------------------------          ")
+        println("      Continuing RHF iterations...                ")
+        println("----------------------------------------          ")
         println(" ")
-        println("----------------------------------------")
-        println("   The SCF calculation has converged!   ")
-        println("----------------------------------------")
-        println("Total SCF Energy: ",E," h")
-        println(" ")
+        println("Iter      Energy                   ΔE                   Drms")
     end
 
-    scf.Fock = F
-    scf.Density = D
-    scf.Coeff = C
-    scf.Energy = E
+    #start scf cycles: #7-10
+    converged::Bool = false
+    iter::Int64 = restart.iter
+    while(!converged)
 
-    return scf
+        #multilevel MPI+threads parallel algorithm
+        F_temp = twoei(F, D, tei, H, FLAGS)
+
+        F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+        MPI.Barrier(comm)
+
+        F += deepcopy(H)
+
+        #println("Initial Fock matrix:")
+        #display(F)
+        #println("")
+
+        #Step #8: Build the New Density Matrix
+        D_old::Array{Float64,2} = deepcopy(D)
+        E_old::Float64 = E
+
+        F = transpose(ortho)*F*ortho
+        F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
+        E = E_elec+E_nuc
+
+        #Step #10: Test for Convergence
+        ΔE::Float64 = E - E_old
+
+        ΔD::Array{Float64,2} = D - D_old
+        D_rms::Float64 = √(∑(ΔD,ΔD))
+
+        if (MPI.Comm_rank(comm) == 0)
+            println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+        end
+
+        converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
+        iter += 1
+        if (iter > FLAGS.HF.NITER) break end
+    end
+
+    if (iter > FLAGS.HF.NITER)
+        if (MPI.Comm_rank(comm) == 0)
+            println(" ")
+            println("----------------------------------------")
+            println("   The SCF calculation not converged.   ")
+            println("      Restart data is being output.     ")
+            println("----------------------------------------")
+            println(" ")
+        end
+
+        #restart = RHFRestartData(H, ortho, iter, F, D, C, E)
+
+        return RHFRestartData(H, ortho, iter, F, D, C, E)
+    else
+        if (MPI.Comm_rank(comm) == 0)
+            println(" ")
+            println("----------------------------------------")
+            println("   The SCF calculation has converged!   ")
+            println("----------------------------------------")
+            println("Total SCF Energy: ",E," h")
+            println(" ")
+        end
+
+        #scf = Data(F, D, C, E)
+
+        return Data(F, D, C, E)
+    end
 end
-export rhf_energy
 
 #=
 """
@@ -275,6 +365,4 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
         MPI.Barrier(comm)
     end
     return F
-end
-
 end

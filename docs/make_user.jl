@@ -1,4 +1,4 @@
-using Documenter, JCInput, JCMolecule, JCRHF, JCProperties, InputStructs
+using Documenter, JCInput, JCMolecule, JCRHF, JCProperties, JCStructs
 using DocumenterLaTeX
 
 makedocs(
@@ -8,6 +8,6 @@ makedocs(
                JCMolecule,
                JCRHF,
                JCProperties,
-               InputStructs],
+               JCStructs],
     #format = LaTeX()
 )

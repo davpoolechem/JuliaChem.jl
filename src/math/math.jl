@@ -1,7 +1,7 @@
 #------------------------------#
 #            Math.jl           #
 #------------------------------#
-import LinearAlgebra
+using LinearAlgebra
 
 #=
 """
