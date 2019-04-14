@@ -90,9 +90,6 @@ function rhf_energy(FLAGS::Flags)
 
         F += deepcopy(H)
 
-        #task-based algorithm
-        #F = twoei_tasked(F, D, tei, H, FLAGS)
-
         #println("Initial Fock matrix:")
         #display(F)
         #println("")
@@ -287,7 +284,8 @@ b = column index
 """
 =#
 @inline function index(a::Int64,b::Int64,ioff::Array{Int64,1})
-    index::Int64 = (a > b) ? ioff[a] + b : ioff[b] + a
+    #@assert (a >= b)
+    index::Int64 = ioff[a] + b
     return index
 end
 
@@ -326,35 +324,57 @@ function twoei(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
             ν::Int64 = μν_idx%μ + 1
             μν::Int64 = index(μ,ν,ioff)
 
-            Threads.@threads for λσ_idx::Int64 in 1:ioff[norb]
+            μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+            ν::Int64 = μν_idx%μ + 1
+            μ, ν = (μ >= ν) ? (μ, ν) : (ν, μ)
+
+            Threads.@threads for λσ_idx::Int64 in 1:μν_idx
                 λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
                 σ::Int64 = λσ_idx%λ + 1
+                λ, σ = (λ >= σ) ? (λ, σ) : (σ, λ)
 
+                if (μ < λ)
+                    μ, λ = λ, μ
+                    ν, σ = σ, ν
+                elseif ((μ == λ) && (ν < σ))
+                    ν, σ = σ, ν
+                end
+
+                μν::Int64 = index(μ,ν,ioff)
                 λσ::Int64 = index(λ,σ,ioff)
+
                 μνλσ::Int64 = index(μν,λσ,ioff)
 
                 val::Float64 = (μ == ν) ? 0.5 : 1.0
-                val::Float64 *= (λ == σ) ? 0.5 : 1.0
+                val *= (λ == σ) ? 0.5 : 1.0
+                val *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
                 eri::Float64 = val * tei[μνλσ]
 
-                if (eri <= 1E-10) continue end
+                #if (eri <= 1E-10) continue end
 
                 F_priv::Array{Float64,2} = zeros(norb,norb)
 
                 F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-                F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
-
+                F_priv[μ,ν] += 4.0 * D[σ,λ] * eri
                 F_priv[μ,λ] -= D[ν,σ] * eri
                 F_priv[μ,σ] -= D[ν,λ] * eri
                 F_priv[ν,λ] -= D[μ,σ] * eri
                 F_priv[ν,σ] -= D[μ,λ] * eri
 
+                F_priv[σ,λ] = F_priv[λ,σ]
+                F_priv[ν,μ] = F_priv[μ,ν]
+                F_priv[λ,μ] = F_priv[μ,λ]
+                F_priv[σ,μ] = F_priv[μ,σ]
+                F_priv[λ,ν] = F_priv[ν,λ]
+                F_priv[σ,ν] = F_priv[ν,σ]
+
                 lock(mutex)
+                push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
                 F += F_priv
                 unlock(mutex)
             end
-        end
-        MPI.Barrier(comm)
-    end
+
+    display(sort(debug_array))
+
     return F
 end
