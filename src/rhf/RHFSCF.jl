@@ -10,8 +10,11 @@ using Distributed
 using LinearAlgebra
 
 function rhf_energy(FLAGS::RHF_Flags, read_in::Dict{String,Any})
-    scf::Data = rhf_kernel(FLAGS,oneunit(convert(DataType,FLAGS.SCF.PREC)))
-    return scf
+    if (FLAGS.SCF.PREC == "Float64")
+        return rhf_kernel(FLAGS,read_in,oneunit(Float64))
+    elseif (FLAGS.SCF.PREC == "Float32")
+        return rhf_kernel(FLAGS,read_in,oneunit(Float32))
+    end
 end
 
 #=
@@ -26,12 +29,8 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where {T<:Number}
+function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where {T<:AbstractFloat}
     norb::Int32 = FLAGS.BASIS.NORB
-    scf::Data{T} = Data(Matrix{T}(undef,norb,norb),
-                        Matrix{T}(undef,norb,norb),
-                        Matrix{T}(undef,norb,norb),
-                        zero(T))
     comm=MPI.COMM_WORLD
 
     json_debug::Any = ""
@@ -178,6 +177,7 @@ function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where 
     end
 end
 
+#=
 function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
     norb::Int64 = FLAGS.BASIS.NORB
     comm = MPI.COMM_WORLD
@@ -261,7 +261,7 @@ function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
         return Data(F, D, C, E)
     end
 end
-
+=#
 #=
 """
      iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2}, ortho::Array{T,2})
@@ -281,7 +281,7 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
-    ortho::Array{T,2}, FLAGS::RHF_Flags) where {T<:Number}
+    ortho::Array{T,2}, FLAGS::RHF_Flags) where {T<:AbstractFloat}
 
     #Step #8: Build the New Density Matrix
     F_eval::Array{T,1} = eigvals(LinearAlgebra.Hermitian(F))
@@ -339,7 +339,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::RHF_Flags) where {T<:Number}
+    H::Array{T,2}, FLAGS::RHF_Flags) where {T<:AbstractFloat}
 
     comm=MPI.COMM_WORLD
     norb::Int32 = FLAGS.BASIS.NORB
