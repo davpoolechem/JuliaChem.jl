@@ -31,13 +31,13 @@ function rhf_energy(FLAGS::RHF_Flags, read_in::Dict{String,Any})
     #println(E_nuc)
 
     #Step #2: One-Electron Integrals
-    S::Array{Float64,2} = read_in_oei(read_in["ovr"])
-    T::Array{Float64,2} = read_in_oei(read_in["kei"])
-    V::Array{Float64,2} = read_in_oei(read_in["nai"])
+    S::Array{Float64,2} = read_in_oei(read_in["ovr"], FLAGS)
+    T::Array{Float64,2} = read_in_oei(read_in["kei"], FLAGS)
+    V::Array{Float64,2} = read_in_oei(read_in["nai"], FLAGS)
     H::Array{Float64,2} = T+V
 
     #Step #3: Two-Electron Integrals
-    tei::Array{Float64,1} = read_in_tei(read_in["tei"])
+    tei::Array{Float64,1} = read_in_tei(read_in["tei"], FLAGS)
 
     #Step #4: Build the Orthogonalization Matrix
     #println("Initial S matrix:")

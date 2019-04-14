@@ -19,8 +19,8 @@ Arguments
 oei = array of one-electron integrals to extract
 """
 =#
-function read_in_oei(oei::Array{Any,1})
-    nbf::Int64 = 7
+function read_in_oei(oei::Array{Any,1}, FLAGS::RHF_Flags)
+    nbf::Int64 = FLAGS.BASIS.NORB
     nbf2::Int64 = nbf*(nbf+1)/2
 
     oei_matrix::Array{Float64,2} = Matrix{Float64}(undef,(nbf,nbf))
@@ -47,11 +47,9 @@ Arguments
 data = name of data file object to process
 """
 =#
-function read_in_tei(tei::Array{Any,1})
-    nint::Int64 = 228
-
-    tei_array::Array{Float64,1} = zeros(2401)
-    Threads.@threads for index::Int64 in 1:nint
+function read_in_tei(tei::Array{Any,1}, FLAGS::RHF_Flags)
+    tei_array::Array{Float64,1} = zeros(FLAGS.BASIS.NORB^4)
+    Threads.@threads for index::Int64 in 1:length(tei)
         i::Int64 = tei[index][1]
         j::Int64 = tei[index][2]
         k::Int64 = tei[index][3]
