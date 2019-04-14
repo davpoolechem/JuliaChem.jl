@@ -154,8 +154,6 @@ function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where 
             println(" ")
         end
 
-        #restart = RHFRestartData(H, ortho, iter, F, D, C, E)
-
         return RHFRestartData(H, ortho, iter, F, D, C, E)
     else
         if (MPI.Comm_rank(comm) == 0)
@@ -166,8 +164,6 @@ function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where 
             println("Total SCF Energy: ",E," h")
             println(" ")
         end
-
-        #scf = Data(F, D, C, E)
 
         if (FLAGS.SCF.DEBUG == true)
             close(json_debug)
@@ -353,10 +349,6 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
         if(MPI.Comm_rank(comm) == μν_idx%MPI.Comm_size(comm))
             μ::Int32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
             ν::Int32 = μν_idx%μ + 1
-            μν::Int32 = index(μ,ν,ioff)
-
-            μ::Int32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-            ν::Int32 = μν_idx%μ + 1
             μ, ν = (μ >= ν) ? (μ, ν) : (ν, μ)
 
             Threads.@threads for λσ_idx::Int32 in 1:μν_idx
@@ -400,12 +392,14 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 F_priv[σ,ν] = F_priv[ν,σ]
 
                 lock(mutex)
-                push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
+                #push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
                 F += F_priv
                 unlock(mutex)
             end
+        end
+    end
 
-    display(sort(debug_array))
+    #display(sort(debug_array))
 
     return F
 end
