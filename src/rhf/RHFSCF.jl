@@ -1,6 +1,6 @@
 Base.include(@__MODULE__,"../math/math.jl")
 
-include("../input/InputFunctions.jl")
+Base.include(@__MODULE__,"ReadIn.jl")
 
 using JCStructs
 
@@ -26,7 +26,7 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
+function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where {T<:Number}
     norb::Int32 = FLAGS.BASIS.NORB
     scf::Data{T} = Data(Matrix{T}(undef,norb,norb),
                         Matrix{T}(undef,norb,norb),
@@ -34,36 +34,43 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
                         zero(T))
     comm=MPI.COMM_WORLD
 
+    json_debug::Any = ""
+    if (FLAGS.SCF.DEBUG == true)
+        json_debug = open(FLAGS.CTRL.NAME*"-debug.json","w")
+    end
+
     #Step #1: Nuclear Repulsion Energy
-    E_nuc::T = read_in_enuc(type)
-    #println(E_nuc)
+    E_nuc::T = read_in["enuc"]
 
     #Step #2: One-Electron Integrals
-    S::Array{T,2} = read_in_ovr(type)
-    T_oei::Array{T,2} = read_in_kei(type)
-    V::Array{T,2} = read_in_nai(type)
-    H::Array{T,2} = T_oei+V
+    S::Array{T,2} = read_in_oei(read_in["ovr"], FLAGS)
+    T::Array{T,2} = read_in_oei(read_in["kei"], FLAGS)
+    V::Array{T,2} = read_in_oei(read_in["nai"], FLAGS)
+    H::Array{T,2} = T+V
+
+    if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+        output_H = Dict([("Core Hamiltonian",H)])
+        write(json_debug,JSON.json(output_H))
+    end
 
     #Step #3: Two-Electron Integrals
-    tei::Array{T,1} = read_in_tei(type)
+    tei::Array{T,1} = read_in_tei(read_in["tei"], FLAGS)
 
     #Step #4: Build the Orthogonalization Matrix
-    #println("Initial S matrix:")
-    #display(S)
-    #println("")
     S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
 
     S_eval_diag::Array{T,1} = eigvals(LinearAlgebra.Hermitian(S))
-    #println("Initial S_evec matrix:")
-    #display(S_evec)
-    #println("")
+
     S_eval::Array{T,2} = zeros(norb,norb)
-    for i::Int32 in 1:norb
+    for i::Int64 in 1:norb
         S_eval[i,i] = S_eval_diag[i]
     end
 
     ortho::Array{T,2} = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
-    #ortho::Array{T,2} = S_evec*(LinearAlgebra.sqrt(LinearAlgebra.inv(S_eval)))*transpose(S_evec)
+    if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+        output_ortho = Dict([("Orthogonalization Matrix",ortho)])
+        write(json_debug,JSON.json(output_ortho))
+    end
 
     #Step #5: Build the Initial (Guess) Density
     F::Array{T,2} = transpose(ortho)*H*ortho
@@ -81,8 +88,17 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
     F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
     E::T = E_elec + E_nuc
 
+    if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+        output_F_initial = Dict([("Initial Fock Matrix",F)])
+        output_D_initial = Dict([("Initial Density Matrix",D)])
+
+        write(json_debug,JSON.json(output_F_initial))
+        write(json_debug,JSON.json(output_D_initial))
+    end
+
     if (MPI.Comm_rank(comm) == 0)
         println(0,"     ", E)
+
     end
 
     #start scf cycles: #7-10
@@ -98,12 +114,13 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
 
         F += deepcopy(H)
 
-        #task-based algorithm
-        #F = twoei_tasked(F, D, tei, H, FLAGS)
-
         #println("Initial Fock matrix:")
-        #display(F)
-        #println("")
+        if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+            output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
+                                        ("Density Matrix",D)])
+
+            write(json_debug,JSON.json(output_iter_data))
+        end
 
         #Step #8: Build the New Density Matrix
         D_old::Array{T,2} = deepcopy(D)
@@ -123,12 +140,12 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
             println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
         end
 
-        converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
+        converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
         iter += 1
-        if (iter > FLAGS.HF.NITER) break end
+        if (iter > FLAGS.SCF.NITER) break end
     end
 
-    if (iter > FLAGS.HF.NITER)
+    if (iter > FLAGS.SCF.NITER)
         if (MPI.Comm_rank(comm) == 0)
             println(" ")
             println("----------------------------------------")
@@ -153,11 +170,15 @@ function rhf_kernel(FLAGS::Flags, type::T) where {T<:Number}
 
         #scf = Data(F, D, C, E)
 
+        if (FLAGS.SCF.DEBUG == true)
+            close(json_debug)
+        end
+
         return Data(F, D, C, E)
     end
 end
 
-function rhf_energy(FLAGS::Flags, restart::RHFRestartData)
+function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
     norb::Int64 = FLAGS.BASIS.NORB
     comm = MPI.COMM_WORLD
 
@@ -207,12 +228,12 @@ function rhf_energy(FLAGS::Flags, restart::RHFRestartData)
             println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
         end
 
-        converged = (ΔE <= FLAGS.HF.DELE) && (D_rms <= FLAGS.HF.RMSD)
+        converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
         iter += 1
-        if (iter > FLAGS.HF.NITER) break end
+        if (iter > FLAGS.SCF.NITER) break end
     end
 
-    if (iter > FLAGS.HF.NITER)
+    if (iter > FLAGS.SCF.NITER)
         if (MPI.Comm_rank(comm) == 0)
             println(" ")
             println("----------------------------------------")
@@ -260,7 +281,7 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
-    ortho::Array{T,2}, FLAGS::Flags) where {T<:Number}
+    ortho::Array{T,2}, FLAGS::RHF_Flags) where {T<:Number}
 
     #Step #8: Build the New Density Matrix
     F_eval::Array{T,1} = eigvals(LinearAlgebra.Hermitian(F))
@@ -318,7 +339,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::Flags) where {T<:Number}
+    H::Array{T,2}, FLAGS::RHF_Flags) where {T<:Number}
 
     comm=MPI.COMM_WORLD
     norb::Int32 = FLAGS.BASIS.NORB

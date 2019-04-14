@@ -14,15 +14,15 @@ using MPI
 #----------------------------#
 # JuliaChem execution script #
 #----------------------------#
-function script()
+function script(input_file::String)
     #initialize MPI
     MPI.Init()
 
     #read in input file
-    flags, coord::Array{Float64,2} = JCInput.run()
+    input_info = JCInput.run(input_file)
 
     #perform scf calculation
-    @time scf = JCRHF.run(flags)
+    scf = JCRHF.run(input_info)
 
     #finalize MPI
     MPI.Finalize()
@@ -72,4 +72,4 @@ if (isfile("../snoop/precompile_unknown.jl"))
     _precompile_()
 end
 
-script()
+script(ARGS[1])
