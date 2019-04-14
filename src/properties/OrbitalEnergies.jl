@@ -4,9 +4,9 @@ using JCStructs
 
 using MPI
 
-function orbital_energies(scf::Data,FLAGS::Flags)
-    norb = FLAGS.BASIS.NORB
-    comm=MPI.COMM_WORLD
+function orbital_energies(scf::Data,FLAGS::Basis_Flags)
+    norb = FLAGS.NORB
+    comm = MPI.COMM_WORLD
 
     F_mo::Array{Float64,2} = zeros(norb,norb)
     for i::Int64 in 1:norb, j::Int64 in 1:i

@@ -30,7 +30,7 @@ Thus, proper use of the Properties.run() function would look like this:
 Properties.run(scf, flags)
 ```
 """
-function run(scf::Data,flags::Flags)
+function run(scf::Data,input_info::Dict{String,Dict{String,Any}})
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
@@ -41,7 +41,11 @@ function run(scf::Data,flags::Flags)
         println("")
     end
 
-    orbital_energies(scf,flags)
+    #set up rhf flags
+    basis_info::Dict{String,Any} = input_info["Basis Flags"]
+    basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"], basis_info["nocc"])
+
+    orbital_energies(scf,basis_flags)
 
     if (MPI.Comm_rank(comm) == 0)
         println("                       ========================================          ")
