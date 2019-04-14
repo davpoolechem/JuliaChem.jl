@@ -67,7 +67,7 @@ function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
 
     #GC.enable(false)
     if (scf_flags.DIRECT == false)
-        scf = rhf_energy(rhf_flags, basis read_in)
+        scf = rhf_energy(rhf_flags, basis, read_in)
     end
     #GC.enable(true)
     #GC.gc()

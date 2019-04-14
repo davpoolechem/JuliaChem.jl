@@ -9,11 +9,11 @@ using Base.Threads
 using Distributed
 using LinearAlgebra
 
-function rhf_energy(FLAGS::RHF_Flags, read_in::Dict{String,Any})
-    if (FLAGS.SCF.PREC == "T")
-        return rhf_kernel(FLAGS,read_in,oneunit(T))
+function rhf_energy(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any})
+    if (FLAGS.SCF.PREC == "Float64")
+        return rhf_kernel(FLAGS,basis,read_in,oneunit(Float64))
     elseif (FLAGS.SCF.PREC == "Float32")
-        return rhf_kernel(FLAGS,read_in,oneunit(Float32))
+        return rhf_kernel(FLAGS,basis,read_in,oneunit(Float32))
     end
 end
 
@@ -29,7 +29,8 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any}, type::T) where {T<:AbstractFloat}
+function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
+                        type::T) where {T<:AbstractFloat}
     norb::Int32 = FLAGS.BASIS.NORB
     comm=MPI.COMM_WORLD
 
