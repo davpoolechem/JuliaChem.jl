@@ -49,6 +49,7 @@ struct SCF_Flags
     DELE::Float64
     RMSD::Float64
     DIRECT::Bool
+    DEBUG::Bool
 end
 export SCF_Flags
 
@@ -68,7 +69,7 @@ Flag fields
 =#
 
 struct RHF_Flags
-#    CTRL::Ctrl_Flags
+    CTRL::Ctrl_Flags
     BASIS::Basis_Flags
     SCF::SCF_Flags
 end
