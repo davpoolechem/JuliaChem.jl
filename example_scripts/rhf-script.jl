@@ -17,25 +17,24 @@ using MPI
 #----------------------------#
 # JuliaChem execution script #
 #----------------------------#
-function script()
-
+function script(input_file::String)
     #initialize MPI
     MPI.Init()
 
     #read in input file
-    flags, coord::Array{Float64,2} = JCInput.run()
+    input_info = JCInput.run(input_file)
 
     #analyze molecular coordinates
-    JCMolecule.run(coord)
+    JCMolecule.run(input_info)
 
     #perform scf calculation
-    scf = JCRHF.run(flags)
+    scf = JCRHF.run(input_info)
 
     #determine wavefunction properties
-    JCProperties.run(scf,flags)
+    JCProperties.run(scf,input_info)
 
     #finalize MPI
     MPI.Finalize()
 end
 
-script()
+script(ARGS[1])
