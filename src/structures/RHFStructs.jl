@@ -48,6 +48,7 @@ struct SCF_Flags
     NITER::Int64
     DELE::Float64
     RMSD::Float64
+    PREC::String
     DIRECT::Bool
     DEBUG::Bool
 end

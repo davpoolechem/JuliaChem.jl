@@ -9,8 +9,8 @@ using Base.Threads
 using Distributed
 using LinearAlgebra
 
-function rhf_energy(FLAGS::Flags)
-    scf::Data = rhf_kernel(FLAGS,oneunit(FLAGS.CTRL.PREC))
+function rhf_energy(FLAGS::RHF_Flags, read_in::Dict{String,Any})
+    scf::Data = rhf_kernel(FLAGS,oneunit(convert(DataType,FLAGS.SCF.PREC)))
     return scf
 end
 
@@ -44,9 +44,9 @@ function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where 
 
     #Step #2: One-Electron Integrals
     S::Array{T,2} = read_in_oei(read_in["ovr"], FLAGS)
-    T::Array{T,2} = read_in_oei(read_in["kei"], FLAGS)
+    T_oei::Array{T,2} = read_in_oei(read_in["kei"], FLAGS)
     V::Array{T,2} = read_in_oei(read_in["nai"], FLAGS)
-    H::Array{T,2} = T+V
+    H::Array{T,2} = T_oei+V
 
     if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
         output_H = Dict([("Core Hamiltonian",H)])

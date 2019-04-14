@@ -8,10 +8,9 @@ Flags
 ======
 1. RUNTYP::String = Determines calculation type (no default setting)
 """
-=#
+
 struct Ctrl_Flags
     NAME::String
-    PREC::DataType
 end
 export Ctrl_Flags
 
