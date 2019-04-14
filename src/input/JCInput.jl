@@ -6,8 +6,6 @@ Import this module into the script when you need to process an input file
 """
 module JCInput
 
-#include("InputFunctions.jl")
-
 using JCStructs
 
 using MPI

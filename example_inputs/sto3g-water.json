@@ -9,9 +9,10 @@
 
 {
   "Input":"SCF Flags",
-  "niter":10,
-  "dele":1E-6,
-  "rmsd":1E-4
+  "niter":50,
+  "dele":1E-8,
+  "rmsd":1E-6,
+	"direct":false
 }
 
 #------------------------------#

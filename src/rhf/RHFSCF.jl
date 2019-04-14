@@ -1,6 +1,7 @@
 Base.include(@__MODULE__,"../math/math.jl")
 
-include("../input/InputFunctions.jl")
+
+include("ReadIn.jl")
 
 using JCStructs
 
@@ -21,23 +22,22 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_energy(FLAGS::RHF_Flags)
+function rhf_energy(FLAGS::RHF_Flags, read_in::Dict{String,Any})
     norb::Int64 = FLAGS.BASIS.NORB
-    scf = Data(zeros(norb,norb), zeros(norb,norb), zeros(norb,norb), 0)
     comm=MPI.COMM_WORLD
 
     #Step #1: Nuclear Repulsion Energy
-    E_nuc::Float64 = read_in_enuc()
+    E_nuc::Float64 = read_in["enuc"]
     #println(E_nuc)
 
     #Step #2: One-Electron Integrals
-    S::Array{Float64,2} = read_in_ovr()
-    T::Array{Float64,2} = read_in_kei()
-    V::Array{Float64,2} = read_in_nai()
+    S::Array{Float64,2} = read_in_oei(read_in["ovr"])
+    T::Array{Float64,2} = read_in_oei(read_in["kei"])
+    V::Array{Float64,2} = read_in_oei(read_in["nai"])
     H::Array{Float64,2} = T+V
 
     #Step #3: Two-Electron Integrals
-    tei::Array{Float64,1} = read_in_tei()
+    tei::Array{Float64,1} = read_in_tei(read_in["tei"])
 
     #Step #4: Build the Orthogonalization Matrix
     #println("Initial S matrix:")
