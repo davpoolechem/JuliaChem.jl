@@ -43,7 +43,7 @@ function run(flags::Flags)
     end
 
     #GC.enable(false)
-    scf::Data = rhf_energy(flags)
+    scf = rhf_energy(flags)
     #GC.enable(true)
     #GC.gc()
 
@@ -69,7 +69,7 @@ function run(flags::Flags)
 end
 export run
 
-function run(flags::Flags, scf::Data)
+function run(flags::Flags, restart::RHFRestartData)
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
@@ -81,7 +81,7 @@ function run(flags::Flags, scf::Data)
     end
 
     #GC.enable(false)
-    scf = rhf_energy(flags,scf)
+    scf = rhf_energy(flags,restart)
     #GC.enable(true)
     #GC.gc()
 
