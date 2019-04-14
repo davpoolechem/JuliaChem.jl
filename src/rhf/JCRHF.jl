@@ -65,9 +65,9 @@ function run(flags::Flags)
         end
 
         if (typeof(scf) == RHFRestartData)
-            output_hcore = Dict([("Structure","Fock"),("Data",scf.H)])
-            output_ortho = Dict([("Structure","Density"),("Data",scf.Ortho)])
-            output_iter = Dict([("Structure","Coeff"),("Data",scf.Iter)])
+            output_hcore = Dict([("Structure","Hcore"),("Data",scf.H)])
+            output_ortho = Dict([("Structure","Ortho"),("Data",scf.Ortho)])
+            output_iter = Dict([("Structure","Iteration"),("Data",scf.iter)])
             if (MPI.Comm_rank(comm) == 0)
                 write(json_output,JSON.json(output_hcore))
                 write(json_output,JSON.json(output_ortho))
