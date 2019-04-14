@@ -1,7 +1,6 @@
 Base.include(@__MODULE__,"../math/math.jl")
 
-
-include("ReadIn.jl")
+Base.include(@__MODULE__,"ReadIn.jl")
 
 using JCStructs
 

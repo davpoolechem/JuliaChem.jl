@@ -7,7 +7,7 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-include("RHFSCF.jl")
+Base.include(@__MODULE__,"RHFSCF.jl")
 
 using JCStructs
 
@@ -54,7 +54,7 @@ function run(input_info::Dict{String,Dict{String,Any}})
 
     #set up values to read in if not doing direct
     read_in::Dict{String,Any} = Dict([])
-    
+
     merge!(read_in, input_info["Enuc"])
     merge!(read_in, input_info["Overlap"])
     merge!(read_in, input_info["Kinetic Energy"])
