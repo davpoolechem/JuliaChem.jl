@@ -1,5 +1,3 @@
-module BasisStructs
-
 mutable struct Shell
     am::Int32
     nbas::Int32
@@ -44,5 +42,3 @@ function add_shell(basis_set::Basis, shell::Shell)
     push!(basis_set.shells,shell)
 end
 export add_shell
-
-end

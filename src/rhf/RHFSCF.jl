@@ -474,5 +474,3 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
     return F_priv
 end
 =#
-
-end
