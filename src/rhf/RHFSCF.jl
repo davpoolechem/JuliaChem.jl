@@ -30,7 +30,7 @@ dat = Input data file object
 """
 =#
 function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where {T<:AbstractFloat}
-    norb::Int32 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
     comm=MPI.COMM_WORLD
 
     json_debug::Any = ""
@@ -61,7 +61,7 @@ function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where 
     S_eval_diag::Array{T,1} = eigvals(LinearAlgebra.Hermitian(S))
 
     S_eval::Array{T,2} = zeros(norb,norb)
-    for i::Int64 in 1:norb
+    for i::UInt32 in 1:norb
         S_eval[i,i] = S_eval_diag[i]
     end
 
@@ -102,7 +102,7 @@ function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where 
 
     #start scf cycles: #7-10
     converged::Bool = false
-    iter::Int32 = 1
+    iter::UInt32 = 1
     while(!converged)
 
         #multilevel MPI+threads parallel algorithm
@@ -175,7 +175,7 @@ end
 
 #=
 function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
-    norb::Int64 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
     comm = MPI.COMM_WORLD
 
     H::Array{Float64,2} = T+V
@@ -191,7 +191,7 @@ function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
 
     #start scf cycles: #7-10
     converged::Bool = false
-    iter::Int64 = restart.iter
+    iter::UInt32 = restart.iter
     while(!converged)
 
         #multilevel MPI+threads parallel algorithm
@@ -287,7 +287,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
     C::Array{T,2} = ortho*F_evec
 
-    for i::Int32 in 1:FLAGS.BASIS.NORB, j::Int32 in 1:i
+    for i::UInt32 in 1:FLAGS.BASIS.NORB, j::UInt32 in 1:i
         D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
         D[j,i] = D[i,j]
     end
@@ -299,7 +299,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 end
 #=
 """
-     index(a::Int32,b::Int32)
+     index(a::UInt32,b::UInt32)
 Summary
 ======
 Triangular indexing determination.
@@ -311,8 +311,8 @@ a = row index
 b = column index
 """
 =#
-@inline function index(a::Int32,b::Int32,ioff::Array{Int32,1})
-    index::Int32 = ioff[a] + b
+@inline function index(a::UInt32,b::UInt32,ioff::Array{UInt32,1})
+    index::UInt32 = ioff[a] + b
     return index
 end
 
@@ -338,22 +338,22 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     H::Array{T,2}, FLAGS::RHF_Flags) where {T<:AbstractFloat}
 
     comm=MPI.COMM_WORLD
-    norb::Int32 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
 
-    ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    for μν_idx::Int32 in 1:ioff[norb]
+    for μν_idx::UInt32 in 1:ioff[norb]
         if(MPI.Comm_rank(comm) == μν_idx%MPI.Comm_size(comm))
-            μ::Int32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-            ν::Int32 = μν_idx%μ + 1
+            μ::UInt32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+            ν::UInt32 = μν_idx%μ + 1
             μ, ν = (μ >= ν) ? (μ, ν) : (ν, μ)
 
-            Threads.@threads for λσ_idx::Int32 in 1:μν_idx
-                λ::Int32 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-                σ::Int32 = λσ_idx%λ + 1
+            Threads.@threads for λσ_idx::UInt32 in 1:μν_idx
+                λ::UInt32 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+                σ::UInt32 = λσ_idx%λ + 1
                 λ, σ = (λ >= σ) ? (λ, σ) : (σ, λ)
 
                 if (μ < λ)
@@ -363,10 +363,10 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                     ν, σ = σ, ν
                 end
 
-                μν::Int32 = index(μ,ν,ioff)
-                λσ::Int32 = index(λ,σ,ioff)
+                μν::UInt32 = index(μ,ν,ioff)
+                λσ::UInt32 = index(λ,σ,ioff)
 
-                μνλσ::Int32 = index(μν,λσ,ioff)
+                μνλσ::UInt32 = index(μν,λσ,ioff)
 
                 val::T = (μ == ν) ? 0.5 : 1.0
                 val *= (λ == σ) ? 0.5 : 1.0
