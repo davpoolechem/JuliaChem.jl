@@ -386,25 +386,25 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:Abs
     nλ = quartet.ket.sh_a.nbas
     nσ = quartet.ket.sh_b.nbas
 
-    for μμ::UInt32 in 0:nμ-1
-        μ::UInt32 = quartet.bra.sh_a.pos + μμ
-        μ_idx::UInt32 = nν*nλ*nσ*μμ
+    for μμ::UInt32 in 1:nμ
+        μ::UInt32 = quartet.bra.sh_a.pos + (μμ-1)
+        μ_idx::UInt32 = nν*nλ*nσ*(μμ-1)
 
-        for νν::UInt32 in 0:nν-1
-            ν::UInt32 = quartet.bra.sh_b.pos + νν
-            μν_idx::UInt32 = μ_idx + nλ*nσ*νν
+        for νν::UInt32 in 1:nν
+            ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
+            μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
 
             if (μ < ν) continue end
 
-            for λλ::UInt32 in 0:nλ-1
-                λ::UInt32 = quartet.ket.sh_a.pos + λλ
-                μνλ_idx::UInt32 = μν_idx + nσ*λλ
+            for λλ::UInt32 in 1:nλ
+                λ::UInt32 = quartet.ket.sh_a.pos + (λλ-1)
+                μνλ_idx::UInt32 = μν_idx + nσ*(λλ-1)
 
-                for σσ::UInt32 in 0:nσ-1
-                    σ::UInt32 = quartet.ket.sh_b.pos + σσ
+                for σσ::UInt32 in 1:nσ
+                    σ::UInt32 = quartet.ket.sh_b.pos + (σσ-1)
                     μνλσ::UInt32 = μνλ_idx + σσ
 
-                    #println("\"$μ, $ν, $λ, $σ\"")
+                    println("\"$μ, $ν, $λ, $σ\"")
 
                     if (λ < σ) continue end
 
