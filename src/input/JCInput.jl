@@ -94,7 +94,6 @@ function run(args::String)
         add_shell(basis,deepcopy(shell))
     end
 
-    display(basis)
     return (input_info,basis)
 end
 export run

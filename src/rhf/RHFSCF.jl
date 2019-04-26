@@ -316,10 +316,10 @@ a = row index
 b = column index
 """
 =#
-#@inline function index(a::UInt32,b::UInt32,ioff::Array{UInt32,1})
-#    index::UInt32 = (a > b) ? ioff[a] + b : ioff[b] + a
-#    return index
-#end
+@inline function index(a::UInt32,b::UInt32,ioff::Array{UInt32,1})
+    index::UInt32 = (a > b) ? ioff[a] + b : ioff[b] + a
+    return index
+end
 
 #=
 """
@@ -388,25 +388,29 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:Abs
 
     for μμ::UInt32 in 1:nμ
         μ::UInt32 = quartet.bra.sh_a.pos + (μμ-1)
-        μ_idx::UInt32 = nν*nλ*nσ*(μμ-1)
+        #μ_idx::UInt32 = nν*nλ*nσ*(μμ-1)
 
         for νν::UInt32 in 1:nν
             ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
-            μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
+            #μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
 
             if (μ < ν) continue end
+            μν = index(μ,ν,ioff)
 
             for λλ::UInt32 in 1:nλ
                 λ::UInt32 = quartet.ket.sh_a.pos + (λλ-1)
-                μνλ_idx::UInt32 = μν_idx + nσ*(λλ-1)
+                #μνλ_idx::UInt32 = μν_idx + nσ*(λλ-1)
 
                 for σσ::UInt32 in 1:nσ
                     σ::UInt32 = quartet.ket.sh_b.pos + (σσ-1)
-                    μνλσ::UInt32 = μνλ_idx + σσ
-
-                    println("\"$μ, $ν, $λ, $σ\"")
+                    #μνλσ::UInt32 = μνλ_idx + σσ
 
                     if (λ < σ) continue end
+
+                    λσ = index(λ,σ,ioff)
+                    μνλσ::UInt32 = index(μν,λσ,ioff)
+
+                    #println("\"$μ, $ν, $λ, $σ\"")
 
                     val::T = (μ == ν) ? 0.5 : 1.0
                     val::T *= (λ == σ) ? 0.5 : 1.0
