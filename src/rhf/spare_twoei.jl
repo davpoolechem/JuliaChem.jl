@@ -4,13 +4,13 @@ function twoei_base(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64
     J::Array{Float64,2} = zeros(7,7)
     K::Array{Float64,2} = zeros(7,7)
 
-    for i::Int64 in 1:7
-        for j::Int64 in 1:7
-            for k::Int64 in 1:7
-                for l::Int64 in 1:7
-                    ij::Int64 = index(i,j)
-                    kl::Int64 = index(k,l)
-                    ijkl::Int64 = index(ij,kl)
+    for i::UInt32 in 1:7
+        for j::UInt32 in 1:7
+            for k::UInt32 in 1:7
+                for l::UInt32 in 1:7
+                    ij::UInt32 = index(i,j)
+                    kl::UInt32 = index(k,l)
+                    ijkl::UInt32 = index(ij,kl)
                     #J_idx = 7*(μ-1)+ν
                     #F[i,j] += D[k,l] * (2*tei[ijkl] - tei[ikjl])
                     #println(ijkl,"        ",tei[ijkl])
@@ -28,13 +28,13 @@ function twoei_ij(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64},
     F = deepcopy(H)
     J::Array{Float64,2} = zeros(7,7)
     K::Array{Float64,2} = zeros(7,7)
-    for i::Int64 in 1:7
-        for j::Int64 in 1:i
-            for k::Int64 in 1:7
-                for l::Int64 in 1:7
-                    ij::Int64 = index(i,j)
-                    kl::Int64 = index(k,l)
-                    ijkl::Int64 = index(ij,kl)
+    for i::UInt32 in 1:7
+        for j::UInt32 in 1:i
+            for k::UInt32 in 1:7
+                for l::UInt32 in 1:7
+                    ij::UInt32 = index(i,j)
+                    kl::UInt32 = index(k,l)
+                    ijkl::UInt32 = index(ij,kl)
                     #J_idx = 7*(μ-1)+ν
                     #F[i,j] += D[k,l] * (2*tei[ijkl] - tei[ikjl])
                     #F[i,j] += 2 * D[k,l] * tei[ijkl]
@@ -64,13 +64,13 @@ function twoei_kl(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64},
     #F = zeros(7,7)
     J::Array{Float64,2} = zeros(7,7)
     K::Array{Float64,2} = zeros(7,7)
-    for i::Int64 in 1:7
-        for j::Int64 in 1:i
-            for k::Int64 in 1:7
-                for l::Int64 in 1:k
-                    ij::Int64 = index(i,j)
-                    kl::Int64 = index(k,l)
-                    ijkl::Int64 = index(ij,kl)
+    for i::UInt32 in 1:7
+        for j::UInt32 in 1:i
+            for k::UInt32 in 1:7
+                for l::UInt32 in 1:k
+                    ij::UInt32 = index(i,j)
+                    kl::UInt32 = index(k,l)
+                    ijkl::UInt32 = index(ij,kl)
                     #val = (k == l) ? 0.5 : 1
                     #F[i,j] += val * D[k,l] * (4*tei[ijkl] - tei[ikjl] - tei[iljk])
                     val = (i == j) ? 0.5 : 1
@@ -100,23 +100,23 @@ end
 function twoei_kl_opt(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64},
     H::Array{Float64,2}, FLAGS::Flags)
 
-    norb::Int64 = FLAGS.BASIS.NORB
-    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    norb::UInt32 = FLAGS.BASIS.NORB
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
 
     J::Array{Float64,2} = zeros(norb,norb)
     K::Array{Float64,2} = zeros(norb,norb)
 
-    for i::Int64 in 1:norb
-        for j::Int64 in 1:i
-            ij::Int64 = index(i,j,ioff)
+    for i::UInt32 in 1:norb
+        for j::UInt32 in 1:i
+            ij::UInt32 = index(i,j,ioff)
 
-            for k::Int64 in 1:norb
-                for l::Int64 in 1:k
+            for k::UInt32 in 1:norb
+                for l::UInt32 in 1:k
 
-                    kl::Int64 = index(k,l,ioff)
-                    ijkl::Int64 = index(ij,kl,ioff)
+                    kl::UInt32 = index(k,l,ioff)
+                    ijkl::UInt32 = index(ij,kl,ioff)
 
                     val::Float64 = (i == j) ? 0.5 : 1.0
                     val::Float64 *= (k == l) ? 0.5 : 1.0
@@ -154,13 +154,13 @@ function twoei_fock2a(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float
     J::Array{Float64,2} = zeros(7,7)
     Ki::Array{Float64,2} = zeros(7,7)
     Kj::Array{Float64,2} = zeros(7,7)
-    for i::Int64 in 1:7
-        for j::Int64 in 1:i
-            ij::Int64 = index(i,j)
-            for k::Int64 in 1:7
-                for l::Int64 in 1:k
-                    kl::Int64 = index(k,l)
-                    ijkl::Int64 = index(ij,kl)
+    for i::UInt32 in 1:7
+        for j::UInt32 in 1:i
+            ij::UInt32 = index(i,j)
+            for k::UInt32 in 1:7
+                for l::UInt32 in 1:k
+                    kl::UInt32 = index(k,l)
+                    ijkl::UInt32 = index(ij,kl)
                     val = (i == j) ? 0.5 : 1
                     val *= (k == l) ? 0.5 : 1
                     J[k,l] += 2 * val * D[i,j] * tei[ijkl]
@@ -197,17 +197,17 @@ end
 function twoei_edit(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
     F = deepcopy(H)
     #F = zeros(7,7)
-    for i::Int64 in 1:7, j::Int64 in 1:i
-        for k::Int64 in 1:7, l::Int64 in 1:k
-            ij::Int64 = index(i,j)
-            kl::Int64 = index(k,l)
-            ijkl::Int64 = index(ij,kl)
-            ik::Int64 = index(i,k)
-            jl::Int64 = index(j,l)
-            ikjl::Int64 = index(ik,jl)
-            il::Int64 = index(i,l)
-            jk::Int64 = index(j,k)
-            iljk::Int64 = index(il,jk)
+    for i::UInt32 in 1:7, j::UInt32 in 1:i
+        for k::UInt32 in 1:7, l::UInt32 in 1:k
+            ij::UInt32 = index(i,j)
+            kl::UInt32 = index(k,l)
+            ijkl::UInt32 = index(ij,kl)
+            ik::UInt32 = index(i,k)
+            jl::UInt32 = index(j,l)
+            ikjl::UInt32 = index(ik,jl)
+            il::UInt32 = index(i,l)
+            jk::UInt32 = index(j,k)
+            iljk::UInt32 = index(il,jk)
             eri = tei[ijkl]
             val = (k == l) ? 0.5 : 1
             val = (j == l) ? 0.5 : 1
@@ -231,26 +231,26 @@ end
 function twoei_six(F::Array{Float64,2}, D::Array{Float64,2},
     tei::Array{Float64,1}, H::Array{Float64,2}, FLAGS::Flags)
 
-    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:7*8))
     F = deepcopy(H)
-    norb::Int64 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
 
     J::Array{Float64,2} = zeros(7,7)
     K::Array{Float64,2} = zeros(7,7)
-    for i::Int64 in 1:7
-        for j::Int64 in 1:i
-            for k::Int64 in 1:j
-                for l::Int64 in 1:k
-                    ij::Int64 = index(i,j,ioff)
-                    kl::Int64 = index(k,l,ioff)
+    for i::UInt32 in 1:7
+        for j::UInt32 in 1:i
+            for k::UInt32 in 1:j
+                for l::UInt32 in 1:k
+                    ij::UInt32 = index(i,j,ioff)
+                    kl::UInt32 = index(k,l,ioff)
                     if (ij < kl) continue end
-                    ijkl::Int64 = index(ij,kl,ioff)
-                    ik::Int64 = index(i,k,ioff)
-                    jl::Int64 = index(j,l,ioff)
-                    ikjl::Int64 = index(ik,jl,ioff)
-                    il::Int64 = index(i,k,ioff)
-                    jk::Int64 = index(j,l,ioff)
-                    iljk::Int64 = index(il,jk,ioff)
+                    ijkl::UInt32 = index(ij,kl,ioff)
+                    ik::UInt32 = index(i,k,ioff)
+                    jl::UInt32 = index(j,l,ioff)
+                    ikjl::UInt32 = index(ik,jl,ioff)
+                    il::UInt32 = index(i,k,ioff)
+                    jk::UInt32 = index(j,l,ioff)
+                    iljk::UInt32 = index(il,jk,ioff)
                     val::Float64 = (k == l) ? 0.5 : 1.0
                     F[i,j] += val * D[k,l] * (4*tei[ijkl] - tei[ikjl] - tei[iljk])
                     F[k,l] += val * D[i,j] * (4*tei[ijkl] - tei[ikjl] - tei[iljk])
@@ -296,24 +296,24 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 function twoei_distributed(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
-    H::Array{Float64,2}, FLAGS::Flags, μν_idx::Int64)
+    H::Array{Float64,2}, FLAGS::Flags, μν_idx::UInt32)
 
-    norb::Int64 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
 
-    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
 
-    μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-    ν::Int64 = μν_idx%μ + 1
-    μν::Int64 = index(μ,ν,ioff)
+    μ::UInt32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+    ν::UInt32 = μν_idx%μ + 1
+    μν::UInt32 = index(μ,ν,ioff)
 
-    for λσ_idx::Int64 in 1:ioff[norb]
-        λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-        σ::Int64 = λσ_idx%λ + 1
+    for λσ_idx::UInt32 in 1:ioff[norb]
+        λ::UInt32 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+        σ::UInt32 = λσ_idx%λ + 1
 
-        λσ::Int64 = index(λ,σ,ioff)
-        μνλσ::Int64 = index(μν,λσ,ioff)
+        λσ::UInt32 = index(λ,σ,ioff)
+        μνλσ::UInt32 = index(μν,λσ,ioff)
 
         val::Float64 = (μ == ν) ? 0.5 : 1.0
         val::Float64 *= (λ == σ) ? 0.5 : 1.0
@@ -352,24 +352,24 @@ H = One-electron Hamiltonian Matrix
 function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags)
 
-    norb::Int64 = FLAGS.BASIS.NORB
-    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    norb::UInt32 = FLAGS.BASIS.NORB
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
     F = deepcopy(H)
     mutex = Base.Threads.Mutex()
 
-    Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
-        μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-        ν::Int64 = μν_idx%μ + 1
+    Threads.@threads for μν_idx::UInt32 in 1:ioff[norb]
+        μ::UInt32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+        ν::UInt32 = μν_idx%μ + 1
 
-        μν::Int64 = index(μ,ν,ioff)
+        μν::UInt32 = index(μ,ν,ioff)
 
         F_priv::Array{Float64,2} = zeros(norb,norb)
-        for λσ_idx::Int64 in 1:ioff[norb]
-            λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-            σ::Int64 = λσ_idx%λ + 1
+        for λσ_idx::UInt32 in 1:ioff[norb]
+            λ::UInt32 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+            σ::UInt32 = λσ_idx%λ + 1
 
-            λσ::Int64 = index(λ,σ,ioff)
-            μνλσ::Int64 = index(μν,λσ,ioff)
+            λσ::UInt32 = index(λ,σ,ioff)
+            μνλσ::UInt32 = index(μν,λσ,ioff)
 
             val::Float64 = (μ == ν) ? 0.5 : 1.0
             val::Float64 *= (λ == σ) ? 0.5 : 1.0
@@ -413,28 +413,28 @@ H = One-electron Hamiltonian Matrix
 function twoei_tasked(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Float64,1},
     H::Array{Float64,2}, FLAGS::Flags)
 
-    norb::Int64 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
 
-    ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = deepcopy(H)
     J::Array{Float64,2} = zeros(norb,norb)
     K::Array{Float64,2} = zeros(norb,norb)
     #K::Array{Threads.Atomic{Float64},2} = fill(Threads.Atomic{Float64}(0.0),(norb,norb))
 
-    #Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
-    @sync @async for μν_idx::Int64 in 1:ioff[norb]
-        μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-        ν::Int64 = μν_idx%μ + 1
+    #Threads.@threads for μν_idx::UInt32 in 1:ioff[norb]
+    @sync @async for μν_idx::UInt32 in 1:ioff[norb]
+        μ::UInt32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
+        ν::UInt32 = μν_idx%μ + 1
 
-        μν::Int64 = index(μ,ν,ioff)
+        μν::UInt32 = index(μ,ν,ioff)
 
-        for λσ_idx::Int64 in 1:ioff[norb]
-            λ::Int64 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-            σ::Int64 = λσ_idx%λ + 1
+        for λσ_idx::UInt32 in 1:ioff[norb]
+            λ::UInt32 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
+            σ::UInt32 = λσ_idx%λ + 1
 
-            λσ::Int64 = index(λ,σ,ioff)
-            μνλσ::Int64 = index(μν,λσ,ioff)
+            λσ::UInt32 = index(λ,σ,ioff)
+            μνλσ::UInt32 = index(μν,λσ,ioff)
 
             val::Float64 = (μ == ν) ? 0.5 : 1.0
             val::Float64 *= (λ == σ) ? 0.5 : 1.0
