@@ -31,7 +31,7 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(flags)
 ```
 """
-function run(input_info::Dict{String,Dict{String,Any}})
+function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
@@ -51,8 +51,8 @@ function run(input_info::Dict{String,Dict{String,Any}})
 
     scf_info::Dict{String,Any} = input_info["SCF Flags"]
     scf_flags::SCF_Flags = SCF_Flags(scf_info["niter"], scf_info["dele"],
-                                        scf_info["rmsd"], scf_info["direct"],
-                                        scf_info["debug"])
+                                        scf_info["rmsd"], scf_info["prec"],
+                                        scf_info["direct"], scf_info["debug"])
 
     rhf_flags::RHF_Flags = RHF_Flags(ctrl_flags,basis_flags,scf_flags)
 
@@ -67,7 +67,7 @@ function run(input_info::Dict{String,Dict{String,Any}})
 
     #GC.enable(false)
     if (scf_flags.DIRECT == false)
-        scf = rhf_energy(rhf_flags, read_in)
+        scf = rhf_energy(rhf_flags, basis, read_in)
     end
     #GC.enable(true)
     #GC.gc()

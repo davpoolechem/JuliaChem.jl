@@ -9,7 +9,8 @@
 {
   "Input":"Basis Flags",
   "norb":7,
-  "nocc":5
+  "nocc":5,
+  "shells":[1, 1, 2, 1, 1]
 }
 
 {
@@ -17,6 +18,7 @@
   "niter":50,
   "dele":1E-8,
   "rmsd":1E-6,
+	"prec":"Float64",
 	"direct":false,
 	"debug":true
 }

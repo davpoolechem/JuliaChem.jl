@@ -49,6 +49,18 @@ function input_geometry()
 end
 export input_geometry
 
+#---------------------------#
+#    Control input basis    #
+#---------------------------#
+function input_basis()
+    #Set basis set shells
+    shells::Array{Int64,1} =
+    [ 1; 1; 2; 1; 1 ]
+
+    return shells
+end
+export input_basis
+
 #------------------------------#
 #   Control data input info    #
 #------------------------------#
