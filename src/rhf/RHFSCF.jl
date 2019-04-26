@@ -340,7 +340,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::RHF_Flags) where {T<:AbstractFloat}
+    H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
     comm=MPI.COMM_WORLD
     norb::Int32 = FLAGS.BASIS.NORB
@@ -376,7 +376,6 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 end
 
 function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
-
     norb = size(D)[1]
     ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
