@@ -51,7 +51,6 @@ function run(args::String)
         println("Number of threads in total: ", MPI.Comm_size(comm)*Threads.nthreads())
     end
 
-    #coord::Array{Float64,2} = input_coord()
     if (MPI.Comm_rank(comm) == 0)
         println(" ")
         println("                       ========================================          ")
@@ -88,8 +87,14 @@ function run(args::String)
         end
     end
 
-    #display(input_info["Enuc"])
-    return input_info
+    shell_am = input_info["Basis Flags"]["shells"]
+    basis::Basis = Basis()
+    for i in 1:length(shell_am)
+        shell::Shell = Shell(Int32(shell_am[i]))
+        add_shell(basis,deepcopy(shell))
+    end
+
+    return (input_info,basis)
 end
 export run
 

@@ -22,7 +22,7 @@ function script(input_file::String)
     MPI.Init()
 
     #read in input file
-    input_info = JCInput.run(input_file)
+    input_info, basis = JCInput.run(input_file)
 
     #analyze molecular coordinates
     JCMolecule.run(input_info)
