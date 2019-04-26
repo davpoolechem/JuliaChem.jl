@@ -17,7 +17,9 @@
   "niter":50,
   "dele":1E-8,
   "rmsd":1E-6,
-	"direct":false
+	"prec":"Float64",
+	"direct":false,
+	"debug":true
 }
 
 #------------------------------#

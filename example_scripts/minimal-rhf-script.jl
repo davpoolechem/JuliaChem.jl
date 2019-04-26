@@ -22,7 +22,7 @@ function script(input_file::String)
     input_info = JCInput.run(input_file)
 
     #perform scf calculation
-    scf = JCRHF.run(input_info)
+    @time scf = JCRHF.run(input_info)
 
     #finalize MPI
     MPI.Finalize()

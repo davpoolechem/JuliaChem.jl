@@ -43,14 +43,18 @@ function run(input_info::Dict{String,Dict{String,Any}})
     end
 
     #set up rhf flags
+    ctrl_info::Dict{String,Any} = input_info["Control Flags"]
+    ctrl_flags::Ctrl_Flags = Ctrl_Flags(ctrl_info["name"])
+
     basis_info::Dict{String,Any} = input_info["Basis Flags"]
     basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"], basis_info["nocc"])
 
     scf_info::Dict{String,Any} = input_info["SCF Flags"]
     scf_flags::SCF_Flags = SCF_Flags(scf_info["niter"], scf_info["dele"],
-                                        scf_info["rmsd"], scf_info["direct"])
+                                        scf_info["rmsd"], scf_info["prec"],
+                                        scf_info["direct"], scf_info["debug"])
 
-    rhf_flags::RHF_Flags = RHF_Flags(basis_flags,scf_flags)
+    rhf_flags::RHF_Flags = RHF_Flags(ctrl_flags,basis_flags,scf_flags)
 
     #set up values to read in if not doing direct
     read_in::Dict{String,Any} = Dict([])
@@ -75,7 +79,7 @@ function run(input_info::Dict{String,Dict{String,Any}})
         println("                       ========================================          ")
     end
 
-    calculation_name::String = input_info["Control Flags"]["name"]
+    calculation_name::String = ctrl_flags.NAME
     json_output = open("$calculation_name"*"-output.json","w")
         output_name = Dict([("Calculation",calculation_name)])
         output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
