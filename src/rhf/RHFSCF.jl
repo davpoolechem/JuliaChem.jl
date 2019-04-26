@@ -29,7 +29,8 @@ Arguments
 dat = Input data file object
 """
 =#
-function rhf_kernel(FLAGS::RHF_Flags, read_in::Dict{String,Any}, type::T) where {T<:AbstractFloat}
+function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
+                        type::T) where {T<:AbstractFloat}
     norb::UInt32 = FLAGS.BASIS.NORB
     comm=MPI.COMM_WORLD
 
@@ -339,32 +340,25 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::RHF_Flags) where {T<:AbstractFloat}
+    H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
     comm=MPI.COMM_WORLD
     norb::UInt32 = FLAGS.BASIS.NORB
-
+    nsh::UInt32 = length(basis.shells)
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    for μν_idx::UInt32 in 1:ioff[norb]
-        if(MPI.Comm_rank(comm) == μν_idx%MPI.Comm_size(comm))
-            μ::UInt32 = ceil(((-1+sqrt(1+8*μν_idx))/2))
-            ν::UInt32 = μν_idx%μ + 1
-            μν::UInt32 = index(μ,ν,ioff)
+    for bra_pairs::UInt32 in 1:ioff[nsh]
+        if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
+            bra_sh_a::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
+            bra_sh_b::UInt32 = bra_pairs%bra_sh_a + 1
+            bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
 
-            Threads.@threads for λσ_idx::UInt32 in 1:ioff[norb]
-                λ::UInt32 = ceil(((-1+sqrt(1+8*λσ_idx))/2))
-                σ::UInt32 = λσ_idx%λ + 1
-
-                λσ::UInt32 = index(λ,σ,ioff)
-                μνλσ::UInt32 = index(μν,λσ,ioff)
-
-            Threads.@threads for ket_pairs::Int32 in 1:ioff[nsh]
-                ket_sh_a::Int32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-                ket_sh_b::Int32 = ket_pairs%ket_sh_a + 1
+            Threads.@threads for ket_pairs::UInt32 in 1:ioff[nsh]
+                ket_sh_a::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
+                ket_sh_b::UInt32 = ket_pairs%ket_sh_a + 1
 
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
@@ -382,9 +376,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 end
 
 function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
-
     norb = size(D)[1]
-    ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
@@ -393,27 +386,31 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:Abs
     nλ = quartet.ket.sh_a.nbas
     nσ = quartet.ket.sh_b.nbas
 
-    for μμ::Int32 in 0:nμ-1
-        μ::Int32 = quartet.bra.sh_a.pos + μμ
-        μ_idx::Int32 = nν*nλ*nσ*μμ
+    for μμ::UInt32 in 1:nμ
+        μ::UInt32 = quartet.bra.sh_a.pos + (μμ-1)
+        #μ_idx::UInt32 = nν*nλ*nσ*(μμ-1)
 
-        for νν::Int32 in 0:nν-1
-            ν::Int32 = quartet.bra.sh_b.pos + νν
-            μν_idx::Int32 = μ_idx + nλ*nσ*νν
+        for νν::UInt32 in 1:nν
+            ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
+            #μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
 
             if (μ < ν) continue end
+            μν = index(μ,ν,ioff)
 
-            for λλ::Int32 in 0:nλ-1
-                λ::Int32 = quartet.ket.sh_a.pos + λλ
-                μνλ_idx::Int32 = μν_idx + nσ*λλ
+            for λλ::UInt32 in 1:nλ
+                λ::UInt32 = quartet.ket.sh_a.pos + (λλ-1)
+                #μνλ_idx::UInt32 = μν_idx + nσ*(λλ-1)
 
-                for σσ::Int32 in 0:nσ-1
-                    σ::Int32 = quartet.ket.sh_b.pos + σσ
-                    μνλσ::Int32 = μνλ_idx + σσ
-
-                    #println("\"$μ, $ν, $λ, $σ\"")
+                for σσ::UInt32 in 1:nσ
+                    σ::UInt32 = quartet.ket.sh_b.pos + (σσ-1)
+                    #μνλσ::UInt32 = μνλ_idx + σσ
 
                     if (λ < σ) continue end
+
+                    λσ = index(λ,σ,ioff)
+                    μνλσ::UInt32 = index(μν,λσ,ioff)
+
+                    #println("\"$μ, $ν, $λ, $σ\"")
 
                     val::T = (μ == ν) ? 0.5 : 1.0
                     val::T *= (λ == σ) ? 0.5 : 1.0
@@ -439,28 +436,28 @@ end
 function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
 
     norb = size(D)[1]
-    ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
-    for μν_idx::Int32 in 1:quartet.bra.nbas2
-        μ::Int32 = quartet.bra.sh_a.pos + ceil(μν_idx/quartet.bra.nbas2) - 1
-        ν::Int32 = quartet.bra.sh_b.pos + μν_idx%quartet.bra.nbas2
-        μν::Int32 = index(μ,ν,ioff)
+    for μν_idx::UInt32 in 1:quartet.bra.nbas2
+        μ::UInt32 = quartet.bra.sh_a.pos + ceil(μν_idx/quartet.bra.nbas2) - 1
+        ν::UInt32 = quartet.bra.sh_b.pos + μν_idx%quartet.bra.nbas2
+        μν::UInt32 = index(μ,ν,ioff)
 
         if (μ < ν) continue end
 
-        for λσ_idx::Int32 in 1:quartet.ket.nbas2
-            λ::Int32 = quartet.ket.sh_a.pos + ceil(λσ_idx/quartet.ket.nbas2) - 1
-            σ::Int32 = quartet.ket.sh_b.pos + λσ_idx%quartet.ket.nbas2
+        for λσ_idx::UInt32 in 1:quartet.ket.nbas2
+            λ::UInt32 = quartet.ket.sh_a.pos + ceil(λσ_idx/quartet.ket.nbas2) - 1
+            σ::UInt32 = quartet.ket.sh_b.pos + λσ_idx%quartet.ket.nbas2
 
             if (λ < σ) continue end
 
             #println("\"$μ, $ν, $λ, $σ\"")
 
-            #μνλσ::Int32 = μν + (ket.sh_b.nbas*λ+σ)
-            λσ::Int32 = index(λ,σ,ioff)
-            μνλσ::Int32 = index(μν,λσ,ioff)
+            #μνλσ::UInt32 = μν + (ket.sh_b.nbas*λ+σ)
+            λσ::UInt32 = index(λ,σ,ioff)
+            μνλσ::UInt32 = index(μν,λσ,ioff)
 
             val::T = (μ == ν) ? 0.5 : 1.0
             val::T *= (λ == σ) ? 0.5 : 1.0
@@ -480,5 +477,3 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
     return F_priv
 end
 =#
-
-end

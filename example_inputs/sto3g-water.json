@@ -9,7 +9,8 @@
 {
   "Input":"Basis Flags",
   "norb":7,
-  "nocc":5
+  "nocc":5,
+  "shells":[1, 1, 2, 1, 1]
 }
 
 {
