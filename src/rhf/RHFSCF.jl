@@ -313,8 +313,7 @@ b = column index
 """
 =#
 @inline function index(a::UInt32,b::UInt32,ioff::Array{UInt32,1})
-    index::UInt32 = ioff[a] + b
-    return index
+    return ioff[a] + b
 end
 
 #=
@@ -405,8 +404,9 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:Abs
                     #μνλσ::UInt32 = μνλ_idx + σσ
 
                     if (λ < σ) continue end
-
                     λσ = index(λ,σ,ioff)
+
+                    if(μν < λσ) μ,ν,λ,σ = λ,σ,μ,ν end
                     μνλσ::UInt32 = index(μν,λσ,ioff)
 
                     #println("\"$μ, $ν, $λ, $σ\"")
@@ -418,10 +418,8 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:Abs
 
                     if (eri <= 1E-10) continue end
 
-                    F_priv::Array{T,2} = zeros(norb,norb)
-
                     F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-                    F_priv[μ,ν] += 4.0 * D[σ,λ] * eri
+                    F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
                     F_priv[μ,λ] -= D[ν,σ] * eri
                     F_priv[μ,σ] -= D[ν,λ] * eri
                     F_priv[ν,λ] -= D[μ,σ] * eri

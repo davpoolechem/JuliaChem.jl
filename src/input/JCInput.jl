@@ -90,7 +90,7 @@ function run(args::String)
     shell_am = input_info["Basis Flags"]["shells"]
     basis::Basis = Basis()
     for i in 1:length(shell_am)
-        shell::Shell = Shell(Int32(shell_am[i]))
+        shell::Shell = Shell(UInt32(shell_am[i]))
         add_shell(basis,deepcopy(shell))
     end
 
