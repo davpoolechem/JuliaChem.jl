@@ -19,10 +19,10 @@ function script(input_file::String)
     MPI.Init()
 
     #read in input file
-    input_info = JCInput.run(input_file)
+    input_info, basis = JCInput.run(input_file)
 
     #perform scf calculation
-    @time scf = JCRHF.run(input_info)
+    scf = JCRHF.run(input_info, basis)
 
     #finalize MPI
     MPI.Finalize()
