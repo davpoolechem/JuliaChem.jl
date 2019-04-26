@@ -74,12 +74,12 @@ function run(args::String)
     close(input_file)
 
     input_info::Dict{String,Dict{String,Any}} = Dict([])
-    i::Int64 = 1
+    i::UInt32 = 1
     while (i <= length(input_string))
         if (input_string[i] != "{")
             i += 1
         else
-            j::Int64 = i
+            j::UInt32 = i
             json_subsection::String = ""
             input_name::String = ""
             while (input_string[j] != "}")
