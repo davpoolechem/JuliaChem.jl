@@ -25,7 +25,7 @@ The flags are as follows:
 2. NOCC = Number of doubly occupied orbitals (no default value)
 """
 struct Basis_Flags
-    NORB::Int64
-    NOCC::Int64
+    NORB::UInt32
+    NOCC::UInt32
 end
 export Basis_Flags
