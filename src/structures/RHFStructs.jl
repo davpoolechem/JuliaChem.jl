@@ -24,7 +24,7 @@ export Data
 mutable struct RHFRestartData
     H::Array{Float64,2}
     Ortho::Array{Float64,2}
-    iter::Int64
+    iter::UInt32
 
     Fock::Array{Float64,2}
     Density::Array{Float64,2}
@@ -45,7 +45,7 @@ The flags are as follows:
 3. RMSD = Change-in-root-mean-square-density convergence threshold (default = 1E-6)
 """
 struct SCF_Flags
-    NITER::Int64
+    NITER::UInt32
     DELE::Float64
     RMSD::Float64
     PREC::String

@@ -31,7 +31,7 @@ dat = Input data file object
 =#
 function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
                         type::T) where {T<:AbstractFloat}
-    norb::Int32 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
     comm=MPI.COMM_WORLD
 
     json_debug::Any = ""
@@ -62,7 +62,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     S_eval_diag::Array{T,1} = eigvals(LinearAlgebra.Hermitian(S))
 
     S_eval::Array{T,2} = zeros(norb,norb)
-    for i::Int32 in 1:norb
+    for i::UInt32 in 1:norb
         S_eval[i,i] = S_eval_diag[i]
     end
 
@@ -103,7 +103,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 
     #start scf cycles: #7-10
     converged::Bool = false
-    iter::Int32 = 1
+    iter::UInt32 = 1
     while(!converged)
 
         #multilevel MPI+threads parallel algorithm
@@ -180,7 +180,7 @@ end
 
 #=
 function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
-    norb::Int32 = FLAGS.BASIS.NORB
+    norb::UInt32 = FLAGS.BASIS.NORB
     comm = MPI.COMM_WORLD
 
     H::Array{T,2} = T+V
@@ -196,7 +196,7 @@ function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
 
     #start scf cycles: #7-10
     converged::Bool = false
-    iter::Int32 = restart.iter
+    iter::UInt32 = restart.iter
     while(!converged)
 
         #multilevel MPI+threads parallel algorithm
@@ -292,7 +292,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
     C::Array{T,2} = ortho*F_evec
 
-    for i::Int32 in 1:FLAGS.BASIS.NORB, j::Int32 in 1:i
+    for i::UInt32 in 1:FLAGS.BASIS.NORB, j::UInt32 in 1:i
         D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
         D[j,i] = D[i,j]
     end
@@ -304,7 +304,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 end
 #=
 """
-     index(a::Int32,b::Int32)
+     index(a::UInt32,b::UInt32)
 Summary
 ======
 Triangular indexing determination.
@@ -316,8 +316,8 @@ a = row index
 b = column index
 """
 =#
-#@inline function index(a::Int32,b::Int32,ioff::Array{Int32,1})
-#    index::Int32 = (a > b) ? ioff[a] + b : ioff[b] + a
+#@inline function index(a::UInt32,b::UInt32,ioff::Array{UInt32,1})
+#    index::UInt32 = (a > b) ? ioff[a] + b : ioff[b] + a
 #    return index
 #end
 
@@ -343,22 +343,22 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
     comm=MPI.COMM_WORLD
-    norb::Int32 = FLAGS.BASIS.NORB
-    nsh::Int32 = length(basis.shells)
-    ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    norb::UInt32 = FLAGS.BASIS.NORB
+    nsh::UInt32 = length(basis.shells)
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    for bra_pairs::Int32 in 1:ioff[nsh]
+    for bra_pairs::UInt32 in 1:ioff[nsh]
         if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
-            bra_sh_a::Int32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
-            bra_sh_b::Int32 = bra_pairs%bra_sh_a + 1
+            bra_sh_a::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
+            bra_sh_b::UInt32 = bra_pairs%bra_sh_a + 1
             bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
 
-            Threads.@threads for ket_pairs::Int32 in 1:ioff[nsh]
-                ket_sh_a::Int32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-                ket_sh_b::Int32 = ket_pairs%ket_sh_a + 1
+            Threads.@threads for ket_pairs::UInt32 in 1:ioff[nsh]
+                ket_sh_a::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
+                ket_sh_b::UInt32 = ket_pairs%ket_sh_a + 1
 
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
@@ -377,7 +377,7 @@ end
 
 function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
     norb = size(D)[1]
-    ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
@@ -386,23 +386,23 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:Abs
     nλ = quartet.ket.sh_a.nbas
     nσ = quartet.ket.sh_b.nbas
 
-    for μμ::Int32 in 0:nμ-1
-        μ::Int32 = quartet.bra.sh_a.pos + μμ
-        μ_idx::Int32 = nν*nλ*nσ*μμ
+    for μμ::UInt32 in 0:nμ-1
+        μ::UInt32 = quartet.bra.sh_a.pos + μμ
+        μ_idx::UInt32 = nν*nλ*nσ*μμ
 
-        for νν::Int32 in 0:nν-1
-            ν::Int32 = quartet.bra.sh_b.pos + νν
-            μν_idx::Int32 = μ_idx + nλ*nσ*νν
+        for νν::UInt32 in 0:nν-1
+            ν::UInt32 = quartet.bra.sh_b.pos + νν
+            μν_idx::UInt32 = μ_idx + nλ*nσ*νν
 
             if (μ < ν) continue end
 
-            for λλ::Int32 in 0:nλ-1
-                λ::Int32 = quartet.ket.sh_a.pos + λλ
-                μνλ_idx::Int32 = μν_idx + nσ*λλ
+            for λλ::UInt32 in 0:nλ-1
+                λ::UInt32 = quartet.ket.sh_a.pos + λλ
+                μνλ_idx::UInt32 = μν_idx + nσ*λλ
 
-                for σσ::Int32 in 0:nσ-1
-                    σ::Int32 = quartet.ket.sh_b.pos + σσ
-                    μνλσ::Int32 = μνλ_idx + σσ
+                for σσ::UInt32 in 0:nσ-1
+                    σ::UInt32 = quartet.ket.sh_b.pos + σσ
+                    μνλσ::UInt32 = μνλ_idx + σσ
 
                     #println("\"$μ, $ν, $λ, $σ\"")
 
@@ -432,28 +432,28 @@ end
 function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
 
     norb = size(D)[1]
-    ioff::Array{Int32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
     F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
-    for μν_idx::Int32 in 1:quartet.bra.nbas2
-        μ::Int32 = quartet.bra.sh_a.pos + ceil(μν_idx/quartet.bra.nbas2) - 1
-        ν::Int32 = quartet.bra.sh_b.pos + μν_idx%quartet.bra.nbas2
-        μν::Int32 = index(μ,ν,ioff)
+    for μν_idx::UInt32 in 1:quartet.bra.nbas2
+        μ::UInt32 = quartet.bra.sh_a.pos + ceil(μν_idx/quartet.bra.nbas2) - 1
+        ν::UInt32 = quartet.bra.sh_b.pos + μν_idx%quartet.bra.nbas2
+        μν::UInt32 = index(μ,ν,ioff)
 
         if (μ < ν) continue end
 
-        for λσ_idx::Int32 in 1:quartet.ket.nbas2
-            λ::Int32 = quartet.ket.sh_a.pos + ceil(λσ_idx/quartet.ket.nbas2) - 1
-            σ::Int32 = quartet.ket.sh_b.pos + λσ_idx%quartet.ket.nbas2
+        for λσ_idx::UInt32 in 1:quartet.ket.nbas2
+            λ::UInt32 = quartet.ket.sh_a.pos + ceil(λσ_idx/quartet.ket.nbas2) - 1
+            σ::UInt32 = quartet.ket.sh_b.pos + λσ_idx%quartet.ket.nbas2
 
             if (λ < σ) continue end
 
             #println("\"$μ, $ν, $λ, $σ\"")
 
-            #μνλσ::Int32 = μν + (ket.sh_b.nbas*λ+σ)
-            λσ::Int32 = index(λ,σ,ioff)
-            μνλσ::Int32 = index(μν,λσ,ioff)
+            #μνλσ::UInt32 = μν + (ket.sh_b.nbas*λ+σ)
+            λσ::UInt32 = index(λ,σ,ioff)
+            μνλσ::UInt32 = index(μν,λσ,ioff)
 
             val::T = (μ == ν) ? 0.5 : 1.0
             val::T *= (λ == σ) ? 0.5 : 1.0
