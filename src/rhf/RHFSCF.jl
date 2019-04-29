@@ -358,7 +358,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
 
-                F_priv::Array{T,2} = dirfck(D, tei, quartet)
+                eri_batch::Array{T,1} = shellquart(D, tei, quartet)
+                F_priv::Array{T,2} = dirfck(D, eri_batch, quartet)
+                #F_priv::Array{T,2} = zeros(norb,norb)
 
                 lock(mutex)
                 #push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
@@ -373,7 +375,42 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     return F
 end
 
-function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
+function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
+    norb = size(D)[1]
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+
+    nμ = quartet.bra.sh_a.nbas
+    nν = quartet.bra.sh_b.nbas
+    nλ = quartet.ket.sh_a.nbas
+    nσ = quartet.ket.sh_b.nbas
+
+    eri_batch::Array{T,1} = [ ]
+
+    for μμ::UInt32 in 1:nμ
+        μ::UInt32 = quartet.bra.sh_a.pos + (μμ-1)
+
+        for νν::UInt32 in 1:nν
+            ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
+            μν = index(μ,ν,ioff)
+
+            for λλ::UInt32 in 1:nλ
+                λ::UInt32 = quartet.ket.sh_a.pos + (λλ-1)
+
+                for σσ::UInt32 in 1:nσ
+                    σ::UInt32 = quartet.ket.sh_b.pos + (σσ-1)
+
+                    λσ = index(λ,σ,ioff)
+                    μνλσ::UInt32 = index(μν,λσ,ioff)
+
+                    push!(eri_batch,tei[μνλσ])
+                end
+            end
+        end
+    end
+    return deepcopy(eri_batch)
+end
+
+function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
     norb = size(D)[1]
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
@@ -386,35 +423,30 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:Abs
 
     for μμ::UInt32 in 1:nμ
         μ::UInt32 = quartet.bra.sh_a.pos + (μμ-1)
-        #μ_idx::UInt32 = nν*nλ*nσ*(μμ-1)
+        μ_idx::UInt32 = nν*nλ*nσ*(μμ-1)
 
         for νν::UInt32 in 1:nν
             ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
-            #μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
+            μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
 
             if (μ < ν) continue end
-            μν = index(μ,ν,ioff)
 
             for λλ::UInt32 in 1:nλ
                 λ::UInt32 = quartet.ket.sh_a.pos + (λλ-1)
-                #μνλ_idx::UInt32 = μν_idx + nσ*(λλ-1)
+                μνλ_idx::UInt32 = μν_idx + nσ*(λλ-1)
 
                 for σσ::UInt32 in 1:nσ
                     σ::UInt32 = quartet.ket.sh_b.pos + (σσ-1)
-                    #μνλσ::UInt32 = μνλ_idx + σσ
+                    μνλσ::UInt32 = μνλ_idx + (σσ-1) + 1
 
                     if (λ < σ) continue end
-                    λσ = index(λ,σ,ioff)
-
-                    if(μν < λσ) μ,ν,λ,σ = λ,σ,μ,ν end
-                    μνλσ::UInt32 = index(μν,λσ,ioff)
 
                     #println("\"$μ, $ν, $λ, $σ\"")
 
                     val::T = (μ == ν) ? 0.5 : 1.0
                     val *= (λ == σ) ? 0.5 : 1.0
                     val *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
-                    eri::T = val * tei[μνλσ]
+                    eri::T = val * eri_batch[μνλσ]
 
                     if (eri <= 1E-10) continue end
 
