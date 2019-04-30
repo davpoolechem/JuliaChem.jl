@@ -364,8 +364,10 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 quartet::ShQuartet = ShQuartet(bra,ket)
 
                 eri_batch::Array{T,1} = shellquart(D, tei, quartet)
-                F_priv::Array{T,2} = dirfck(D, eri_batch, quartet)
-                #F_priv::Array{T,2} = zeros(norb,norb)
+                F_priv::Array{T,2} = zeros(norb,norb)
+                if (max(eri_batch...) >= 1E-10)
+                    F_priv = dirfck(D, eri_batch, quartet)
+                end
 
                 lock(mutex)
                 F += F_priv
