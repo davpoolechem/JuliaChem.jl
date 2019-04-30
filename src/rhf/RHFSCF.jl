@@ -349,12 +349,16 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
         if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
             bra_sh_a::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
             bra_sh_b::UInt32 = bra_pairs%bra_sh_a + 1
-            bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
 
             Threads.@threads for ket_pairs::UInt32 in 1:bra_pairs
                 ket_sh_a::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
                 ket_sh_b::UInt32 = ket_pairs%ket_sh_a + 1
 
+                if ((bra_sh_a == ket_sh_a) && (bra_sh_b < ket_sh_b))
+                    bra_sh_b, ket_sh_b = ket_sh_b, bra_sh_b
+                end
+
+                bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
 
@@ -363,6 +367,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 #F_priv::Array{T,2} = zeros(norb,norb)
 
                 lock(mutex)
+                println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
                 #push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
                 F += F_priv
                 unlock(mutex)
@@ -428,6 +433,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
         for νν::UInt32 in 1:nν
             ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
             μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
+            μν = index(μ,ν,ioff)
 
             if (μ < ν) continue end
 
@@ -440,12 +446,18 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
                     μνλσ::UInt32 = μνλ_idx + (σσ-1) + 1
 
                     if (λ < σ) continue end
+                    λσ = index(λ,σ,ioff)
+
+                    #if (μν < λσ) μ,ν,λ,σ = λ,σ,μ,ν end
+                    if (μν < λσ) continue end
+
+                    #println("\"$μ, $ν, $λ, $σ\"")
 
                     #println("\"$μ, $ν, $λ, $σ\"")
 
                     val::T = (μ == ν) ? 0.5 : 1.0
                     val *= (λ == σ) ? 0.5 : 1.0
-                    val *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+                    val *= (μν == λσ) ? 0.5 : 1.0
                     eri::T = val * eri_batch[μνλσ]
 
                     if (eri <= 1E-10) continue end

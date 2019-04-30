@@ -15,7 +15,7 @@
 
 {
   "Input":"SCF Flags",
-  "niter":50,
+  "niter":1,
   "dele":1E-6,
   "rmsd":1E-4,
 	"prec":"Float64",
