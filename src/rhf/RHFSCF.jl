@@ -386,27 +386,21 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<
     nλ = quartet.ket.sh_a.nbas
     nσ = quartet.ket.sh_b.nbas
 
+    pμ = quartet.bra.sh_a.pos
+    pν = quartet.bra.sh_b.pos
+    pλ = quartet.ket.sh_a.pos
+    pσ = quartet.ket.sh_b.pos
+
     eri_batch::Array{T,1} = [ ]
 
-    for μμ::UInt32 in 1:nμ
-        μ::UInt32 = quartet.bra.sh_a.pos + (μμ-1)
+    for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
+        μν = index(μ,ν,ioff)
 
-        for νν::UInt32 in 1:nν
-            ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
-            μν = index(μ,ν,ioff)
+        for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
+            λσ = index(λ,σ,ioff)
+            μνλσ::UInt32 = index(μν,λσ,ioff)
 
-            for λλ::UInt32 in 1:nλ
-                λ::UInt32 = quartet.ket.sh_a.pos + (λλ-1)
-
-                for σσ::UInt32 in 1:nσ
-                    σ::UInt32 = quartet.ket.sh_b.pos + (σσ-1)
-
-                    λσ = index(λ,σ,ioff)
-                    μνλσ::UInt32 = index(μν,λσ,ioff)
-
-                    push!(eri_batch,tei[μνλσ])
-                end
-            end
+            push!(eri_batch,tei[μνλσ])
         end
     end
     return deepcopy(eri_batch)
@@ -423,80 +417,27 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
     nλ = quartet.ket.sh_a.nbas
     nσ = quartet.ket.sh_b.nbas
 
-    for μμ::UInt32 in 1:nμ
-        μ::UInt32 = quartet.bra.sh_a.pos + (μμ-1)
-        μ_idx::UInt32 = nν*nλ*nσ*(μμ-1)
+    pμ = quartet.bra.sh_a.pos
+    pν = quartet.bra.sh_b.pos
+    pλ = quartet.ket.sh_a.pos
+    pσ = quartet.ket.sh_b.pos
 
-        for νν::UInt32 in 1:nν
-            ν::UInt32 = quartet.bra.sh_b.pos + (νν-1)
-            μν_idx::UInt32 = μ_idx + nλ*nσ*(νν-1)
-
-            if (μ < ν) continue end
-
-            for λλ::UInt32 in 1:nλ
-                λ::UInt32 = quartet.ket.sh_a.pos + (λλ-1)
-                μνλ_idx::UInt32 = μν_idx + nσ*(λλ-1)
-
-                for σσ::UInt32 in 1:nσ
-                    σ::UInt32 = quartet.ket.sh_b.pos + (σσ-1)
-                    μνλσ::UInt32 = μνλ_idx + (σσ-1) + 1
-
-                    if (λ < σ) continue end
-
-                    #println("\"$μ, $ν, $λ, $σ\"")
-
-                    val::T = (μ == ν) ? 0.5 : 1.0
-                    val::T *= (λ == σ) ? 0.5 : 1.0
-                    eri::T = val * eri_batch[μνλσ]
-
-                    if (eri <= 1E-10) continue end
-
-                    F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-                    F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
-
-                    F_priv[μ,λ] -= D[ν,σ] * eri
-                    F_priv[μ,σ] -= D[ν,λ] * eri
-                    F_priv[ν,λ] -= D[μ,σ] * eri
-                    F_priv[ν,σ] -= D[μ,λ] * eri
-                end
-            end
-        end
-    end
-    return F_priv
-end
-
-#=
-function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
-
-    norb = size(D)[1]
-    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
-
-    F_priv::Array{T,2} = fill(0.0,(norb,norb))
-
-    for μν_idx::UInt32 in 1:quartet.bra.nbas2
-        μ::UInt32 = quartet.bra.sh_a.pos + ceil(μν_idx/quartet.bra.nbas2) - 1
-        ν::UInt32 = quartet.bra.sh_b.pos + μν_idx%quartet.bra.nbas2
-        μν::UInt32 = index(μ,ν,ioff)
-
+    for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
         if (μ < ν) continue end
+        μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
-        for λσ_idx::UInt32 in 1:quartet.ket.nbas2
-            λ::UInt32 = quartet.ket.sh_a.pos + ceil(λσ_idx/quartet.ket.nbas2) - 1
-            σ::UInt32 = quartet.ket.sh_b.pos + λσ_idx%quartet.ket.nbas2
-
+        for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
             if (λ < σ) continue end
+            μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
 
             #println("\"$μ, $ν, $λ, $σ\"")
 
-            #μνλσ::UInt32 = μν + (ket.sh_b.nbas*λ+σ)
-            λσ::UInt32 = index(λ,σ,ioff)
-            μνλσ::UInt32 = index(μν,λσ,ioff)
-
             val::T = (μ == ν) ? 0.5 : 1.0
             val::T *= (λ == σ) ? 0.5 : 1.0
-            eri::T = val * tei[μνλσ]
+            eri::T = val * eri_batch[μνλσ]
 
-            if (eri <= 1E-10) continue end
+            #Dmax::T = max(4.0 * D[μ,ν], D[ν,σ], D[ν,λ], D[μ,σ], D[μ,λ])
+            #if (Dmax*eri <= 1E-10) continue end
 
             F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
             F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
@@ -509,4 +450,3 @@ function dirfck(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
     end
     return F_priv
 end
-=#
