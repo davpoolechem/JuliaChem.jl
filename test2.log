@@ -1,8 +1,0 @@
-ERROR: LoadError: syntax: unexpected semicolon in array expression
-Stacktrace:
- [1] include at ./boot.jl:326 [inlined]
- [2] include_relative(::Module, ::String) at ./loading.jl:1038
- [3] include(::Module, ::String) at ./sysimg.jl:29
- [4] exec_options(::Base.JLOptions) at ./client.jl:267
- [5] _start() at ./client.jl:436
-in expression starting at /home/david/Server/Documents/Programming/julia/JuliaChem/test.jl:1
