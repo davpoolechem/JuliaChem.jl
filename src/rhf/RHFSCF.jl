@@ -54,7 +54,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     end
 
     #Step #3: Two-Electron Integrals
-    tei::Array{T,1} = read_in_tei(read_in["tei"], FLAGS)
+    #save until later as we are reading from disk
 
     #Step #4: Build the Orthogonalization Matrix
     S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
@@ -107,7 +107,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     while(!converged)
 
         #multilevel MPI+threads parallel algorithm
-        F_temp = twoei(F, D, tei, H, FLAGS, basis)
+        F_temp = twoei(F, D, H, FLAGS, basis)
 
         F = MPI.Allreduce(F_temp,MPI.SUM,comm)
         MPI.Barrier(comm)
@@ -339,8 +339,8 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 =#
-function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
+function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
+    FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
     comm=MPI.COMM_WORLD
     norb::UInt32 = FLAGS.BASIS.NORB
@@ -363,7 +363,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
 
-                eri_batch::Array{T,1} = shellquart(D, tei, quartet)
+                eri_batch::Array{T,1} = shellquart(D, quartet)
                 F_priv::Array{T,2} = zeros(norb,norb)
                 if (max(eri_batch...) >= 1E-10)
                     F_priv = dirfck(D, eri_batch, quartet)
@@ -379,30 +379,42 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     return F
 end
 
-function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
-    norb = size(D)[1]
-    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
-
-    nμ = quartet.bra.sh_a.nbas
-    nν = quartet.bra.sh_b.nbas
-    nλ = quartet.ket.sh_a.nbas
-    nσ = quartet.ket.sh_b.nbas
-
-    pμ = quartet.bra.sh_a.pos
-    pν = quartet.bra.sh_b.pos
-    pλ = quartet.ket.sh_a.pos
-    pσ = quartet.ket.sh_b.pos
+function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
+    where {T<:AbstractFloat}
 
     eri_batch::Array{T,1} = [ ]
+    tei::Array{T,2} = [ ]
 
-    for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
-        μν = index(μ,ν,ioff)
+    c = h5open("tei.h5", "r") do file
+        norb = size(D)[1]
+        ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 
-        for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
-            λσ = index(λ,σ,ioff)
-            μνλσ::UInt32 = index(μν,λσ,ioff)
+        nμ = quartet.bra.sh_a.nbas
+        nν = quartet.bra.sh_b.nbas
+        nλ = quartet.ket.sh_a.nbas
+        nσ = quartet.ket.sh_b.nbas
 
-            push!(eri_batch,tei[μνλσ])
+        pμ = quartet.bra.sh_a.pos
+        pν = quartet.bra.sh_b.pos
+        pλ = quartet.ket.sh_a.pos
+        pσ = quartet.ket.sh_b.pos
+
+        for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
+            μν = index(μ,ν,ioff)
+            tei_local::Array{Float64,2} = read(file, "tei-$μν")
+            push!(tei,tei_local)
+        end
+        sort!(tei)
+
+        for μ::UInt32 in 0:nμ-1, ν::UInt32 in 0:nν-1
+            μν = index(μ,ν,ioff)
+
+            for λ::UInt32 in 0:nλ-1, σ::UInt32 in 0:nσ-1
+                λσ = index(λ,σ,ioff)
+                μνλσ::UInt32 = index(μν,λσ,ioff)
+
+                push!(eri_batch,tei[μνλσ])
+            end
         end
     end
     return deepcopy(eri_batch)
