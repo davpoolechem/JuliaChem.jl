@@ -26,6 +26,8 @@ function get_tei_integrals(input::String, nbf::Int64)
       end
     end
 
+	sort!(integrals_temp)
+
     #--format integrals for json format--#
     integrals::Array{String,1} = []
     push!(integrals,"{")
@@ -54,6 +56,7 @@ function get_tei_integrals(input::String, nbf::Int64)
     close(f_tei_w)
 end
 
+#=
 function get_oei_integrals(input::String, nbf::Int64)
     #--read in input file--#
     f_int::IOStream = open(input)
@@ -116,5 +119,6 @@ function get_oei_integrals(input::String, nbf::Int64)
         iblock += 1
     end
 end
+=#
 
-get_oei_integrals("sto3g-water.oei",7)
+get_tei_integrals("sto3g-water.tei",7)
