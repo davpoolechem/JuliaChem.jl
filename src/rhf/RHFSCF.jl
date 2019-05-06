@@ -384,7 +384,7 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
     where {T<:AbstractFloat}
 
     eri_batch::Array{T,1} = [ ]
-    tei::Array{T,2} = [ ]
+    tei::Array{T,2} = Matrix{Float64}(undef,0,2)
 
     c = h5open("tei.h5", "r") do file
         norb = size(D)[1]
@@ -403,7 +403,7 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
         for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
             μν = index(μ,ν,ioff)
             tei_toadd::Array{Float64,2} = read(file, "tei-$μν")
-            push!(tei,tei_toadd)
+            tei = [tei; tei_toadd]
         end
         sort!(tei)
 
