@@ -98,15 +98,16 @@ function run(args::String)
     end
 
     #--set up eri database--#
-    norb2::UInt32 = norb2*(norb2+1)/2
+    norb = input_info["Basis Flags"]["norb"]
+    norb2::UInt32 = norb*(norb+1)/2
     h5open("tei.h5", "w") do file
         for i::UInt32 in 1:norb2
             eri_array::Array{Array{Float64,1},1} = input_info["Two-Electron-$i"]["tei"]
-            eri_matrix = Matrix{Float64}(undef,length(array),5)
-            for irow::UInt32 in 1:length(array), icol::UInt32 in 1:5
-                matrix[irow,icol] = array[irow][icol]
+            eri_matrix = Matrix{Float64}(undef,length(eri_array),5)
+            for irow::UInt32 in 1:length(eri_array), icol::UInt32 in 1:5
+                eri_matrix[irow,icol] = eri_array[irow][icol]
             end
-            write(file, "tei-$i", matrix)
+            write(file, "tei-$i", eri_matrix)
         end
     end
 

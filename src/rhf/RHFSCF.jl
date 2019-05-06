@@ -380,8 +380,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
     return F
 end
 
-function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
-    where {T<:AbstractFloat}
+function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
 
     eri_batch::Array{T,1} = [ ]
     tei::Array{T,2} = Matrix{Float64}(undef,0,2)
