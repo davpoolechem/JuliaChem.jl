@@ -30,23 +30,36 @@ function get_tei_integrals(input::String, nbf::Int64)
 
     #--format integrals for json format--#
     integrals::Array{String,1} = []
+	nbf2::Int64 = nbf*(nbf+1)/2
+
     push!(integrals,"{")
     push!(integrals,"   \"Input\":\"Two-Electron\",")
-    for int::Int64 in 1:length(integrals_temp)
-        ish::Int64 = integrals_temp[int][1]
-        jsh::Int64 = integrals_temp[int][2]
-        ksh::Int64 = integrals_temp[int][3]
-        lsh::Int64 = integrals_temp[int][4]
-        integral::Float64 = integrals_temp[int][5]
-        if (int == 1)
-            push!(integrals,"   \"tei\":[ [$ish, $jsh, $ksh, $lsh, $integral],")
-        elseif (int == length(integrals_temp))
-            push!(integrals,"           [$ish, $jsh, $ksh, $lsh, $integral] ]")
-        else
-            push!(integrals,"           [$ish, $jsh, $ksh, $lsh, $integral],")
-        end
-    end
-    push!(integrals,"}")
+	for bf in 1:nbf2
+		ibf::Int64 = ceil(((-1+sqrt(1+8*bf))/2))
+		jbf::Int64 = bf%ibf + 1
+		nadd::Int64 = 0
+
+	    for int::Int64 in 1:length(integrals_temp)
+	        ish::Int64 = integrals_temp[int][1]
+	        jsh::Int64 = integrals_temp[int][2]
+	        ksh::Int64 = integrals_temp[int][3]
+	        lsh::Int64 = integrals_temp[int][4]
+	        integral::Float64 = integrals_temp[int][5]
+			if (ish == ibf && jsh == jbf)
+				if (nadd == 0 && ish == ksh && jsh == lsh)
+					push!(integrals,"   \"tei_$bf\":[ [$ish, $jsh, $ksh, $lsh, $integral] ]")
+		        elseif (nadd == 0)
+		            push!(integrals,"   \"tei_$bf\":[ [$ish, $jsh, $ksh, $lsh, $integral],")
+		        elseif (ish == ksh && jsh == lsh)
+		            push!(integrals,"              [$ish, $jsh, $ksh, $lsh, $integral] ]")
+		        else
+		            push!(integrals,"              [$ish, $jsh, $ksh, $lsh, $integral],")
+		        end
+				nadd += 1
+			end
+	    end
+	    push!(integrals,"}")
+	end
 
     #--write json block to output file--#
     f_tei_w::IOStream = open("tei_integrals.log","w")
