@@ -32,12 +32,13 @@ function get_tei_integrals(input::String, nbf::Int64)
     integrals::Array{String,1} = []
 	nbf2::Int64 = nbf*(nbf+1)/2
 
-    push!(integrals,"{")
-    push!(integrals,"   \"Input\":\"Two-Electron\",")
 	for bf in 1:nbf2
 		ibf::Int64 = ceil(((-1+sqrt(1+8*bf))/2))
 		jbf::Int64 = bf%ibf + 1
 		nadd::Int64 = 0
+
+		push!(integrals,"{")
+		push!(integrals,"   \"Input\":\"Two-Electron-$bf\",")
 
 	    for int::Int64 in 1:length(integrals_temp)
 	        ish::Int64 = integrals_temp[int][1]
@@ -47,13 +48,13 @@ function get_tei_integrals(input::String, nbf::Int64)
 	        integral::Float64 = integrals_temp[int][5]
 			if (ish == ibf && jsh == jbf)
 				if (nadd == 0 && ish == ksh && jsh == lsh)
-					push!(integrals,"   \"tei_$bf\":[ [$ish, $jsh, $ksh, $lsh, $integral] ]")
+					push!(integrals,"   \"tei\":[ [$ish, $jsh, $ksh, $lsh, $integral] ]")
 		        elseif (nadd == 0)
-		            push!(integrals,"   \"tei_$bf\":[ [$ish, $jsh, $ksh, $lsh, $integral],")
+		            push!(integrals,"   \"tei\":[ [$ish, $jsh, $ksh, $lsh, $integral],")
 		        elseif (ish == ksh && jsh == lsh)
-		            push!(integrals,"              [$ish, $jsh, $ksh, $lsh, $integral] ]")
+		            push!(integrals,"           [$ish, $jsh, $ksh, $lsh, $integral] ]")
 		        else
-		            push!(integrals,"              [$ish, $jsh, $ksh, $lsh, $integral],")
+		            push!(integrals,"           [$ish, $jsh, $ksh, $lsh, $integral],")
 		        end
 				nadd += 1
 			end
