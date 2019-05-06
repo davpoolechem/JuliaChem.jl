@@ -12,6 +12,7 @@ using MPI
 using JSON
 using Base.Threads
 using Distributed
+using HDF5
 
 """
      run()
@@ -58,6 +59,7 @@ function run(args::String)
         println("                       ========================================          ")
     end
 
+    #--read in input file--#
     input_file::IOStream = open(args)
         input_string::Array{String,1} = readlines(input_file)
     close(input_file)
@@ -87,11 +89,25 @@ function run(args::String)
         end
     end
 
+    #--set up basis set--#
     shell_am = input_info["Basis Flags"]["shells"]
     basis::Basis = Basis()
     for i in 1:length(shell_am)
         shell::Shell = Shell(Int32(shell_am[i]))
         add_shell(basis,deepcopy(shell))
+    end
+
+    #--set up eri database--#
+    norb2::UInt32 = norb2*(norb2+1)/2
+    h5open("tei.h5", "w") do file
+        for i::UInt32 in 1:norb2
+            eri_array::Array{Array{Float64,1},1} = input_info["Two-Electron-$i"]["tei"]
+            eri_matrix = Matrix{Float64}(undef,length(array),5)
+            for irow::UInt32 in 1:length(array), icol::UInt32 in 1:5
+                matrix[irow,icol] = array[irow][icol]
+            end
+            write(file, "tei-$i", matrix)
+        end
     end
 
     return (input_info,basis)

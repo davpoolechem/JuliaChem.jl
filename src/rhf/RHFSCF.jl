@@ -8,6 +8,7 @@ using MPI
 using Base.Threads
 using Distributed
 using LinearAlgebra
+using HDF5
 
 function rhf_energy(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any})
     if (FLAGS.SCF.PREC == "Float64")
@@ -54,7 +55,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     end
 
     #Step #3: Two-Electron Integrals
-    #save until later as we are reading from disk
+    #save this for shellquart routine
 
     #Step #4: Build the Orthogonalization Matrix
     S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
@@ -401,8 +402,8 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet)
 
         for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
             μν = index(μ,ν,ioff)
-            tei_local::Array{Float64,2} = read(file, "tei-$μν")
-            push!(tei,tei_local)
+            tei_toadd::Array{Float64,2} = read(file, "tei-$μν")
+            push!(tei,tei_toadd)
         end
         sort!(tei)
 
