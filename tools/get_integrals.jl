@@ -63,7 +63,7 @@ function get_tei_integrals(input::String, nbf::Int64)
 	end
 
     #--write json block to output file--#
-    f_tei_w::IOStream = open("tei_integrals.log","w")
+    f_tei_w::IOStream = open("tei_integrals.json","w")
         for iline in integrals
             write(f_tei_w,"$iline\n")
         end
