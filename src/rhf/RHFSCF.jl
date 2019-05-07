@@ -401,15 +401,19 @@ function shellquart(D::Array{T,2},quartet::ShQuartet, tei_file::HDF5File) where 
     pσ = quartet.ket.sh_b.pos
 
     for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
+        if (μ < ν) continue end
         μν = index(μ,ν,ioff2)
         tei_toadd::Array{Float64,2} = read(tei_file, "tei-$μν")
         tei = [tei; tei_toadd]
     end
 
     for μ::UInt32 in 1:nμ, ν::UInt32 in 1:nν
+        if (pμ + μ < pν + ν) continue end
         μν = index(μ,ν,ioff2)
 
         for λ::UInt32 in 1:nλ, σ::UInt32 in 1:nσ
+            if (pλ + λ < pσ + σ) continue end
+
             λσ = index(λ,σ,ioff2)
             μνλσ::UInt32 = index(μν,λσ,ioff2)
 
