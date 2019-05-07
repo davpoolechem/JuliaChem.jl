@@ -32,9 +32,8 @@ function get_tei_integrals(input::String, nbf::Int64)
     integrals::Array{String,1} = []
 	nbf2::Int64 = nbf*(nbf+1)/2
 
-	for bf in 1:nbf2
-		ibf::Int64 = ceil(((-1+sqrt(1+8*bf))/2))
-		jbf::Int64 = bf%ibf + 1
+	for ibf in 1:nbf, jbf in 1:ibf
+		bf::Int64 = (ibf-1)*ibf/2 + jbf
 		nadd::Int64 = 0
 
 		push!(integrals,"{")
