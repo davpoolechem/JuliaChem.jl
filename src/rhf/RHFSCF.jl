@@ -380,14 +380,15 @@ function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
     return F
 end
 
-function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
+function shellquart(D::Array{T,2},quartet::ShQuartet) where {T<:AbstractFloat}
 
     eri_batch::Array{T,1} = [ ]
-    tei::Array{T,2} = Matrix{Float64}(undef,0,2)
+    tei::Array{T,2} = Matrix{Float64}(undef,0,5)
 
     c = h5open("tei.h5", "r") do file
         norb = size(D)[1]
         ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+        ioff2::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(0:norb*(norb+1)))
 
         nμ = quartet.bra.sh_a.nbas
         nν = quartet.bra.sh_b.nbas
@@ -400,18 +401,17 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<
         pσ = quartet.ket.sh_b.pos
 
         for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
-            μν = index(μ,ν,ioff)
+            μν = index(μ,ν,ioff2)
             tei_toadd::Array{Float64,2} = read(file, "tei-$μν")
             tei = [tei; tei_toadd]
         end
-        sort!(tei)
 
-        for μ::UInt32 in 0:nμ-1, ν::UInt32 in 0:nν-1
-            μν = index(μ,ν,ioff)
+        for μ::UInt32 in 1:nμ, ν::UInt32 in 1:nν
+            μν = index(μ,ν,ioff2)
 
-            for λ::UInt32 in 0:nλ-1, σ::UInt32 in 0:nσ-1
-                λσ = index(λ,σ,ioff)
-                μνλσ::UInt32 = index(μν,λσ,ioff)
+            for λ::UInt32 in 1:nλ, σ::UInt32 in 1:nσ
+                λσ = index(λ,σ,ioff2)
+                μνλσ::UInt32 = index(μν,λσ,ioff2)
 
                 push!(eri_batch,tei[μνλσ])
             end
