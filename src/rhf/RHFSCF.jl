@@ -105,45 +105,47 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     #start scf cycles: #7-10
     converged::Bool = false
     iter::UInt32 = 1
-    while(!converged)
+    c = h5open("tei.h5", "r") do tei
+        while(!converged)
 
-        #multilevel MPI+threads parallel algorithm
-        F_temp = twoei(F, D, H, FLAGS, basis)
+            #multilevel MPI+threads parallel algorithm
+            F_temp = twoei(F, D, H, tei, FLAGS, basis)
 
-        F = MPI.Allreduce(F_temp,MPI.SUM,comm)
-        MPI.Barrier(comm)
+            F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+            MPI.Barrier(comm)
 
-        F += deepcopy(H)
+            F += deepcopy(H)
 
-        #println("Initial Fock matrix:")
-        if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-            output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
-                                        ("Density Matrix",D)])
+            #println("Initial Fock matrix:")
+            if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+                output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
+                                            ("Density Matrix",D)])
 
-            write(json_debug,JSON.json(output_iter_data))
+                write(json_debug,JSON.json(output_iter_data))
+            end
+
+            #Step #8: Build the New Density Matrix
+            D_old::Array{T,2} = deepcopy(D)
+            E_old::T = E
+
+            F = transpose(ortho)*F*ortho
+            F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
+            E = E_elec+E_nuc
+
+            #Step #10: Test for Convergence
+            ΔE::T = E - E_old
+
+            ΔD::Array{T,2} = D - D_old
+            D_rms::T = √(∑(ΔD,ΔD))
+
+            if (MPI.Comm_rank(comm) == 0)
+                println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+            end
+
+            converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
+            iter += 1
+            if (iter > FLAGS.SCF.NITER) break end
         end
-
-        #Step #8: Build the New Density Matrix
-        D_old::Array{T,2} = deepcopy(D)
-        E_old::T = E
-
-        F = transpose(ortho)*F*ortho
-        F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
-        E = E_elec+E_nuc
-
-        #Step #10: Test for Convergence
-        ΔE::T = E - E_old
-
-        ΔD::Array{T,2} = D - D_old
-        D_rms::T = √(∑(ΔD,ΔD))
-
-        if (MPI.Comm_rank(comm) == 0)
-            println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
-        end
-
-        converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
-        iter += 1
-        if (iter > FLAGS.SCF.NITER) break end
     end
 
     if (iter > FLAGS.SCF.NITER)
@@ -340,7 +342,7 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 =#
-function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
+function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2}, tei::HDF5File,
     FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
     comm=MPI.COMM_WORLD
@@ -364,7 +366,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
 
-                eri_batch::Array{T,1} = shellquart(D, quartet)
+                eri_batch::Array{T,1} = shellquart(D, quartet, tei)
                 F_priv::Array{T,2} = zeros(norb,norb)
                 if (max(eri_batch...) >= 1E-10)
                     F_priv = dirfck(D, eri_batch, quartet)
@@ -380,41 +382,38 @@ function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
     return F
 end
 
-function shellquart(D::Array{T,2},quartet::ShQuartet) where {T<:AbstractFloat}
-
+function shellquart(D::Array{T,2},quartet::ShQuartet, tei_file::HDF5File) where {T<:AbstractFloat}
     eri_batch::Array{T,1} = [ ]
     tei::Array{T,2} = Matrix{Float64}(undef,0,5)
 
-    c = h5open("tei.h5", "r") do file
-        norb = size(D)[1]
-        ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
-        ioff2::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(0:norb*(norb+1)))
+    norb = size(D)[1]
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff2::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(0:norb*(norb+1)))
 
-        nμ = quartet.bra.sh_a.nbas
-        nν = quartet.bra.sh_b.nbas
-        nλ = quartet.ket.sh_a.nbas
-        nσ = quartet.ket.sh_b.nbas
+    nμ = quartet.bra.sh_a.nbas
+    nν = quartet.bra.sh_b.nbas
+    nλ = quartet.ket.sh_a.nbas
+    nσ = quartet.ket.sh_b.nbas
 
-        pμ = quartet.bra.sh_a.pos
-        pν = quartet.bra.sh_b.pos
-        pλ = quartet.ket.sh_a.pos
-        pσ = quartet.ket.sh_b.pos
+    pμ = quartet.bra.sh_a.pos
+    pν = quartet.bra.sh_b.pos
+    pλ = quartet.ket.sh_a.pos
+    pσ = quartet.ket.sh_b.pos
 
-        for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
-            μν = index(μ,ν,ioff2)
-            tei_toadd::Array{Float64,2} = read(file, "tei-$μν")
-            tei = [tei; tei_toadd]
-        end
+    for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
+        μν = index(μ,ν,ioff2)
+        tei_toadd::Array{Float64,2} = read(tei_file, "tei-$μν")
+        tei = [tei; tei_toadd]
+    end
 
-        for μ::UInt32 in 1:nμ, ν::UInt32 in 1:nν
-            μν = index(μ,ν,ioff2)
+    for μ::UInt32 in 1:nμ, ν::UInt32 in 1:nν
+        μν = index(μ,ν,ioff2)
 
-            for λ::UInt32 in 1:nλ, σ::UInt32 in 1:nσ
-                λσ = index(λ,σ,ioff2)
-                μνλσ::UInt32 = index(μν,λσ,ioff2)
+        for λ::UInt32 in 1:nλ, σ::UInt32 in 1:nσ
+            λσ = index(λ,σ,ioff2)
+            μνλσ::UInt32 = index(μν,λσ,ioff2)
 
-                push!(eri_batch,tei[μνλσ])
-            end
+            push!(eri_batch,tei[μνλσ])
         end
     end
     return deepcopy(eri_batch)
