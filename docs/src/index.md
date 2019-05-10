@@ -27,8 +27,9 @@ this, then you have already fulfilled that dependency.
 ## Running JuliaChem
 
 The first step to running JuliaChem is generating an input file to process. The
-input file is a .json Julia file. It contains variables that serve as "flags"
-that control specific parts of the calculation.
+input file is a .json file. It contains variables that serve as "flags"
+that control specific parts of the calculation. Different sections of the json
+input file correspond to different groups of flags.
 Additionally, the input file contains the molecular coordinates of
 the system, as well as the atomic number of the atom associated with each set
 of coordinates. Optionally, the input file can also contain information to be
@@ -55,7 +56,7 @@ calculation can then be called each time the .jl script is executed, either via
 REPL or via shell. Example script files can be found in the example_scripts
 directory.
 
-Finally, the MPI requirement must be account for. While Julia can be run interactively
+Finally, the MPI requirement must be accounted for. While Julia can be run interactively
 over MPI, doing so comes with a few quirks. To run the Julia REPL over MPI, type the
 following command into the shell:
 
@@ -171,6 +172,16 @@ calculation. These flags can be divided into certain subsections, which can
 be seen in the table of contents at the beginning of the manual. Clicking on
 a section will take you to that section's available flags.
 
+## Calculation Control Flags
+
+```@meta
+CurrentModule = JCStructs
+```
+
+```@docs
+Ctrl_Flags
+```
+
 ## Basis Set Flags
 
 ```@meta
@@ -178,7 +189,6 @@ CurrentModule = JCStructs
 ```
 
 ```@docs
-CTRL_Flags
 Basis_Flags
 ```
 
@@ -189,6 +199,5 @@ CurrentModule = JCStructs
 ```
 
 ```@docs
-RHF_Flags
 SCF_Flags
 ```

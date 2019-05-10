@@ -37,12 +37,15 @@ export RHFRestartData
     HF_Flags
 
 Flags which control the minutiae of a Hartree-Fock calculation. These flags
-should be set in the input_hf_flags() function in the input file.
+should be set via an "Input":"SCF Flags" section in the input file.
 
 The flags are as follows:
 1. NITER = Maximum number of SCF iterations (default = 50)
 2. DELE = Change-in-energy convergence threshold (default = 1E-8)
 3. RMSD = Change-in-root-mean-square-density convergence threshold (default = 1E-6)
+4. PREC = Control SCF precision (default = Float64)
+5. DIRECT = Control use of ERI recomputation (default = false)
+6. DEBUG = Print debug information (default = false)
 """
 struct SCF_Flags
     NITER::UInt32
