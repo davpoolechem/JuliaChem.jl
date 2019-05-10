@@ -334,7 +334,6 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 =#
-#=
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
@@ -342,25 +341,39 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     norb::UInt32 = FLAGS.BASIS.NORB
     nsh::UInt32 = length(basis.shells)
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
     for bra_pairs::UInt32 in 1:ioff[nsh]
         if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
+            lock(mutex)
+            #println("\"$bra_pairs\"")
+            unlock(mutex)
             bra_sh_a::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
-            bra_sh_b::UInt32 = bra_pairs%bra_sh_a + 1
+            bra_sh_b::UInt32 = bra_pairs - ioff2[bra_sh_a]
 
-            if (bra_sh_a < bra_sh_b) continue end
+            if (bra_sh_a < bra_sh_b)
+                bra_sh_a, bra_sh_b = bra_sh_b, bra_sh_a
+                #continue
+            end
+
+            bra_idx = index(bra_sh_a, bra_sh_b, ioff)
 
             Threads.@threads for ket_pairs::UInt32 in 1:bra_pairs
                 ket_sh_a::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-                ket_sh_b::UInt32 = ket_pairs%ket_sh_a + 1
+                ket_sh_b::UInt32 = ket_pairs - ioff2[ket_sh_a]
 
-                if (ket_sh_a < ket_sh_b) continue end
+                if (ket_sh_a < ket_sh_b)
+                    ket_sh_a, ket_sh_b = ket_sh_b, ket_sh_a
+                    #continue
+                end
 
-                if ((bra_sh_a == ket_sh_a) && (bra_sh_b < ket_sh_b))
-                    continue
+                ket_idx = index(ket_sh_a, ket_sh_b, ioff)
+
+                if (bra_idx < ket_idx)
+                    bra_sh_a, bra_sh_b, ket_sh_a, ket_sh_b = ket_sh_a, ket_sh_b, bra_sh_a, bra_sh_b
                 end
 
                 bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
@@ -374,7 +387,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 end
 
                 lock(mutex)
-                println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
+                #println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
                 #push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
                 F += F_priv
                 unlock(mutex)
@@ -386,7 +399,6 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 
     return F
 end
-=#
 
 function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
     norb = size(D)[1]
