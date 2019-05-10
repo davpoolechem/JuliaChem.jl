@@ -334,7 +334,7 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 =#
-
+#=
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
@@ -342,39 +342,25 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     norb::UInt32 = FLAGS.BASIS.NORB
     nsh::UInt32 = length(basis.shells)
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
-    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
     for bra_pairs::UInt32 in 1:ioff[nsh]
         if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
-            lock(mutex)
-            #println("\"$bra_pairs\"")
-            unlock(mutex)
             bra_sh_a::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
-            bra_sh_b::UInt32 = bra_pairs - ioff2[bra_sh_a]
+            bra_sh_b::UInt32 = bra_pairs%bra_sh_a + 1
 
-            if (bra_sh_a < bra_sh_b)
-                bra_sh_a, bra_sh_b = bra_sh_b, bra_sh_a
-                #continue
-            end
-
-            bra_idx = index(bra_sh_a, bra_sh_b, ioff)
+            if (bra_sh_a < bra_sh_b) continue end
 
             Threads.@threads for ket_pairs::UInt32 in 1:bra_pairs
                 ket_sh_a::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-                ket_sh_b::UInt32 = ket_pairs - ioff2[ket_sh_a]
+                ket_sh_b::UInt32 = ket_pairs%ket_sh_a + 1
 
-                if (ket_sh_a < ket_sh_b)
-                    ket_sh_a, ket_sh_b = ket_sh_b, ket_sh_a
-                    #continue
-                end
+                if (ket_sh_a < ket_sh_b) continue end
 
-                ket_idx = index(ket_sh_a, ket_sh_b, ioff)
-
-                if (bra_idx < ket_idx)
-                    bra_sh_a, bra_sh_b, ket_sh_a, ket_sh_b = ket_sh_a, ket_sh_b, bra_sh_a, bra_sh_b
+                if ((bra_sh_a == ket_sh_a) && (bra_sh_b < ket_sh_b))
+                    continue
                 end
 
                 bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
@@ -400,56 +386,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 
     return F
 end
-#=
-function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
-
-    comm=MPI.COMM_WORLD
-    norb::UInt32 = FLAGS.BASIS.NORB
-    nsh::UInt32 = length(basis.shells)
-    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
-
-    F = zeros(norb,norb)
-    mutex = Base.Threads.Mutex()
-
-    for i::UInt32 in 1:nsh
-        if(MPI.Comm_rank(comm) == i%MPI.Comm_size(comm))
-            for j::UInt32 in 1:i
-                ij::UInt32 = index(i,j,ioff)
-                bra::ShPair = ShPair(basis.shells[i], basis.shells[j])
-
-                Threads.@threads for k::UInt32 in 1:nsh
-                    for l::UInt32 in 1:k
-                        kl::UInt32 = index(k,l,ioff)
-
-                        if (ij < kl) continue end
-
-                        ket::ShPair = ShPair(basis.shells[k], basis.shells[l])
-                        quartet::ShQuartet = ShQuartet(bra,ket)
-
-                        eri_batch::Array{T,1} = shellquart(D, tei, quartet)
-                        F_priv::Array{T,2} = zeros(norb,norb)
-                        if (max(eri_batch...) >= 1E-10)
-                            F_priv = dirfck(D, eri_batch, quartet)
-                        end
-
-                        lock(mutex)
-                        #println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
-                        println("\"$i, $j, $k, $l\"")
-                        #push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
-                        F += F_priv
-                        unlock(mutex)
-                    end
-                end
-            end
-        end
-    end
-
-    #display(sort(debug_array))
-
-    return F
-end
 =#
+
 function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
     norb = size(D)[1]
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
@@ -497,41 +435,28 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
 
     for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
         if (μ < ν) continue end
-        μν = index(μ,ν,ioff)
-
         μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
         for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
             if (λ < σ) continue end
-            λσ = index(λ,σ,ioff)
-
-            if (μν < λσ) continue end
             μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
 
             #println("\"$μ, $ν, $λ, $σ\"")
 
-            #println("\"$μ, $ν, $λ, $σ\"")
-
             val::T = (μ == ν) ? 0.5 : 1.0
-            val *= (λ == σ) ? 0.5 : 1.0
-            val *= (μν == λσ) ? 0.5 : 1.0
+            val::T *= (λ == σ) ? 0.5 : 1.0
             eri::T = val * eri_batch[μνλσ]
 
-            #if (eri <= 1E-10) continue end
+            #Dmax::T = max(4.0 * D[μ,ν], D[ν,σ], D[ν,λ], D[μ,σ], D[μ,λ])
+            #if (Dmax*eri <= 1E-10) continue end
 
             F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-            F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+            F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
+
             F_priv[μ,λ] -= D[ν,σ] * eri
             F_priv[μ,σ] -= D[ν,λ] * eri
             F_priv[ν,λ] -= D[μ,σ] * eri
             F_priv[ν,σ] -= D[μ,λ] * eri
-
-            F_priv[σ,λ] = F_priv[λ,σ]
-            F_priv[ν,μ] = F_priv[μ,ν]
-            F_priv[λ,μ] = F_priv[μ,λ]
-            F_priv[σ,μ] = F_priv[μ,σ]
-            F_priv[λ,ν] = F_priv[ν,λ]
-            F_priv[σ,ν] = F_priv[ν,σ]
         end
     end
     return F_priv
