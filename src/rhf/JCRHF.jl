@@ -15,12 +15,13 @@ using MPI
 using JSON
 
 """
-    run(flags::Flags)
+    run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
 
 Execute the JuliaChem RHF algorithm.
 
 One input variable is required:
-1. flags = The calculation flags from the input file.
+1. input_info = Information gathered from the input file.
+2. basis = The basis set shells, determined from the input file.
 
 One variable is output:
 1. scf = Data saved from the SCF calculation.
@@ -28,7 +29,7 @@ One variable is output:
 Thus, proper use of the RHF.run() function would look like this:
 
 ```
-scf = RHF.run(flags)
+scf = RHF.run(input_info, basis)
 ```
 """
 function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)

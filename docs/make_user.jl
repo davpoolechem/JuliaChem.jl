@@ -1,5 +1,4 @@
 using Documenter, JCInput, JCMolecule, JCRHF, JCProperties, JCStructs
-using DocumenterLaTeX
 
 makedocs(
     authors="David Poole",
