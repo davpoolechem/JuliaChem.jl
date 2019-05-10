@@ -14,20 +14,20 @@ using JCStructs
 using MPI
 
 """
-     run(scf::Data,flags::Flags)
+     run(scf::Data,input_info::Dict{String,Dict{String,Any}})
 Compute the dipole moment, Mulliken charges, and orbital energies of the
 system in question.
 
 Two input variables are required:
 1. scf = Data saved from the SCF calculation.
-2. flags = The calculation flags from the input file.
+2. input_info = Information gathered from the input file.
 
 No variables are output.
 
 Thus, proper use of the Properties.run() function would look like this:
 
 ```
-Properties.run(scf, flags)
+Properties.run(scf, input_info)
 ```
 """
 function run(scf::Data,input_info::Dict{String,Dict{String,Any}})

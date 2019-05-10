@@ -20,17 +20,17 @@ Support for SnoopCompile.jl exists within JuliaChem, so SnoopCompile can be take
 of to reduce package loading times when running JuliaChem in the shell. However, this is
 an optional dependency and is not required. Future support for compilation via PackageCompiler.jl
 is planned; however, this is also optional and is not yet implemented yet.
- 
+
 Documenter.jl is required to view the JuliaChem documentation; but if you are reading
-this, then you have already fulfilled that dependency. 
+this, then you have already fulfilled that dependency.
 
 ## Running JuliaChem
 
 The first step to running JuliaChem is generating an input file to process. The
-input file is itself a .jl Julia file. It contains initializations of
-variables that serve as "flags" that control specific parts of the calculation.
-These initializations occur within specific functions associated with a group
-of flags. Additionally, the input file contains the molecular coordinates of
+input file is a .json file. It contains variables that serve as "flags"
+that control specific parts of the calculation. Different sections of the json
+input file correspond to different groups of flags.
+Additionally, the input file contains the molecular coordinates of
 the system, as well as the atomic number of the atom associated with each set
 of coordinates. Optionally, the input file can also contain information to be
 read in, including one- and two- electron integrals. Example input files can be
@@ -38,25 +38,11 @@ found in the example_inputs/ directory; and more information regarding the
 specific groups of flags that can be set, can be found in the "Flags" section
 of the documentation.
 
-Once an input file is created, the calculation can be performed on that input file.
-JuliaChem directly executes the functions defined in the input file to read the
-input file information, rather than parsing it. Thus, the input file must be
-defined for the calculation in a special manner, which is done via the
-JCInputFile.assign function. JCInputFile.assign can be called either via
-the shell (using julia -e) or via the REPL with the command:
-
-```
-import JCInputFile; JCInputFile.assign(path/to/input/file.jl)
-```
-
-This marks the selected input file as the file to use for JuliaChem computations.
-The input file can be changed by simply rerunning the command above.
-
-With the input file selected, JuliaChem calculations can now be performed on
+With the input file created, JuliaChem calculations can now be performed on
 that input file. JuliaChem consists of a large amount of modules, each of
 which have a specific role in a calculation. Full JuliaChem calculations
-are performed by executing each desired module in the desired sequence. By
-implementing the code this way, smaller module calculations can be chained
+are performed by executing each desired module in a defined sequence. By
+implementing the code this way, smaller module-based calculations can be chained
 together arbitrarily to execute more complex calculations, in a building-block
 fashion. Details about specific modules and how to execute them can be seen
 in the "Modules" section of the documentation.
@@ -68,10 +54,9 @@ module calculation. It is also possible, and recommended for general calculation
 to execute a sequence of modules via a handcrafted .jl script. The desired
 calculation can then be called each time the .jl script is executed, either via
 REPL or via shell. Example script files can be found in the example_scripts
-directory. *Note that the call to JCInputFile.assign cannot occur within the
-script file; these two must occur separately!*
+directory.
 
-Finally, the MPI requirement must be account for. While Julia can be run interactively
+Finally, the MPI requirement must be accounted for. While Julia can be run interactively
 over MPI, doing so comes with a few quirks. To run the Julia REPL over MPI, type the
 following command into the shell:
 
@@ -81,13 +66,13 @@ mpirun -np <nprocs> --xterm <list of ranks, one per proc> julia
 
 This will open a new Julia REPL for each proc. To fully initialize MPI, the
 MPI.Init() function must then be executed in each Julia REPL. This is
-easily handled by putting the line 
+easily handled by putting the line
 
 ```
 import MPI; MPI.Init()
 ```
 
-into your Julia startup file. 
+into your Julia startup file.
 
 Deviating from these instructions leads to the aforementioned quirks:
 
@@ -102,12 +87,12 @@ So while running Julia via the REPL over MPI required a bit of knowledge
 to work, it can indeed be done.
 
 To run a Julia script in Julia via the shell, type the following command into
-the shell: 
+the shell:
 ```
 mpirun -np <nprocs> julia <path/to/script.jl>
 ```
 
-If one wished to take full advantage of the hybrid parallelism present within
+If one wishes to take full advantage of the hybrid parallelism present within
 JuliaChem, the JULIA_NUM_THREADS environmental variable can also be defined:
 
 ```
@@ -145,7 +130,7 @@ CurrentModule = JCInput
 
 ```@docs
 JCInput
-run()
+run(args::String)
 ```
 ## Molecule
 
@@ -155,7 +140,7 @@ CurrentModule = JCMolecule
 
 ```@docs
 JCMolecule
-run(coord::Array{Float64,2})
+run(input_info::Dict{String,Dict{String,Any}})
 ```
 
 ## RHF
@@ -166,7 +151,7 @@ CurrentModule = JCRHF
 
 ```@docs
 JCRHF
-run(flags::Flags)
+run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
 ```
 
 ## Properties
@@ -177,7 +162,7 @@ CurrentModule = JCProperties
 
 ```@docs
 JCProperties
-run(scf::Data,flags::Flags)
+run(scf::Data,input_info::Dict{String,Dict{String,Any}})
 ```
 
 # Flags
@@ -187,6 +172,16 @@ calculation. These flags can be divided into certain subsections, which can
 be seen in the table of contents at the beginning of the manual. Clicking on
 a section will take you to that section's available flags.
 
+## Calculation Control Flags
+
+```@meta
+CurrentModule = JCStructs
+```
+
+```@docs
+Ctrl_Flags
+```
+
 ## Basis Set Flags
 
 ```@meta
@@ -195,7 +190,6 @@ CurrentModule = JCStructs
 
 ```@docs
 Basis_Flags
-HF_Flags
 ```
 
 ## Hartree-Fock Flags
@@ -205,5 +199,5 @@ CurrentModule = JCStructs
 ```
 
 ```@docs
-HF_Flags
+SCF_Flags
 ```
