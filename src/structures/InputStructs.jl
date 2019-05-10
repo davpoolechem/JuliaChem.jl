@@ -5,7 +5,7 @@ Core flags for controlling overall calculation. These flags should be set via
 an "Input":"Control Flags" section in the input file.
 
 The flags are as follows:
-1. NAME = Determines calculation label (no default setting)
+1. name = Determines calculation label (no default setting)
 """
 struct Ctrl_Flags
     NAME::String
@@ -19,13 +19,12 @@ occupancy. These flags should be set via an "Input":"Basis Flags" section
 in the input file.
 
 The flags are as follows:
-1. NORB = Number of orbitals in the system overall (no default value)
-2. NOCC = Number of doubly occupied orbitals (no default value)
-3. SHELLS = Angular momentum of each shell in system (no default value)
+1. norb = Number of orbitals in the system overall (no default value)
+2. nocc = Number of doubly occupied orbitals (no default value)
+3. shells = Angular momentum of each shell in system (no default value)
 """
 struct Basis_Flags
     NORB::UInt32
     NOCC::UInt32
-    SHELLS::UInt32
 end
 export Basis_Flags
