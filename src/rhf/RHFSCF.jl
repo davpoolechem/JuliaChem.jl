@@ -44,9 +44,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 
     #Step #2: One-Electron Integrals
     S::Array{T,2} = read_in_oei(read_in["ovr"], FLAGS)
-    T_oei::Array{T,2} = read_in_oei(read_in["kei"], FLAGS)
-    V::Array{T,2} = read_in_oei(read_in["nai"], FLAGS)
-    H::Array{T,2} = T_oei+V
+    H::Array{T,2} = read_in_oei(read_in["hcore"], FLAGS)
 
     if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
         output_H = Dict([("Core Hamiltonian",H)])

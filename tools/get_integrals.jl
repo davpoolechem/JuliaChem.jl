@@ -70,7 +70,7 @@ function get_tei_integrals(input::String, nbf::Int64)
     close(f_tei_w)
 end
 
-#=
+
 function get_oei_integrals(input::String, nbf::Int64)
     #--read in input file--#
     f_int::IOStream = open(input)
@@ -89,50 +89,71 @@ function get_oei_integrals(input::String, nbf::Int64)
 
     for i in 1:length(integral_strings)
         if (occursin("OVERLAP MATRIX",integral_strings[i]))
-            ovr_start = i
+            ovr_start = i+1
         elseif (occursin("BARE NUCLEUS HAMILTONIAN INTEGRALS",integral_strings[i]))
-            hcore_start = i
+            hcore_start = i+1
             ovr_end = i-1
         elseif (occursin("KINETIC ENERGY INTEGRALS",integral_strings[i]))
-            kei_start = i
+            kei_start = i+1
             hcore_end = i-1
         end
     end
 
-    ovr = integral_strings[ovr_start:ovr_end]
-    hcore = integral_strings[hcore_start:hcore_end]
-    kei = integral_strings[kei_start:kei_end]
+    ovr_string = integral_strings[ovr_start:ovr_end]
+    hcore_string = integral_strings[hcore_start:hcore_end]
+    kei_string = integral_strings[kei_start:kei_end]
+    integrals::Array{String,1} = []
 
-    #display(ovr[3+(1-1)*(nbf+3)][17:25])
+    #--write oei block--#
+    push!(integrals,"{")
+    push!(integrals,"   \"Input\":\"Overlap\",")
+    for iline in ovr_string
+        display(iline)
+        i::Int64 = parse(Int64,iline[1:5])
+        j::Int64 = parse(Int64,iline[20:23])
+        integral::Float64 = parse(Float64,iline[26:end])
 
-    ovr::Array{Real,1} = []
-    iblock::Int64 = 0
-    while (3+iblock*(nbf+3) < length(ovr))
-        columns::String = ovr[3+iblock*(nbf+3)]
-        icols::Array{Int64,1} = [ parse(Int64,columns[17:min(25,length(columns))]) ]
-
-        if (length(columns) > 25)
-            push!(icols,parse(Int64,columns[28:min(36,length(columns))]))
+        if (i == 1 && j == 1 && length(ovr_string) == 1)
+            push!(integrals,"   \"ovr\":[ [$i, $j, $integral] ]")
+        elseif (i == 1 && j == 1)
+            push!(integrals,"   \"ovr\":[ [$i, $j, $integral],")
+        elseif (i == nbf && j == nbf)
+            push!(integrals,"           [$i, $j, $integral] ]")
+        else
+            push!(integrals,"           [$i, $j, $integral],")
         end
-        if (length(columns)) > 37
-            push!(icols,parse(Int64,columns[39:min(47,length(columns))]))
-        end
-        if (length(columns)) > 48
-            push!(icols,parse(Int64,columns[50:min(58,length(columns))]))
-        end
-        if (length(columns)) > 59
-            push!(icols,parse(Int64,columns[61:min(69,length(columns))]))
-        end
-
-        first = 5+iblock*(nbf+3)
-        last = min(4+nbf+iblock*(nbf+3),length(ovr))
-        display(ovr[first:last])
-
-
-
-        iblock += 1
     end
-end
-=#
+    push!(integrals,"}")
+    push!(integrals,"")
 
-get_tei_integrals("sto3g-water.tei",7)
+    #--write hcore block--#
+    push!(integrals,"{")
+    push!(integrals,"   \"Input\":\"One-Electron Hamiltonian\",")
+    for iline in hcore_string
+        display(iline)
+        i::Int64 = parse(Int64,iline[1:5])
+        j::Int64 = parse(Int64,iline[20:23])
+        integral::Float64 = parse(Float64,iline[26:end])
+
+        if (i == 1 && j == 1 && length(hcore_string) == 1)
+            push!(integrals,"   \"hcore\":[ [$i, $j, $integral] ]")
+        elseif (i == 1 && j == 1)
+            push!(integrals,"   \"hcore\":[ [$i, $j, $integral],")
+        elseif (i == nbf && j == nbf)
+            push!(integrals,"           [$i, $j, $integral] ]")
+        else
+            push!(integrals,"           [$i, $j, $integral],")
+        end
+    end
+    push!(integrals,"}")
+    push!(integrals,"")
+
+    #--write json block to output file--#
+    f_tei_w::IOStream = open("oei_integrals.log","w")
+        for iline in integrals
+            write(f_tei_w,"$iline\n")
+        end
+    close(f_tei_w)
+end
+
+get_oei_integrals("tools/sto3g-water.oei",7)
