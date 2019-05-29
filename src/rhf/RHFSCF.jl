@@ -452,7 +452,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
     for μ::UInt32 in pμ:eμ, ν::UInt32 in pν:eν
         if (μ < ν)
             #μ,ν = ν,μ
-            #continue
+            continue
         end
         μν = index(μ,ν,ioff)
 
@@ -461,14 +461,14 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
         for λ::UInt32 in pλ:eλ, σ::UInt32 in pσ:eσ
             if (λ < σ)
                 #λ,σ = σ,λ
-                #continue
+                continue
             end
             λσ = index(λ,σ,ioff)
 
             if (μν < λσ)
                 #μ,ν,λ,σ = λ,σ,μ,ν
                 #μν,λσ = λσ,μν
-                #continue
+                continue
             end
             μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
             #μνλσ::UInt32 = index(μν,λσ,ioff)
