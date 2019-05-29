@@ -385,7 +385,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 #end
 
                 lock(mutex)
-                println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
+                #println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
                 F += F_priv
                 unlock(mutex)
             end
