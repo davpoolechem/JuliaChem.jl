@@ -385,12 +385,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 #end
 
                 lock(mutex)
-<<<<<<< HEAD
                 println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
-=======
-                #println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
-                #push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
->>>>>>> development
                 F += F_priv
                 unlock(mutex)
             end
@@ -449,7 +444,6 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
     pλ = quartet.ket.sh_a.pos
     pσ = quartet.ket.sh_b.pos
 
-<<<<<<< HEAD
     eμ = pμ+(nμ-1)
     eν = pν+(nν-1)
     eλ = pλ+(nλ-1)
@@ -476,14 +470,6 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
                 #μν,λσ = λσ,μν
                 #continue
             end
-=======
-    for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
-        if (μ < ν) continue end
-        μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
-
-        for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
-            if (λ < σ) continue end
->>>>>>> development
             μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
             #μνλσ::UInt32 = index(μν,λσ,ioff)
 
