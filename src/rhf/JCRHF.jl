@@ -62,8 +62,7 @@ function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
 
     merge!(read_in, input_info["Enuc"])
     merge!(read_in, input_info["Overlap"])
-    merge!(read_in, input_info["Kinetic Energy"])
-    merge!(read_in, input_info["Nuclear Attraction"])
+    merge!(read_in, input_info["One-Electron Hamiltonian"])
     merge!(read_in, input_info["Two-Electron"])
 
     #GC.enable(false)

@@ -44,9 +44,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 
     #Step #2: One-Electron Integrals
     S::Array{T,2} = read_in_oei(read_in["ovr"], FLAGS)
-    T_oei::Array{T,2} = read_in_oei(read_in["kei"], FLAGS)
-    V::Array{T,2} = read_in_oei(read_in["nai"], FLAGS)
-    H::Array{T,2} = T_oei+V
+    H::Array{T,2} = read_in_oei(read_in["hcore"], FLAGS)
 
     if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
         output_H = Dict([("Core Hamiltonian",H)])
@@ -334,7 +332,6 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 =#
-
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
@@ -388,7 +385,12 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 #end
 
                 lock(mutex)
+<<<<<<< HEAD
                 println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
+=======
+                #println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
+                #push!(debug_array,"$μ, $ν, $λ, $σ, $μν_idx, $λσ_idx")
+>>>>>>> development
                 F += F_priv
                 unlock(mutex)
             end
@@ -447,6 +449,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
     pλ = quartet.ket.sh_a.pos
     pσ = quartet.ket.sh_b.pos
 
+<<<<<<< HEAD
     eμ = pμ+(nμ-1)
     eν = pν+(nν-1)
     eλ = pλ+(nλ-1)
@@ -473,31 +476,31 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
                 #μν,λσ = λσ,μν
                 #continue
             end
+=======
+    for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
+        if (μ < ν) continue end
+        μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
+
+        for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
+            if (λ < σ) continue end
+>>>>>>> development
             μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
             #μνλσ::UInt32 = index(μν,λσ,ioff)
 
-            #println("\"$μ, $ν, $λ, $σ\"")
-
             val::T = (μ == ν) ? 0.5 : 1.0
-            val *= (λ == σ) ? 0.5 : 1.0
-            val *= (μν == λσ) ? 0.5 : 1.0
+            val::T *= (λ == σ) ? 0.5 : 1.0
             eri::T = val * eri_batch[μνλσ]
 
-            #if (eri <= 1E-10) continue end
+            #Dmax::T = max(4.0 * D[μ,ν], D[ν,σ], D[ν,λ], D[μ,σ], D[μ,λ])
+            #if (Dmax*eri <= 1E-10) continue end
 
             F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-            F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+            F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
+
             F_priv[μ,λ] -= D[ν,σ] * eri
             F_priv[μ,σ] -= D[ν,λ] * eri
             F_priv[ν,λ] -= D[μ,σ] * eri
             F_priv[ν,σ] -= D[μ,λ] * eri
-
-            F_priv[σ,λ] = F_priv[λ,σ]
-            F_priv[ν,μ] = F_priv[μ,ν]
-            F_priv[λ,μ] = F_priv[μ,λ]
-            F_priv[σ,μ] = F_priv[μ,σ]
-            F_priv[λ,ν] = F_priv[ν,λ]
-            F_priv[σ,ν] = F_priv[ν,σ]
         end
     end
     return F_priv
