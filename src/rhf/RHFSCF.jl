@@ -110,8 +110,6 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
         F = MPI.Allreduce(F_temp,MPI.SUM,comm)
         MPI.Barrier(comm)
 
-        F += deepcopy(H)
-
         #println("Initial Fock matrix:")
         if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
             output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
@@ -119,6 +117,8 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 
             write(json_debug,JSON.json(output_iter_data))
         end
+
+        F += deepcopy(H)
 
         #Step #8: Build the New Density Matrix
         D_old::Array{T,2} = deepcopy(D)
