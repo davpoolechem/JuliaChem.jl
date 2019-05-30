@@ -45,9 +45,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 
     #Step #2: One-Electron Integrals
     S::Array{T,2} = read_in_oei(read_in["ovr"], FLAGS)
-    T_oei::Array{T,2} = read_in_oei(read_in["kei"], FLAGS)
-    V::Array{T,2} = read_in_oei(read_in["nai"], FLAGS)
-    H::Array{T,2} = T_oei+V
+    H::Array{T,2} = read_in_oei(read_in["hcore"], FLAGS)
 
     if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
         output_H = Dict([("Core Hamiltonian",H)])
@@ -158,8 +156,6 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
             println(" ")
         end
 
-        #restart = RHFRestartData(H, ortho, iter, F, D, C, E)
-
         return RHFRestartData(H, ortho, iter, F, D, C, E)
     else
         if (MPI.Comm_rank(comm) == 0)
@@ -170,8 +166,6 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
             println("Total SCF Energy: ",E," h")
             println(" ")
         end
-
-        #scf = Data(F, D, C, E)
 
         if (FLAGS.SCF.DEBUG == true)
             close(json_debug)
@@ -320,8 +314,7 @@ b = column index
 """
 =#
 @inline function index(a::UInt32,b::UInt32,ioff::Array{UInt32,1})
-    index::UInt32 = (a > b) ? ioff[a] + b : ioff[b] + a
-    return index
+    return ioff[a] + b
 end
 
 #=
@@ -349,36 +342,61 @@ function twoei(F::Array{T,2}, D::Array{T,2}, H::Array{T,2}, tei::HDF5File,
     norb::UInt32 = FLAGS.BASIS.NORB
     nsh::UInt32 = length(basis.shells)
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
 
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
     for bra_pairs::UInt32 in 1:ioff[nsh]
         if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
+            #lock(mutex)
+            #println("\"$bra_pairs\"")
+            #unlock(mutex)
             bra_sh_a::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
-            bra_sh_b::UInt32 = bra_pairs%bra_sh_a + 1
-            bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
+            bra_sh_b::UInt32 = bra_pairs - ioff2[bra_sh_a]
 
-            Threads.@threads for ket_pairs::UInt32 in 1:ioff[nsh]
+            if (bra_sh_a < bra_sh_b)
+                bra_sh_a, bra_sh_b = bra_sh_b, bra_sh_a
+                #continue
+            end
+
+            bra_idx = index(bra_sh_a, bra_sh_b, ioff)
+
+            Threads.@threads for ket_pairs::UInt32 in 1:bra_pairs
                 ket_sh_a::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-                ket_sh_b::UInt32 = ket_pairs%ket_sh_a + 1
+                ket_sh_b::UInt32 = ket_pairs - ioff2[ket_sh_a]
 
+                if (ket_sh_a < ket_sh_b)
+                    ket_sh_a, ket_sh_b = ket_sh_b, ket_sh_a
+                    #continue
+                end
+
+                ket_idx = index(ket_sh_a, ket_sh_b, ioff)
+
+                if (bra_idx < ket_idx)
+                    bra_sh_a, bra_sh_b, ket_sh_a, ket_sh_b = ket_sh_a, ket_sh_b, bra_sh_a, bra_sh_b
+                end
+
+                bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
 
                 eri_batch::Array{T,1} = shellquart(D, quartet, tei)
                 F_priv::Array{T,2} = zeros(norb,norb)
-                if (max(eri_batch...) >= 1E-10)
-                    F_priv = dirfck(D, eri_batch, quartet)
-                end
+                #if (max(eri_batch...) >= 1E-10)
+                F_priv = dirfck(D, eri_batch, quartet)
+                #end
 
                 lock(mutex)
+                #println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
                 F += F_priv
                 unlock(mutex)
             end
         end
-        MPI.Barrier(comm)
     end
+
+    #display(sort(debug_array))
+
     return F
 end
 
@@ -388,7 +406,11 @@ function shellquart(D::Array{T,2},quartet::ShQuartet, tei_file::HDF5File) where 
 
     norb = size(D)[1]
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+<<<<<<< HEAD
     ioff2::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(0:norb*(norb+1)))
+=======
+    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
+>>>>>>> development
 
     nμ = quartet.bra.sh_a.nbas
     nν = quartet.bra.sh_b.nbas
@@ -426,6 +448,7 @@ end
 function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
     norb = size(D)[1]
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
 
     F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
@@ -439,15 +462,34 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
     pλ = quartet.ket.sh_a.pos
     pσ = quartet.ket.sh_b.pos
 
-    for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
-        if (μ < ν) continue end
+    eμ = pμ+(nμ-1)
+    eν = pν+(nν-1)
+    eλ = pλ+(nλ-1)
+    eσ = pσ+(nσ-1)
+
+    for μ::UInt32 in pμ:eμ, ν::UInt32 in pν:eν
+        if (μ < ν)
+            #μ,ν = ν,μ
+            continue
+        end
+        μν = index(μ,ν,ioff)
+
         μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
-        for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
-            if (λ < σ) continue end
-            μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
+        for λ::UInt32 in pλ:eλ, σ::UInt32 in pσ:eσ
+            if (λ < σ)
+                #λ,σ = σ,λ
+                continue
+            end
+            λσ = index(λ,σ,ioff)
 
-            #println("\"$μ, $ν, $λ, $σ\"")
+            if (μν < λσ)
+                #μ,ν,λ,σ = λ,σ,μ,ν
+                #μν,λσ = λσ,μν
+                continue
+            end
+            μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
+            #μνλσ::UInt32 = index(μν,λσ,ioff)
 
             val::T = (μ == ν) ? 0.5 : 1.0
             val::T *= (λ == σ) ? 0.5 : 1.0

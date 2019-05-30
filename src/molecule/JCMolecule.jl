@@ -12,18 +12,18 @@ Base.include(@__MODULE__,"MoleculeAnalysis.jl")
 using MPI
 
 """
-     run(coord::Array{Float64,2})
+     run(input_info::Dict{String,Dict{String,Any}})
 Execute the JuliaChem molecular coordinate analysis functions.
 
 One input variable is required:
-1. coord = The molecular coordinates.
+1. input_info = Information gathered from the input file.
 
 No variables are output.
 
 Thus, proper use of the Molecule.run() function would look like this:
 
 ```
-Molecule.run(coord)
+Molecule.run(input_info)
 ```
 """
 function run(input_info::Dict{String,Dict{String,Any}})

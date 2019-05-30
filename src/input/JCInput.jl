@@ -15,20 +15,21 @@ using Distributed
 using HDF5
 
 """
-     run()
+     run(args::String)
 Perform the operations necessary to read in, process, and extract data from the
 selected input file.
 
-No input variables are required.
+One input variable is required:
+1. args = The name of the input file.
 
 Two variables are output:
-1. flags = The calculation flags from the input file.
-2. coord = The molecular coordinates.
+1. input_info = Information gathered from the input file.
+2. basis = The basis set shells, determined from the input file.
 
 Thus, proper use of the Input.run() function would look like this:
 
 ```
-flags, coord = Input.run()
+input_info, basis = Input.run(args)
 ```
 """
 function run(args::String)
@@ -93,7 +94,7 @@ function run(args::String)
     shell_am = input_info["Basis Flags"]["shells"]
     basis::Basis = Basis()
     for i in 1:length(shell_am)
-        shell::Shell = Shell(Int32(shell_am[i]))
+        shell::Shell = Shell(UInt32(shell_am[i]))
         add_shell(basis,deepcopy(shell))
     end
 
