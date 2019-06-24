@@ -41,7 +41,8 @@ function analyze_bond_lengths(coord::Array{Float64,2})
     for iatom in 1:natoms, jatom in 1:natoms
         if (iatom > jatom)
             if (MPI.Comm_rank(comm) == 0)
-                println("   ",iatom,"         ",jatom,"     ",bond_lengths[iatom,jatom])
+                println("   ",iatom,"         ",jatom,"     ",
+                  bond_lengths[iatom,jatom])
             end
         end
     end
