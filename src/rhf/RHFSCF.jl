@@ -332,6 +332,7 @@ tei = Two-electron integral array
 H = One-electron Hamiltonian Matrix
 """
 =#
+
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
@@ -385,7 +386,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 #end
 
                 lock(mutex)
-                #println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
+                println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
                 F += F_priv
                 unlock(mutex)
             end
@@ -452,7 +453,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
     for μ::UInt32 in pμ:eμ, ν::UInt32 in pν:eν
         if (μ < ν)
             #μ,ν = ν,μ
-            continue
+            #continue
         end
         μν = index(μ,ν,ioff)
 
@@ -461,32 +462,40 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
         for λ::UInt32 in pλ:eλ, σ::UInt32 in pσ:eσ
             if (λ < σ)
                 #λ,σ = σ,λ
-                continue
+                #continue
             end
             λσ = index(λ,σ,ioff)
 
             if (μν < λσ)
                 #μ,ν,λ,σ = λ,σ,μ,ν
                 #μν,λσ = λσ,μν
-                continue
+                #continue
             end
             μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
             #μνλσ::UInt32 = index(μν,λσ,ioff)
 
+            #println("\"$μ, $ν, $λ, $σ\"")
+
             val::T = (μ == ν) ? 0.5 : 1.0
-            val::T *= (λ == σ) ? 0.5 : 1.0
+            val *= (λ == σ) ? 0.5 : 1.0
+            val *= (μν == λσ) ? 0.5 : 1.0
             eri::T = val * eri_batch[μνλσ]
 
-            #Dmax::T = max(4.0 * D[μ,ν], D[ν,σ], D[ν,λ], D[μ,σ], D[μ,λ])
-            #if (Dmax*eri <= 1E-10) continue end
+            #if (eri <= 1E-10) continue end
 
             F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-            F_priv[σ,λ] += 4.0 * D[μ,ν] * eri
-
+            F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
             F_priv[μ,λ] -= D[ν,σ] * eri
             F_priv[μ,σ] -= D[ν,λ] * eri
             F_priv[ν,λ] -= D[μ,σ] * eri
             F_priv[ν,σ] -= D[μ,λ] * eri
+
+            F_priv[σ,λ] = F_priv[λ,σ]
+            F_priv[ν,μ] = F_priv[μ,ν]
+            F_priv[λ,μ] = F_priv[μ,λ]
+            F_priv[σ,μ] = F_priv[μ,σ]
+            F_priv[λ,ν] = F_priv[ν,λ]
+            F_priv[σ,ν] = F_priv[ν,σ]
         end
     end
     return F_priv
