@@ -79,7 +79,9 @@ array_center = center array in the dot product
 
 """
 =#
-function ∑(array_1::Array{T},array_2::Array{T},array_center::Array{T,2}) where {T<:Number}
+function ∑(array_1::Array{T},array_2::Array{T},
+  array_center::Array{T,2}) where {T<:Number}
+
   array::Float64 = transpose(array_2)*array_center*array_1
   #array = (array .* array).^0.5
   #return reduce(+,array)

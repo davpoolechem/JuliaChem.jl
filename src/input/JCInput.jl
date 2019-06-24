@@ -34,7 +34,7 @@ input_info, basis = Input.run(args)
 function run(args::String)
   #read in .inp and .dat files
   comm=MPI.COMM_WORLD
---------------------------------------------------------------------------------
+
   if (MPI.Comm_rank(comm) == 0)
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
@@ -49,7 +49,8 @@ function run(args::String)
     println(" ")
     println("Number of worker processes: ", MPI.Comm_size(comm))
     println("Number of threads per process: ", Threads.nthreads())
-    println("Number of threads in total: ", MPI.Comm_size(comm)*Threads.nthreads())
+    println("Number of threads in total: ",
+      MPI.Comm_size(comm)*Threads.nthreads())
   end
 
   if (MPI.Comm_rank(comm) == 0)
