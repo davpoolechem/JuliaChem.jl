@@ -110,6 +110,9 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
         F = MPI.Allreduce(F_temp,MPI.SUM,comm)
         MPI.Barrier(comm)
 
+        display(F)
+        println("")
+
         #println("Initial Fock matrix:")
         if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
             output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
@@ -345,6 +348,70 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
+    for ish::UInt32 in 1:nsh
+        for jsh::UInt32 in 1:ish
+            ijsh::UInt32 = ish*(ish-1)/2 + jsh
+
+            for ksh::UInt32 in 1:nsh
+                for lsh::UInt32 in 1:ksh
+                    klsh::UInt32 = ksh*(ksh-1)/2 + lsh
+
+                    ii::UInt32 = ish
+                    jj::UInt32 = jsh
+                    kk::UInt32 = ksh
+                    ll::UInt32 = lsh
+
+                    if (klsh > ijsh)
+                        #kk, ll, ii, jj = ii, jj, kk, ll
+                        continue
+                    end
+
+                    lock(mutex)
+                    println("\"$ii, $jj, $kk, $ll\"")
+                    unlock(mutex)
+
+                    bra::ShPair = ShPair(basis.shells[ii], basis.shells[jj])
+                    ket::ShPair = ShPair(basis.shells[kk], basis.shells[ll])
+                    quartet::ShQuartet = ShQuartet(bra,ket)
+
+                    eri_batch::Array{T,1} = shellquart(D, tei, quartet)
+                    lock(mutex)
+                    #println("DONE WITH ERI BATCH")
+                    unlock(mutex)
+                    F_priv::Array{T,2} = zeros(norb,norb)
+                    #if (max(eri_batch...) >= 1E-10)
+                    F_priv = dirfck(D, eri_batch, quartet)
+                    lock(mutex)
+                    #println("DONE WITH FOCK CONTRACTION")
+                    unlock(mutex)
+                    #end
+
+                    lock(mutex)
+                    F += F_priv
+                    unlock(mutex)
+                end
+            end
+        end
+    end
+
+    #display(sort(debug_array))
+
+    return F
+end
+
+#=
+function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
+    H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
+
+    comm=MPI.COMM_WORLD
+    norb::UInt32 = FLAGS.BASIS.NORB
+    nsh::UInt32 = length(basis.shells)
+    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
+
+    F = zeros(norb,norb)
+    mutex = Base.Threads.Mutex()
+
     for bra_pairs::UInt32 in 1:ioff[nsh]
         if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
             #lock(mutex)
@@ -379,16 +446,16 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
                 ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
                 quartet::ShQuartet = ShQuartet(bra,ket)
 
+                lock(mutex)
+                println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
+                F += F_priv
+                unlock(mutex)
+
                 eri_batch::Array{T,1} = shellquart(D, tei, quartet)
                 F_priv::Array{T,2} = zeros(norb,norb)
                 #if (max(eri_batch...) >= 1E-10)
                 F_priv = dirfck(D, eri_batch, quartet)
                 #end
-
-                lock(mutex)
-                println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
-                F += F_priv
-                unlock(mutex)
             end
         end
     end
@@ -397,7 +464,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 
     return F
 end
-
+=#
 function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
     norb = size(D)[1]
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
@@ -416,11 +483,14 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<
     eri_batch::Array{T,1} = [ ]
 
     for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
-        μν = index(μ,ν,ioff)
+        μν = index(μ,ν,ioff2)
+        #println("$μ, $ν, $μν")
 
         for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
-            λσ = index(λ,σ,ioff)
-            μνλσ::UInt32 = index(μν,λσ,ioff)
+            λσ = index(λ,σ,ioff2)
+            #println("$λ, $σ, $λσ")
+            μνλσ::UInt32 = index(μν,λσ,ioff2)
+            #println("$μνλσ")
 
             push!(eri_batch,tei[μνλσ])
         end
@@ -453,42 +523,47 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
     for μ::UInt32 in pμ:eμ, ν::UInt32 in pν:eν
         if (μ < ν)
             #μ,ν = ν,μ
-            #continue
+            continue
         end
-        μν = index(μ,ν,ioff)
+        μν = index(μ,ν,ioff2)
 
         μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
         for λ::UInt32 in pλ:eλ, σ::UInt32 in pσ:eσ
             if (λ < σ)
                 #λ,σ = σ,λ
-                #continue
+                continue
             end
-            λσ = index(λ,σ,ioff)
+            λσ = index(λ,σ,ioff2)
 
             if (μν < λσ)
                 #μ,ν,λ,σ = λ,σ,μ,ν
                 #μν,λσ = λσ,μν
-                #continue
+                continue
             end
             μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
             #μνλσ::UInt32 = index(μν,λσ,ioff)
 
-            #println("\"$μ, $ν, $λ, $σ\"")
+            eri::T = eri_batch[μνλσ]
+            #println("\"$μ, $ν, $λ, $σ, $eri\"")
 
             val::T = (μ == ν) ? 0.5 : 1.0
             val *= (λ == σ) ? 0.5 : 1.0
-            val *= (μν == λσ) ? 0.5 : 1.0
-            eri::T = val * eri_batch[μνλσ]
+            val *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+            eri *= val
+
+            eri4 = 4.0*eri
+            eri1 = 1.0*eri
+            println("\"$μ, $ν, $λ, $σ, $eri4, $eri1\"")
 
             #if (eri <= 1E-10) continue end
 
-            F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-            F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
-            F_priv[μ,λ] -= D[ν,σ] * eri
-            F_priv[μ,σ] -= D[ν,λ] * eri
-            F_priv[ν,λ] -= D[μ,σ] * eri
-            F_priv[ν,σ] -= D[μ,λ] * eri
+            F_priv[λ,σ] += D[μ,ν] * eri4
+            F_priv[μ,ν] += D[λ,σ] * eri4
+            F_priv[μ,λ] -= D[ν,σ] * eri1
+            F_priv[μ,σ] -= D[ν,λ] * eri1
+            F_priv[ν,λ] -= D[μ,σ] * eri1
+            F_priv[ν,σ] -= D[μ,λ] * eri1
 
             F_priv[σ,λ] = F_priv[λ,σ]
             F_priv[ν,μ] = F_priv[μ,ν]

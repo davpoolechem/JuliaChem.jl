@@ -48,6 +48,8 @@ data = name of data file object to process
 """
 =#
 function read_in_tei(tei::Array{Any,1}, FLAGS::RHF_Flags)
+    println("READ IN TWOEI")
+    println(length(tei))
     tei_array::Array{Float64,1} = zeros(FLAGS.BASIS.NORB^4)
     Threads.@threads for index::Int64 in 1:length(tei)
         i::Int64 = tei[index][1]
@@ -55,11 +57,13 @@ function read_in_tei(tei::Array{Any,1}, FLAGS::RHF_Flags)
         k::Int64 = tei[index][3]
         l::Int64 = tei[index][4]
 
-        ij::Int64 = (i > j) ? i*(i+1)/2 + j : j*(j+1)/2 + i
-        kl::Int64 = (k > l) ? k*(k+1)/2 + l : l*(l+1)/2 + k
-        ijkl::Int64 = (ij > kl) ? ij*(ij+1)/2 + kl : kl*(kl+1)/2 + ij
+        ij::Int64 = (i > j) ? i*(i-1)/2 + j : j*(j-1)/2 + i
+        kl::Int64 = (k > l) ? k*(k-1)/2 + l : l*(l-1)/2 + k
+        ijkl::Int64 = (ij > kl) ? ij*(ij-1)/2 + kl : kl*(kl-1)/2 + ij
 
         tei_array[ijkl] = tei[index][5]
+        eri::Float64 = tei_array[ijkl]
+        println("$i, $j, $k, $l, $ijkl, $eri")
     end
 
     return tei_array
