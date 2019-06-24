@@ -33,62 +33,6 @@ input_info, basis = Input.run(args)
 ```
 """
 function run(args::String)
-<<<<<<< HEAD
-    #read in .inp and .dat files
-    comm=MPI.COMM_WORLD
-
-    if (MPI.Comm_rank(comm) == 0)
-        println("-------------------------------------------------------------------------------------")
-        println("                       ========================================          ")
-        println("                                READING INPUT DATA FILE                  ")
-        println("                       ========================================          ")
-        println(" ")
-    end
-
-    directory::String = pwd()
-    #println("Input file: ", directory*"/"*input_file)
-    if (MPI.Comm_rank(comm) == 0)
-        println(" ")
-        println("Number of worker processes: ", MPI.Comm_size(comm))
-        println("Number of threads per process: ", Threads.nthreads())
-        println("Number of threads in total: ", MPI.Comm_size(comm)*Threads.nthreads())
-    end
-
-    if (MPI.Comm_rank(comm) == 0)
-        println(" ")
-        println("                       ========================================          ")
-        println("                                       END INPUT                         ")
-        println("                       ========================================          ")
-    end
-
-    #--read in input file--#
-    input_file::IOStream = open(args)
-        input_string::Array{String,1} = readlines(input_file)
-    close(input_file)
-
-    input_info::Dict{String,Dict{String,Any}} = Dict([])
-    i::UInt32 = 1
-    while (i <= length(input_string))
-        if (input_string[i] != "{")
-            i += 1
-        else
-            j::UInt32 = i
-            json_subsection::String = ""
-            input_name::String = ""
-            while (input_string[j] != "}")
-                json_subsection *= input_string[j]
-                if (occursin(r"\\\"Input\\\"\:(.*)",input_string[j]))
-                    input_name = match(r"\\\"Input\\\"\:(.*)",input_string[j])[1]
-                    input_name = input_name[2:end-2]
-                end
-                j += 1
-            end
-            json_subsection *= "}"
-            json_parse::Dict{String,Any} = JSON.parse(json_subsection)
-            merge!(input_info,Dict([(input_name,json_parse)]))
-
-            i = j
-=======
   #read in .inp and .dat files
   comm=MPI.COMM_WORLD
 
@@ -135,7 +79,6 @@ function run(args::String)
         if (occursin(r"\\\"Input\\\"\:(.*)",input_string[j]))
           input_name = match(r"\\\"Input\\\"\:(.*)",input_string[j])[1]
           input_name = input_name[2:end-2]
->>>>>>> development
         end
         j += 1
       end
@@ -143,16 +86,7 @@ function run(args::String)
       json_parse::Dict{String,Any} = JSON.parse(json_subsection)
       merge!(input_info,Dict([(input_name,json_parse)]))
 
-<<<<<<< HEAD
-    #--set up basis set--#
-    shell_am = input_info["Basis Flags"]["shells"]
-    basis::Basis = Basis()
-    for i in 1:length(shell_am)
-        shell::Shell = Shell(Int32(shell_am[i]))
-        add_shell(basis,deepcopy(shell))
-=======
       i = j
->>>>>>> development
     end
   end
 
@@ -163,25 +97,17 @@ function run(args::String)
     add_shell(basis,deepcopy(shell))
   end
 
-<<<<<<< HEAD
-    #--set up eri database--#
-    norb = input_info["Basis Flags"]["norb"]
-    norb2::UInt32 = norb*(norb+1)/2
-    h5open("tei.h5", "w") do file
-        for i::UInt32 in 1:norb2
-            eri_array::Array{Array{Float64,1},1} = input_info["Two-Electron-$i"]["tei"]
-            eri_matrix = Matrix{Float64}(undef,length(eri_array),5)
-            for irow::UInt32 in 1:length(eri_array), icol::UInt32 in 1:5
-                eri_matrix[irow,icol] = eri_array[irow][icol]
-            end
-            write(file, "tei-$i", eri_matrix)
-        end
+  #--set up eri database--#
+  norb = input_info["Basis Flags"]["norb"]
+  h5open("tei.h5", "w") do file
+    eri_array::Array{Array{Float64,1},1} = input_info["Two-Electron"]["tei"]
+    eri_matrix = Matrix{Float64}(undef,length(eri_array),5)
+    for irow::UInt32 in 1:length(eri_array), icol::UInt32 in 1:5
+      eri_matrix[irow,icol] = eri_array[irow][icol]
     end
-
-    return (input_info,basis)
-=======
+    write(file, "tei", eri_matrix)
+  end
   return (input_info,basis)
->>>>>>> development
 end
 export run
 
