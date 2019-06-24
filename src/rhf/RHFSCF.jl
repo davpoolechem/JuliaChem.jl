@@ -111,8 +111,9 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 	F = MPI.Allreduce(F_temp,MPI.SUM,comm)
 	MPI.Barrier(comm)
 
-	#display(F)
-	#println("")
+    println("Skeleton Fock matrix:")
+	display(F)
+	println("")
 
 	#println("Initial Fock matrix:")
 	if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
@@ -124,6 +125,10 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 
 	F += deepcopy(H)
 
+    println("Total Fock matrix:")
+	display(F)
+    println("")
+
 	#Step #8: Build the New Density Matrix
 	D_old::Array{T,2} = deepcopy(D)
 	E_old::T = E
@@ -131,6 +136,10 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 	F = transpose(ortho)*F*ortho
 	F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
 	E = E_elec+E_nuc
+
+    println("New density matrix:")
+	display(D)
+    println("")
 
 	#Step #10: Test for Convergence
 	ΔE::T = E - E_old
@@ -292,6 +301,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
   for i::UInt32 in 1:FLAGS.BASIS.NORB, j::UInt32 in 1:i
     D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
+    D[i,j] *= 2
     D[j,i] = D[i,j]
   end
 
@@ -357,7 +367,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 
       if (ish < jsh) continue end
 
-      ijsh::UInt32 = ish*(ish-1)/2 + jsh
+      ijsh::UInt32 = index(ish,jsh)
 
       Threads.@threads for ket_pairs::UInt32 in 1:bra_pairs
         ksh::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
@@ -365,7 +375,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 
         if (ksh < lsh) continue end
 
-        klsh::UInt32 = ksh*(ksh-1)/2 + lsh
+        klsh::UInt32 = index(ksh,lsh)
         if (klsh > ijsh) continue end
 
 		lock(mutex)
@@ -465,31 +475,34 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  eri::T = eri_batch[μνλσ]
       println("\"$μ, $ν, $λ, $σ, $eri\"")
 
-	  val::T = (μ == ν) ? 0.5 : 1.0
-	  val *= (λ == σ) ? 0.5 : 1.0
-	  val *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
-	  eri *= val
-
-	  eri4 = 4.0*eri
-	  eri1 = 1.0*eri
-	  #println("\"$μ, $ν, $λ, $σ, $eri4, $eri1\"")
+	  eri *= (μ == ν) ? 0.5 : 1.0
+	  eri *= (λ == σ) ? 0.5 : 1.0
+	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
 	  if (eri <= 1E-10) continue end
 
-	  F_priv[λ,σ] += D[μ,ν] * eri4
-	  F_priv[μ,ν] += D[λ,σ] * eri4
-      F_priv[μ,λ] -= D[ν,σ] * eri1
-	  F_priv[μ,σ] -= D[ν,λ] * eri1
-	  F_priv[ν,λ] -= D[μ,σ] * eri1
-	  F_priv[ν,σ] -= D[μ,λ] * eri1
+	  F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+      F_priv[μ,λ] -= D[ν,σ] * eri
+	  F_priv[μ,σ] -= D[ν,λ] * eri
+	  F_priv[max(ν,λ),min(ν,λ)] -= D[max(μ,σ),min(μ,σ)] * eri
+	  F_priv[max(ν,σ),min(ν,σ)] -= D[max(μ,λ),min(μ,λ)] * eri
 
 	  F_priv[σ,λ] = F_priv[λ,σ]
 	  F_priv[ν,μ] = F_priv[μ,ν]
 	  F_priv[λ,μ] = F_priv[μ,λ]
 	  F_priv[σ,μ] = F_priv[μ,σ]
-	  F_priv[λ,ν] = F_priv[ν,λ]
-	  F_priv[σ,ν] = F_priv[ν,σ]
+	  F_priv[min(λ,ν),max(λ,ν)] = F_priv[max(ν,λ),min(ν,λ)]
+	  F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
     end
   end
+
+  for iorb::UInt32 in 1:norb, jorb::UInt32 in 1:iorb
+    if (iorb != jorb)
+      F_priv[iorb,jorb] /= 2
+      F_priv[jorb,iorb] = F_priv[iorb,jorb]
+    end
+  end
+
   return F_priv
 end
