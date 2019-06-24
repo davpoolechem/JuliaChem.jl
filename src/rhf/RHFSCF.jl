@@ -360,7 +360,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
   F = zeros(norb,norb)
   mutex = Base.Threads.Mutex()
 
-  for bra_pairs::UInt32 in 1:nsh*(nsh+1)/2
+  for bra_pairs::UInt32 in nsh*(nsh+1)/2:-1:1
     if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
       ish::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
       jsh::UInt32 = bra_pairs - ioff[ish]
@@ -369,7 +369,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 
       ijsh::UInt32 = index(ish,jsh)
 
-      Threads.@threads for ket_pairs::UInt32 in 1:bra_pairs
+      Threads.@threads for ket_pairs::UInt32 in bra_pairs:-1:1
         ksh::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
         lsh::UInt32 = ket_pairs - ioff[ksh]
 
@@ -400,6 +400,13 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 	end
   end
 
+  for iorb::UInt32 in 1:norb, jorb::UInt32 in 1:iorb
+    if (iorb != jorb)
+      F[iorb,jorb] /= 2
+      F[jorb,iorb] = F[iorb,jorb]
+    end
+  end
+
   return F
 end
 
@@ -422,13 +429,10 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},
 
   for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     μν = index(μ,ν)
-    #println("$μ, $ν, $μν")
 
 	for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
 	  λσ = index(λ,σ)
-      #println("$λ, $σ, $λσ")
       μνλσ::UInt32 = index(μν,λσ)
-      #println("$μνλσ")
 
       push!(eri_batch,tei[μνλσ])
     end
@@ -494,13 +498,6 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  F_priv[σ,μ] = F_priv[μ,σ]
 	  F_priv[min(λ,ν),max(λ,ν)] = F_priv[max(ν,λ),min(ν,λ)]
 	  F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
-    end
-  end
-
-  for iorb::UInt32 in 1:norb, jorb::UInt32 in 1:iorb
-    if (iorb != jorb)
-      F_priv[iorb,jorb] /= 2
-      F_priv[jorb,iorb] = F_priv[iorb,jorb]
     end
   end
 
