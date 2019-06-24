@@ -490,7 +490,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	    eri *= (λ == σ) ? 0.5 : 1.0
 	    eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-	    if (eri <= 1E-10) continue end
+	    #if (eri <= 1E-10) continue end
 
 	    F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
 	    F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
