@@ -348,123 +348,49 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
     F = zeros(norb,norb)
     mutex = Base.Threads.Mutex()
 
-    for ish::UInt32 in 1:nsh
-        for jsh::UInt32 in 1:ish
-            ijsh::UInt32 = ish*(ish-1)/2 + jsh
-
-            for ksh::UInt32 in 1:nsh
-                for lsh::UInt32 in 1:ksh
-                    klsh::UInt32 = ksh*(ksh-1)/2 + lsh
-
-                    ii::UInt32 = ish
-                    jj::UInt32 = jsh
-                    kk::UInt32 = ksh
-                    ll::UInt32 = lsh
-
-                    if (klsh > ijsh)
-                        #kk, ll, ii, jj = ii, jj, kk, ll
-                        continue
-                    end
-
-                    lock(mutex)
-                    println("\"$ii, $jj, $kk, $ll\"")
-                    unlock(mutex)
-
-                    bra::ShPair = ShPair(basis.shells[ii], basis.shells[jj])
-                    ket::ShPair = ShPair(basis.shells[kk], basis.shells[ll])
-                    quartet::ShQuartet = ShQuartet(bra,ket)
-
-                    eri_batch::Array{T,1} = shellquart(D, tei, quartet)
-                    lock(mutex)
-                    #println("DONE WITH ERI BATCH")
-                    unlock(mutex)
-                    F_priv::Array{T,2} = zeros(norb,norb)
-                    #if (max(eri_batch...) >= 1E-10)
-                    F_priv = dirfck(D, eri_batch, quartet)
-                    lock(mutex)
-                    #println("DONE WITH FOCK CONTRACTION")
-                    unlock(mutex)
-                    #end
-
-                    lock(mutex)
-                    F += F_priv
-                    unlock(mutex)
-                end
-            end
-        end
-    end
-
-    #display(sort(debug_array))
-
-    return F
-end
-
-#=
-function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
-    H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
-
-    comm=MPI.COMM_WORLD
-    norb::UInt32 = FLAGS.BASIS.NORB
-    nsh::UInt32 = length(basis.shells)
-    ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
-    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
-
-    F = zeros(norb,norb)
-    mutex = Base.Threads.Mutex()
-
     for bra_pairs::UInt32 in 1:ioff[nsh]
         if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
-            #lock(mutex)
-            #println("\"$bra_pairs\"")
-            #unlock(mutex)
-            bra_sh_a::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
-            bra_sh_b::UInt32 = bra_pairs - ioff2[bra_sh_a]
+            ish::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
+            jsh::UInt32 = bra_pairs - ioff2[ish]
 
-            if (bra_sh_a < bra_sh_b)
-                bra_sh_a, bra_sh_b = bra_sh_b, bra_sh_a
-                #continue
-            end
+            if (ish < jsh) continue end
 
-            bra_idx = index(bra_sh_a, bra_sh_b, ioff)
+            ijsh::UInt32 = ish*(ish-1)/2 + jsh
 
             Threads.@threads for ket_pairs::UInt32 in 1:bra_pairs
-                ket_sh_a::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-                ket_sh_b::UInt32 = ket_pairs - ioff2[ket_sh_a]
+                ksh::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
+                lsh::UInt32 = ket_pairs - ioff2[ksh]
 
-                if (ket_sh_a < ket_sh_b)
-                    ket_sh_a, ket_sh_b = ket_sh_b, ket_sh_a
-                    #continue
-                end
+                if (ksh < lsh) continue end
 
-                ket_idx = index(ket_sh_a, ket_sh_b, ioff)
+                klsh::UInt32 = ksh*(ksh-1)/2 + lsh
 
-                if (bra_idx < ket_idx)
-                    bra_sh_a, bra_sh_b, ket_sh_a, ket_sh_b = ket_sh_a, ket_sh_b, bra_sh_a, bra_sh_b
-                end
-
-                bra::ShPair = ShPair(basis.shells[bra_sh_a], basis.shells[bra_sh_b])
-                ket::ShPair = ShPair(basis.shells[ket_sh_a], basis.shells[ket_sh_b])
-                quartet::ShQuartet = ShQuartet(bra,ket)
+                if (klsh > ijsh) continue end
 
                 lock(mutex)
-                println("\"$bra_sh_a, $bra_sh_b, $ket_sh_a, $ket_sh_b\"")
-                F += F_priv
+                println("\"$ish, $jsh, $ksh, $lsh\"")
                 unlock(mutex)
 
+                bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
+                ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
+                quartet::ShQuartet = ShQuartet(bra,ket)
+
                 eri_batch::Array{T,1} = shellquart(D, tei, quartet)
+
                 F_priv::Array{T,2} = zeros(norb,norb)
                 #if (max(eri_batch...) >= 1E-10)
                 F_priv = dirfck(D, eri_batch, quartet)
-                #end
+
+                lock(mutex)
+                F += F_priv
+                unlock(mutex)
             end
         end
     end
 
-    #display(sort(debug_array))
-
     return F
 end
-=#
+
 function shellquart(D::Array{T,2}, tei::Array{T,1},quartet::ShQuartet) where {T<:AbstractFloat}
     norb = size(D)[1]
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
@@ -545,7 +471,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
             #μνλσ::UInt32 = index(μν,λσ,ioff)
 
             eri::T = eri_batch[μνλσ]
-            #println("\"$μ, $ν, $λ, $σ, $eri\"")
+            println("\"$μ, $ν, $λ, $σ, $eri\"")
 
             val::T = (μ == ν) ? 0.5 : 1.0
             val *= (λ == σ) ? 0.5 : 1.0
@@ -554,7 +480,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},quartet::ShQuartet) where {
 
             eri4 = 4.0*eri
             eri1 = 1.0*eri
-            println("\"$μ, $ν, $λ, $σ, $eri4, $eri1\"")
+            #println("\"$μ, $ν, $λ, $σ, $eri4, $eri1\"")
 
             #if (eri <= 1E-10) continue end
 
