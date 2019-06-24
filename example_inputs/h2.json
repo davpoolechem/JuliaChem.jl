@@ -20,7 +20,7 @@
   "rmsd":1E-6,
 	"prec":"Float64",
 	"direct":false,
-	"debug":true
+	"debug":false
 }
 
 #------------------------------#
