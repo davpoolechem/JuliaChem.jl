@@ -429,9 +429,9 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {
   eri_batch::Array{T,1} = [ ]
   tei_list::Array{Float64,2} = read(tei_file, "tei")
 
-  #println("INTEGRAL LIST:")
-  #display(tei_list)
-  #println(" ")
+  println("INTEGRAL LIST:")
+  display(tei_list)
+  println(" ")
 
   for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     μν = index(μ,ν)
@@ -440,6 +440,8 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {
 	    λσ = index(λ,σ)
       μνλσ::UInt32 = index(μν,λσ)
 
+      eri = tei_list[μνλσ,5]
+      println("$μ, $ν, $λ, $σ, $μνλσ, $eri")
       push!(eri_batch,tei_list[μνλσ,5])
     end
   end
