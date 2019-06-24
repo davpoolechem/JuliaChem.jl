@@ -111,8 +111,18 @@ function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
 
     merge!(read_in, input_info["Enuc"])
     merge!(read_in, input_info["Overlap"])
+<<<<<<< HEAD
     merge!(read_in, input_info["Kinetic Energy"])
     merge!(read_in, input_info["Nuclear Attraction"])
+=======
+<<<<<<< HEAD
+    merge!(read_in, input_info["Kinetic Energy"])
+    merge!(read_in, input_info["Nuclear Attraction"])
+=======
+    merge!(read_in, input_info["One-Electron Hamiltonian"])
+    merge!(read_in, input_info["Two-Electron"])
+>>>>>>> development
+>>>>>>> 95ec6e4ea43b0a476c4872fb6673886900730957
 
     #GC.enable(false)
     if (scf_flags.DIRECT == false)

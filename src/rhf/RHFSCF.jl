@@ -510,10 +510,17 @@ function shellquart(D::Array{T,2},quartet::ShQuartet, tei_file::HDF5File) where 
 
     norb = size(D)[1]
     ioff::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
+<<<<<<< HEAD
     ioff2::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(0:norb*(norb+1)))
 =======
 function shellquart(D::Array{T,2}, tei::Array{T,1},
   quartet::ShQuartet) where {T<:AbstractFloat}
+=======
+<<<<<<< HEAD
+    ioff2::Array{UInt32,1} = map((x) -> x*(x+1)/2, collect(0:norb*(norb+1)))
+=======
+    ioff2::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
+>>>>>>> 95ec6e4ea43b0a476c4872fb6673886900730957
 >>>>>>> development
 
   norb = size(D)[1]
