@@ -113,6 +113,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   #=============================#
   converged::Bool = false
   iter::UInt32 = 1
+
   c = h5open("sto3g-h2.h5", "r") do tei
     while(!converged)
       #== build fock matrix ==#
@@ -432,6 +433,7 @@ end
 
 function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {T<:AbstractFloat}
   norb = size(D)[1]
+  mutex = Base.Threads.Mutex()
 
   nμ = quartet.bra.sh_a.nbas
   nν = quartet.bra.sh_b.nbas
@@ -444,7 +446,10 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {
   pσ = quartet.ket.sh_b.pos
 
   eri_batch::Array{T,1} = [ ]
+
+  #lock(mutex)
   tei_list::Array{Float64,1} = read(tei_file, "tei")
+  #unlock(mutex)
 
   for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     μν = index(μ,ν)

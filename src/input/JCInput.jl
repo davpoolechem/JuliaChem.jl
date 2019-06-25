@@ -102,10 +102,14 @@ function run(args::String)
 
   hdf5name = input_info["Control Flags"]["name"]
   hdf5name *= ".h5"
-  h5open(hdf5name, "w") do file
-    eri_array::Array{Float64,1} = input_info["Two-Electron"]["tei"]
-    write(file, "tei", eri_array)
+  if (MPI.Comm_rank(comm) == 0)
+    h5open(hdf5name, "w") do file
+      eri_array::Array{Float64,1} = input_info["Two-Electron"]["tei"]
+      write(file, "tei", eri_array)
+    end
   end
+  MPI.Barrier
+
   return (input_info,basis)
 end
 export run
