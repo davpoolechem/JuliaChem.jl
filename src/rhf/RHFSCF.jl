@@ -41,10 +41,9 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     json_debug = open(FLAGS.CTRL.NAME*"-debug.json","w")
   end
 
-  #Step #1: Nuclear Repulsion Energy
+  #== read variables from input if needed ==#
   E_nuc::T = read_in["enuc"]
 
-  #Step #2: One-Electron Integrals
   S::Array{T,2} = read_in_oei(read_in["ovr"], FLAGS)
   H::Array{T,2} = read_in_oei(read_in["hcore"], FLAGS)
 
@@ -53,10 +52,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     write(json_debug,JSON.json(output_H))
   end
 
-  #Step #3: Two-Electron Integrals
-  #tei::Array{T,1} = read_in_tei(read_in["tei"], FLAGS)
-
-  #Step #4: Build the Orthogonalization Matrix
+  #== build the orthogonalization matrix ==#
   S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
 
   S_eval_diag::Array{T,1} = eigvals(LinearAlgebra.Hermitian(S))
@@ -74,7 +70,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     write(json_debug,JSON.json(output_ortho))
   end
 
-  #Step #5: Build the Initial (Guess) Density
+  #== build the initial matrices ==#
   F::Array{T,2} = transpose(ortho)*H*ortho
   D = Matrix{T}(undef,norb,norb)
   C = Matrix{T}(undef,norb,norb)
@@ -106,41 +102,37 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     println(0,"     ", E)
   end
 
-  #===========================#
-  #= start scf cycles: #7-10 =#
-  #===========================#
+  #=============================#
+  #== start scf cycles: #7-10 ==#
+  #=============================#
   converged::Bool = false
   iter::UInt32 = 1
   c = h5open("tei.h5", "r") do tei
     while(!converged)
-      #multilevel MPI+threads parallel algorithm
-	    F_temp = twoei(F, D, tei, H, FLAGS, basis)
+      #== build fock matrix ==#
+	  F_temp = twoei(F, D, tei, H, FLAGS, basis)
 
-	    F = MPI.Allreduce(F_temp,MPI.SUM,comm)
-	    MPI.Barrier(comm)
+	  F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+	  MPI.Barrier(comm)
 
-      println("Skeleton Fock matrix:")
-	    display(F)
-	    println("")
+	  if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+        println("Skeleton Fock matrix:")
+        display(F)
+        println("")
 
-	    #println("Initial Fock matrix:")
-	    if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-	      output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
-	        ("Density Matrix",D)])
+	    output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
+	      ("Density Matrix",D)])
 
-	      write(json_debug,JSON.json(output_iter_data))
-	    end
+	    write(json_debug,JSON.json(output_iter_data))
+	  end
 
-	    F += deepcopy(H)
+	  F += deepcopy(H)
 
-      println("Total Fock matrix:")
-	    display(F)
-      println("")
-
-	  #F = transpose(ortho)*F*ortho
+      #== obtain new F,D,C matrices ==#
 	  F, D, C, E_elec = iteration(F, D_old, H, ortho, FLAGS)
       F = transpose(ortho)*F*ortho
 
+      #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
 	  D_rms::T = √(∑(ΔD,ΔD))
 
@@ -155,6 +147,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 	  iter += 1
       if (iter > FLAGS.SCF.NITER) break end
 
+      #== if not converged, replace old D and E values for next iteration ==#
       D_old = deepcopy(D)
       E_old = E
     end
@@ -295,7 +288,7 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   ortho::Array{T,2}, FLAGS::RHF_Flags) where {T<:AbstractFloat}
 
-  #Step #8: Build the New Density Matrix
+  #== obtain new orbital coefficients ==#
   F_eval::Array{T,1} = eigvals(LinearAlgebra.Hermitian(F))
 
   F_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(F))
@@ -303,48 +296,35 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
   C::Array{T,2} = ortho*F_evec
 
-  println("New orbitals:")
-  display(C)
-  println("")
+  if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+    println("New orbitals:")
+    display(C)
+    println("")
+  end
 
+  #== build new density matrix ==#
   for i::UInt32 in 1:FLAGS.BASIS.NORB, j::UInt32 in 1:i
     D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
     D[i,j] *= 2
     D[j,i] = D[i,j]
   end
 
-  println("New density matrix:")
-  display(D)
-  println("")
-
-  #Step #9: Compute the New SCF Energy
-  EHF1::T = 0
-  for i::UInt32 in 1:size(D,1), j::UInt32 in 1:i
-    tmp::T = D[i,j]*(F[i,j])
-    if (i == j)
-      tmp /= 2
-    end
-    EHF1 += 2*tmp
+  if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+    println("New density matrix:")
+    display(D)
+    println("")
   end
-  #E_elec::T = (∑(D,H+F))
 
-  EHF2::T = 0
-  for i::UInt32 in 1:size(D,1), j::UInt32 in 1:i
-    tmp::T = D[i,j]*(H[i,j])
-    if (i == j)
-      tmp /= 2
-    end
-    EHF2 += 2*tmp
-  end
-  #E_elec::T = (∑(D,H+F))
-
-  #EHF1::T = ∑(D,F)
-  #EHF2::T = ∑(D,H)
+  #== compute new SCF energy ==#
+  EHF1::T = ∑(D,F)
+  EHF2::T = ∑(D,H)
   E_elec::T = (EHF1 + EHF2)/2
 
-  println("New energy:")
-  display("$EHF1, $EHF2, $E_elec")
-  println("")
+  if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+    println("New energy:")
+    display("$EHF1, $EHF2")
+    println("")
+  end
 
   return (F, D, C, E_elec)
 end
@@ -416,10 +396,6 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
         klsh::UInt32 = index(ksh,lsh)
         if (klsh > ijsh) continue end
 
-		lock(mutex)
-		println("\"$ish, $jsh, $ksh, $lsh\"")
-		unlock(mutex)
-
 		bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
 		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
 		quartet::ShQuartet = ShQuartet(bra,ket)
@@ -427,9 +403,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		eri_batch::Array{T,1} = shellquart(D, quartet, tei)
 
 	    F_priv::Array{T,2} = zeros(norb,norb)
-		#if (max(eri_batch...) >= 1E-10)
-        F_priv = dirfck(D, eri_batch, quartet)
-        #end
+		if (max(eri_batch...) >= 1E-10)
+          F_priv = dirfck(D, eri_batch, quartet)
+        end
 
 		lock(mutex)
 		F += F_priv
@@ -462,11 +438,7 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {
   pσ = quartet.ket.sh_b.pos
 
   eri_batch::Array{T,1} = [ ]
-  tei_list::Array{Float64,2} = read(tei_file, "tei")
-
-  println("INTEGRAL LIST:")
-  display(tei_list)
-  println(" ")
+  tei_list::Array{Float64,1} = read(tei_file, "tei")
 
   for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     μν = index(μ,ν)
@@ -475,9 +447,7 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {
 	    λσ = index(λ,σ)
         μνλσ::UInt32 = index(μν,λσ)
 
-        eri = tei_list[μνλσ,5]
-        println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
-        push!(eri_batch,tei_list[μνλσ,5])
+        push!(eri_batch,tei_list[μνλσ])
     end
   end
 
@@ -516,13 +486,11 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
 
 	  eri::T = eri_batch[μνλσ]
-      println("\"$μ, $ν, $λ, $σ, $eri\"")
-
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-	  #if (eri <= 1E-10) continue end
+	  if (eri <= 1E-10) continue end
 
 	  F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
 	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
