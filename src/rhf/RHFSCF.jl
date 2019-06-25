@@ -469,6 +469,9 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},
 	  λσ = index(λ,σ)
       μνλσ::UInt32 = index(μν,λσ)
 
+      eri = tei[μνλσ]
+      println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
+
       push!(eri_batch,tei[μνλσ])
     end
   end
