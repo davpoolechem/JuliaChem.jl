@@ -87,7 +87,11 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   end
 
   F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
+
+  D_old::Array{T,2} = deepcopy(D)
+
   E::T = E_elec + E_nuc
+  E_old::T = E
 
   if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
     output_F_initial = Dict([("Initial Fock Matrix",F)])
@@ -101,11 +105,13 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
     println(0,"     ", E)
   end
 
-  #start scf cycles: #7-10
+  #===========================#
+  #= start scf cycles: #7-10 =#
+  #===========================#
   converged::Bool = false
   iter::UInt32 = 1
   while(!converged)
-    #multilevel MPI+threads parallel algorithm
+    #= multilevel MPI+threads parallel algorithm =#
 	F_temp = twoei(F, D, tei, H, FLAGS, basis)
 
 	F = MPI.Allreduce(F_temp,MPI.SUM,comm)
@@ -129,23 +135,15 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 	display(F)
     println("")
 
-	#Step #8: Build the New Density Matrix
-	D_old::Array{T,2} = deepcopy(D)
-	E_old::T = E
+	#F = transpose(ortho)*F*ortho
+	F, D, C, E_elec = iteration(F, D_old, H, ortho, FLAGS)
+    F = transpose(ortho)*F*ortho
 
-	F = transpose(ortho)*F*ortho
-	F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
-	E = E_elec+E_nuc
-
-    println("New density matrix:")
-	display(D)
-    println("")
-
-	#Step #10: Test for Convergence
-	ΔE::T = E - E_old
-
-	ΔD::Array{T,2} = D - D_old
+    ΔD::Array{T,2} = D - D_old
 	D_rms::T = √(∑(ΔD,ΔD))
+
+	E = E_elec+E_nuc
+	ΔE::T = E - E_old
 
 	if (MPI.Comm_rank(comm) == 0)
 	  println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
@@ -154,13 +152,16 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
 	converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
 	iter += 1
     if (iter > FLAGS.SCF.NITER) break end
+
+    D_old = deepcopy(D)
+    E_old = E
   end
 
   if (iter > FLAGS.SCF.NITER)
     if (MPI.Comm_rank(comm) == 0)
 	  println(" ")
       println("----------------------------------------")
-      println("   The SCF calculation not converged.   ")
+      println(" The SCF calculation did not converge.  ")
       println("      Restart data is being output.     ")
       println("----------------------------------------")
       println(" ")
@@ -299,14 +300,48 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
   C::Array{T,2} = ortho*F_evec
 
+  println("New orbitals:")
+  display(C)
+  println("")
+
   for i::UInt32 in 1:FLAGS.BASIS.NORB, j::UInt32 in 1:i
     D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
     D[i,j] *= 2
     D[j,i] = D[i,j]
   end
 
+  println("New density matrix:")
+  display(D)
+  println("")
+
   #Step #9: Compute the New SCF Energy
-  E_elec::T = ∑(D,H + F)
+  EHF1::T = 0
+  for i::UInt32 in 1:size(D,1), j::UInt32 in 1:i
+    tmp::T = D[i,j]*(F[i,j])
+    if (i == j)
+      tmp /= 2
+    end
+    EHF1 += 2*tmp
+  end
+  #E_elec::T = (∑(D,H+F))
+
+  EHF2::T = 0
+  for i::UInt32 in 1:size(D,1), j::UInt32 in 1:i
+    tmp::T = D[i,j]*(H[i,j])
+    if (i == j)
+      tmp /= 2
+    end
+    EHF2 += 2*tmp
+  end
+  #E_elec::T = (∑(D,H+F))
+
+  #EHF1::T = ∑(D,F)
+  #EHF2::T = ∑(D,H)
+  E_elec::T = (EHF1 + EHF2)/2
+
+  println("New energy:")
+  display("$EHF1, $EHF2, $E_elec")
+  println("")
 
   return (F, D, C, E_elec)
 end
