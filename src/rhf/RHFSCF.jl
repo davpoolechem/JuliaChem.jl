@@ -407,7 +407,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
 		quartet::ShQuartet = ShQuartet(bra,ket)
 
-		eri_batch::Array{T,1} = shellquart(D, quartet, tei)
+		eri_batch::Array{T,1} = shellquart(D, quartet, tei, mutex)
 
 	    F_priv::Array{T,2} = zeros(norb,norb)
 		if (max(eri_batch...) >= 1E-10)
@@ -431,9 +431,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   return F
 end
 
-function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {T<:AbstractFloat}
+function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File, mutex) where {T<:AbstractFloat}
   norb = size(D)[1]
-  mutex = Base.Threads.Mutex()
 
   nμ = quartet.bra.sh_a.nbas
   nν = quartet.bra.sh_b.nbas
@@ -447,9 +446,9 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {
 
   eri_batch::Array{T,1} = [ ]
 
-  #lock(mutex)
+  lock(mutex)
   tei_list::Array{Float64,1} = read(tei_file, "tei")
-  #unlock(mutex)
+  unlock(mutex)
 
   for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     μν = index(μ,ν)

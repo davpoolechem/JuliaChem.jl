@@ -102,7 +102,7 @@ function run(args::String)
 
   hdf5name = input_info["Control Flags"]["name"]
   hdf5name *= ".h5"
-  if (MPI.Comm_rank(comm) == 0)
+  if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
     h5open(hdf5name, "w") do file
       eri_array::Array{Float64,1} = input_info["Two-Electron"]["tei"]
       write(file, "tei", eri_array)
