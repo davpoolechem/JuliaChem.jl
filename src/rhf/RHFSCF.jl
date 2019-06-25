@@ -18,18 +18,24 @@ function rhf_energy(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any})
   end
 end
 
-#=
+
 """
-	 rhf_energy(dat::Array{String,1})
+	 rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
+       type::T)
 Summary
 ======
 Perform the core RHF SCF algorithm.
 
 Arguments
 ======
-dat = Input data file object
+FLAGS = Input flags
+
+basis = Generated basis set
+
+read_in = file required to read in from input file
+
+type = Precision of variables in calculation
 """
-=#
 function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   type::T) where {T<:AbstractFloat}
 
@@ -107,7 +113,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   #=============================#
   converged::Bool = false
   iter::UInt32 = 1
-  c = h5open("tei.h5", "r") do tei
+  c = h5open("sto3g-h2.h5", "r") do tei
     while(!converged)
       #== build fock matrix ==#
 	  F_temp = twoei(F, D, tei, H, FLAGS, basis)

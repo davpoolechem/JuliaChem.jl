@@ -97,9 +97,12 @@ function run(args::String)
     add_shell(basis,deepcopy(shell))
   end
 
-  #--set up eri database--#
+  #== set up eri database ==#
   norb = input_info["Basis Flags"]["norb"]
-  h5open("tei.h5", "w") do file
+
+  hdf5name = input_info["Control Flags"]["name"]
+  hdf5name *= ".h5"
+  h5open(hdf5name, "w") do file
     eri_array::Array{Float64,1} = input_info["Two-Electron"]["tei"]
     write(file, "tei", eri_array)
   end
