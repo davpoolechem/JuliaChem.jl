@@ -158,6 +158,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
       D_old = deepcopy(D)
       E_old = E
     end
+  end
 
   if (iter > FLAGS.SCF.NITER)
     if (MPI.Comm_rank(comm) == 0)
@@ -415,24 +416,24 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
         klsh::UInt32 = index(ksh,lsh)
         if (klsh > ijsh) continue end
 
-		    lock(mutex)
-		    println("\"$ish, $jsh, $ksh, $lsh\"")
-		    unlock(mutex)
+		lock(mutex)
+		println("\"$ish, $jsh, $ksh, $lsh\"")
+		unlock(mutex)
 
-		    bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
-		    ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
-		    quartet::ShQuartet = ShQuartet(bra,ket)
+		bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
+		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
+		quartet::ShQuartet = ShQuartet(bra,ket)
 
-		    eri_batch::Array{T,1} = shellquart(D, quartet, tei)
+		eri_batch::Array{T,1} = shellquart(D, quartet, tei)
 
-		    F_priv::Array{T,2} = zeros(norb,norb)
-		    #if (max(eri_batch...) >= 1E-10)
+	    F_priv::Array{T,2} = zeros(norb,norb)
+		#if (max(eri_batch...) >= 1E-10)
         F_priv = dirfck(D, eri_batch, quartet)
         #end
 
-		    lock(mutex)
-		    F += F_priv
-		    unlock(mutex)
+		lock(mutex)
+		F += F_priv
+		unlock(mutex)
       end
     end
   end
@@ -472,11 +473,11 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {
 
 	  for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
 	    λσ = index(λ,σ)
-      μνλσ::UInt32 = index(μν,λσ)
+        μνλσ::UInt32 = index(μν,λσ)
 
-      eri = tei_list[μνλσ,5]
-      println("$μ, $ν, $λ, $σ, $μνλσ, $eri")
-      push!(eri_batch,tei_list[μνλσ,5])
+        eri = tei_list[μνλσ,5]
+        println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
+        push!(eri_batch,tei_list[μνλσ,5])
     end
   end
 
@@ -500,47 +501,42 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
   pλ = quartet.ket.sh_a.pos
   pσ = quartet.ket.sh_b.pos
 
-  eμ = pμ+(nμ-1)
-  eν = pν+(nν-1)
-  eλ = pλ+(nλ-1)
-  eσ = pσ+(nσ-1)
-
-  for μ::UInt32 in pμ:eμ, ν::UInt32 in pν:eν
+  for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     if (μ < ν) continue end
 
     μν = index(μ,ν)
-	  μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
+	μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
-	  for λ::UInt32 in pλ:eλ, σ::UInt32 in pσ:eσ
-	    if (λ < σ) continue end
+    for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
+	  if (λ < σ) continue end
 
-	    λσ = index(λ,σ)
-	    if (μν < λσ) continue end
+	  λσ = index(λ,σ)
+	  if (μν < λσ) continue end
 
-	    μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
+	  μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
 
-	    eri::T = eri_batch[μνλσ]
+	  eri::T = eri_batch[μνλσ]
       println("\"$μ, $ν, $λ, $σ, $eri\"")
 
-	    eri *= (μ == ν) ? 0.5 : 1.0
-	    eri *= (λ == σ) ? 0.5 : 1.0
-	    eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+	  eri *= (μ == ν) ? 0.5 : 1.0
+	  eri *= (λ == σ) ? 0.5 : 1.0
+	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-	    #if (eri <= 1E-10) continue end
+	  #if (eri <= 1E-10) continue end
 
-	    F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-	    F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+	  F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
       F_priv[μ,λ] -= D[ν,σ] * eri
-	    F_priv[μ,σ] -= D[ν,λ] * eri
-	    F_priv[max(ν,λ),min(ν,λ)] -= D[max(μ,σ),min(μ,σ)] * eri
-	    F_priv[max(ν,σ),min(ν,σ)] -= D[max(μ,λ),min(μ,λ)] * eri
+	  F_priv[μ,σ] -= D[ν,λ] * eri
+	  F_priv[max(ν,λ),min(ν,λ)] -= D[max(μ,σ),min(μ,σ)] * eri
+	  F_priv[max(ν,σ),min(ν,σ)] -= D[max(μ,λ),min(μ,λ)] * eri
 
-	    F_priv[σ,λ] = F_priv[λ,σ]
-	    F_priv[ν,μ] = F_priv[μ,ν]
-	    F_priv[λ,μ] = F_priv[μ,λ]
-	    F_priv[σ,μ] = F_priv[μ,σ]
-	    F_priv[min(λ,ν),max(λ,ν)] = F_priv[max(ν,λ),min(ν,λ)]
-	    F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
+	  F_priv[σ,λ] = F_priv[λ,σ]
+	  F_priv[ν,μ] = F_priv[μ,ν]
+	  F_priv[λ,μ] = F_priv[μ,λ]
+	  F_priv[σ,μ] = F_priv[μ,σ]
+	  F_priv[min(λ,ν),max(λ,ν)] = F_priv[max(ν,λ),min(ν,λ)]
+	  F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
     end
   end
 
