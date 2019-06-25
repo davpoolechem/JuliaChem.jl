@@ -8,6 +8,7 @@ using MPI
 using Base.Threads
 using Distributed
 using LinearAlgebra
+using HDF5
 
 function rhf_energy(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any})
   if (FLAGS.SCF.PREC == "Float64")
@@ -53,7 +54,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   end
 
   #Step #3: Two-Electron Integrals
-  tei::Array{T,1} = read_in_tei(read_in["tei"], FLAGS)
+  #tei::Array{T,1} = read_in_tei(read_in["tei"], FLAGS)
 
   #Step #4: Build the Orthogonalization Matrix
   S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
@@ -110,56 +111,58 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   #===========================#
   converged::Bool = false
   iter::UInt32 = 1
-  while(!converged)
-    #= multilevel MPI+threads parallel algorithm =#
-	F_temp = twoei(F, D, tei, H, FLAGS, basis)
+  c = h5open("tei.h5", "r") do tei
+    while(!converged)
+      #multilevel MPI+threads parallel algorithm
+	    F_temp = twoei(F, D, tei, H, FLAGS, basis)
 
-	F = MPI.Allreduce(F_temp,MPI.SUM,comm)
-	MPI.Barrier(comm)
+	    F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+	    MPI.Barrier(comm)
 
-    println("Skeleton Fock matrix:")
-	display(F)
-	println("")
+      println("Skeleton Fock matrix:")
+	    display(F)
+	    println("")
 
-	#println("Initial Fock matrix:")
-	if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-	  output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
-	    ("Density Matrix",D)])
+	    #println("Initial Fock matrix:")
+	    if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
+	      output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
+	        ("Density Matrix",D)])
 
-	  write(json_debug,JSON.json(output_iter_data))
-	end
+	      write(json_debug,JSON.json(output_iter_data))
+	    end
 
-	F += deepcopy(H)
+	    F += deepcopy(H)
 
-    println("Total Fock matrix:")
-	display(F)
-    println("")
+      println("Total Fock matrix:")
+	    display(F)
+      println("")
 
-	#F = transpose(ortho)*F*ortho
-	F, D, C, E_elec = iteration(F, D_old, H, ortho, FLAGS)
-    F = transpose(ortho)*F*ortho
+	  #F = transpose(ortho)*F*ortho
+	  F, D, C, E_elec = iteration(F, D_old, H, ortho, FLAGS)
+      F = transpose(ortho)*F*ortho
 
-    ΔD::Array{T,2} = D - D_old
-	D_rms::T = √(∑(ΔD,ΔD))
+      ΔD::Array{T,2} = D - D_old
+	  D_rms::T = √(∑(ΔD,ΔD))
 
-	E = E_elec+E_nuc
-	ΔE::T = E - E_old
+	  E = E_elec+E_nuc
+	  ΔE::T = E - E_old
 
-	if (MPI.Comm_rank(comm) == 0)
-	  println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
-	end
+	  if (MPI.Comm_rank(comm) == 0)
+	    println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+	  end
 
-	converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
-	iter += 1
-    if (iter > FLAGS.SCF.NITER) break end
+	  converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
+	  iter += 1
+      if (iter > FLAGS.SCF.NITER) break end
 
-    D_old = deepcopy(D)
-    E_old = E
+      D_old = deepcopy(D)
+      E_old = E
+    end
   end
 
   if (iter > FLAGS.SCF.NITER)
     if (MPI.Comm_rank(comm) == 0)
-	  println(" ")
+	    println(" ")
       println("----------------------------------------")
       println(" The SCF calculation did not converge.  ")
       println("      Restart data is being output.     ")
@@ -384,7 +387,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
+function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -421,18 +424,18 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
 		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
 		quartet::ShQuartet = ShQuartet(bra,ket)
 
-		eri_batch::Array{T,1} = shellquart(D, tei, quartet)
+		eri_batch::Array{T,1} = shellquart(D, quartet, tei)
 
-		F_priv::Array{T,2} = zeros(norb,norb)
-		if (max(eri_batch...) >= 1E-10)
-          F_priv = dirfck(D, eri_batch, quartet)
-        end
+	    F_priv::Array{T,2} = zeros(norb,norb)
+		#if (max(eri_batch...) >= 1E-10)
+        F_priv = dirfck(D, eri_batch, quartet)
+        #end
 
 		lock(mutex)
 		F += F_priv
 		unlock(mutex)
-	  end
-	end
+      end
+    end
   end
 
   for iorb::UInt32 in 1:norb, jorb::UInt32 in 1:iorb
@@ -445,9 +448,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::Array{T,1},
   return F
 end
 
-function shellquart(D::Array{T,2}, tei::Array{T,1},
-  quartet::ShQuartet) where {T<:AbstractFloat}
-
+function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File) where {T<:AbstractFloat}
   norb = size(D)[1]
 
   nμ = quartet.bra.sh_a.nbas
@@ -461,20 +462,25 @@ function shellquart(D::Array{T,2}, tei::Array{T,1},
   pσ = quartet.ket.sh_b.pos
 
   eri_batch::Array{T,1} = [ ]
+  tei_list::Array{Float64,2} = read(tei_file, "tei")
+
+  println("INTEGRAL LIST:")
+  display(tei_list)
+  println(" ")
 
   for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     μν = index(μ,ν)
 
-	for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
-	  λσ = index(λ,σ)
-      μνλσ::UInt32 = index(μν,λσ)
+	  for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
+	    λσ = index(λ,σ)
+        μνλσ::UInt32 = index(μν,λσ)
 
-      eri = tei[μνλσ]
-      println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
-
-      push!(eri_batch,tei[μνλσ])
+        eri = tei_list[μνλσ,5]
+        println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
+        push!(eri_batch,tei_list[μνλσ,5])
     end
   end
+
   return deepcopy(eri_batch)
 end
 
@@ -495,18 +501,13 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
   pλ = quartet.ket.sh_a.pos
   pσ = quartet.ket.sh_b.pos
 
-  eμ = pμ+(nμ-1)
-  eν = pν+(nν-1)
-  eλ = pλ+(nλ-1)
-  eσ = pσ+(nσ-1)
-
-  for μ::UInt32 in pμ:eμ, ν::UInt32 in pν:eν
+  for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
     if (μ < ν) continue end
 
     μν = index(μ,ν)
 	μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
-	for λ::UInt32 in pλ:eλ, σ::UInt32 in pσ:eσ
+    for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
 	  if (λ < σ) continue end
 
 	  λσ = index(λ,σ)
@@ -521,7 +522,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-	  if (eri <= 1E-10) continue end
+	  #if (eri <= 1E-10) continue end
 
 	  F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
 	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri

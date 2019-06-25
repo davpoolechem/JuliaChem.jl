@@ -90,17 +90,6 @@ function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
       write(json_output,JSON.json(output_density))
       write(json_output,JSON.json(output_coeff))
     end
-
-    if (typeof(scf) == RHFRestartData)
-      output_hcore = Dict([("Structure","Hcore"),("Data",scf.H)])
-      output_ortho = Dict([("Structure","Ortho"),("Data",scf.Ortho)])
-      output_iter = Dict([("Structure","Iteration"),("Data",scf.iter)])
-      if (MPI.Comm_rank(comm) == 0)
-        write(json_output,JSON.json(output_hcore))
-        write(json_output,JSON.json(output_ortho))
-        write(json_output,JSON.json(output_iter))
-      end
-    end
   close(json_output)
 
   return scf

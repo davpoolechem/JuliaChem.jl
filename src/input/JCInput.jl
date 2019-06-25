@@ -12,6 +12,7 @@ using MPI
 using JSON
 using Base.Threads
 using Distributed
+using HDF5
 
 """
   run(args::String)
@@ -96,6 +97,16 @@ function run(args::String)
     add_shell(basis,deepcopy(shell))
   end
 
+  #--set up eri database--#
+  norb = input_info["Basis Flags"]["norb"]
+  h5open("tei.h5", "w") do file
+    eri_array::Array{Array{Float64,1},1} = input_info["Two-Electron"]["tei"]
+    eri_matrix = Matrix{Float64}(undef,length(eri_array),5)
+    for irow::UInt32 in 1:length(eri_array), icol::UInt32 in 1:5
+      eri_matrix[irow,icol] = eri_array[irow][icol]
+    end
+    write(file, "tei", eri_matrix)
+  end
   return (input_info,basis)
 end
 export run

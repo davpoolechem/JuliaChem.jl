@@ -5,6 +5,41 @@ function get_tei_integrals(input::String, nbf::Int64)
     close(f_int)
 
     integrals::Array{String,1} = []
+<<<<<<< HEAD
+	nbf2::Int64 = nbf*(nbf+1)/2
+
+	for ibf in 1:nbf, jbf in 1:ibf
+		bf::Int64 = (ibf-1)*ibf/2 + jbf
+		nadd::Int64 = 0
+
+		push!(integrals,"{")
+		push!(integrals,"   \"Input\":\"Two-Electron-$bf\",")
+
+	    for int::Int64 in 1:length(integrals_temp)
+	        ish::Int64 = integrals_temp[int][1]
+	        jsh::Int64 = integrals_temp[int][2]
+	        ksh::Int64 = integrals_temp[int][3]
+	        lsh::Int64 = integrals_temp[int][4]
+	        integral::Float64 = integrals_temp[int][5]
+			if (ish == ibf && jsh == jbf)
+				if (nadd == 0 && ish == ksh && jsh == lsh)
+					push!(integrals,"   \"tei\":[ [$ish, $jsh, $ksh, $lsh, $integral] ]")
+		        elseif (nadd == 0)
+		            push!(integrals,"   \"tei\":[ [$ish, $jsh, $ksh, $lsh, $integral],")
+		        elseif (ish == ksh && jsh == lsh)
+		            push!(integrals,"           [$ish, $jsh, $ksh, $lsh, $integral] ]")
+		        else
+		            push!(integrals,"           [$ish, $jsh, $ksh, $lsh, $integral],")
+		        end
+				nadd += 1
+			end
+	    end
+	    push!(integrals,"}")
+	end
+
+    #--write json block to output file--#
+    f_tei_w::IOStream = open("tei_integrals.json","w")
+=======
 
     #--write tei block--#
     push!(integrals,"{")
@@ -33,6 +68,7 @@ function get_tei_integrals(input::String, nbf::Int64)
 
     #--write json block to output file--#
     f_tei_w::IOStream = open("tools/tei_integrals.log","w")
+>>>>>>> development
         for iline in integrals
             write(f_tei_w,"$iline\n")
         end
