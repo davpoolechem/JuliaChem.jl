@@ -27,5 +27,6 @@ function process_H_shell(basis_set::Basis, atom_idx::Int64,
     shell_2::Shell = Shell(atom_idx, atom_center, shell_am_2)
     add_shell(basis_set,deepcopy(shell))
     basis_set.norb += 1
+  end
 end
 export process_H_shell
