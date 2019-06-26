@@ -10,6 +10,7 @@ using JCInput
 using JCBasis
 using JCRHF
 
+import JSON
 using MPI
 
 #================================#
@@ -20,7 +21,14 @@ function script(input_file::String)
     MPI.Init()
 
     #== read in input file ==#
+    output_file::Dict{String,Any} = Dict([])
     molecule, driver, model, keywords = JCInput.run(input_file)
+
+    #write("output.json",JSON.json(input_file))
+    write("output.json",JSON.json(molecule))
+    write("output.json",JSON.json(Dict("driver" => driver)))
+    write("output.json",JSON.json(model))
+    write("output.json",JSON.json(keywords))
 
     #== generate basis set ==#
     basis = JCBasis.run(molecule, model)
@@ -29,6 +37,7 @@ function script(input_file::String)
     if (driver == "energy")
       if (model["method"] == "RHF")
         @time scf = JCRHF.run(basis, molecule, keywords)
+        write("output.json",JSON.json(scf[5]))
       end
     end
 

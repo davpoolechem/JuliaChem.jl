@@ -42,6 +42,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
   scf_flags::Dict{String,Any}, type::T) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
+  calculation_status::Dict{String,Any} = Dict([])
 
   json_debug::Any = ""
   #if (FLAGS.SCF.DEBUG == true)
@@ -171,7 +172,18 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
       println(" ")
     end
 
-    return (H, ortho, iter, F, D, C, E)
+    iter_limit = scf_flags["niter"]
+    calculation_fail::Dict{String,Any} = Dict(
+    "success" => false,
+    "error" => Dict(
+      "error_type" => "convergence_error",
+      "error_message" => " SCF calculation did not converge within $iter_limit
+        iterations. "
+      )
+    )
+
+    merge!(calculation_status, calculation_fail)
+
   else
     if (MPI.Comm_rank(comm) == 0)
       println(" ")
@@ -180,14 +192,20 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
       println("----------------------------------------")
       println("Total SCF Energy: ",E," h")
       println(" ")
+
+      calculation_success::Dict{String,Any} = Dict(
+      "success" => true
+      )
+
+      merge!(calculation_status, calculation_success)
     end
 
 	#if (FLAGS.SCF.DEBUG == true)
     #  close(json_debug)
     #end
-
-	return (F, D, C, E)
   end
+
+  return (F, D, C, E, calculation_status)
 end
 
 #=

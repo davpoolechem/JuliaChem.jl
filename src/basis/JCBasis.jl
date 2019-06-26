@@ -74,22 +74,6 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   basis_set.norb = basis_norb
   basis_set.nels = basis_nels
 
-#=
-  #== set up eri database ==#
-  norb = input_info["Basis Flags"]["norb"]
-
-  hdf5name = input_info["Control Flags"]["name"]
-  hdf5name *= ".h5"
-  if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
-    h5open(hdf5name, "w") do file
-      eri_array::Array{Float64,1} = input_info["Two-Electron"]["tei"]
-      write(file, "tei", eri_array)
-    end
-  end
-  MPI.Barrier
-
-  =#
-
   if (MPI.Comm_rank(comm) == 0)
     println(" ")
     println("                       ========================================                 ")
