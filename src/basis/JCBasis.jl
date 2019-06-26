@@ -4,12 +4,12 @@ The module required for reading in and processing the selected input file.
 Import this module into the script when you need to process an input file
 (which will be every single calculation).
 """
-module JCInput
+module JCBasis
 
 using JCStructs
 
 using MPI
-using JSON
+#using JSON
 using Base.Threads
 using Distributed
 using HDF5
@@ -32,8 +32,7 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(args::String)
-  #read in .inp and .dat files
+function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   comm=MPI.COMM_WORLD
 
   if (MPI.Comm_rank(comm) == 0)
@@ -44,18 +43,34 @@ function run(args::String)
     println(" ")
   end
 
+  #== initialize variables ==#
+  geometry_array::Array{Float64,1} = molecule["geometry"]
+  symbols::Array{String} = molecule["symbols"]
+  basis::String = model["basis"]
 
-  if (MPI.Comm_rank(comm) == 0)
-    println(" ")
-    println("                       ========================================                 ")
-    println("                                       END BASIS                                ")
-    println("                       ========================================                 ")
+  geometry::Array{Float64,2} = transpose(reshape(geometry_array,(3,2)))
+
+  basis_set::Basis = Basis()
+
+  #== create basis set ==#
+  for atom_idx::Int64 in 1:length(symbols)
+    #== initialize variables needed for shell ==#
+    shell_center::Array{Float64,1} = geometry[atom_idx,:]
+
+    if (symbols[atom_idx] == "H")
+      if (basis == "STO-3G")
+        num_shells::Int64 = 1
+        for shell_idx in 1:num_shells
+          shell_am = 1
+        end
+      end
+    end
   end
-
+  #=
   shell_am = input_info["Basis Flags"]["shells"]
   basis::Basis = Basis()
   for i in 1:length(shell_am)
-    shell::Shell = Shell(UInt32(shell_am[i]))
+    shell::Shell = Shell(Int64(shell_am[i]))
     add_shell(basis,deepcopy(shell))
   end
 
@@ -72,7 +87,16 @@ function run(args::String)
   end
   MPI.Barrier
 
-  return basis
+  =#
+
+  if (MPI.Comm_rank(comm) == 0)
+    println(" ")
+    println("                       ========================================                 ")
+    println("                                       END BASIS                                ")
+    println("                       ========================================                 ")
+  end
+
+  return basis_set
 end
 export run
 

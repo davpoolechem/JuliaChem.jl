@@ -20,15 +20,15 @@ oei = array of one-electron integrals to extract
 """
 =#
 function read_in_oei(oei::Array{Any,1}, FLAGS::RHF_Flags)
-	nbf::UInt32 = FLAGS.BASIS.NORB
-	nbf2::UInt32 = nbf*(nbf+1)/2
+	nbf::Int64 = FLAGS.BASIS.NORB
+	nbf2::Int64 = nbf*(nbf+1)/2
 
-    ioff::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
+    ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
 
 	oei_matrix::Array{Float64,2} = Matrix{Float64}(undef,(nbf,nbf))
-	Threads.@threads for index::UInt32 in 1:nbf2
-        i::UInt32 = ceil(((-1+sqrt(1+8*index))/2))
-        j::UInt32 = index - ioff[i]
+	Threads.@threads for index::Int64 in 1:nbf2
+        i::Int64 = ceil(((-1+sqrt(1+8*index))/2))
+        j::Int64 = index - ioff[i]
 
         eri = oei[index]
 		oei_matrix[i,j] = oei[index]

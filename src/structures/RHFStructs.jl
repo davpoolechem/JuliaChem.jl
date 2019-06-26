@@ -24,7 +24,7 @@ export Data
 mutable struct RHFRestartData
   H::Array{Float64,2}
   Ortho::Array{Float64,2}
-  iter::UInt32
+  iter::Int64
 
   Fock::Array{Float64,2}
   Density::Array{Float64,2}
@@ -48,7 +48,7 @@ The flags are as follows:
 6. debug = Print debug information (default = false)
 """
 struct SCF_Flags
-  NITER::UInt32
+  NITER::Int64
   DELE::Float64
   RMSD::Float64
   PREC::String

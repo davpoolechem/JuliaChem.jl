@@ -7,6 +7,7 @@
 #== put needed modules here ==#
 #=============================#
 using JCInput
+using JCBasis
 using JCRHF
 
 using MPI
@@ -20,6 +21,9 @@ function script(input_file::String)
 
     #== read in input file ==#
     molecule, driver, model, keywords = JCInput.run(input_file)
+
+    #== generate basis set ==#
+    basis = JCBasis.run(molecule, model)
 
     #== perform scf calculation ==#
     #@time scf = JCRHF.run(input_info, basis)

@@ -39,7 +39,7 @@ type = Precision of variables in calculation
 function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   type::T) where {T<:AbstractFloat}
 
-  norb::UInt32 = FLAGS.BASIS.NORB
+  norb::Int64 = FLAGS.BASIS.NORB
   comm=MPI.COMM_WORLD
 
   json_debug::Any = ""
@@ -64,7 +64,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   S_eval_diag::Array{T,1} = eigvals(LinearAlgebra.Hermitian(S))
 
   S_eval::Array{T,2} = zeros(norb,norb)
-  for i::UInt32 in 1:norb
+  for i::Int64 in 1:norb
     S_eval[i,i] = S_eval_diag[i]
   end
 
@@ -112,7 +112,7 @@ function rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
   #== start scf cycles: #7-10 ==#
   #=============================#
   converged::Bool = false
-  iter::UInt32 = 1
+  iter::Int64 = 1
 
   c = h5open("sto3g-h2.h5", "r") do tei
     while(!converged)
@@ -191,7 +191,7 @@ end
 
 #=
 function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
-	norb::UInt32 = FLAGS.BASIS.NORB
+	norb::Int64 = FLAGS.BASIS.NORB
 	comm = MPI.COMM_WORLD
 
 	H::Array{T,2} = T+V
@@ -207,7 +207,7 @@ function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
 
 	#start scf cycles: #7-10
 	converged::Bool = false
-	iter::UInt32 = restart.iter
+	iter::Int64 = restart.iter
 	while(!converged)
 
 		#multilevel MPI+threads parallel algorithm
@@ -310,7 +310,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   end
 
   #== build new density matrix ==#
-  for i::UInt32 in 1:FLAGS.BASIS.NORB, j::UInt32 in 1:i
+  for i::Int64 in 1:FLAGS.BASIS.NORB, j::Int64 in 1:i
     D[i,j] = ∑(C[i,1:FLAGS.BASIS.NOCC],C[j,1:FLAGS.BASIS.NOCC])
     D[i,j] *= 2
     D[j,i] = D[i,j]
@@ -337,7 +337,7 @@ function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 end
 #=
 """
-	 index(a::UInt32,b::UInt32)
+	 index(a::Int64,b::Int64)
 Summary
 ======
 Triangular indexing determination.
@@ -349,8 +349,8 @@ a = row index
 b = column index
 """
 =#
-@inline function index(a::UInt32,b::UInt32)
-  index::UInt32 = (a*(a-1)) >> 1 #bitwise divide by 2
+@inline function index(a::Int64,b::Int64)
+  index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
   index += b
   return index
 end
@@ -378,29 +378,29 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   H::Array{T,2}, FLAGS::RHF_Flags, basis::Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
-  norb::UInt32 = FLAGS.BASIS.NORB
-  nsh::UInt32 = length(basis.shells)
-  ioff::Array{UInt32,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
+  norb::Int64 = FLAGS.BASIS.NORB
+  nsh::Int64 = length(basis.shells)
+  ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:norb*(norb+1)))
 
   F = zeros(norb,norb)
   mutex = Base.Threads.Mutex()
 
-  for bra_pairs::UInt32 in nsh*(nsh+1)/2:-1:1
+  for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
     if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
-      ish::UInt32 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
-      jsh::UInt32 = bra_pairs - ioff[ish]
+      ish::Int64 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
+      jsh::Int64 = bra_pairs - ioff[ish]
 
       if (ish < jsh) continue end
 
-      ijsh::UInt32 = index(ish,jsh)
+      ijsh::Int64 = index(ish,jsh)
 
-      Threads.@threads for ket_pairs::UInt32 in bra_pairs:-1:1
-        ksh::UInt32 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-        lsh::UInt32 = ket_pairs - ioff[ksh]
+      Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
+        ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
+        lsh::Int64 = ket_pairs - ioff[ksh]
 
         if (ksh < lsh) continue end
 
-        klsh::UInt32 = index(ksh,lsh)
+        klsh::Int64 = index(ksh,lsh)
         if (klsh > ijsh) continue end
 
 		bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
@@ -421,7 +421,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
     end
   end
 
-  for iorb::UInt32 in 1:norb, jorb::UInt32 in 1:iorb
+  for iorb::Int64 in 1:norb, jorb::Int64 in 1:iorb
     if (iorb != jorb)
       F[iorb,jorb] /= 2
       F[jorb,iorb] = F[iorb,jorb]
@@ -450,12 +450,12 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,tei_file::HDF5File, mutex) 
   tei_list::Array{Float64,1} = read(tei_file, "tei")
   unlock(mutex)
 
-  for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
+  for μ::Int64 in pμ:pμ+(nμ-1), ν::Int64 in pν:pν+(nν-1)
     μν = index(μ,ν)
 
-	  for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
+	  for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
 	    λσ = index(λ,σ)
-        μνλσ::UInt32 = index(μν,λσ)
+        μνλσ::Int64 = index(μν,λσ)
 
         push!(eri_batch,tei_list[μνλσ])
     end
@@ -481,19 +481,19 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
   pλ = quartet.ket.sh_a.pos
   pσ = quartet.ket.sh_b.pos
 
-  for μ::UInt32 in pμ:pμ+(nμ-1), ν::UInt32 in pν:pν+(nν-1)
+  for μ::Int64 in pμ:pμ+(nμ-1), ν::Int64 in pν:pν+(nν-1)
     if (μ < ν) continue end
 
     μν = index(μ,ν)
-	μν_idx::UInt32 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
+	μν_idx::Int64 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
-    for λ::UInt32 in pλ:pλ+(nλ-1), σ::UInt32 in pσ:pσ+(nσ-1)
+    for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
 	  if (λ < σ) continue end
 
 	  λσ = index(λ,σ)
 	  if (μν < λσ) continue end
 
-	  μνλσ::UInt32 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
+	  μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
 
 	  eri::T = eri_batch[μνλσ]
 	  eri *= (μ == ν) ? 0.5 : 1.0

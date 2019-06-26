@@ -33,7 +33,6 @@ input_info, basis = Input.run(args)
 ```
 """
 function run(args::String)
-  #read in .inp and .dat files
   comm=MPI.COMM_WORLD
 
   if (MPI.Comm_rank(comm) == 0)
@@ -44,6 +43,7 @@ function run(args::String)
     println(" ")
   end
 
+  #== output parallelization information ==#
   directory::String = pwd()
   #println("Input file: ", directory*"/"*input_file)
   if (MPI.Comm_rank(comm) == 0)
@@ -67,13 +67,13 @@ function run(args::String)
   keywords::Dict{String,Any} = Dict([])
 
   #== reformat input file and extract information from input ==#
-  i::UInt32 = 1
+  i::Int64 = 1
   while (i <= length(input_string))
     if (input_string[i] != "{")
       i += 1
     else
       #== do reformat ==#
-      j::UInt32 = i
+      j::Int64 = i
       input_json::String = ""
       input_name::String = ""
       while (input_string[j] != "}")

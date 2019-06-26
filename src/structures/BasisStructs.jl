@@ -1,12 +1,12 @@
 mutable struct Shell
-  am::UInt32
-  nbas::UInt32
-  pos::UInt32
+  am::Int64
+  nbas::Int64
+  pos::Int64
 end
 export Shell
 
 Shell(am) = Shell(am,am_to_nbas_cart(am),1)
-@inline function am_to_nbas_cart(am::UInt32)
+@inline function am_to_nbas_cart(am::Int64)
   return am*(am+1)/2
 end
 
@@ -14,8 +14,8 @@ mutable struct ShPair
   sh_a::Shell
   sh_b::Shell
 
-  am2::UInt32
-  nbas2::UInt32
+  am2::Int64
+  nbas2::Int64
 end
 export ShPair
 

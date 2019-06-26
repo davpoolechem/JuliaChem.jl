@@ -24,7 +24,7 @@ The flags are as follows:
 3. shells = Angular momentum of each shell in system (no default value)
 """
 struct Basis_Flags
-  NORB::UInt32
-  NOCC::UInt32
+  NORB::Int64
+  NOCC::Int64
 end
 export Basis_Flags
