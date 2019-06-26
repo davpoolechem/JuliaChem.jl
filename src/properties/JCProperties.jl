@@ -9,8 +9,6 @@ module JCProperties
 
 Base.include(@__MODULE__,"OrbitalEnergies.jl")
 
-using JCStructs
-
 using MPI
 
 """

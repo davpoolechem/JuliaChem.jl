@@ -1,4 +1,4 @@
-using JCStructs
+using BasisStructs
 using Base.Threads
 
 function read_in_enuc()

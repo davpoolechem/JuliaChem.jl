@@ -6,7 +6,7 @@ Import this module into the script when you need to process an input file
 """
 module JCBasis
 
-using JCStructs
+using BasisStructs
 
 using MPI
 using Base.Threads

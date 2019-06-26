@@ -1,7 +1,5 @@
 Base.include(@__MODULE__,"../math/math.jl")
 
-using JCStructs
-
 using MPI
 
 function orbital_energies(scf::Data,FLAGS::Basis_Flags)

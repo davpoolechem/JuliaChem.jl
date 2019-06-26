@@ -28,7 +28,7 @@ function script(input_file::String)
     #== perform scf calculation ==#
     if (driver == "energy")
       if (model["method"] == "RHF")
-        scf = JCRHF.run(basis, molecule, keywords)
+        @time scf = JCRHF.run(basis, molecule, keywords)
       end
     end
 
@@ -36,9 +36,9 @@ function script(input_file::String)
     MPI.Finalize()
 end
 
-#--------------------------------------------#
-# we want to precompile all involved modules #
-#--------------------------------------------#
+#================================================#
+#== we want to precompile all involved modules ==#
+#================================================#
 if (isfile("../snoop/precompile_Base.jl"))
     include("../snoop/precompile_Base.jl")
     _precompile_()

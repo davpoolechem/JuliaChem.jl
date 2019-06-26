@@ -2,11 +2,11 @@ Base.include(@__MODULE__,"../math/math.jl")
 
 Base.include(@__MODULE__,"ReadIn.jl")
 
-using JCStructs
+using BasisStructs
 
 using MPI
 using Base.Threads
-using Distributed
+#using Distributed
 using LinearAlgebra
 using HDF5
 
@@ -171,7 +171,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
       println(" ")
     end
 
-    return RHFRestartData(H, ortho, iter, F, D, C, E)
+    return (H, ortho, iter, F, D, C, E)
   else
     if (MPI.Comm_rank(comm) == 0)
       println(" ")
@@ -186,7 +186,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
     #  close(json_debug)
     #end
 
-	return Data(F, D, C, E)
+	return (F, D, C, E)
   end
 end
 

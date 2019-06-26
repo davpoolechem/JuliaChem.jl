@@ -6,8 +6,6 @@ Import this module into the script when you need to process an input file
 """
 module JCInput
 
-using JCStructs
-
 using MPI
 using JSON
 using Base.Threads
