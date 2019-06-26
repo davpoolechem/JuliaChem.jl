@@ -12,7 +12,7 @@ using MPI
 using JSON
 using Base.Threads
 using Distributed
-using HDF5
+#using HDF5
 
 """
   run(args::String)
@@ -54,6 +54,46 @@ function run(args::String)
       MPI.Comm_size(comm)*Threads.nthreads())
   end
 
+
+  #== read in input file ==#
+  input_file::IOStream = open(args)
+    input_string::Array{String,1} = readlines(input_file)
+  close(input_file)
+
+  #== initialize variables ==#
+  molecule::Dict{String,Any} = Dict([])
+  driver::String = ""
+  model::Dict{String,Any} = Dict([])
+  keywords::Dict{String,Any} = Dict([])
+
+  #== reformat input file and extract information from input ==#
+  i::UInt32 = 1
+  while (i <= length(input_string))
+    if (input_string[i] != "{")
+      i += 1
+    else
+      #== do reformat ==#
+      j::UInt32 = i
+      input_json::String = ""
+      input_name::String = ""
+      while (input_string[j] != "}")
+        input_json *= input_string[j]
+        j += 1
+      end
+      input_json *= "}"
+
+      #== do extraction ==#
+      json_parse::Dict{String,Any} = JSON.parse(input_json)
+
+      merge!(molecule,json_parse["molecule"])
+      driver = json_parse["driver"]
+      merge!(model,json_parse["model"])
+      merge!(keywords,json_parse["keywords"])
+
+      i = j
+    end
+  end
+
   if (MPI.Comm_rank(comm) == 0)
     println(" ")
     println("                       ========================================                 ")
@@ -61,56 +101,7 @@ function run(args::String)
     println("                       ========================================                 ")
   end
 
-  input_file::IOStream = open(args)
-    input_string::Array{String,1} = readlines(input_file)
-  close(input_file)
-
-  input_info::Dict{String,Dict{String,Any}} = Dict([])
-  i::UInt32 = 1
-  while (i <= length(input_string))
-    if (input_string[i] != "{")
-      i += 1
-    else
-      j::UInt32 = i
-      json_subsection::String = ""
-      input_name::String = ""
-      while (input_string[j] != "}")
-        json_subsection *= input_string[j]
-        if (occursin(r"\\\"Input\\\"\:(.*)",input_string[j]))
-          input_name = match(r"\\\"Input\\\"\:(.*)",input_string[j])[1]
-          input_name = input_name[2:end-2]
-        end
-        j += 1
-      end
-      json_subsection *= "}"
-      json_parse::Dict{String,Any} = JSON.parse(json_subsection)
-      merge!(input_info,Dict([(input_name,json_parse)]))
-
-      i = j
-    end
-  end
-
-  shell_am = input_info["Basis Flags"]["shells"]
-  basis::Basis = Basis()
-  for i in 1:length(shell_am)
-    shell::Shell = Shell(UInt32(shell_am[i]))
-    add_shell(basis,deepcopy(shell))
-  end
-
-  #== set up eri database ==#
-  norb = input_info["Basis Flags"]["norb"]
-
-  hdf5name = input_info["Control Flags"]["name"]
-  hdf5name *= ".h5"
-  if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
-    h5open(hdf5name, "w") do file
-      eri_array::Array{Float64,1} = input_info["Two-Electron"]["tei"]
-      write(file, "tei", eri_array)
-    end
-  end
-  MPI.Barrier
-
-  return (input_info,basis)
+  return (molecule, driver, model, keywords)
 end
 export run
 
