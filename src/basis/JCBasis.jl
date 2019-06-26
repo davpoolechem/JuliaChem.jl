@@ -7,6 +7,7 @@ Import this module into the script when you need to process an input file
 module JCBasis
 
 using BasisStructs
+using ShellProcess
 
 using MPI
 using Base.Threads
@@ -49,30 +50,18 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
 
   geometry::Array{Float64,2} = transpose(reshape(geometry_array,(3,2)))
 
-  basis_set::Basis = Basis()
-  basis_norb::Int64 = 0
-  basis_nels::Int64 = 0
+  basis_set::Basis = Basis(basis)
 
   #== create basis set ==#
   for atom_idx::Int64 in 1:length(symbols)
     #== initialize variables needed for shell ==#
     atom_center::Array{Float64,1} = geometry[atom_idx,:]
 
-    #== process H shells shells ==#
+    #== process H shells ==#
     if (symbols[atom_idx] == "H")
-      basis_nels += 1
-      if (basis == "STO-3G")
-        #== first STO3G H shell ==#
-        shell_am::Int64 = 1
-        shell::Shell = Shell(atom_idx, atom_center, shell_am)
-        add_shell(basis_set,deepcopy(shell))
-        basis_norb += 1
-      end
+      process_H_shell(basis_set, atom_idx, atom_center)
     end
   end
-
-  basis_set.norb = basis_norb
-  basis_set.nels = basis_nels
 
   if (MPI.Comm_rank(comm) == 0)
     println(" ")

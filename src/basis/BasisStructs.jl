@@ -34,12 +34,13 @@ module BasisStructs
   mutable struct Basis
     shells::Array{Shell,1}
 
+    model::String
     norb::Int64
     nels::Int64
   end
   export Basis
 
-  Basis() = Basis([],0,0)
+  Basis(model::String) = Basis([],model,0,0)
 
   function add_shell(basis_set::Basis, shell::Shell)
     shell.pos = (length(basis_set.shells) == 0) ?
