@@ -48,7 +48,9 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   symbols::Array{String} = molecule["symbols"]
   basis::String = model["basis"]
 
-  geometry::Array{Float64,2} = transpose(reshape(geometry_array,(3,2)))
+  num_atoms::Int64 = length(geometry_array)/3
+  geometry_array_t::Array{Float64,2} = reshape(geometry_array,(3,num_atoms))
+  geometry::Array{Float64,2} = transpose(geometry_array_t)
 
   basis_set::Basis = Basis(basis)
 
