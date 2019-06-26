@@ -50,6 +50,8 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   geometry::Array{Float64,2} = transpose(reshape(geometry_array,(3,2)))
 
   basis_set::Basis = Basis()
+  basis_norb::Int64 = 0
+  basis_nels::Int64 = 0
 
   #== create basis set ==#
   for atom_idx::Int64 in 1:length(symbols)
@@ -58,16 +60,20 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
 
     #== process H shells shells ==#
     if (symbols[atom_idx] == "H")
+      basis_nels += 1
       if (basis == "STO-3G")
-        num_shells::Int64 = 1
-        for shell_idx::Int64 in 1:num_shells
-          shell_am::Int64 = 1
-          shell::Shell = Shell(atom_idx, atom_center, shell_am)
-          add_shell(basis_set,deepcopy(shell))
-        end
+        #== first STO3G H shell ==#
+        shell_am::Int64 = 1
+        shell::Shell = Shell(atom_idx, atom_center, shell_am)
+        add_shell(basis_set,deepcopy(shell))
+        basis_norb += 1
       end
     end
   end
+
+  basis_set.norb = basis_norb
+  basis_set.nels = basis_nels
+
 #=
   #== set up eri database ==#
   norb = input_info["Basis Flags"]["norb"]

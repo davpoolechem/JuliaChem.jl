@@ -13,6 +13,7 @@ using JCStructs
 
 using MPI
 using JSON
+using HDF5
 
 """
   run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
@@ -32,7 +33,9 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
+function run(basis::Basis, molecule::Dict{String,Any},
+  keywords::Dict{String,Any})
+
   comm=MPI.COMM_WORLD
 
   if (MPI.Comm_rank(comm) == 0)
@@ -43,43 +46,28 @@ function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
       println("")
   end
 
-  #set up rhf flags
-  ctrl_info::Dict{String,Any} = input_info["Control Flags"]
-  ctrl_flags::Ctrl_Flags = Ctrl_Flags(ctrl_info["name"])
+  #== initialize scf flags ==#
+  scf_flags::Dict{String,Any} = keywords["scf"]
 
-  basis_info::Dict{String,Any} = input_info["Basis Flags"]
-  basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"], basis_info["nocc"])
-
-  scf_info::Dict{String,Any} = input_info["SCF Flags"]
-  scf_flags::SCF_Flags = SCF_Flags(scf_info["niter"], scf_info["dele"],
-  scf_info["rmsd"], scf_info["prec"], scf_info["direct"], scf_info["debug"])
-
-  rhf_flags::RHF_Flags = RHF_Flags(ctrl_flags,basis_flags,scf_flags)
-
-  #set up values to read in if not doing direct
-  read_in::Dict{String,Any} = Dict([])
-
-  merge!(read_in, input_info["Enuc"])
-  merge!(read_in, input_info["Overlap"])
-  merge!(read_in, input_info["One-Electron Hamiltonian"])
-  merge!(read_in, input_info["Two-Electron"])
+  #== set up eri database is not doing direct ==#
+  if (scf_flags["direct"] == false)
+    hdf5name = "tei"
+    hdf5name *= ".h5"
+    if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
+      h5open(hdf5name, "w") do file
+        eri_array::Array{Float64,1} = molecule["tei"]
+        write(file, "tei", eri_array)
+      end
+    end
+  end
 
   #GC.enable(false)
-  if (scf_flags.DIRECT == false)
-    scf = rhf_energy(rhf_flags, basis, read_in)
-  end
+  scf = rhf_energy(basis, molecule, scf_flags)
   #GC.enable(true)
   #GC.gc()
-
-  if (MPI.Comm_rank(comm) == 0)
-    println("                       ========================================                 ")
-    println("                             END RESTRICTED CLOSED-SHELL                 ")
-    println("                                     HARTREE-FOCK                        ")
-    println("                       ========================================                 ")
-  end
-
+#=
   calculation_name::String = ctrl_flags.NAME
-  json_output = open("$calculation_name"*"-output.json","w")
+  json_output = open("output.json","w")
     output_name = Dict([("Calculation",calculation_name)])
     output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
     output_density = Dict([("Structure","Density"),("Data",scf.Density)])
@@ -91,6 +79,13 @@ function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
       write(json_output,JSON.json(output_coeff))
     end
   close(json_output)
+=#
+  if (MPI.Comm_rank(comm) == 0)
+    println("                       ========================================                 ")
+    println("                             END RESTRICTED CLOSED-SHELL                 ")
+    println("                                     HARTREE-FOCK                        ")
+    println("                       ========================================                 ")
+  end
 
   return scf
 end
