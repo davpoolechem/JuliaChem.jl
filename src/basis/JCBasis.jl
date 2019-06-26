@@ -9,9 +9,8 @@ module JCBasis
 using JCStructs
 
 using MPI
-#using JSON
 using Base.Threads
-using Distributed
+#using Distributed
 using HDF5
 
 """
@@ -55,25 +54,21 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   #== create basis set ==#
   for atom_idx::Int64 in 1:length(symbols)
     #== initialize variables needed for shell ==#
-    shell_center::Array{Float64,1} = geometry[atom_idx,:]
+    atom_center::Array{Float64,1} = geometry[atom_idx,:]
 
+    #== process H shells shells ==#
     if (symbols[atom_idx] == "H")
       if (basis == "STO-3G")
         num_shells::Int64 = 1
-        for shell_idx in 1:num_shells
-          shell_am = 1
+        for shell_idx::Int64 in 1:num_shells
+          shell_am::Int64 = 1
+          shell::Shell = Shell(atom_idx, atom_center, shell_am)
+          add_shell(basis_set,deepcopy(shell))
         end
       end
     end
   end
-  #=
-  shell_am = input_info["Basis Flags"]["shells"]
-  basis::Basis = Basis()
-  for i in 1:length(shell_am)
-    shell::Shell = Shell(Int64(shell_am[i]))
-    add_shell(basis,deepcopy(shell))
-  end
-
+#=
   #== set up eri database ==#
   norb = input_info["Basis Flags"]["norb"]
 

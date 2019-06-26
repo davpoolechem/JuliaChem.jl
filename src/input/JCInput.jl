@@ -11,7 +11,7 @@ using JCStructs
 using MPI
 using JSON
 using Base.Threads
-using Distributed
+#using Distributed
 #using HDF5
 
 """

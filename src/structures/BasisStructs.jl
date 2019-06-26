@@ -1,11 +1,14 @@
 mutable struct Shell
+  atom_id::Int64
+  atom_center::Array{Float64,1}
   am::Int64
   nbas::Int64
   pos::Int64
 end
 export Shell
 
-Shell(am) = Shell(am,am_to_nbas_cart(am),1)
+Shell(atom_id, atom_center, am) = Shell(atom_id, atom_center,
+  am, am_to_nbas_cart(am),1)
 @inline function am_to_nbas_cart(am::Int64)
   return am*(am+1)/2
 end
