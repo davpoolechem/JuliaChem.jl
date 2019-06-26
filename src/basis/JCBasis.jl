@@ -59,10 +59,8 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
     #== initialize variables needed for shell ==#
     atom_center::Array{Float64,1} = geometry[atom_idx,:]
 
-    #== process H shells ==#
-    if (symbols[atom_idx] == "H")
-      process_H_shell(basis_set, atom_idx, atom_center)
-    end
+    #== add shells on atom to basis set ==#
+    process_shells(basis_set, symbols[atom_idx], atom_idx, atom_center)
   end
 
   if (MPI.Comm_rank(comm) == 0)
