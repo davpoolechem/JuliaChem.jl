@@ -16,16 +16,16 @@ function process_H_shell(basis_set::Basis, atom_idx::Int64,
 
   #== 6-31G basis ==#
   elseif (basis_set.model == "6-31G")
-    #== first STO-3G H s shell ==#
+    #== first 6-31G H s shell ==#
     shell_am_1::Int64 = 1
     shell_1::Shell = Shell(atom_idx, atom_center, shell_am_1)
-    add_shell(basis_set,deepcopy(shell))
+    add_shell(basis_set,deepcopy(shell_1))
     basis_set.norb += 1
 
-    #== second STO-3G H s shell ==#
+    #== second 6-31G H s shell ==#
     shell_am_2::Int64 = 1
     shell_2::Shell = Shell(atom_idx, atom_center, shell_am_2)
-    add_shell(basis_set,deepcopy(shell))
+    add_shell(basis_set,deepcopy(shell_2))
     basis_set.norb += 1
   end
 end
