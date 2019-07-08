@@ -60,13 +60,13 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
     #write(json_debug,JSON.json(output_H))
   #end
 
-  println("Overlap matrix:")
-  display(S)
-  println("")
+  #println("Overlap matrix:")
+  #display(S)
+  #println("")
 
-  println("Hamiltonian matrix:")
-  display(H)
-  println("")
+  #println("Hamiltonian matrix:")
+  #display(H)
+  #println("")
 
   #== build the orthogonalization matrix ==#
   S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
