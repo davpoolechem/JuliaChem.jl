@@ -60,6 +60,14 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
     #write(json_debug,JSON.json(output_H))
   #end
 
+  println("Overlap matrix:")
+  display(S)
+  println("")
+
+  println("Hamiltonian matrix:")
+  display(H)
+  println("")
+
   #== build the orthogonalization matrix ==#
   S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
 
@@ -78,8 +86,12 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 #    write(json_debug,JSON.json(output_ortho))
  # end
 
+ println("Ortho matrix:")
+ display(ortho)
+ println("")
+
   #== build the initial matrices ==#
-  F::Array{T,2} = transpose(ortho)*H*ortho
+  F::Array{T,2} = H
   D = Matrix{T}(undef,basis.norb,basis.norb)
   C = Matrix{T}(undef,basis.norb,basis.norb)
 
@@ -125,9 +137,9 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	  MPI.Barrier(comm)
 
 	 # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-    #    println("Skeleton Fock matrix:")
-    #    display(F)
-    #    println("")
+        println("Skeleton Fock matrix:")
+        display(F)
+        println("")
 
 	 #   output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
 	  #    ("Density Matrix",D)])
@@ -137,9 +149,12 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 
 	  F += deepcopy(H)
 
+      println("Total Fock matrix:")
+      display(F)
+      println("")
+
       #== obtain new F,D,C matrices ==#
 	  F, D, C, E_elec = iteration(F, D_old, H, ortho, basis)
-      F = transpose(ortho)*F*ortho
 
       #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
@@ -311,45 +326,56 @@ H = One-electron Hamiltonian Matrix
 ortho = Symmetric Orthogonalization Matrix
 """
 =#
-function iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2},
+function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   ortho::Array{T,2}, basis::Basis) where {T<:AbstractFloat}
 
   #== obtain new orbital coefficients ==#
+  F = transpose(ortho)*F_μν*ortho
+
   F_eval::Array{T,1} = eigvals(LinearAlgebra.Hermitian(F))
 
   F_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(F))
   F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
+  println("F_eval:")
+  display(F_eval)
+  println("")
+
+  println("sorted F_eval:")
+  display(sortperm(F_eval))
+  println("")
+
   C::Array{T,2} = ortho*F_evec
 
   #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-#    println("New orbitals:")
-#    display(C)
-#    println("")
+    println("New orbitals:")
+    display(C)
+    println("")
  # end
 
   #== build new density matrix ==#
   nocc::Int64 = basis.nels/2
-  for i::Int64 in 1:basis.norb, j::Int64 in 1:i
+  norb = basis.norb
+
+ for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
     D[i,j] = ∑(C[i,1:nocc],C[j,1:nocc])
     D[i,j] *= 2
-    D[j,i] = D[i,j]
-  end
+ end
 
   #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-#    println("New density matrix:")
-#    display(D)
-#    println("")
+    println("New density matrix:")
+    display(D)
+    println("")
  # end
 
   #== compute new SCF energy ==#
-  EHF1::T = ∑(D,F)
+  EHF1::T = ∑(D,F_μν)
   EHF2::T = ∑(D,H)
   E_elec::T = (EHF1 + EHF2)/2
 
  # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
 #    println("New energy:")
-#    display("$EHF1, $EHF2")
+      println("$EHF1, $EHF2")
 #    println("")
  # end
 
@@ -440,10 +466,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
     end
   end
 
-  for iorb::Int64 in 1:basis.norb, jorb::Int64 in 1:iorb
+  for iorb::Int64 in 1:basis.norb, jorb::Int64 in 1:basis.norb
     if (iorb != jorb)
       F[iorb,jorb] /= 2
-      F[jorb,iorb] = F[iorb,jorb]
     end
   end
 
@@ -515,6 +540,8 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
 
 	  eri::T = eri_batch[μνλσ]
+      Dij = D[μ,ν]
+      println("$μ, $ν, $λ, $σ, $Dij, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
