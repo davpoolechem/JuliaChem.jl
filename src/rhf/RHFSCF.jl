@@ -86,9 +86,9 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 #    write(json_debug,JSON.json(output_ortho))
  # end
 
- println("Ortho matrix:")
- display(ortho)
- println("")
+#println("Ortho matrix:")
+ #display(ortho)
+ #println("")
 
   #== build the initial matrices ==#
   F::Array{T,2} = H
@@ -104,8 +104,6 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
   end
 
   F, D, C, E_elec = iteration(F, D, H, ortho, basis)
-
-  D_old::Array{T,2} = deepcopy(D)
 
   E::T = E_elec + E_nuc
   E_old::T = E
@@ -137,9 +135,9 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	  MPI.Barrier(comm)
 
 	 # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-        println("Skeleton Fock matrix:")
-        display(F)
-        println("")
+        #println("Skeleton Fock matrix:")
+        #display(F)
+        #println("")
 
 	 #   output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
 	  #    ("Density Matrix",D)])
@@ -149,11 +147,13 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 
 	  F += deepcopy(H)
 
-      println("Total Fock matrix:")
-      display(F)
-      println("")
+      #println("Total Fock matrix:")
+      #display(F)
+      #println("")
 
       #== obtain new F,D,C matrices ==#
+      D_old::Array{T,2} = deepcopy(D)
+
 	  F, D, C, E_elec = iteration(F, D_old, H, ortho, basis)
 
       #== check for convergence ==#
@@ -167,7 +167,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	    println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
 	  end
 
-	  converged = (ΔE <= scf_flags["dele"]) && (D_rms <= scf_flags["rmsd"])
+	  converged = (abs(ΔE) <= scf_flags["dele"]) && (D_rms <= scf_flags["rmsd"])
 	  iter += 1
       if (iter > scf_flags["niter"]) break end
 
@@ -337,20 +337,20 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   F_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(F))
   F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-  println("F_eval:")
-  display(F_eval)
-  println("")
+  #println("F_eval:")
+  #display(F_eval)
+  #println("")
 
-  println("sorted F_eval:")
-  display(sortperm(F_eval))
-  println("")
+  #println("sorted F_eval:")
+  #display(sortperm(F_eval))
+  #println("")
 
   C::Array{T,2} = ortho*F_evec
 
   #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-    println("New orbitals:")
-    display(C)
-    println("")
+    #println("New orbitals:")
+    #display(C)
+    #println("")
  # end
 
   #== build new density matrix ==#
@@ -363,9 +363,9 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
  end
 
   #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-    println("New density matrix:")
-    display(D)
-    println("")
+    #println("New density matrix:")
+    #display(D)
+    #println("")
  # end
 
   #== compute new SCF energy ==#
@@ -375,7 +375,7 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
  # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
 #    println("New energy:")
-      println("$EHF1, $EHF2")
+      #println("$EHF1, $EHF2")
 #    println("")
  # end
 
@@ -541,7 +541,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 
 	  eri::T = eri_batch[μνλσ]
       Dij = D[μ,ν]
-      println("$μ, $ν, $λ, $σ, $Dij, $eri")
+      #println("$μ, $ν, $λ, $σ, $Dij, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
