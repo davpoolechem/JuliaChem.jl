@@ -2,7 +2,7 @@ module BasisStructs
   mutable struct Shell
     atom_id::Int64
     atom_center::Array{Float64,1}
-    
+
     am::Int64
     nbas::Int64
     pos::Int64

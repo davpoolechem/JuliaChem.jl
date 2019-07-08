@@ -1,5 +1,3 @@
-using BasisStructs
-
 #== add H shells to basis set ==#
 function process_H_shell(basis_set::Basis, atom_idx::Int64,
   atom_center::Array{Float64,1})
@@ -41,6 +39,9 @@ function process_H_shell(basis_set::Basis, atom_idx::Int64,
     shell_2 = Shell(atom_idx, atom_center, shell_am_2)
     add_shell(basis_set,deepcopy(shell_2))
     basis_set.norb += 1
+  else
+    model::String = basis_set.model
+    throw("Hydrogen atom does not have $model basis set implementation yet.")
   end
 end
 export process_H_shell
