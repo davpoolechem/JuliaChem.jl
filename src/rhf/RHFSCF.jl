@@ -154,7 +154,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
       #== obtain new F,D,C matrices ==#
       D_old::Array{T,2} = deepcopy(D)
 
-	  F, D, C, E_elec = iteration(F, D_old, H, ortho, basis)
+	  F, D, C, E_elec = iteration(F, D, H, ortho, basis)
 
       #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
