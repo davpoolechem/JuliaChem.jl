@@ -209,7 +209,14 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
       println(" ")
 
       calculation_success::Dict{String,Any} = Dict(
-      "success" => true
+      "return_result" => E,
+      "success" => true,
+      "properties" => Dict(
+        "return_energy" => E,
+        "nuclear_repulsion_energy" => E_nuc,
+        "scf_iterations" => iter,
+        "scf_total_energy" => E
+        )
       )
 
       merge!(calculation_status, calculation_success)
