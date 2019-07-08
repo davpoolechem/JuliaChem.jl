@@ -17,14 +17,28 @@ function process_H_shell(basis_set::Basis, atom_idx::Int64,
   #== 6-31G basis ==#
   elseif (basis_set.model == "6-31G")
     #== first 6-31G H s shell ==#
-    shell_am_1::Int64 = 1
-    shell_1::Shell = Shell(atom_idx, atom_center, shell_am_1)
+    shell_am_1 = 1
+    shell_1 = Shell(atom_idx, atom_center, shell_am_1)
     add_shell(basis_set,deepcopy(shell_1))
     basis_set.norb += 1
 
     #== second 6-31G H s shell ==#
-    shell_am_2::Int64 = 1
-    shell_2::Shell = Shell(atom_idx, atom_center, shell_am_2)
+    shell_am_2 = 1
+    shell_2 = Shell(atom_idx, atom_center, shell_am_2)
+    add_shell(basis_set,deepcopy(shell_2))
+    basis_set.norb += 1
+
+  #== PCseg-0 basis ==#
+  elseif (basis_set.model == "PCseg-0")
+    #== first PCseg-0 H s shell ==#
+    shell_am_1 = 1
+    shell_1 = Shell(atom_idx, atom_center, shell_am_1)
+    add_shell(basis_set,deepcopy(shell_1))
+    basis_set.norb += 1
+
+    #== second PCseg-0 H s shell ==#
+    shell_am_2 = 1
+    shell_2 = Shell(atom_idx, atom_center, shell_am_2)
     add_shell(basis_set,deepcopy(shell_2))
     basis_set.norb += 1
   end
