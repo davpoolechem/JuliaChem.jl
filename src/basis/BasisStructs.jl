@@ -12,7 +12,7 @@ module BasisStructs
   Shell(atom_id, atom_center, am) = Shell(atom_id, atom_center,
     am, am_to_nbas_cart(am),1)
   @inline function am_to_nbas_cart(am::Int64)
-    return am*(am+1)/2
+    return (am == -1) ? 4 : am*(am+1)/2
   end
 
   mutable struct ShPair

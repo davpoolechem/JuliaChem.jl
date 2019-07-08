@@ -13,16 +13,16 @@ function process_O_shell(basis_set::Basis, atom_idx::Int64,
     basis_set.norb += 1
 
     #== first STO-3G O 2s shell ==#
-    shell_am_2s = 1
-    shell = Shell(atom_idx, atom_center, shell_am_2s)
-    add_shell(basis_set,deepcopy(shell))
-    basis_set.norb += 1
+    #shell_am_2s = 1
+    #shell = Shell(atom_idx, atom_center, shell_am_2s)
+    #add_shell(basis_set,deepcopy(shell))
+    #basis_set.norb += 1
 
-    #== first STO-3G O 2p shell ==#
-    shell_am_2p = 2
+    #== first STO-3G O 2L shell ==#
+    shell_am_2p = -1
     shell = Shell(atom_idx, atom_center, shell_am_2p)
     add_shell(basis_set,deepcopy(shell))
-    basis_set.norb += 3
+    basis_set.norb += 4
   else
     model::String = basis_set.model
     throw("Oxygen atom does not have $model basis set implementation yet.")

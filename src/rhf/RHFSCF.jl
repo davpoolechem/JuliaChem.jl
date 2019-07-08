@@ -352,7 +352,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   F = zeros(basis.norb,basis.norb)
   mutex = Base.Threads.Mutex()
 
-  for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
+  #for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
+  for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
     if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
       ish::Int64 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
       jsh::Int64 = bra_pairs - ioff[ish]
@@ -361,7 +362,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
       ijsh::Int64 = index(ish,jsh)
 
-      Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
+      #Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
+      Threads.@threads for ket_pairs::Int64 in 1:bra_pairs
         ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
         lsh::Int64 = ket_pairs - ioff[ksh]
 
@@ -423,8 +425,6 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 	    λσ = index(λ,σ)
         μνλσ::Int64 = index(μν,λσ)
 
-        println("$μ, $ν, $λ, $σ, $μνλσ")
-
         push!(eri_batch,tei_list[μνλσ])
     end
   end
@@ -465,12 +465,12 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 
 	  eri::T = eri_batch[μνλσ]
       Dij = D[μ,ν]
-      #println("$μ, $ν, $λ, $σ, $Dij, $eri")
+      println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-	  if (eri <= 1E-10) continue end
+	  #if (eri <= 1E-10) continue end
 
 	  F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
 	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
