@@ -22,7 +22,7 @@ function process_O_shell(basis_set::Basis, atom_idx::Int64,
     shell_am_2p = 2
     shell = Shell(atom_idx, atom_center, shell_am_2p)
     add_shell(basis_set,deepcopy(shell))
-    basis_set.norb += 1
+    basis_set.norb += 3
   else
     model::String = basis_set.model
     throw("Oxygen atom does not have $model basis set implementation yet.")

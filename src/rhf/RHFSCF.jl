@@ -135,9 +135,9 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	  MPI.Barrier(comm)
 
 	 # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-        #println("Skeleton Fock matrix:")
-        #display(F)
-        #println("")
+        println("Skeleton Fock matrix:")
+        display(F)
+        println("")
 
 	 #   output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
 	  #    ("Density Matrix",D)])
@@ -230,91 +230,6 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
   return (F, D, C, E, calculation_status)
 end
 
-#=
-function rhf_energy(FLAGS::RHF_Flags, restart::RHFRestartData)
-	basis.norb::Int64 = FLAGS.BASIS.basis.norb
-	comm = MPI.COMM_WORLD
-
-	H::Array{T,2} = T+V
-	tei::Array{T,1} = read_in_tei()
-
-	if (MPI.Comm_rank(comm) == 0)
-		println("----------------------------------------          ")
-		println("      Continuing RHF iterations...                ")
-		println("----------------------------------------          ")
-		println(" ")
-		println("Iter      Energy                   ΔE                   Drms")
-	end
-
-	#start scf cycles: #7-10
-	converged::Bool = false
-	iter::Int64 = restart.iter
-	while(!converged)
-
-		#multilevel MPI+threads parallel algorithm
-		F_temp = twoei(F, D, tei, H, FLAGS)
-
-		F = MPI.Allreduce(F_temp,MPI.SUM,comm)
-		MPI.Barrier(comm)
-
-		F += deepcopy(H)
-
-		#println("Initial Fock matrix:")
-		#display(F)
-		#println("")
-
-		#Step #8: Build the New Density Matrix
-		D_old::Array{T,2} = deepcopy(D)
-		E_old::T = E
-
-		F = transpose(ortho)*F*ortho
-		F, D, C, E_elec = iteration(F, D, H, ortho, FLAGS)
-		E = E_elec+E_nuc
-
-		#Step #10: Test for Convergence
-		ΔE::T = E - E_old
-
-		ΔD::Array{T,2} = D - D_old
-		D_rms::T = √(∑(ΔD,ΔD))
-
-		if (MPI.Comm_rank(comm) == 0)
-			println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
-		end
-
-		converged = (ΔE <= FLAGS.SCF.DELE) && (D_rms <= FLAGS.SCF.RMSD)
-		iter += 1
-		if (iter > FLAGS.SCF.NITER) break end
-	end
-
-	if (iter > FLAGS.SCF.NITER)
-		if (MPI.Comm_rank(comm) == 0)
-			println(" ")
-			println("----------------------------------------")
-			println("   The SCF calculation not converged.   ")
-			println("      Restart data is being output.     ")
-			println("----------------------------------------")
-			println(" ")
-		end
-
-		#restart = RHFRestartData(H, ortho, iter, F, D, C, E)
-
-		return RHFRestartData(H, ortho, iter, F, D, C, E)
-	else
-		if (MPI.Comm_rank(comm) == 0)
-			println(" ")
-			println("----------------------------------------")
-			println("   The SCF calculation has converged!   ")
-			println("----------------------------------------")
-			println("Total SCF Energy: ",E," h")
-			println(" ")
-		end
-
-		#scf = Data(F, D, C, E)
-
-		return Data(F, D, C, E)
-	end
-end
-=#
 #=
 """
 	 iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2}, ortho::Array{T,2})
@@ -507,6 +422,8 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 	  for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
 	    λσ = index(λ,σ)
         μνλσ::Int64 = index(μν,λσ)
+
+        println("$μ, $ν, $λ, $σ, $μνλσ")
 
         push!(eri_batch,tei_list[μνλσ])
     end
