@@ -135,9 +135,9 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	  MPI.Barrier(comm)
 
 	 # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-        println("Skeleton Fock matrix:")
-        display(F)
-        println("")
+        #println("Skeleton Fock matrix:")
+        #display(F)
+        #println("")
 
 	 #   output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
 	  #    ("Density Matrix",D)])
@@ -465,7 +465,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 
 	  eri::T = eri_batch[μνλσ]
       Dij = D[μ,ν]
-      println("$μ, $ν, $λ, $σ, $eri")
+      #println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
