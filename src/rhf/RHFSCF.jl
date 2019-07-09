@@ -436,7 +436,17 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
       λσ::Int64 = index(λλ,σσ)
 
       if (μν < λσ)
-        if (μμ != λλ && νν != σσ) μ,ν,λ,σ = λλ,σσ,μμ,νν
+        same::Bool = quartet.bra.sh_a.atom_id == quartet.bra.sh_b.atom_id
+        same = same && quartet.bra.sh_b.atom_id == quartet.ket.sh_a.atom_id
+        same = same && quartet.ket.sh_a.atom_id == quartet.ket.sh_b.atom_id
+
+        if (μμ != νν && μμ != λλ && μμ != σσ &&
+            νν != λλ && νν != σσ &&
+            λλ != σσ && same)
+          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
+        elseif (μμ != λλ &&
+            νν != σσ && !same)
+          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
         else continue
         end
       end
@@ -444,8 +454,8 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
       μνλσ += 1
       eri_offset += 1
 
-      #eri = tei_list[μνλσ]
-      #println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
+      eri = tei_list[μνλσ]
+      println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
 
       push!(eri_batch,tei_list[μνλσ])
     end
@@ -487,7 +497,11 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       λσ::Int64 = index(λλ,σσ)
 
       if (μν < λσ)
-        if (μμ != λλ && νν != σσ) μ,ν,λ,σ = λλ,σσ,μμ,νν
+        #if (μμ != λλ && νν != σσ) μ,ν,λ,σ = λλ,σσ,μμ,νν
+        if (μμ != νν && μμ != λλ && μμ != σσ &&
+            νν != λλ && νν != σσ &&
+            λλ != σσ)
+          μ,ν,λ,σ = λλ,σσ,μμ,νν
         else continue
         end
       end
