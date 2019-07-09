@@ -351,6 +351,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
   F = zeros(basis.norb,basis.norb)
   mutex = Base.Threads.Mutex()
+  eri_offset = 0
 
   #for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
   for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
@@ -376,7 +377,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
 		quartet::ShQuartet = ShQuartet(bra,ket)
 
-		eri_batch::Array{T,1} = shellquart(D, quartet, tei, mutex)
+		eri_batch::Array{T,1}, eri_offset = shellquart(D, quartet, tei, mutex,
+          eri_offset)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
 		if (max(eri_batch...) >= 1E-10)
@@ -400,7 +402,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 end
 
 function shellquart(D::Array{T,2},quartet::ShQuartet,
-  tei_file::HDF5File, mutex) where {T<:AbstractFloat}
+  tei_file::HDF5File, mutex, eri_offset) where {T<:AbstractFloat}
 
   nμ = quartet.bra.sh_a.nbas
   nν = quartet.bra.sh_b.nbas
@@ -412,6 +414,7 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   pλ = quartet.ket.sh_a.pos
   pσ = quartet.ket.sh_b.pos
 
+  μνλσ::Int64 = eri_offset
   eri_batch::Array{T,1} = [ ]
 
   lock(mutex)
@@ -419,19 +422,28 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   unlock(mutex)
 
   for μ::Int64 in pμ:pμ+(nμ-1), ν::Int64 in pν:pν+(nν-1)
+    if (μ < ν) continue end
+
     μν = index(μ,ν)
+    #μν_idx::Int64 = eri_offset + nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
-	  for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
-	    λσ = index(λ,σ)
-        μνλσ::Int64 = index(μν,λσ)
+	for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
+      if (λ < σ) continue end
 
-        eri = tei_list[μνλσ]
-        println("$μ, $ν, $λ, $σ, $μνλσ, $eri")
-        push!(eri_batch,tei_list[μνλσ])
+      λσ = index(λ,σ)
+      if (μν < λσ) continue end
+
+      #μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
+      μνλσ += 1
+
+      eri = tei_list[μνλσ]
+      println("$μ, $ν, $λ, $σ, $μνλσ, $eri")
+      push!(eri_batch,tei_list[μνλσ])
     end
   end
 
-  return deepcopy(eri_batch)
+  eri_offset += nμ*nν*nλ*nσ
+  return (deepcopy(eri_batch), eri_offset)
 end
 
 function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
@@ -451,11 +463,13 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
   pλ = quartet.ket.sh_a.pos
   pσ = quartet.ket.sh_b.pos
 
+  μνλσ::Int64 = 0
+
   for μ::Int64 in pμ:pμ+(nμ-1), ν::Int64 in pν:pν+(nν-1)
     if (μ < ν) continue end
 
     μν = index(μ,ν)
-	μν_idx::Int64 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
+	#μν_idx::Int64 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
 
     for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
 	  if (λ < σ) continue end
@@ -463,7 +477,8 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  λσ = index(λ,σ)
 	  if (μν < λσ) continue end
 
-	  μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
+	  #μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
+      μνλσ += 1
 
 	  eri::T = eri_batch[μνλσ]
       Dij = D[μ,ν]
