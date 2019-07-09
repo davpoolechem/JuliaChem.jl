@@ -377,6 +377,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
 		quartet::ShQuartet = ShQuartet(bra,ket)
 
+        println("QUARTET: $ish, $jsh, $ksh, $lsh")
+
 		eri_batch::Array{T,1}, eri_offset = shellquart(D, quartet, tei, mutex,
           eri_offset)
 
@@ -431,13 +433,20 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
       if (λ < σ) continue end
 
       λσ = index(λ,σ)
-      if (μν < λσ) continue end
+
+      if (μν < λσ)
+        if (μ != λ && ν != σ)
+            μ, ν, λ, σ = λ, σ, μ, ν
+        else
+            continue
+        end
+      end
 
       #μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
       μνλσ += 1
       eri_offset += 1
       eri = tei_list[μνλσ]
-      println("$μ, $ν, $λ, $σ, $μνλσ, $eri")
+      println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
       push!(eri_batch,tei_list[μνλσ])
     end
   end
@@ -475,7 +484,13 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  if (λ < σ) continue end
 
 	  λσ = index(λ,σ)
-	  if (μν < λσ) continue end
+      if (μν < λσ)
+        if (μ != λ && ν != σ)
+            μ, ν, λ, σ = λ, σ, μ, ν
+        else
+            continue
+        end
+      end
 
 	  #μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
       μνλσ += 1
