@@ -381,9 +381,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
           eri_offset)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
-		if (max(eri_batch...) >= 1E-10)
-          F_priv = dirfck(D, eri_batch, quartet)
-        end
+		#if (max(eri_batch...) >= 1E-10)
+        F_priv = dirfck(D, eri_batch, quartet)
+        #end
 
 		lock(mutex)
 		F += F_priv
@@ -435,14 +435,14 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 
       #μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
       μνλσ += 1
-
+      eri_offset += 1
       eri = tei_list[μνλσ]
       println("$μ, $ν, $λ, $σ, $μνλσ, $eri")
       push!(eri_batch,tei_list[μνλσ])
     end
   end
 
-  eri_offset += nμ*nν*nλ*nσ
+  #eri_offset += nμ*nν*nλ*nσ
   return (deepcopy(eri_batch), eri_offset)
 end
 
@@ -481,13 +481,13 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       μνλσ += 1
 
 	  eri::T = eri_batch[μνλσ]
+      #if (abs(eri) <= 1E-10) continue end
+
       Dij = D[μ,ν]
       #println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
-
-	  #if (eri <= 1E-10) continue end
 
 	  F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
 	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
