@@ -135,9 +135,9 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	  MPI.Barrier(comm)
 
 	 # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-        #println("Skeleton Fock matrix:")
-        #display(F)
-        #println("")
+        println("Skeleton Fock matrix:")
+        display(F)
+        println("")
 
 	 #   output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
 	  #    ("Density Matrix",D)])
@@ -425,6 +425,8 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 	    λσ = index(λ,σ)
         μνλσ::Int64 = index(μν,λσ)
 
+        eri = tei_list[μνλσ]
+        println("$μ, $ν, $λ, $σ, $μνλσ, $eri")
         push!(eri_batch,tei_list[μνλσ])
     end
   end
