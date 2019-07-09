@@ -47,12 +47,13 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   geometry_array::Array{Float64,1} = molecule["geometry"]
   symbols::Array{String} = molecule["symbols"]
   basis::String = model["basis"]
+  charge::Array{String} = molecule["charge"]
 
   num_atoms::Int64 = length(geometry_array)/3
   geometry_array_t::Array{Float64,2} = reshape(geometry_array,(3,num_atoms))
   geometry::Array{Float64,2} = transpose(geometry_array_t)
 
-  basis_set::Basis = Basis(basis)
+  basis_set::Basis = Basis(basis, charge)
 
   #== create basis set ==#
   for atom_idx::Int64 in 1:length(symbols)

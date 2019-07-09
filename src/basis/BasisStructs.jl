@@ -42,6 +42,7 @@ module BasisStructs
   export Basis
 
   Basis(model::String) = Basis([],model,0,0)
+  Basis(model::String, charge::Int64) = Basis([],model,0,-charge)
 
   function add_shell(basis_set::Basis, shell::Shell)
     shell.pos = (length(basis_set.shells) == 0) ?
