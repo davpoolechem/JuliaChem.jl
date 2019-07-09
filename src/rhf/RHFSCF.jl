@@ -379,8 +379,10 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
         println("QUARTET: $ish, $jsh, $ksh, $lsh")
 
-		eri_batch::Array{T,1}, eri_offset = shellquart(D, quartet, tei, mutex,
-          eri_offset)
+        lock(mutex)
+		  eri_batch::Array{T,1}, eri_offset = shellquart(D, quartet, tei,
+            eri_offset)
+        unlock(mutex)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
 		#if (max(eri_batch...) >= 1E-10)
@@ -404,7 +406,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 end
 
 function shellquart(D::Array{T,2},quartet::ShQuartet,
-  tei_file::HDF5File, mutex, eri_offset) where {T<:AbstractFloat}
+  tei_file::HDF5File, eri_offset::Int64) where {T<:AbstractFloat}
 
   nμ = quartet.bra.sh_a.nbas
   nν = quartet.bra.sh_b.nbas
@@ -419,34 +421,32 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   μνλσ::Int64 = eri_offset
   eri_batch::Array{T,1} = [ ]
 
-  lock(mutex)
   tei_list::Array{Float64,1} = read(tei_file, "tei")
-  unlock(mutex)
 
-  for μ::Int64 in pμ:pμ+(nμ-1), ν::Int64 in pν:pν+(nν-1)
-    if (μ < ν) continue end
+  for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
+    μ::Int64, ν::Int64 = μμ,νν
+    if (μμ < νν) continue end
 
-    μν = index(μ,ν)
-    #μν_idx::Int64 = eri_offset + nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
+    μν::Int64 = index(μμ,νν)
 
-	for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
-      if (λ < σ) continue end
+	for λλ::Int64 in pλ:pλ+(nλ-1), σσ::Int64 in pσ:pσ+(nσ-1)
+      λ::Int64, σ::Int64 = λλ,σσ
+      if (λλ < σσ) continue end
 
-      λσ = index(λ,σ)
+      λσ::Int64 = index(λλ,σσ)
 
       if (μν < λσ)
-        if (μ != λ && ν != σ)
-            μ, ν, λ, σ = λ, σ, μ, ν
-        else
-            continue
+        if (μμ != λλ && νν != σσ) μ,ν,λ,σ = λλ,σσ,μμ,νν
+        else continue
         end
       end
 
-      #μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
       μνλσ += 1
       eri_offset += 1
-      eri = tei_list[μνλσ]
-      println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
+
+      #eri = tei_list[μνλσ]
+      #println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
+
       push!(eri_batch,tei_list[μνλσ])
     end
   end
@@ -474,32 +474,31 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 
   μνλσ::Int64 = 0
 
-  for μ::Int64 in pμ:pμ+(nμ-1), ν::Int64 in pν:pν+(nν-1)
-    if (μ < ν) continue end
+  for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
+    μ::Int64, ν::Int64 = μμ,νν
+    if (μμ < νν) continue end
 
-    μν = index(μ,ν)
-	#μν_idx::Int64 = nν*nλ*nσ*(μ-pμ) + nλ*nσ*(ν-pν)
+    μν::Int64 = index(μμ,νν)
 
-    for λ::Int64 in pλ:pλ+(nλ-1), σ::Int64 in pσ:pσ+(nσ-1)
-	  if (λ < σ) continue end
+    for λλ::Int64 in pλ:pλ+(nλ-1), σσ::Int64 in pσ:pσ+(nσ-1)
+      λ::Int64, σ::Int64 = λλ,σσ
+      if (λλ < σσ) continue end
 
-	  λσ = index(λ,σ)
+      λσ::Int64 = index(λλ,σσ)
+
       if (μν < λσ)
-        if (μ != λ && ν != σ)
-            μ, ν, λ, σ = λ, σ, μ, ν
-        else
-            continue
+        if (μμ != λλ && νν != σσ) μ,ν,λ,σ = λλ,σσ,μμ,νν
+        else continue
         end
       end
 
-	  #μνλσ::Int64 = μν_idx + nσ*(λ-pλ) + (σ-pσ) + 1
       μνλσ += 1
 
 	  eri::T = eri_batch[μνλσ]
       #if (abs(eri) <= 1E-10) continue end
 
-      Dij = D[μ,ν]
-      #println("$μ, $ν, $λ, $σ, $eri")
+      #Dij = D[μ,ν]
+      println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
