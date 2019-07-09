@@ -381,7 +381,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
         lock(mutex)
 		  eri_batch::Array{T,1}, eri_offset = shellquart(D, quartet, tei,
-            eri_offset)
+            eri_offset, ish, jsh, ksh, lsh)
         unlock(mutex)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
@@ -406,7 +406,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 end
 
 function shellquart(D::Array{T,2},quartet::ShQuartet,
-  tei_file::HDF5File, eri_offset::Int64) where {T<:AbstractFloat}
+  tei_file::HDF5File, eri_offset::Int64,
+  ish::Int64, jsh::Int64, ksh::Int64,
+  lsh::Int64) where {T<:AbstractFloat}
 
   nμ = quartet.bra.sh_a.nbas
   nν = quartet.bra.sh_b.nbas
@@ -435,11 +437,15 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 
       λσ::Int64 = index(λλ,σσ)
 
+     # println("$μμ, $νν, $λλ, $σσ, $μν, $λσ")
       if (μν < λσ)
-        same::Bool = quartet.bra.sh_a.atom_id == quartet.bra.sh_b.atom_id
-        same = same && quartet.bra.sh_b.atom_id == quartet.ket.sh_a.atom_id
-        same = same && quartet.ket.sh_a.atom_id == quartet.ket.sh_b.atom_id
+        same::Bool = ish == jsh
+        same = same && jsh == ksh
+        same = same && ksh == lsh
 
+        ikjl::Bool = μμ != λλ && νν != σσ
+
+    #    println("$μμ, $νν, $λλ, $σσ, $same, $ikjl")
         if (μμ != νν && μμ != λλ && μμ != σσ &&
             νν != λλ && νν != σσ &&
             λλ != σσ && same)
@@ -512,7 +518,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       #if (abs(eri) <= 1E-10) continue end
 
       #Dij = D[μ,ν]
-      println("$μ, $ν, $λ, $σ, $eri")
+      #println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
