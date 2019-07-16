@@ -32,7 +32,7 @@ function script(input_file::String)
 
     #== generate basis set ==#
     basis = JCBasis.run(molecule, model)
-    display(basis)
+    #display(basis)
 
     #== perform scf calculation ==#
     if (driver == "energy")

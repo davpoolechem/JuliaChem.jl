@@ -377,7 +377,10 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
 		quartet::ShQuartet = ShQuartet(bra,ket)
 
-        println("QUARTET: $ish, $jsh, $ksh, $lsh")
+        qnum_ij = ish*(ish-1)/2 + jsh
+		qnum_kl = ksh*(ksh-1)/2 + lsh
+		quartet_num = qnum_ij*(qnum_ij-1)/2 + qnum_kl 
+        println("QUARTET: $ish, $jsh, $ksh, $lsh, $quartet_num")
 
         lock(mutex)
 		  eri_batch::Array{T,1}, eri_offset = shellquart(D, quartet, tei,

@@ -49,7 +49,7 @@ function run(basis::Basis, molecule::Dict{String,Any},
   #== initialize scf flags ==#
   scf_flags::Dict{String,Any} = keywords["scf"]
 
-  #== set up eri database is not doing direct ==#
+  #== set up eri database if not doing direct ==#
   if (scf_flags["direct"] == false)
     hdf5name = "tei"
     hdf5name *= ".h5"
@@ -57,6 +57,37 @@ function run(basis::Basis, molecule::Dict{String,Any},
       h5open(hdf5name, "w") do file
         eri_array::Array{Float64,1} = molecule["tei"]
         write(file, "tei", eri_array)
+
+        nsh::Int64 = length(basis.shells)
+
+        eri_start_index::Array{Int64,1} = [ ]
+        eri_index_size::Int64 = 0
+        for ish::Int64 in 1:nsh, jsh::Int64 in 1:ish
+          ijsh::Int64 = index(ish,jsh)
+          #qnum_ij = ish*(ish-1)/2 + jsh
+
+          ibas = basis.shells[ish].nbas
+          jbas = basis.shells[jsh].nbas
+
+          for ksh::Int64 in 1:nsh, lsh::Int64 in 1:ksh
+            klsh::Int64 = index(ksh,lsh)
+            if (klsh > ijsh) continue end
+
+            kbas = basis.shells[ksh].nbas
+            lbas = basis.shells[lsh].nbas
+
+            #qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+            #quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+
+            qint_ij::Int64 = ibas*(ibas-1)/2 + jbas
+            qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
+
+            eri_index_size::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
+            push!(eri_start_index, eri_index_size)
+          end
+        end
+
+        write(file, "start", eri_start_index)
       end
     end
   end
