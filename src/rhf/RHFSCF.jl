@@ -44,29 +44,21 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
   comm=MPI.COMM_WORLD
   calculation_status::Dict{String,Any} = Dict([])
 
-  json_debug::Any = ""
-  #if (FLAGS.SCF.DEBUG == true)
-#    json_debug = open(FLAGS.CTRL.NAME*"-debug.json","w")
- # end
-
   #== read variables from input if needed ==#
   E_nuc::T = molecule["enuc"]
 
   S::Array{T,2} = read_in_oei(molecule["ovr"], basis.norb)
   H::Array{T,2} = read_in_oei(molecule["hcore"], basis.norb)
 
-  #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-    #output_H = Dict([("Core Hamiltonian",H)])
-    #write(json_debug,JSON.json(output_H))
-  #end
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("Overlap matrix:")
+    display(S)
+    println("")
 
-  #println("Overlap matrix:")
-  #display(S)
-  #println("")
-
-  #println("Hamiltonian matrix:")
-  #display(H)
-  #println("")
+    println("Hamiltonian matrix:")
+    display(H)
+    println("")
+  end
 
   #== build the orthogonalization matrix ==#
   S_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(S))
@@ -81,14 +73,11 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
   ortho::Array{T,2} = S_evec*
     (LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
 
-  #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-#    output_ortho = Dict([("Orthogonalization Matrix",ortho)])
-#    write(json_debug,JSON.json(output_ortho))
- # end
-
-#println("Ortho matrix:")
- #display(ortho)
- #println("")
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("Ortho matrix:")
+    display(ortho)
+    println("")
+  end
 
   #== build the initial matrices ==#
   F::Array{T,2} = H
@@ -103,18 +92,10 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	println("Iter      Energy                   ΔE                   Drms")
   end
 
-  F, D, C, E_elec = iteration(F, D, H, ortho, basis)
+  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
 
   E::T = E_elec + E_nuc
   E_old::T = E
-
- # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-#    output_F_initial = Dict([("Initial Fock Matrix",F)])
-#    output_D_initial = Dict([("Initial Density Matrix",D)])
-
-#    write(json_debug,JSON.json(output_F_initial))
-#    write(json_debug,JSON.json(output_D_initial))
- # end
 
   if (MPI.Comm_rank(comm) == 0)
     println(0,"     ", E)
@@ -134,27 +115,24 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	  F = MPI.Allreduce(F_temp,MPI.SUM,comm)
 	  MPI.Barrier(comm)
 
-	 # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-    #    println("Skeleton Fock matrix:")
-    #    display(F)
-    #    println("")
-
-	 #   output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
-	  #    ("Density Matrix",D)])
-
-	   # write(json_debug,JSON.json(output_iter_data))
-	  #end
+	  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+        println("Skeleton Fock matrix:")
+        display(F)
+        println("")
+	  end
 
 	  F += deepcopy(H)
 
-      #println("Total Fock matrix:")
-      #display(F)
-      #println("")
+      if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+        println("Total Fock matrix:")
+        display(F)
+        println("")
+      end
 
       #== obtain new F,D,C matrices ==#
       D_old::Array{T,2} = deepcopy(D)
 
-	  F, D, C, E_elec = iteration(F, D, H, ortho, basis)
+	  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
 
       #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
@@ -222,7 +200,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
       merge!(calculation_status, calculation_success)
     end
 
-	#if (FLAGS.SCF.DEBUG == true)
+	#if (FLAGS.SCF.debug == true)
     #  close(json_debug)
     #end
   end
@@ -249,7 +227,9 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
-  ortho::Array{T,2}, basis::Basis) where {T<:AbstractFloat}
+  ortho::Array{T,2}, basis::Basis, scf_flags) where {T<:AbstractFloat}
+
+  comm=MPI.COMM_WORLD
 
   #== obtain new orbital coefficients ==#
   F = transpose(ortho)*F_μν*ortho
@@ -259,47 +239,39 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   F_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(F))
   F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-  #println("F_eval:")
-  #display(F_eval)
-  #println("")
-
-  #println("sorted F_eval:")
-  #display(sortperm(F_eval))
-  #println("")
-
   C::Array{T,2} = ortho*F_evec
 
-  #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-    #println("New orbitals:")
-    #display(C)
-    #println("")
- # end
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("New orbitals:")
+    display(C)
+    println("")
+  end
 
   #== build new density matrix ==#
   nocc::Int64 = basis.nels/2
   norb = basis.norb
 
- for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
+  for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
     D[i,j] = ∑(C[i,1:nocc],C[j,1:nocc])
     D[i,j] *= 2
- end
+  end
 
-  #if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-    #println("New density matrix:")
-    #display(D)
-    #println("")
- # end
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("New density matrix:")
+    display(D)
+    println("")
+  end
 
   #== compute new SCF energy ==#
   EHF1::T = ∑(D,F_μν)
   EHF2::T = ∑(D,H)
   E_elec::T = (EHF1 + EHF2)/2
 
- # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-#    println("New energy:")
-      #println("$EHF1, $EHF2")
-#    println("")
- # end
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("New energy:")
+    println("$EHF1, $EHF2")
+    println("")
+  end
 
   return (F, D, C, E_elec)
 end
@@ -410,25 +382,13 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64) where {T<:AbstractFloat}
 
-  #nμ = quartet.bra.sh_a.nbas
-  #nν = quartet.bra.sh_b.nbas
-  #nλ = quartet.ket.sh_a.nbas
-  #nσ = quartet.ket.sh_b.nbas
-
-  #pμ = quartet.bra.sh_a.pos
-  #pν = quartet.bra.sh_b.pos
-  #pλ = quartet.ket.sh_a.pos
-  #pσ = quartet.ket.sh_b.pos
-
-  #μνλσ::Int64 = 0
-
   lock(mutex)
   tei_list::Array{Float64,1} = read(tei_file, "Integrals")
   eri_start_array::Array{Int64,1} = read(tei_file, "Start Index")
   eri_size_array::Array{Int64,1} = read(tei_file, "Size Index")
   unlock(mutex)
 
-  qnum_ij = ish*(ish-1)/2 + jsh
+  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
   qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
 
   quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
@@ -443,51 +403,6 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 
     #println("$μνλσ, $eri, $eri_size")
   end
-
-#=
-  for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
-    μ::Int64, ν::Int64 = μμ,νν
-    if (μμ < νν) continue end
-
-    μν::Int64 = index(μμ,νν)
-
-	for λλ::Int64 in pλ:pλ+(nλ-1), σσ::Int64 in pσ:pσ+(nσ-1)
-      λ::Int64, σ::Int64 = λλ,σσ
-      if (λλ < σσ) continue end
-
-      λσ::Int64 = index(λλ,σσ)
-
-     # println("$μμ, $νν, $λλ, $σσ, $μν, $λσ")
-      if (μν < λσ)
-        continue
-#        same::Bool = ish == jsh
-#        same = same && jsh == ksh
-#        same = same && ksh == lsh
-
-#        ikjl::Bool = μμ != λλ && νν != σσ
-
-    #    println("$μμ, $νν, $λλ, $σσ, $same, $ikjl")
-#        if (μμ != νν && μμ != λλ && μμ != σσ &&
-#            νν != λλ && νν != σσ &&
-#            λλ != σσ && same)
-#          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
-#        elseif (μμ != λλ &&
-#            νν != σσ && !same)
-#          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
-#        else continue
-#        end
-      end
-
-      μνλσ += 1
-
-      eri = tei_list[μνλσ]
-      #println("$μ, $ν, $λ, $σ, $eri")
-
-      push!(eri_batch,tei_list[μνλσ])
-    end
-  end
-
-  =#
 
   return deepcopy(eri_batch)
 end
@@ -524,14 +439,23 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       λσ::Int64 = index(λλ,σσ)
 
       if (μν < λσ)
-         continue
-        #if (μμ != λλ && νν != σσ) μ,ν,λ,σ = λλ,σσ,μμ,νν
-    #    if (μμ != νν && μμ != λλ && μμ != σσ &&
-#        νν != λλ && νν != σσ &&
-#            λλ != σσ)
-#          μ,ν,λ,σ = λλ,σσ,μμ,νν
-        #else continue
-        #end
+        continue
+#        same::Bool = ish == jsh
+#        same = same && jsh == ksh
+#        same = same && ksh == lsh
+
+#        ikjl::Bool = μμ != λλ && νν != σσ
+
+    #    println("$μμ, $νν, $λλ, $σσ, $same, $ikjl")
+#        if (μμ != νν && μμ != λλ && μμ != σσ &&
+#            νν != λλ && νν != σσ &&
+#            λλ != σσ && same)
+#          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
+#        elseif (μμ != λλ &&
+#            νν != σσ && !same)
+#          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
+#        else continue
+#        end
       end
 
       μνλσ += 1
