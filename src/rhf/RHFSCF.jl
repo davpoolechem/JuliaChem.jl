@@ -135,9 +135,9 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	  MPI.Barrier(comm)
 
 	 # if (FLAGS.SCF.DEBUG == true && MPI.Comm_rank(comm) == 0)
-        println("Skeleton Fock matrix:")
-        display(F)
-        println("")
+    #    println("Skeleton Fock matrix:")
+    #    display(F)
+    #    println("")
 
 	 #   output_iter_data = Dict([("SCF Iteration",iter),("Fock Matrix",F),
 	  #    ("Density Matrix",D)])
@@ -351,7 +351,6 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
   F = zeros(basis.norb,basis.norb)
   mutex = Base.Threads.Mutex()
-  eri_offset = 0
 
   #for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
   for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
@@ -379,13 +378,11 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
         qnum_ij = ish*(ish-1)/2 + jsh
 		qnum_kl = ksh*(ksh-1)/2 + lsh
-		quartet_num = qnum_ij*(qnum_ij-1)/2 + qnum_kl 
-        println("QUARTET: $ish, $jsh, $ksh, $lsh, $quartet_num")
+		quartet_num = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+        #println("QUARTET: $ish, $jsh, $ksh, $lsh, $quartet_num")
 
-        lock(mutex)
-		  eri_batch::Array{T,1}, eri_offset = shellquart(D, quartet, tei,
-            eri_offset, ish, jsh, ksh, lsh)
-        unlock(mutex)
+		eri_batch = shellquart(D, quartet, tei,
+            mutex, ish, jsh, ksh, lsh)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
 		#if (max(eri_batch...) >= 1E-10)
@@ -409,25 +406,45 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 end
 
 function shellquart(D::Array{T,2},quartet::ShQuartet,
-  tei_file::HDF5File, eri_offset::Int64,
+  tei_file::HDF5File, mutex,
   ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64) where {T<:AbstractFloat}
 
-  nμ = quartet.bra.sh_a.nbas
-  nν = quartet.bra.sh_b.nbas
-  nλ = quartet.ket.sh_a.nbas
-  nσ = quartet.ket.sh_b.nbas
+  #nμ = quartet.bra.sh_a.nbas
+  #nν = quartet.bra.sh_b.nbas
+  #nλ = quartet.ket.sh_a.nbas
+  #nσ = quartet.ket.sh_b.nbas
 
-  pμ = quartet.bra.sh_a.pos
-  pν = quartet.bra.sh_b.pos
-  pλ = quartet.ket.sh_a.pos
-  pσ = quartet.ket.sh_b.pos
+  #pμ = quartet.bra.sh_a.pos
+  #pν = quartet.bra.sh_b.pos
+  #pλ = quartet.ket.sh_a.pos
+  #pσ = quartet.ket.sh_b.pos
 
-  μνλσ::Int64 = eri_offset
+  #μνλσ::Int64 = 0
+
+  lock(mutex)
+  tei_list::Array{Float64,1} = read(tei_file, "Integrals")
+  eri_start_array::Array{Int64,1} = read(tei_file, "Start Index")
+  eri_size_array::Array{Int64,1} = read(tei_file, "Size Index")
+  unlock(mutex)
+
+  qnum_ij = ish*(ish-1)/2 + jsh
+  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+
+  quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+  eri_start::Int64 = eri_start_array[quartet_num]
+  eri_size::Int64 = eri_size_array[quartet_num]
+
   eri_batch::Array{T,1} = [ ]
 
-  tei_list::Array{Float64,1} = read(tei_file, "tei")
+  for μνλσ::Int64 in eri_start:eri_start+(eri_size-1)
+    eri::T = tei_list[μνλσ]
+    push!(eri_batch,eri)
 
+    #println("$μνλσ, $eri, $eri_size")
+  end
+
+#=
   for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
     μ::Int64, ν::Int64 = μμ,νν
     if (μμ < νν) continue end
@@ -442,36 +459,37 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 
      # println("$μμ, $νν, $λλ, $σσ, $μν, $λσ")
       if (μν < λσ)
-        same::Bool = ish == jsh
-        same = same && jsh == ksh
-        same = same && ksh == lsh
+        continue
+#        same::Bool = ish == jsh
+#        same = same && jsh == ksh
+#        same = same && ksh == lsh
 
-        ikjl::Bool = μμ != λλ && νν != σσ
+#        ikjl::Bool = μμ != λλ && νν != σσ
 
     #    println("$μμ, $νν, $λλ, $σσ, $same, $ikjl")
-        if (μμ != νν && μμ != λλ && μμ != σσ &&
-            νν != λλ && νν != σσ &&
-            λλ != σσ && same)
-          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
-        elseif (μμ != λλ &&
-            νν != σσ && !same)
-          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
-        else continue
-        end
+#        if (μμ != νν && μμ != λλ && μμ != σσ &&
+#            νν != λλ && νν != σσ &&
+#            λλ != σσ && same)
+#          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
+#        elseif (μμ != λλ &&
+#            νν != σσ && !same)
+#          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
+#        else continue
+#        end
       end
 
       μνλσ += 1
-      eri_offset += 1
 
       eri = tei_list[μνλσ]
-      println("$μ, $ν, $λ, $σ, $μν, $λσ, $μνλσ, $eri")
+      #println("$μ, $ν, $λ, $σ, $eri")
 
       push!(eri_batch,tei_list[μνλσ])
     end
   end
 
-  #eri_offset += nμ*nν*nλ*nσ
-  return (deepcopy(eri_batch), eri_offset)
+  =#
+
+  return deepcopy(eri_batch)
 end
 
 function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
@@ -506,13 +524,14 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       λσ::Int64 = index(λλ,σσ)
 
       if (μν < λσ)
+         continue
         #if (μμ != λλ && νν != σσ) μ,ν,λ,σ = λλ,σσ,μμ,νν
-        if (μμ != νν && μμ != λλ && μμ != σσ &&
-            νν != λλ && νν != σσ &&
-            λλ != σσ)
-          μ,ν,λ,σ = λλ,σσ,μμ,νν
-        else continue
-        end
+    #    if (μμ != νν && μμ != λλ && μμ != σσ &&
+#        νν != λλ && νν != σσ &&
+#            λλ != σσ)
+#          μ,ν,λ,σ = λλ,σσ,μμ,νν
+        #else continue
+        #end
       end
 
       μνλσ += 1

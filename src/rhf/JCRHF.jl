@@ -56,18 +56,23 @@ function run(basis::Basis, molecule::Dict{String,Any},
     if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
       h5open(hdf5name, "w") do file
         eri_array::Array{Float64,1} = molecule["tei"]
-        write(file, "tei", eri_array)
+        write(file, "Integrals", eri_array)
 
         nsh::Int64 = length(basis.shells)
 
         eri_start_index::Array{Int64,1} = [ ]
-        eri_index_size::Int64 = 0
+        eri_start::Int64 = 0
+
+        eri_size_index::Array{Int64,1} = [ ]
         for ish::Int64 in 1:nsh, jsh::Int64 in 1:ish
           ijsh::Int64 = index(ish,jsh)
-          #qnum_ij = ish*(ish-1)/2 + jsh
+          qnum_ij = ish*(ish-1)/2 + jsh
 
           ibas = basis.shells[ish].nbas
           jbas = basis.shells[jsh].nbas
+
+          ipos = basis.shells[ish].pos
+          jpos = basis.shells[jsh].pos
 
           for ksh::Int64 in 1:nsh, lsh::Int64 in 1:ksh
             klsh::Int64 = index(ksh,lsh)
@@ -76,18 +81,43 @@ function run(basis::Basis, molecule::Dict{String,Any},
             kbas = basis.shells[ksh].nbas
             lbas = basis.shells[lsh].nbas
 
-            #qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-            #quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+            kpos = basis.shells[ksh].pos
+            lpos = basis.shells[lsh].pos
+
+            qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+            quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
 
             qint_ij::Int64 = ibas*(ibas-1)/2 + jbas
             qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
 
-            eri_index_size::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
-            push!(eri_start_index, eri_index_size)
+            eri_start::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
+            push!(eri_start_index, eri_start)
+
+            eri_size = 0
+            for μμ::Int64 in 0:ibas-1, νν::Int64 in 0:jbas-1
+              μ::Int64, ν::Int64 = μμ,νν
+              if (ipos+μμ < jpos+νν) continue end
+
+              μν::Int64 = index(μμ,νν)
+
+              for λλ::Int64 in 0:kbas-1, σσ::Int64 in 0:lbas-1
+                λ::Int64, σ::Int64 = λλ,σσ
+                if (kpos+λλ < lpos+σσ) continue end
+
+                λσ::Int64 = index(λλ,σσ)
+                if (μν < λσ) continue end
+
+                eri_size += 1
+              end
+            end
+            push!(eri_size_index, eri_size)
+            #println("$quartet_num, $ibas, $jbas, $kbas, $lbas,
+            #  $eri_size")
           end
         end
 
-        write(file, "start", eri_start_index)
+        write(file, "Start Index", eri_start_index)
+        write(file, "Size Index", eri_size_index)
       end
     end
   end
