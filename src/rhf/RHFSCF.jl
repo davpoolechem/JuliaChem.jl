@@ -348,17 +348,17 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
 		quartet::ShQuartet = ShQuartet(bra,ket)
 
-        qnum_ij = ish*(ish-1)/2 + jsh
-		qnum_kl = ksh*(ksh-1)/2 + lsh
-		quartet_num = qnum_ij*(qnum_ij-1)/2 + qnum_kl
-        #println("QUARTET: $ish, $jsh, $ksh, $lsh, $quartet_num")
+        qnum_ij::Int64 = ish*(ish-1)/2 + jsh
+		qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+		quartet_num ::Int64= qnum_ij*(qnum_ij-1)/2 + qnum_kl
+        println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
 		eri_batch = shellquart(D, quartet, tei,
-            mutex, ish, jsh, ksh, lsh)
+            mutex, quartet_num)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
 		#if (max(eri_batch...) >= 1E-10)
-        F_priv = dirfck(D, eri_batch, quartet)
+        F_priv = dirfck(D, eri_batch, quartet, ish, jsh, ksh, lsh)
         #end
 
 		lock(mutex)
@@ -378,9 +378,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 end
 
 function shellquart(D::Array{T,2},quartet::ShQuartet,
-  tei_file::HDF5File, mutex,
-  ish::Int64, jsh::Int64, ksh::Int64,
-  lsh::Int64) where {T<:AbstractFloat}
+  tei_file::HDF5File, mutex, quartet_num::Int64) where {T<:AbstractFloat}
 
   lock(mutex)
   tei_list::Array{Float64,1} = read(tei_file, "Integrals")
@@ -388,10 +386,6 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   eri_size_array::Array{Int64,1} = read(tei_file, "Size Index")
   unlock(mutex)
 
-  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
-  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-
-  quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
   eri_start::Int64 = eri_start_array[quartet_num]
   eri_size::Int64 = eri_size_array[quartet_num]
 
@@ -400,29 +394,28 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   for μνλσ::Int64 in eri_start:eri_start+(eri_size-1)
     eri::T = tei_list[μνλσ]
     push!(eri_batch,eri)
-
-    #println("$μνλσ, $eri, $eri_size")
+    #println("$μνλσ, $eri")
   end
 
   return deepcopy(eri_batch)
 end
 
 function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
-  quartet::ShQuartet) where {T<:AbstractFloat}
+  quartet::ShQuartet, ish, jsh, ksh, lsh) where {T<:AbstractFloat}
 
   norb = size(D)[1]
 
   F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
-  nμ = quartet.bra.sh_a.nbas
-  nν = quartet.bra.sh_b.nbas
-  nλ = quartet.ket.sh_a.nbas
-  nσ = quartet.ket.sh_b.nbas
+  nμ::Int64 = quartet.bra.sh_a.nbas
+  nν::Int64 = quartet.bra.sh_b.nbas
+  nλ::Int64 = quartet.ket.sh_a.nbas
+  nσ::Int64 = quartet.ket.sh_b.nbas
 
-  pμ = quartet.bra.sh_a.pos
-  pν = quartet.bra.sh_b.pos
-  pλ = quartet.ket.sh_a.pos
-  pσ = quartet.ket.sh_b.pos
+  pμ::Int64 = quartet.bra.sh_a.pos
+  pν::Int64 = quartet.bra.sh_b.pos
+  pλ::Int64 = quartet.ket.sh_a.pos
+  pσ::Int64 = quartet.ket.sh_b.pos
 
   μνλσ::Int64 = 0
 
@@ -438,33 +431,36 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 
       λσ::Int64 = index(λλ,σσ)
 
+      #if (μν < λσ) continue end
+
+      #println("$μ, $ν, $λ, $σ")
+
       if (μν < λσ)
-        continue
-#        same::Bool = ish == jsh
-#        same = same && jsh == ksh
-#        same = same && ksh == lsh
+        same::Bool = ish == jsh
+        same = same && jsh == ksh
+        same = same && ksh == lsh
 
-#        ikjl::Bool = μμ != λλ && νν != σσ
+        ikjl::Bool = μμ != λλ && νν != σσ
 
-    #    println("$μμ, $νν, $λλ, $σσ, $same, $ikjl")
-#        if (μμ != νν && μμ != λλ && μμ != σσ &&
-#            νν != λλ && νν != σσ &&
-#            λλ != σσ && same)
-#          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
-#        elseif (μμ != λλ &&
-#            νν != σσ && !same)
-#          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
-#        else continue
-#        end
+        if (μμ != νν && μμ != λλ && μμ != σσ &&
+            νν != λλ && νν != σσ &&
+            λλ != σσ && same)
+          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
+        elseif (μμ != λλ &&
+            νν != σσ && !same)
+          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
+        else continue
+        end
       end
 
       μνλσ += 1
 
 	  eri::T = eri_batch[μνλσ]
+      #eri::T = 0
       #if (abs(eri) <= 1E-10) continue end
 
       #Dij = D[μ,ν]
-      #println("$μ, $ν, $λ, $σ, $eri")
+      println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0

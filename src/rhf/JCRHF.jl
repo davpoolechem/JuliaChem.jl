@@ -55,13 +55,15 @@ function run(basis::Basis, molecule::Dict{String,Any},
     hdf5name *= ".h5"
     if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
       h5open(hdf5name, "w") do file
+        #== write eri list to database ==#
         eri_array::Array{Float64,1} = molecule["tei"]
         write(file, "Integrals", eri_array)
 
+        #== write read-in index values to database ==#
         nsh::Int64 = length(basis.shells)
 
         eri_start_index::Array{Int64,1} = [ ]
-        eri_start::Int64 = 0
+        eri_start::Int64 = 1
 
         eri_size_index::Array{Int64,1} = [ ]
         for ish::Int64 in 1:nsh, jsh::Int64 in 1:ish
@@ -90,29 +92,51 @@ function run(basis::Basis, molecule::Dict{String,Any},
             qint_ij::Int64 = ibas*(ibas-1)/2 + jbas
             qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
 
-            eri_start::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
-            push!(eri_start_index, eri_start)
+            #eri_start::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
+            #push!(eri_start_index, eri_start)
 
             eri_size = 0
-            for μμ::Int64 in 0:ibas-1, νν::Int64 in 0:jbas-1
+            for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
               μ::Int64, ν::Int64 = μμ,νν
-              if (ipos+μμ < jpos+νν) continue end
+              if (μμ < νν) continue end
 
               μν::Int64 = index(μμ,νν)
 
-              for λλ::Int64 in 0:kbas-1, σσ::Int64 in 0:lbas-1
+              for λλ::Int64 in kpos:kpos+(kbas-1), σσ::Int64 in lpos:lpos+(lbas-1)
                 λ::Int64, σ::Int64 = λλ,σσ
-                if (kpos+λλ < lpos+σσ) continue end
+                if (λλ < σσ) continue end
 
                 λσ::Int64 = index(λλ,σσ)
-                if (μν < λσ) continue end
+                #if (μν < λσ) continue end
+
+
+                if (μν < λσ)
+                  same::Bool = ish == jsh
+                  same = same && jsh == ksh
+                  same = same && ksh == lsh
+
+                  ikjl::Bool = μμ != λλ && νν != σσ
+
+                  if (μμ != νν && μμ != λλ && μμ != σσ &&
+                     νν != λλ && νν != σσ &&
+                     λλ != σσ && same)
+                     μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
+                  elseif (μμ != λλ &&
+                      νν != σσ && !same)
+                    μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
+                  else continue
+                  end
+                end
+
 
                 eri_size += 1
               end
             end
             push!(eri_size_index, eri_size)
-            #println("$quartet_num, $ibas, $jbas, $kbas, $lbas,
-            #  $eri_size")
+            push!(eri_start_index, eri_start)
+            eri_start += eri_size
+
+            #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
           end
         end
 
@@ -126,21 +150,7 @@ function run(basis::Basis, molecule::Dict{String,Any},
   scf = rhf_energy(basis, molecule, scf_flags)
   #GC.enable(true)
   #GC.gc()
-#=
-  calculation_name::String = ctrl_flags.NAME
-  json_output = open("output.json","w")
-    output_name = Dict([("Calculation",calculation_name)])
-    output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
-    output_density = Dict([("Structure","Density"),("Data",scf.Density)])
-    output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
-    if (MPI.Comm_rank(comm) == 0)
-      write(json_output,JSON.json(output_name))
-      write(json_output,JSON.json(output_fock))
-      write(json_output,JSON.json(output_density))
-      write(json_output,JSON.json(output_coeff))
-    end
-  close(json_output)
-=#
+
   if (MPI.Comm_rank(comm) == 0)
     println("                       ========================================                 ")
     println("                             END RESTRICTED CLOSED-SHELL                 ")
