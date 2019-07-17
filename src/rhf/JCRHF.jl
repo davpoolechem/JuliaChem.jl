@@ -109,25 +109,50 @@ function run(basis::Basis, molecule::Dict{String,Any},
                 λσ::Int64 = index(λλ,σσ)
                 #if (μν < λσ) continue end
 
-
                 if (μν < λσ)
-                  same::Bool = ish == jsh
-                  same = same && jsh == ksh
-                  same = same && ksh == lsh
+                  two_shell::Bool = ibas == jbas
+                  two_shell = two_shell || (ibas == kbas)
+                  two_shell = two_shell || (ibas == lbas)
+                  two_shell = two_shell || (jbas == kbas)
+                  two_shell = two_shell || (jbas == lbas)
+                  two_shell = two_shell || (kbas == lbas)
+
+                  three_shell::Bool = ibas == jbas && jbas == kbas
+                  three_shell = three_shell || (ibas == jbas && jbas == lbas)
+                  three_shell = three_shell || (ibas == kbas && kbas == lbas)
+                  three_shell = three_shell || (jbas == kbas && kbas == lbas)
+
+                  four_shell::Bool = ibas == jbas
+                  four_shell = four_shell && (jbas == kbas)
+                  four_shell = four_shell && (kbas == lbas)
 
                   ikjl::Bool = μμ != λλ && νν != σσ
 
-                  if (μμ != νν && μμ != λλ && μμ != σσ &&
-                     νν != λλ && νν != σσ &&
-                     λλ != σσ && same)
-                     μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
-                  elseif (μμ != λλ &&
-                      νν != σσ && !same)
-                    μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
-                  else continue
+                  if four_shell
+                    same::Bool = ish == jsh
+                    same = same && jsh == ksh
+                    same = same && ksh == lsh
+
+                    if (μμ != νν && μμ != λλ && μμ != σσ &&
+                      νν != λλ && νν != σσ && λλ != σσ && same)
+                        μ,ν,λ,σ = λλ,σσ,μμ,νν
+                    else
+                      continue
+                    end
+                  elseif three_shell
+                    if (μμ != λλ && νν != σσ)
+                        μ,ν,λ,σ = λλ,σσ,μμ,νν
+                    else
+                      continue
+                    end
+                  elseif two_shell
+                    if (μμ != λλ && νν != σσ)
+                      μ,ν,λ,σ = λλ,σσ,μμ,νν
+                    else
+                      continue
+                    end
                   end
                 end
-
 
                 eri_size += 1
               end

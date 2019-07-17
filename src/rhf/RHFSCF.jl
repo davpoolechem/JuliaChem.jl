@@ -436,20 +436,47 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       #println("$μ, $ν, $λ, $σ")
 
       if (μν < λσ)
-        same::Bool = ish == jsh
-        same = same && jsh == ksh
-        same = same && ksh == lsh
+        two_shell::Bool = nμ == nν
+        two_shell = two_shell || (nμ == nλ)
+        two_shell = two_shell || (nμ == nσ)
+        two_shell = two_shell || (nν == nλ)
+        two_shell = two_shell || (nν == nσ)
+        two_shell = two_shell || (nλ == nσ)
+
+        three_shell::Bool = nμ == nν && nν == nλ
+        three_shell = three_shell || (nμ == nν && nν == nσ)
+        three_shell = three_shell || (nμ == nλ && nλ == nσ)
+        three_shell = three_shell || (nν == nλ && nλ == nσ)
+
+        four_shell::Bool = nμ == nν
+        four_shell = four_shell && (nν == nλ)
+        four_shell = four_shell && (nλ == nσ)
 
         ikjl::Bool = μμ != λλ && νν != σσ
 
-        if (μμ != νν && μμ != λλ && μμ != σσ &&
-            νν != λλ && νν != σσ &&
-            λλ != σσ && same)
-          μ,ν,λ,σ = λλ,σσ,μμ,νν #4-same shell
-        elseif (μμ != λλ &&
-            νν != σσ && !same)
-          μ,ν,λ,σ = λλ,σσ,μμ,νν # 2/3-same shell
-        else continue
+        if four_shell
+          same::Bool = ish == jsh
+          same = same && jsh == ksh
+          same = same && ksh == lsh
+
+          if (μμ != νν && μμ != λλ && μμ != σσ &&
+            νν != λλ && νν != σσ && λλ != σσ && same)
+              μ,ν,λ,σ = λλ,σσ,μμ,νν
+          else
+            continue
+          end
+        elseif three_shell
+          if (μμ != λλ && νν != σσ)
+              μ,ν,λ,σ = λλ,σσ,μμ,νν
+          else
+            continue
+          end
+        elseif two_shell
+          if (μμ != λλ && νν != σσ)
+            μ,ν,λ,σ = λλ,σσ,μμ,νν
+          else
+            continue
+          end
         end
       end
 
