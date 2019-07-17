@@ -501,7 +501,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       if (abs(eri) <= 1E-10) continue end
 
       Dij = D[μ,ν]
-      println("$μ, $ν, $λ, $σ, $eri, $Dij")
+      #println("$μ, $ν, $λ, $σ, $eri, $Dij")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
