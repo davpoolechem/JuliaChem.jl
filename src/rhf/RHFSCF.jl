@@ -452,16 +452,29 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
         four_shell = four_shell && (nν == nλ)
         four_shell = four_shell && (nλ == nσ)
 
-        ikjl::Bool = μμ != λλ && νν != σσ
-
         if four_shell
-          same::Bool = ish == jsh
-          same = same && jsh == ksh
-          same = same && ksh == lsh
+          three_same::Bool = ish == jsh && jsh == ksh
+          three_same = three_same || (ish == jsh && jsh == lsh)
+          three_same = three_same || (ish == ksh && ksh == lsh)
+          three_same = three_same || (jsh == ksh && ksh == lsh)
 
-          if (μμ != νν && μμ != λλ && μμ != σσ &&
-            νν != λλ && νν != σσ && λλ != σσ && same)
+          four_same::Bool = ish == jsh
+          four_same = four_same && jsh == ksh
+          four_same = four_same && ksh == lsh
+
+          if four_same
+              if (μμ != νν && μμ != λλ && μμ != σσ &&
+                νν != λλ && νν != σσ && λλ != σσ)
+                μ,ν,λ,σ = λλ,σσ,μμ,νν
+              else
+                continue
+              end
+          elseif three_same
+            if (μμ != λλ && νν != σσ)
               μ,ν,λ,σ = λλ,σσ,μμ,νν
+            else
+              continue
+            end
           else
             continue
           end

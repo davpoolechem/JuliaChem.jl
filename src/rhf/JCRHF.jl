@@ -107,7 +107,6 @@ function run(basis::Basis, molecule::Dict{String,Any},
                 if (λλ < σσ) continue end
 
                 λσ::Int64 = index(λλ,σσ)
-                #if (μν < λσ) continue end
 
                 if (μν < λσ)
                   two_shell::Bool = ibas == jbas
@@ -126,19 +125,32 @@ function run(basis::Basis, molecule::Dict{String,Any},
                   four_shell = four_shell && (jbas == kbas)
                   four_shell = four_shell && (kbas == lbas)
 
-                  ikjl::Bool = μμ != λλ && νν != σσ
-
                   if four_shell
-                    same::Bool = ish == jsh
-                    same = same && jsh == ksh
-                    same = same && ksh == lsh
+                      three_same::Bool = ish == jsh && jsh == ksh
+                      three_same = three_same || (ish == jsh && jsh == lsh)
+                      three_same = three_same || (ish == ksh && ksh == lsh)
+                      three_same = three_same || (jsh == ksh && ksh == lsh)
 
-                    if (μμ != νν && μμ != λλ && μμ != σσ &&
-                      νν != λλ && νν != σσ && λλ != σσ && same)
-                        μ,ν,λ,σ = λλ,σσ,μμ,νν
-                    else
-                      continue
-                    end
+                      four_same::Bool = ish == jsh
+                      four_same = four_same && jsh == ksh
+                      four_same = four_same && ksh == lsh
+
+                      if four_same
+                        if (μμ != νν && μμ != λλ && μμ != σσ &&
+                          νν != λλ && νν != σσ && λλ != σσ)
+                          μ,ν,λ,σ = λλ,σσ,μμ,νν
+                        else
+                          continue
+                        end
+                      elseif three_same
+                        if (μμ != λλ && νν != σσ)
+                          μ,ν,λ,σ = λλ,σσ,μμ,νν
+                        else
+                          continue
+                        end
+                      else
+                        continue
+                      end
                   elseif three_shell
                     if (μμ != λλ && νν != σσ)
                         μ,ν,λ,σ = λλ,σσ,μμ,νν
