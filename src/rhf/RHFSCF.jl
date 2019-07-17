@@ -253,6 +253,7 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
 
   for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
     D[i,j] = ∑(C[i,1:nocc],C[j,1:nocc])
+    #D[i,j] = ∑(C[1:nocc,i],C[1:nocc,j])
     D[i,j] *= 2
   end
 
@@ -351,7 +352,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
         qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 		qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
 		quartet_num ::Int64= qnum_ij*(qnum_ij-1)/2 + qnum_kl
-        println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+        #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
 		eri_batch = shellquart(D, quartet, tei,
             mutex, quartet_num)
@@ -497,10 +498,10 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 
 	  eri::T = eri_batch[μνλσ]
       #eri::T = 0
-      #if (abs(eri) <= 1E-10) continue end
+      if (abs(eri) <= 1E-10) continue end
 
-      #Dij = D[μ,ν]
-      println("$μ, $ν, $λ, $σ, $eri")
+      Dij = D[μ,ν]
+      println("$μ, $ν, $λ, $σ, $eri, $Dij")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
