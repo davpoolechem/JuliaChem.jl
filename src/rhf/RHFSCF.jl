@@ -231,12 +231,13 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
-  ortho::Array{T,2}, basis::Basis, scf_flags) where {T<:AbstractFloat}
+  ortho::Array{T,2}, basis::Basis,
+  scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
 
   #== obtain new orbital coefficients ==#
-  F = transpose(ortho)*F_μν*ortho
+  F::Array{T,2} = transpose(ortho)*F_μν*ortho
 
   F_eval::Array{T,1} = eigvals(LinearAlgebra.Hermitian(F))
 
