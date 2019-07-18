@@ -55,17 +55,11 @@ function run(basis::Basis, molecule::Dict{String,Any},
     hdf5name *= ".h5"
     if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
       h5open(hdf5name, "w") do file
-        #== write eri list to database ==#
+        #== write quartet eri lists to database ==#
         eri_array::Array{Float64,1} = molecule["tei"]
-        write(file, "Integrals", eri_array)
-
-        #== write read-in index values to database ==#
         nsh::Int64 = length(basis.shells)
 
-        eri_start_index::Array{Int64,1} = [ ]
         eri_start::Int64 = 1
-
-        eri_size_index::Array{Int64,1} = [ ]
         for ish::Int64 in 1:nsh, jsh::Int64 in 1:ish
           ijsh::Int64 = index(ish,jsh)
           qnum_ij = ish*(ish-1)/2 + jsh
@@ -169,16 +163,15 @@ function run(basis::Basis, molecule::Dict{String,Any},
                 eri_size += 1
               end
             end
-            push!(eri_size_index, eri_size)
-            push!(eri_start_index, eri_start)
+
+            write(file, "Integrals/$quartet_num",
+              eri_array[eri_start:eri_start+(eri_size-1)])
+
             eri_start += eri_size
 
             #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
           end
         end
-
-        write(file, "Start Index", eri_start_index)
-        write(file, "Size Index", eri_size_index)
       end
     end
   end

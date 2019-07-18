@@ -382,23 +382,10 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   tei_file::HDF5File, mutex, quartet_num::Int64) where {T<:AbstractFloat}
 
   lock(mutex)
-  tei_list::Array{Float64,1} = read(tei_file, "Integrals")
-  eri_start_array::Array{Int64,1} = read(tei_file, "Start Index")
-  eri_size_array::Array{Int64,1} = read(tei_file, "Size Index")
+  eri_batch::Array{Float64,1} = read(tei_file, "Integrals/$quartet_num")
   unlock(mutex)
 
-  eri_start::Int64 = eri_start_array[quartet_num]
-  eri_size::Int64 = eri_size_array[quartet_num]
-
-  eri_batch::Array{T,1} = [ ]
-
-  for μνλσ::Int64 in eri_start:eri_start+(eri_size-1)
-    eri::T = tei_list[μνλσ]
-    push!(eri_batch,eri)
-    #println("$μνλσ, $eri")
-  end
-
-  return deepcopy(eri_batch)
+  return eri_batch
 end
 
 function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
