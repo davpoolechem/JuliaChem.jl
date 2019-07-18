@@ -330,8 +330,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   F = zeros(basis.norb,basis.norb)
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
-  #for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
-  for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
+  for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
+  #for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
     if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
       ish::Int64 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
       jsh::Int64 = bra_pairs - ioff[ish]
