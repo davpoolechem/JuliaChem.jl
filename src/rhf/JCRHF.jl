@@ -51,7 +51,7 @@ function run(basis::Basis, molecule::Dict{String,Any},
 
   #== set up eri database if not doing direct ==#
   if (scf_flags["direct"] == false)
-    hdf5name = "tei"
+    hdf5name::String = "tei"
     hdf5name *= ".h5"
     if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
       h5open(hdf5name, "w") do file
@@ -64,21 +64,21 @@ function run(basis::Basis, molecule::Dict{String,Any},
           ijsh::Int64 = index(ish,jsh)
           qnum_ij = ish*(ish-1)/2 + jsh
 
-          ibas = basis.shells[ish].nbas
-          jbas = basis.shells[jsh].nbas
+          ibas::Int64 = basis.shells[ish].nbas
+          jbas::Int64 = basis.shells[jsh].nbas
 
-          ipos = basis.shells[ish].pos
-          jpos = basis.shells[jsh].pos
+          ipos::Int64 = basis.shells[ish].pos
+          jpos::Int64 = basis.shells[jsh].pos
 
           for ksh::Int64 in 1:nsh, lsh::Int64 in 1:ksh
             klsh::Int64 = index(ksh,lsh)
             if (klsh > ijsh) continue end
 
-            kbas = basis.shells[ksh].nbas
-            lbas = basis.shells[lsh].nbas
+            kbas::Int64 = basis.shells[ksh].nbas
+            lbas::Int64 = basis.shells[lsh].nbas
 
-            kpos = basis.shells[ksh].pos
-            lpos = basis.shells[lsh].pos
+            kpos::Int64 = basis.shells[ksh].pos
+            lpos::Int64 = basis.shells[lsh].pos
 
             qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
             quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
@@ -89,7 +89,7 @@ function run(basis::Basis, molecule::Dict{String,Any},
             #eri_start::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
             #push!(eri_start_index, eri_start)
 
-            eri_size = 0
+            eri_size::Int64 = 0
             for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
               μ::Int64, ν::Int64 = μμ,νν
               if (μμ < νν) continue end
