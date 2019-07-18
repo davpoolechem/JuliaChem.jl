@@ -340,8 +340,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
       ijsh::Int64 = index(ish,jsh)
 
-      #Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
-      Threads.@threads for ket_pairs::Int64 in 1:bra_pairs
+      Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
+      #Threads.@threads for ket_pairs::Int64 in 1:bra_pairs
         ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
         lsh::Int64 = ket_pairs - ioff[ksh]
 
