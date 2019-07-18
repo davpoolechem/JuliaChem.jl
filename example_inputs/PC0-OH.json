@@ -2358,7 +2358,7 @@
 
 	"model": {
 		"method": "RHF",
-		"basis": "PCseg-0"
+		"basis": "PCSeg-0"
 	},
 
 	"keywords": {

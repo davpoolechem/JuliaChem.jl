@@ -7,12 +7,13 @@ Import this module into the script when you need to process an input file
 module JCBasis
 
 using BasisStructs
-using ShellProcess
 
 using MPI
 using Base.Threads
 #using Distributed
 using HDF5
+
+Base.include(@__MODULE__, "BasisHelpers.jl")
 
 """
   run(args::String)
@@ -54,14 +55,37 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   geometry::Array{Float64,2} = transpose(geometry_array_t)
 
   basis_set::Basis = Basis(basis, charge)
+  atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
+  shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
   #== create basis set ==#
-  for atom_idx::Int64 in 1:length(symbols)
-    #== initialize variables needed for shell ==#
-    atom_center::Array{Float64,1} = geometry[atom_idx,:]
+  hdf5name::String = "bsed"
+  hdf5name *= ".h5"
+  h5open(hdf5name,"r") do bsed
+    for atom_idx::Int64 in 1:length(symbols)
+      #== initialize variables needed for shell ==#
+      atom_center::Array{Float64,1} = geometry[atom_idx,:]
 
-    #== add shells on atom to basis set ==#
-    process_shells(basis_set, symbols[atom_idx], atom_idx, atom_center)
+      symbol::String = symbols[atom_idx]
+      atomic_number::Int64 = atomic_number_mapping[symbol]
+
+      basis_set.nels += atomic_number
+
+      #== read in basis set values==#
+      shells::Dict{String,Any} = read(
+        bsed["$symbol/$basis"])
+
+      #== process basis set values into shell objects ==#
+      for shell_num::Int64 in 1:length(shells)
+        new_shell_dict::Dict{String,Any} = shells["$shell_num"]
+        new_shell_am = shell_am_mapping[new_shell_dict["Shell Type"]]
+
+        new_shell = Shell(atom_idx, atom_center, new_shell_am)
+        add_shell(basis_set,deepcopy(new_shell))
+
+        basis_set.norb += new_shell.nbas
+      end
+    end
   end
 
   if (MPI.Comm_rank(comm) == 0)
