@@ -385,9 +385,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
 
         eri_quartet_batch_abs::Array{T,1} = map(x -> abs(x), eri_quartet_batch)
-		if (max(eri_quartet_batch_abs...) >= 1E-10)
+#		if (max(eri_quartet_batch_abs...) >= 1E-10)
           F_priv = dirfck(D, eri_quartet_batch, quartet, ish, jsh, ksh, lsh)
-        end
+#        end
 
 		lock(mutex)
 		F += F_priv

@@ -18,11 +18,11 @@ using MPI
 #================================#
 function script(input_file::String)
     #== initialize MPI ==#
-    @time MPI.Init()
+    MPI.Init()
 
     #== read in input file ==#
     output_file::Dict{String,Any} = Dict([])
-    @time molecule, driver, model, keywords = JCInput.run(input_file)
+    molecule, driver, model, keywords = JCInput.run(input_file)
 
     #write("output.json",JSON.json(input_file))
     write("output.json",JSON.json(molecule))
@@ -31,7 +31,7 @@ function script(input_file::String)
     write("output.json",JSON.json(keywords))
 
     #== generate basis set ==#
-    @time basis = JCBasis.run(molecule, model)
+    basis = JCBasis.run(molecule, model)
     #display(basis)
 
     #== perform scf calculation ==#
