@@ -356,16 +356,18 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
         qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 		qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-		quartet_num ::Int64= qnum_ij*(qnum_ij-1)/2 + qnum_kl
+		quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
         #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-		eri_batch = shellquart(D, quartet, tei,
+		eri_batch::Array{T,1} = shellquart(D, quartet, tei,
             mutex, quartet_num)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
-		#if (max(eri_batch...) >= 1E-10)
-        F_priv = dirfck(D, eri_batch, quartet, ish, jsh, ksh, lsh)
-        #end
+
+        eri_batch_abs::Array{T,1} = map(x -> abs(x), eri_batch)
+		if (max(eri_batch_abs...) >= 1E-10)
+          F_priv = dirfck(D, eri_batch, quartet, ish, jsh, ksh, lsh)
+        end
 
 		lock(mutex)
 		F += F_priv
@@ -388,7 +390,7 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
   quartet_num::Int64) where {T<:AbstractFloat}
 
   lock(mutex)
-  eri_batch::Array{Float64,1} = read(tei_file, "Integrals/$quartet_num")
+  eri_batch::Array{T,1} = read(tei_file, "Integrals/$quartet_num")
   unlock(mutex)
 
   return eri_batch

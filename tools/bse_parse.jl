@@ -258,7 +258,7 @@ function parse_all()
             "Rb", "Sr", "Y", "Zr", "Nb", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",
             "In", "Sn", "Sb", "Te", "I", "Xe"
             ] #H-Xe
-        basis_sets = ["PCSeg-0" ] #polarization-consistent family
+        basis_sets = ["PCSeg-0"] #polarization-consistent family
 
         for atom::String in atoms
             for basis::String in basis_sets

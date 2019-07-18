@@ -17,12 +17,9 @@ using MPI
 #== JuliaChem execution script ==#
 #================================#
 function script(input_file::String)
-    #== initialize MPI ==#
-    @time MPI.Init()
-
     #== read in input file ==#
     output_file::Dict{String,Any} = Dict([])
-    @time molecule, driver, model, keywords = JCInput.run(input_file)
+    molecule, driver, model, keywords = JCInput.run(input_file)
 
     #write("output.json",JSON.json(input_file))
     write("output.json",JSON.json(molecule))
@@ -31,24 +28,22 @@ function script(input_file::String)
     write("output.json",JSON.json(keywords))
 
     #== generate basis set ==#
-    @time basis = JCBasis.run(molecule, model)
+    basis = JCBasis.run(molecule, model)
     #display(basis)
 
     #== perform scf calculation ==#
     if (driver == "energy")
       if (model["method"] == "RHF")
-        @time scf = JCRHF.run(basis, molecule, keywords)
+        scf = JCRHF.run(basis, molecule, keywords)
         write("output.json",JSON.json(scf[5]))
       end
     end
-
-    #== finalize MPI ==#
-    @time MPI.Finalize()
 end
 
 #================================================#
 #== we want to precompile all involved modules ==#
 #================================================#
+#=
 if (isfile("../snoop/precompile_Base.jl"))
     include("../snoop/precompile_Base.jl")
     _precompile_()
@@ -89,5 +84,6 @@ if (isfile("../snoop/precompile_unknown.jl"))
     include("../snoop/precompile_unknown.jl")
     _precompile_()
 end
+=#
 
 @time script(ARGS[1])
