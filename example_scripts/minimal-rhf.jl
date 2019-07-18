@@ -1,36 +1,54 @@
-#------------------------------#
-#    This script only executes #
-#     the rhf algorithm        #
-#------------------------------#
+#================================#
+#==  This script only executes ==#
+#==     the rhf algorithm      ==#
+#================================#
 
-#-------------------------#
-# put needed modules here #
-#-------------------------#
+#=============================#
+#== put needed modules here ==#
+#=============================#
 using JCInput
+using JCBasis
 using JCRHF
 
+import JSON
 using MPI
 
-#----------------------------#
-# JuliaChem execution script #
-#----------------------------#
+#================================#
+#== JuliaChem execution script ==#
+#================================#
 function script(input_file::String)
-    #initialize MPI
+    #== initialize MPI ==#
     MPI.Init()
 
-    #read in input file
-    input_info, basis = JCInput.run(input_file)
+    #== read in input file ==#
+    output_file::Dict{String,Any} = Dict([])
+    molecule, driver, model, keywords = JCInput.run(input_file)
 
-    #perform scf calculation
-    @time scf = JCRHF.run(input_info, basis)
+    #write("output.json",JSON.json(input_file))
+    write("output.json",JSON.json(molecule))
+    write("output.json",JSON.json(Dict("driver" => driver)))
+    write("output.json",JSON.json(model))
+    write("output.json",JSON.json(keywords))
 
-    #finalize MPI
+    #== generate basis set ==#
+    basis = JCBasis.run(molecule, model)
+    #display(basis)
+
+    #== perform scf calculation ==#
+    if (driver == "energy")
+      if (model["method"] == "RHF")
+        @time scf = JCRHF.run(basis, molecule, keywords)
+        write("output.json",JSON.json(scf[5]))
+      end
+    end
+
+    #== finalize MPI ==#
     MPI.Finalize()
 end
 
-#--------------------------------------------#
-# we want to precompile all involved modules #
-#--------------------------------------------#
+#================================================#
+#== we want to precompile all involved modules ==#
+#================================================#
 if (isfile("../snoop/precompile_Base.jl"))
     include("../snoop/precompile_Base.jl")
     _precompile_()

@@ -9,8 +9,6 @@ module JCProperties
 
 Base.include(@__MODULE__,"OrbitalEnergies.jl")
 
-using JCStructs
-
 using MPI
 
 """
@@ -43,7 +41,8 @@ function run(scf::Data,input_info::Dict{String,Dict{String,Any}})
 
     #set up rhf flags
     basis_info::Dict{String,Any} = input_info["Basis Flags"]
-    basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"], basis_info["nocc"])
+    basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"],
+      basis_info["nocc"])
 
     orbital_energies(scf,basis_flags)
 

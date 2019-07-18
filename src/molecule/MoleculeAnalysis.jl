@@ -14,15 +14,15 @@ coord = molecular coordinates
 """
 function analyze_bond_lengths(coord::Array{Float64,2})
     #determine some pre-information
-    natoms::UInt32 = size(coord)[1]
+    natoms::Int64 = size(coord)[1]
     comm=MPI.COMM_WORLD
 
     #calculate bond lengths
     bond_lengths::Array{Float64,2} = zeros(natoms,natoms)
 
     Threads.@threads for ijatom in 1:natoms*natoms
-        iatom::UInt32 = ceil(ijatom/natoms)
-        jatom::UInt32 =ijatom%natoms + 1
+        iatom::Int64 = ceil(ijatom/natoms)
+        jatom::Int64 =ijatom%natoms + 1
 
         if (iatom > jatom)
             diff::Array{Float64,1} = (coord[iatom,2:4].-coord[jatom,2:4]).^2
@@ -41,7 +41,8 @@ function analyze_bond_lengths(coord::Array{Float64,2})
     for iatom in 1:natoms, jatom in 1:natoms
         if (iatom > jatom)
             if (MPI.Comm_rank(comm) == 0)
-                println("   ",iatom,"         ",jatom,"     ",bond_lengths[iatom,jatom])
+                println("   ",iatom,"         ",jatom,"     ",
+                  bond_lengths[iatom,jatom])
             end
         end
     end
@@ -64,16 +65,16 @@ coord = molecular coordinates
 """
 function analyze_bond_angles(coord::Array{Float64,2}, bond_lengths::Array{Float64,2})
     #determine some pre-information
-    natoms::UInt32 = size(coord)[1]
+    natoms::Int64 = size(coord)[1]
     comm=MPI.COMM_WORLD
 
     #calculate bond angles
     bond_angles::Array{Float64,3} = zeros(natoms,natoms,natoms)
 
     Threads.@threads for ijkatom in 1:natoms*natoms*natoms
-        iatom::UInt32 = ceil(ijkatom/(natoms*natoms))
-        jatom::UInt32 = ceil(ijkatom/natoms)%natoms+1
-        katom::UInt32 = (ijkatom%(natoms*natoms))%natoms + 1
+        iatom::Int64 = ceil(ijkatom/(natoms*natoms))
+        jatom::Int64 = ceil(ijkatom/natoms)%natoms+1
+        katom::Int64 = (ijkatom%(natoms*natoms))%natoms + 1
 
         if (iatom > jatom && jatom > katom)
             if (bond_lengths[iatom,jatom] < 4.0 && bond_lengths[jatom,katom] < 4.0)
@@ -117,12 +118,12 @@ function analyze_bond_angles(coord::Array{Float64,2}, bond_lengths::Array{Float6
     return bond_lengths
 end
 
-function test(ijkatom::UInt32)
+function test(ijkatom::Int64)
     natoms = 3
 
-    iatom::UInt32 = ceil(ijkatom/(natoms*natoms))
-    jatom::UInt32 = ceil(ijkatom/natoms)%natoms+1
-    katom::UInt32 = (ijkatom%(natoms*natoms))%natoms + 1
+    iatom::Int64 = ceil(ijkatom/(natoms*natoms))
+    jatom::Int64 = ceil(ijkatom/natoms)%natoms+1
+    katom::Int64 = (ijkatom%(natoms*natoms))%natoms + 1
     #println(iatom,", ",jatom,", ",katom)
     return (iatom, jatom, katom)
 end

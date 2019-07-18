@@ -1,5 +1,5 @@
 """
-     module JCRHF
+  module JCRHF
 The module required for computation of the wave function using the *Restricted
 Hartree-Fock* (RHF) method in a Self-Consistent Field (SCF) calculation. This
 module will be used often, as the RHF wave function is often the zeroth-order
@@ -9,13 +9,14 @@ module JCRHF
 
 Base.include(@__MODULE__,"RHFSCF.jl")
 
-using JCStructs
+using BasisStructs
 
 using MPI
 using JSON
+using HDF5
 
 """
-    run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
+  run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
 
 Execute the JuliaChem RHF algorithm.
 
@@ -32,80 +33,162 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
-    comm=MPI.COMM_WORLD
+function run(basis::Basis, molecule::Dict{String,Any},
+  keywords::Dict{String,Any})
 
-    if (MPI.Comm_rank(comm) == 0)
-        println("--------------------------------------------------------------------------------------")
-        println("                       ========================================          ")
-        println("                         RESTRICTED CLOSED-SHELL HARTREE-FOCK            ")
-        println("                       ========================================          ")
-        println("")
-    end
+  comm=MPI.COMM_WORLD
 
-    #set up rhf flags
-    ctrl_info::Dict{String,Any} = input_info["Control Flags"]
-    ctrl_flags::Ctrl_Flags = Ctrl_Flags(ctrl_info["name"])
+  if (MPI.Comm_rank(comm) == 0)
+      println("--------------------------------------------------------------------------------")
+      println("                       ========================================                 ")
+      println("                          RESTRICTED CLOSED-SHELL HARTREE-FOCK                  ")
+      println("                       ========================================                 ")
+      println("")
+  end
 
-    basis_info::Dict{String,Any} = input_info["Basis Flags"]
-    basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"], basis_info["nocc"])
+  #== initialize scf flags ==#
+  scf_flags::Dict{String,Any} = keywords["scf"]
 
-    scf_info::Dict{String,Any} = input_info["SCF Flags"]
-    scf_flags::SCF_Flags = SCF_Flags(scf_info["niter"], scf_info["dele"],
-                                        scf_info["rmsd"], scf_info["prec"],
-                                        scf_info["direct"], scf_info["debug"])
+  #== set up eri database if not doing direct ==#
+  if (scf_flags["direct"] == false)
+    hdf5name::String = "tei"
+    hdf5name *= ".h5"
+    if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
+      h5open(hdf5name, "w") do file
+        #== write quartet eri lists to database ==#
+        eri_array::Array{Float64,1} = molecule["tei"]
+        nsh::Int64 = length(basis.shells)
 
-    rhf_flags::RHF_Flags = RHF_Flags(ctrl_flags,basis_flags,scf_flags)
+        eri_start::Int64 = 1
+        for ish::Int64 in 1:nsh, jsh::Int64 in 1:ish
+          ijsh::Int64 = index(ish,jsh)
+          qnum_ij = ish*(ish-1)/2 + jsh
 
-    #set up values to read in if not doing direct
-    read_in::Dict{String,Any} = Dict([])
+          ibas::Int64 = basis.shells[ish].nbas
+          jbas::Int64 = basis.shells[jsh].nbas
 
-    merge!(read_in, input_info["Enuc"])
-    merge!(read_in, input_info["Overlap"])
-    merge!(read_in, input_info["Kinetic Energy"])
-    merge!(read_in, input_info["Nuclear Attraction"])
-    merge!(read_in, input_info["Two-Electron"])
+          ipos::Int64 = basis.shells[ish].pos
+          jpos::Int64 = basis.shells[jsh].pos
 
-    #GC.enable(false)
-    if (scf_flags.DIRECT == false)
-        scf = rhf_energy(rhf_flags, basis, read_in)
-    end
-    #GC.enable(true)
-    #GC.gc()
+          for ksh::Int64 in 1:nsh, lsh::Int64 in 1:ksh
+            klsh::Int64 = index(ksh,lsh)
+            if (klsh > ijsh) continue end
 
-    if (MPI.Comm_rank(comm) == 0)
-        println("                       ========================================          ")
-        println("                             END RESTRICTED CLOSED-SHELL                 ")
-        println("                                     HARTREE-FOCK                        ")
-        println("                       ========================================          ")
-    end
+            kbas::Int64 = basis.shells[ksh].nbas
+            lbas::Int64 = basis.shells[lsh].nbas
 
-    calculation_name::String = ctrl_flags.NAME
-    json_output = open("$calculation_name"*"-output.json","w")
-        output_name = Dict([("Calculation",calculation_name)])
-        output_fock = Dict([("Structure","Fock"),("Data",scf.Fock)])
-        output_density = Dict([("Structure","Density"),("Data",scf.Density)])
-        output_coeff = Dict([("Structure","Coeff"),("Data",scf.Coeff)])
-        if (MPI.Comm_rank(comm) == 0)
-            write(json_output,JSON.json(output_name))
-            write(json_output,JSON.json(output_fock))
-            write(json_output,JSON.json(output_density))
-            write(json_output,JSON.json(output_coeff))
-        end
+            kpos::Int64 = basis.shells[ksh].pos
+            lpos::Int64 = basis.shells[lsh].pos
 
-        if (typeof(scf) == RHFRestartData)
-            output_hcore = Dict([("Structure","Hcore"),("Data",scf.H)])
-            output_ortho = Dict([("Structure","Ortho"),("Data",scf.Ortho)])
-            output_iter = Dict([("Structure","Iteration"),("Data",scf.iter)])
-            if (MPI.Comm_rank(comm) == 0)
-                write(json_output,JSON.json(output_hcore))
-                write(json_output,JSON.json(output_ortho))
-                write(json_output,JSON.json(output_iter))
+            qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+            quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+
+            qint_ij::Int64 = ibas*(ibas-1)/2 + jbas
+            qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
+
+            #eri_start::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
+            #push!(eri_start_index, eri_start)
+
+            eri_size::Int64 = 0
+            for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
+              μ::Int64, ν::Int64 = μμ,νν
+              if (μμ < νν) continue end
+
+              μν::Int64 = index(μμ,νν)
+
+              for λλ::Int64 in kpos:kpos+(kbas-1), σσ::Int64 in lpos:lpos+(lbas-1)
+                λ::Int64, σ::Int64 = λλ,σσ
+                if (λλ < σσ) continue end
+
+                λσ::Int64 = index(λλ,σσ)
+
+                if (μν < λσ)
+                  two_shell::Bool = ibas == jbas
+                  two_shell = two_shell || (ibas == kbas)
+                  two_shell = two_shell || (ibas == lbas)
+                  two_shell = two_shell || (jbas == kbas)
+                  two_shell = two_shell || (jbas == lbas)
+                  two_shell = two_shell || (kbas == lbas)
+
+                  three_shell::Bool = ibas == jbas && jbas == kbas
+                  three_shell = three_shell || (ibas == jbas && jbas == lbas)
+                  three_shell = three_shell || (ibas == kbas && kbas == lbas)
+                  three_shell = three_shell || (jbas == kbas && kbas == lbas)
+
+                  four_shell::Bool = ibas == jbas
+                  four_shell = four_shell && (jbas == kbas)
+                  four_shell = four_shell && (kbas == lbas)
+
+                  if four_shell
+                      three_same::Bool = ish == jsh && jsh == ksh
+                      three_same = three_same || (ish == jsh && jsh == lsh)
+                      three_same = three_same || (ish == ksh && ksh == lsh)
+                      three_same = three_same || (jsh == ksh && ksh == lsh)
+
+                      four_same::Bool = ish == jsh
+                      four_same = four_same && jsh == ksh
+                      four_same = four_same && ksh == lsh
+
+                      if four_same
+                        if (μμ != νν && μμ != λλ && μμ != σσ &&
+                          νν != λλ && νν != σσ && λλ != σσ)
+                          μ,ν,λ,σ = λλ,σσ,μμ,νν
+                        else
+                          continue
+                        end
+                      elseif three_same
+                        if (μμ != λλ && νν != σσ)
+                          μ,ν,λ,σ = λλ,σσ,μμ,νν
+                        else
+                          continue
+                        end
+                      else
+                        continue
+                      end
+                  elseif three_shell
+                    if (μμ != λλ && νν != σσ)
+                        μ,ν,λ,σ = λλ,σσ,μμ,νν
+                    else
+                      continue
+                    end
+                  elseif two_shell
+                    if (μμ != λλ && νν != σσ)
+                      μ,ν,λ,σ = λλ,σσ,μμ,νν
+                    else
+                      continue
+                    end
+                  end
+                end
+
+                eri_size += 1
+              end
             end
-        end
-    close(json_output)
 
-    return scf
+            write(file, "Integrals/$quartet_num",
+              eri_array[eri_start:eri_start+(eri_size-1)])
+
+            eri_start += eri_size
+
+            #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
+          end
+        end
+      end
+    end
+  end
+
+  #GC.enable(false)
+  scf = rhf_energy(basis, molecule, scf_flags)
+  #GC.enable(true)
+  #GC.gc()
+
+  if (MPI.Comm_rank(comm) == 0)
+    println("                       ========================================                 ")
+    println("                             END RESTRICTED CLOSED-SHELL                 ")
+    println("                                     HARTREE-FOCK                        ")
+    println("                       ========================================                 ")
+  end
+
+  return scf
 end
 export run
 
