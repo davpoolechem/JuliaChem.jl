@@ -327,8 +327,15 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   nsh::Int64 = length(basis.shells)
   ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:basis.norb*(basis.norb+1)))
 
+  quartets_per_batch::Int64 = 2500
+  quartet_batch_num_old::Int64 = 1
+
   F = zeros(basis.norb,basis.norb)
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
+
+  eri_batch::Array{T,1} = read(tei, "Integrals/$quartet_batch_num_old")
+  eri_starts::Array{Int64,1} = read(tei, "Starts/$quartet_batch_num_old")
+  eri_sizes::Array{Int64,1} = read(tei, "Sizes/$quartet_batch_num_old")
 
   for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
   #for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
@@ -359,14 +366,27 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
         #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-		eri_batch::Array{T,1} = shellquart(D, quartet, tei,
-            mutex, quartet_num)
+        quartet_batch_num::Int64 = Int64(floor(quartet_num/
+          quartets_per_batch)) + 1
+
+        if quartet_batch_num != quartet_batch_num_old
+          eri_batch = read(tei, "Integrals/$quartet_batch_num")
+          eri_starts = read(tei, "Starts/$quartet_batch_num")
+          eri_sizes = read(tei, "Sizes/$quartet_batch_num")
+
+          quartet_batch_num_old = quartet_batch_num
+        end
+
+        quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+          (quartet_batch_num-1)
+		eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
+            eri_starts, eri_sizes, quartet_num)
 
 	    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
 
-        eri_batch_abs::Array{T,1} = map(x -> abs(x), eri_batch)
-		if (max(eri_batch_abs...) >= 1E-10)
-          F_priv = dirfck(D, eri_batch, quartet, ish, jsh, ksh, lsh)
+        eri_quartet_batch_abs::Array{T,1} = map(x -> abs(x), eri_quartet_batch)
+		if (max(eri_quartet_batch_abs...) >= 1E-10)
+          F_priv = dirfck(D, eri_quartet_batch, quartet, ish, jsh, ksh, lsh)
         end
 
 		lock(mutex)
@@ -385,15 +405,13 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   return F
 end
 
-function shellquart(D::Array{T,2},quartet::ShQuartet,
-  tei_file::HDF5File, mutex::Base.Threads.Mutex,
-  quartet_num::Int64) where {T<:AbstractFloat}
+function shellquart(eri_batch::Array{Float64,1}, eri_starts::Array{Int64,1},
+  eri_sizes::Array{Int64,1}, quartet_num::Int64) where {T<:AbstractFloat}
 
-  lock(mutex)
-  eri_batch::Array{T,1} = read(tei_file, "Integrals/$quartet_num")
-  unlock(mutex)
+  starting::Int64 = eri_starts[quartet_num]
+  ending::Int64 = starting + (eri_sizes[quartet_num] - 1)
 
-  return eri_batch
+  return eri_batch[starting:ending]
 end
 
 function dirfck(D::Array{T,2}, eri_batch::Array{T,1},

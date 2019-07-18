@@ -59,7 +59,13 @@ function run(basis::Basis, molecule::Dict{String,Any},
         eri_array::Array{Float64,1} = molecule["tei"]
         nsh::Int64 = length(basis.shells)
 
+        eri_array_batch::Array{Float64,1} = [ ]
+        eri_array_starts::Array{Float64,1} = [ ]
+        eri_array_sizes::Array{Float64,1} = [ ]
+
         eri_start::Int64 = 1
+        quartet_batch_num_old::Int64 = 1
+
         for ish::Int64 in 1:nsh, jsh::Int64 in 1:ish
           ijsh::Int64 = index(ish,jsh)
           qnum_ij = ish*(ish-1)/2 + jsh
@@ -164,14 +170,48 @@ function run(basis::Basis, molecule::Dict{String,Any},
               end
             end
 
-            write(file, "Integrals/$quartet_num",
-              eri_array[eri_start:eri_start+(eri_size-1)])
+            quartets_per_batch::Int64 = 2500
+            quartet_batch_num::Int64 = Int64(floor(quartet_num/
+              quartets_per_batch)) + 1
+
+            if quartet_batch_num != quartet_batch_num_old
+              #== write arrays to disk ==#
+              write(file, "Integrals/$quartet_batch_num",
+                eri_array_batch)
+              write(file, "Starts/$quartet_batch_num",
+                eri_array_starts)
+              write(file, "Sizes/$quartet_batch_num",
+                eri_array_sizes)
+
+              #== reset variables as needed ==#
+              eri_array_batch = [ ]
+              eri_array_starts = [ ]
+              eri_array_sizes = [ ]
+
+              quartet_batch_num_old = quartet_batch_num
+            else
+              eri_array_batch = [ eri_array_batch;
+              eri_array[eri_start:eri_start+(eri_size-1)]]
+
+              eri_start_readin::Int64 = eri_start - quartets_per_batch*
+                (quartet_batch_num-1)
+              push!(eri_array_starts,eri_start_readin)
+
+              push!(eri_array_sizes,eri_size)
+            end
 
             eri_start += eri_size
 
             #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
           end
         end
+
+        write(file, "Integrals/$quartet_batch_num_old",
+          eri_array_batch)
+        write(file, "Starts/$quartet_batch_num_old",
+          eri_array_starts)
+        write(file, "Sizes/$quartet_batch_num_old",
+          eri_array_sizes)
       end
     end
   end

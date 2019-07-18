@@ -86,4 +86,4 @@ if (isfile("../snoop/precompile_unknown.jl"))
 end
 =#
 
-@time script(ARGS[1])
+script(ARGS[1])
