@@ -81,8 +81,8 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 
   #== build the initial matrices ==#
   F::Array{T,2} = H
-  D = Matrix{T}(undef,basis.norb,basis.norb)
-  C = Matrix{T}(undef,basis.norb,basis.norb)
+  D::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+  C::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
 
   if (MPI.Comm_rank(comm) == 0)
     println("----------------------------------------          ")
@@ -92,6 +92,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	println("Iter      Energy                   ΔE                   Drms")
   end
 
+  E_elec::T = 0.0
   F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
 
   E::T = E_elec + E_nuc
@@ -105,12 +106,16 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
   #== start scf cycles: #7-10 ==#
   #=============================#
   converged::Bool = false
-  iter::Int64 = 1
 
-  c = h5open("tei.h5", "r") do tei
+  iter_limit::Int64 = scf_flags["niter"]
+  dele::T = scf_flags["dele"]
+  rmsd::T = scf_flags["rmsd"]
+
+  iter::Int64 = 1
+  h5open("tei.h5", "r") do tei::HDF5File
     while(!converged)
       #== build fock matrix ==#
-	  F_temp = twoei(F, D, tei, H, basis)
+	  F_temp::Array{T,2} = twoei(F, D, tei, H, basis)
 
 	  F = MPI.Allreduce(F_temp,MPI.SUM,comm)
 	  MPI.Barrier(comm)
@@ -121,7 +126,7 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
         println("")
 	  end
 
-	  F += deepcopy(H)
+	  F += H
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Total Fock matrix:")
@@ -145,17 +150,17 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
 	    println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
 	  end
 
-	  converged = (abs(ΔE) <= scf_flags["dele"]) && (D_rms <= scf_flags["rmsd"])
+	  converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
 	  iter += 1
-      if (iter > scf_flags["niter"]) break end
+      if (iter > iter_limit) break end
 
       #== if not converged, replace old D and E values for next iteration ==#
-      D_old = deepcopy(D)
+      #D_old = deepcopy(D)
       E_old = E
     end
   end
 
-  if (iter > scf_flags["niter"])
+  if (iter > iter_limit)
     if (MPI.Comm_rank(comm) == 0)
 	    println(" ")
       println("----------------------------------------")
@@ -165,7 +170,6 @@ function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
       println(" ")
     end
 
-    iter_limit = scf_flags["niter"]
     calculation_fail::Dict{String,Any} = Dict(
     "success" => false,
     "error" => Dict(
@@ -323,7 +327,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:basis.norb*(basis.norb+1)))
 
   F = zeros(basis.norb,basis.norb)
-  mutex = Base.Threads.Mutex()
+  mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
   #for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
   for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
@@ -379,7 +383,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 end
 
 function shellquart(D::Array{T,2},quartet::ShQuartet,
-  tei_file::HDF5File, mutex, quartet_num::Int64) where {T<:AbstractFloat}
+  tei_file::HDF5File, mutex::Base.Threads.Mutex,
+  quartet_num::Int64) where {T<:AbstractFloat}
 
   lock(mutex)
   eri_batch::Array{Float64,1} = read(tei_file, "Integrals/$quartet_num")
@@ -389,9 +394,10 @@ function shellquart(D::Array{T,2},quartet::ShQuartet,
 end
 
 function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
-  quartet::ShQuartet, ish, jsh, ksh, lsh) where {T<:AbstractFloat}
+  quartet::ShQuartet, ish::Int64, jsh::Int64,
+  ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
-  norb = size(D)[1]
+  norb::Int64 = size(D)[1]
 
   F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
@@ -487,7 +493,6 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       #eri::T = 0
       if (abs(eri) <= 1E-10) continue end
 
-      Dij = D[μ,ν]
       #println("$μ, $ν, $λ, $σ, $eri, $Dij")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
