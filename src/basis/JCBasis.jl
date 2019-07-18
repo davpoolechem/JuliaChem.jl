@@ -58,6 +58,10 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
+  println("----------------------------------------          ")
+  println("        Basis Set Information...                  ")
+  println("----------------------------------------          ")
+
   #== create basis set ==#
   hdf5name::String = "bsed"
   hdf5name *= ".h5"
@@ -76,15 +80,26 @@ function run(molecule::Dict{String,Any}, model::Dict{String,Any})
         bsed["$symbol/$basis"])
 
       #== process basis set values into shell objects ==#
+      println("ATOM $symbol:")
       for shell_num::Int64 in 1:length(shells)
         new_shell_dict::Dict{String,Any} = shells["$shell_num"]
-        new_shell_am = shell_am_mapping[new_shell_dict["Shell Type"]]
+        println("Shell #$shell_num:")
+        display(new_shell_dict)
+        println("")
 
-        new_shell = Shell(atom_idx, atom_center, new_shell_am)
+        new_shell_am::Int64 = shell_am_mapping[new_shell_dict["Shell Type"]]
+        new_shell_exp::Array{Float64,1} = new_shell_dict["Exponents"]
+        new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
+
+        new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff,
+          atom_center, new_shell_am)
         add_shell(basis_set,deepcopy(new_shell))
 
         basis_set.norb += new_shell.nbas
       end
+      println(" ")
+      println(" ")
+
     end
   end
 
