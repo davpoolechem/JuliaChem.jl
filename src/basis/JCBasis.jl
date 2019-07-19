@@ -1,3 +1,5 @@
+Base.include(@__MODULE__,"../basis/BasisStructs.jl")
+
 """
   module JCInput
 The module required for reading in and processing the selected input file.
@@ -6,8 +8,7 @@ Import this module into the script when you need to process an input file
 """
 module JCBasis
 
-Base.include(@__MODULE__,"BasisStructs.jl")
-using .BasisStructs
+#using .BasisStructs
 
 using MPI
 using Base.Threads

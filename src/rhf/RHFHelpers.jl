@@ -1,6 +1,3 @@
-Base.include(@__MODULE__,"../basis/BasisStructs.jl")
-using .BasisStructs
-
 using Base.Threads
 
 function read_in_enuc()
