@@ -1,0 +1,6 @@
+authors = ["davpoolechem <davpoole@iastate.edu>"]
+name = "JuliaChem"
+uuid = "0a8e60a0-aa30-11e9-2bf2-3fef263b0d75"
+version = "0.1.0"
+
+[deps]
