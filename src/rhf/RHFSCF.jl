@@ -350,8 +350,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		F_priv::Array{T,2} = fill(0.0,(basis.norb,basis.norb))
 
 		while true
-		  ket_pair_thread::Int64 = Threads.atomic_add!(ket_pairs, -1)
-		  if ket_pair_thread < 1 break
+		  ket_pair_thread::Int64 = Threads.atomic_sub!(ket_pairs, 1)
+		  if ket_pair_thread < 1 break end
 
 		  ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair_thread))/2))
 		  lsh::Int64 = ket_pair_thread - ioff[ksh]
@@ -392,11 +392,11 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		    ish, jsh, ksh, lsh)
 
 		  F_priv += F_priv_tmp
-       end
+        end
 
-	   lock(mutex)
-	   F += F_priv
-	   unlock(mutex)
+	    lock(mutex)
+	    F += F_priv
+	    unlock(mutex)
 	  end
 	  #=
       Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
@@ -444,7 +444,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		lock(mutex)
 		F += F_priv
 		unlock(mutex)
-      end
+	  end
 	  =#
     end
   end
