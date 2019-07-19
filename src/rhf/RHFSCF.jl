@@ -345,6 +345,60 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
       ijsh::Int64 = index(ish,jsh)
 
+	  ket_pairs::Threads.Atomic{Int64} = Threads.Atomic{Int64}(bra_pairs)
+	  Threads.@threads for thread::Int64 in 1:Threads.nthreads()
+		F_priv::Array{T,2} = fill(0.0,(basis.norb,basis.norb))
+
+		while true
+		  ket_pair_thread::Int64 = Threads.atomic_sub!(ket_pairs, 1)
+		  if ket_pair_thread < 1 break end
+
+		  ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair_thread))/2))
+		  lsh::Int64 = ket_pair_thread - ioff[ksh]
+
+		  if (ksh < lsh) continue end
+
+		  klsh::Int64 = index(ksh,lsh)
+		  if (klsh > ijsh) continue end
+
+	      bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
+	      ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
+	      quartet::ShQuartet = ShQuartet(bra,ket)
+
+		  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
+	      qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+	      quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+		  #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+
+		  quartet_batch_num::Int64 = Int64(floor(quartet_num/
+		    quartets_per_batch)) + 1
+
+		  if quartet_batch_num != quartet_batch_num_old
+		    eri_batch = read(tei, "Integrals/$quartet_batch_num")
+		    eri_starts = read(tei, "Starts/$quartet_batch_num")
+		    eri_sizes = read(tei, "Sizes/$quartet_batch_num")
+
+		    quartet_batch_num_old = quartet_batch_num
+		  end
+
+		  quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+		    (quartet_batch_num-1)
+	      eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
+			eri_starts, eri_sizes, quartet_num_in_batch)
+
+	      F_priv_tmp::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+
+		  F_priv_tmp = dirfck(D, eri_quartet_batch, quartet,
+		    ish, jsh, ksh, lsh)
+
+		  F_priv += F_priv_tmp
+        end
+
+	    lock(mutex)
+	    F += F_priv
+	    unlock(mutex)
+	  end
+	  #=
       Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
       #Threads.@threads for ket_pairs::Int64 in 1:bra_pairs
         ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
@@ -390,7 +444,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		lock(mutex)
 		F += F_priv
 		unlock(mutex)
-      end
+	  end
+	  =#
     end
   end
 
