@@ -345,14 +345,15 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
       ijsh::Int64 = index(ish,jsh)
 
+	  #ket_pairs::Threads.Atomic{Int64} = Threads.Atomic{Int64}(bra_pairs)
 	  ket_pairs::Int64 = bra_pairs
 	  Threads.@threads for thread::Int64 in 1:Threads.nthreads()
 		F_priv::Array{T,2} = fill(0.0,(basis.norb,basis.norb))
 
 		while true
 		  lock(mutex)
-		  ket_pairs -= 1
 		  ket_pair_thread::Int64 = ket_pairs
+		  ket_pairs -= 1
 		  unlock(mutex)
 
 		  if ket_pair_thread < 1 break
@@ -388,7 +389,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		  quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
 		    (quartet_batch_num-1)
 	      eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
-			eri_starts, eri_sizes, quartet_num)
+			eri_starts, eri_sizes, quartet_num_in_batch)
 
 	      F_priv_tmp::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
 
