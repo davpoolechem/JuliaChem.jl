@@ -8,7 +8,7 @@ Import this module into the script when you need to process an input file
 """
 module JCBasis
 
-#using .BasisStructs
+using JCModules.BasisStructs
 
 using MPI
 using Base.Threads

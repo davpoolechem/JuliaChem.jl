@@ -9,7 +9,7 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-#using .BasisStructs
+using JCModules.BasisStructs
 
 Base.include(@__MODULE__,"RHFSCF.jl")
 

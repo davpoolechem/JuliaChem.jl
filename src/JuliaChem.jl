@@ -1,7 +1,6 @@
 module JuliaChem
 
-Base.include(@__MODULE__,"basis/BasisStructs.jl")
-using .BasisStructs
+import JCModules
 
 Base.include(@__MODULE__, "basis/JCBasis.jl")
 
