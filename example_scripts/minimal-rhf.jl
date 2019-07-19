@@ -6,9 +6,11 @@
 #=============================#
 #== put needed modules here ==#
 #=============================#
-using JCInput
-using JCBasis
-using JCRHF
+import JuliaChem
+
+using JuliaChem.JCInput
+using JuliaChem.JCBasis
+using JuliaChem.JCRHF
 
 import JSON
 using MPI

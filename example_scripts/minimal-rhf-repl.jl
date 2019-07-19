@@ -6,9 +6,11 @@
 #=============================#
 #== put needed modules here ==#
 #=============================#
-using JCInput
-using JCBasis
-using JCRHF
+import JuliaChem
+
+using JuliaChem.JCInput
+using JuliaChem.JCBasis
+using JuliaChem.JCRHF
 
 import JSON
 using MPI
@@ -85,5 +87,3 @@ if (isfile("../snoop/precompile_unknown.jl"))
     _precompile_()
 end
 =#
-
-script(ARGS[1])
