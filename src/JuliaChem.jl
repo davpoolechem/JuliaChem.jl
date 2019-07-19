@@ -1,5 +1,9 @@
 module JuliaChem
 
-greet() = print("Hello World!")
+Base.include(@__MODULE__, "basis/JCBasis.jl")
 
-end # module
+Base.include(@__MODULE__, "io/JCInput.jl")
+
+Base.include(@__MODULE__, "rhf/JCRHF.jl")
+
+end
