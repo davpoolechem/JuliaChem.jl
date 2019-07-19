@@ -6,7 +6,8 @@ Import this module into the script when you need to process an input file
 """
 module JCBasis
 
-using BasisStructs
+Base.include(@__MODULE__,"BasisStructs.jl")
+using .BasisStructs
 
 using MPI
 using Base.Threads

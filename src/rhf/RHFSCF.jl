@@ -1,8 +1,6 @@
 Base.include(@__MODULE__,"../math/math.jl")
 
-Base.include(@__MODULE__,"ReadIn.jl")
-
-using BasisStructs
+Base.include(@__MODULE__,"RHFHelpers.jl")
 
 using MPI
 using Base.Threads

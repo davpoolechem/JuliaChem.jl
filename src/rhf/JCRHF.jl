@@ -9,8 +9,6 @@ module JCRHF
 
 Base.include(@__MODULE__,"RHFSCF.jl")
 
-using BasisStructs
-
 using MPI
 using JSON
 using HDF5
