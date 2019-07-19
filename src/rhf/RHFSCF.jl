@@ -8,7 +8,7 @@ using Base.Threads
 using LinearAlgebra
 using HDF5
 
-function rhf_energy(basis::Basis, molecule::Dict{String,Any},
+function rhf_energy(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   scf_flags::Dict{String,Any})
 
   if (scf_flags["prec"] == "Float64")
@@ -36,7 +36,7 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(basis::Basis, molecule::Dict{String,Any},
+function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   scf_flags::Dict{String,Any}, type::T) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -229,7 +229,7 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
-  ortho::Array{T,2}, basis::Basis,
+  ortho::Array{T,2}, basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -319,7 +319,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
-  H::Array{T,2}, basis::Basis) where {T<:AbstractFloat}
+  H::Array{T,2}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
   nsh::Int64 = length(basis.shells)

@@ -1,4 +1,4 @@
-Base.include(@__MODULE__,"../basis/BasisStructs.jl")
+#Base.include(@__MODULE__,"../basis/BasisStructs.jl")
 
 """
   module JCInput

@@ -1,4 +1,4 @@
-Base.include(@__MODULE__,"../basis/BasisStructs.jl")
+#Base.include(@__MODULE__,"../basis/BasisStructs.jl")
 
 """
   module JCRHF
@@ -35,7 +35,7 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(basis::Basis, molecule::Dict{String,Any},
+function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   keywords::Dict{String,Any})
 
   comm=MPI.COMM_WORLD
