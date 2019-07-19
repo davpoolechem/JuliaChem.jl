@@ -59,6 +59,14 @@ version = "0.12.0"
 deps = ["LinearAlgebra", "Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
+[[JCModules]]
+deps = ["Test"]
+git-tree-sha1 = "238fd3b25aa232bb22cb97a54106395bae5e0923"
+repo-rev = "master"
+repo-url = "https://github.com/davpoolechem/JCModules.jl.git"
+uuid = "825a225a-aa46-11e9-32ce-a5f5c03ee8dd"
+version = "0.1.0"
+
 [[JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
 git-tree-sha1 = "b34d7cef7b337321e97d22242c3c2b91f476748e"
