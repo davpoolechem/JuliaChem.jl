@@ -137,6 +137,13 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 
 	  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
 
+      #== dynamic damping of density matrix ==#
+      D_damp = map(x -> x*D + (1-x)*D_old, collect(0.05:0.05:0.90))
+      D_damp_rms = map(x->√(∑(x-D_old,x-D_old)), D_damp)
+
+      D = D_damp[argmax(D_damp_rms)] 
+
+ 
       #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
 	  D_rms::T = √(∑(ΔD,ΔD))
