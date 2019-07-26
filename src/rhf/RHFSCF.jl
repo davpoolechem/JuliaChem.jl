@@ -330,7 +330,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
   comm=MPI.COMM_WORLD
   nsh::Int64 = length(basis.shells)
-  ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:basis.norb*(basis.norb+1)))
+  nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
   quartets_per_batch::Int64 = 2500
   quartet_batch_num_old::Int64 = 1
@@ -342,118 +342,51 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   eri_starts::Array{Int64,1} = read(tei, "Starts/$quartet_batch_num_old")
   eri_sizes::Array{Int64,1} = read(tei, "Sizes/$quartet_batch_num_old")
 
-  for bra_pairs::Int64 in nsh*(nsh+1)/2:-1:1
-  #for bra_pairs::Int64 in 1:nsh*(nsh+1)/2
-    if(MPI.Comm_rank(comm) == bra_pairs%MPI.Comm_size(comm))
-      ish::Int64 = ceil(((-1+sqrt(1+8*bra_pairs))/2))
-      jsh::Int64 = bra_pairs - ioff[ish]
+  Threads.@threads for ijkl_index::Int64 in 1:nindices
+    bra_pair::Int64 = ceil(((-1+sqrt(1+8*ijkl_index))/2))
+    ket_pair::Int64 = (ijkl_index%bra_pair)+1      
+ 
+    ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
+    jsh::Int64 = (bra_pair%ish) + 1 
+    ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
+		lsh::Int64 = (ket_pair%ksh) + 1
 
-      if (ish < jsh) continue end
+    ijsh::Int64 = index(ish,jsh)
+		klsh::Int64 = index(ksh,lsh)
+		  
+		if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
+  
+	  bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
+	  ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
+	  quartet::ShQuartet = ShQuartet(bra,ket)
 
-      ijsh::Int64 = index(ish,jsh)
+		qnum_ij::Int64 = ish*(ish-1)/2 + jsh
+	  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+	  quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+		#println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-	  ket_pairs::Threads.Atomic{Int64} = Threads.Atomic{Int64}(bra_pairs)
-	  Threads.@threads for thread::Int64 in 1:Threads.nthreads()
-		F_priv::Array{T,2} = fill(0.0,(basis.norb,basis.norb))
+		quartet_batch_num::Int64 = Int64(floor(quartet_num/
+		  quartets_per_batch)) + 1
 
-		while true
-		  ket_pair_thread::Int64 = Threads.atomic_sub!(ket_pairs, 1)
-		  if ket_pair_thread < 1 break end
+		if quartet_batch_num != quartet_batch_num_old
+		  eri_batch = read(tei, "Integrals/$quartet_batch_num")
+		  eri_starts = read(tei, "Starts/$quartet_batch_num")
+		  eri_sizes = read(tei, "Sizes/$quartet_batch_num")
 
-		  ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair_thread))/2))
-		  lsh::Int64 = ket_pair_thread - ioff[ksh]
+		  quartet_batch_num_old = quartet_batch_num
+		end
 
-		  if (ksh < lsh) continue end
+		quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+		  (quartet_batch_num-1)
+	  eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
+		 eri_starts, eri_sizes, quartet_num_in_batch)
 
-		  klsh::Int64 = index(ksh,lsh)
-		  if (klsh > ijsh) continue end
+		F_priv::Array{Float64,2} = dirfck(D, eri_quartet_batch, quartet,
+		  ish, jsh, ksh, lsh)
 
-	      bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
-	      ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
-	      quartet::ShQuartet = ShQuartet(bra,ket)
-
-		  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
-	      qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-	      quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
-		  #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
-
-		  quartet_batch_num::Int64 = Int64(floor(quartet_num/
-		    quartets_per_batch)) + 1
-
-		  if quartet_batch_num != quartet_batch_num_old
-		    eri_batch = read(tei, "Integrals/$quartet_batch_num")
-		    eri_starts = read(tei, "Starts/$quartet_batch_num")
-		    eri_sizes = read(tei, "Sizes/$quartet_batch_num")
-
-		    quartet_batch_num_old = quartet_batch_num
-		  end
-
-		  quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-		    (quartet_batch_num-1)
-	      eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
-			eri_starts, eri_sizes, quartet_num_in_batch)
-
-	      F_priv_tmp::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
-
-		  F_priv_tmp = dirfck(D, eri_quartet_batch, quartet,
-		    ish, jsh, ksh, lsh)
-
-		  F_priv += F_priv_tmp
-        end
-
-	    lock(mutex)
-	    F += F_priv
-	    unlock(mutex)
-	  end
-	  #=
-      Threads.@threads for ket_pairs::Int64 in bra_pairs:-1:1
-      #Threads.@threads for ket_pairs::Int64 in 1:bra_pairs
-        ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pairs))/2))
-        lsh::Int64 = ket_pairs - ioff[ksh]
-
-        if (ksh < lsh) continue end
-
-        klsh::Int64 = index(ksh,lsh)
-        if (klsh > ijsh) continue end
-
-		bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
-		ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
-		quartet::ShQuartet = ShQuartet(bra,ket)
-
-        qnum_ij::Int64 = ish*(ish-1)/2 + jsh
-		qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-		quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
-        #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
-
-        quartet_batch_num::Int64 = Int64(floor(quartet_num/
-          quartets_per_batch)) + 1
-
-        if quartet_batch_num != quartet_batch_num_old
-          eri_batch = read(tei, "Integrals/$quartet_batch_num")
-          eri_starts = read(tei, "Starts/$quartet_batch_num")
-          eri_sizes = read(tei, "Sizes/$quartet_batch_num")
-
-          quartet_batch_num_old = quartet_batch_num
-        end
-
-        quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-          (quartet_batch_num-1)
-		eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
-            eri_starts, eri_sizes, quartet_num)
-
-	    F_priv::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
-
-        #eri_quartet_batch_abs::Array{T,1} = map(x -> abs(x), eri_quartet_batch)
-#		if (max(eri_quartet_batch_abs...) >= 1E-10)
-        F_priv = dirfck(D, eri_quartet_batch, quartet, ish, jsh, ksh, lsh)
-#        end
-
-		lock(mutex)
-		F += F_priv
-		unlock(mutex)
-	  end
-	  =#
-    end
+    lock(mutex)
+    F += F_priv
+    unlock(mutex)
   end
 
   for iorb::Int64 in 1:basis.norb, jorb::Int64 in 1:basis.norb
