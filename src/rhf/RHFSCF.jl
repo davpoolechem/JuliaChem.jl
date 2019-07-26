@@ -349,7 +349,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
     while true
       ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
       if (ijkl_index < 1) break end
-     
+    
+      if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end                   
       bra_pair::Int64 = ceil(((-1+sqrt(1+8*ijkl_index))/2))
       ket_pair::Int64 = (ijkl_index%bra_pair)+1      
  
