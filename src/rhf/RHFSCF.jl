@@ -110,7 +110,7 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   rmsd::T = scf_flags["rmsd"]
 
   iter::Int64 = 1
-  h5open("tei.h5", "r") do tei::HDF5File
+  h5open("tei_batch.h5", "r") do tei::HDF5File
     while(!converged)
       #== build fock matrix ==#
 	  F_temp::Array{T,2} = twoei(F, D, tei, H, basis)

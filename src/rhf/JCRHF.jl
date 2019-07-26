@@ -53,12 +53,14 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 
   #== set up eri database if not doing direct ==#
   if (scf_flags["direct"] == false)
-    hdf5name::String = "tei"
-    hdf5name *= ".h5"
     if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
-      h5open(hdf5name, "w") do file
+      h5open("tei_batch.h5", "w") do file
         #== write quartet eri lists to database ==#
-        eri_array::Array{Float64,1} = molecule["tei"]
+        eri_array::Array{Float64,1} = [] 
+        h5open("tei_all.h5", "r") do tei
+          eri_array = read(tei,"Integrals/All") 
+        end
+        
         nsh::Int64 = length(basis.shells)
 
         eri_array_batch::Array{Float64,1} = [ ]

@@ -10,7 +10,7 @@ using MPI
 using JSON
 using Base.Threads
 #using Distributed
-#using HDF5
+using HDF5
 
 """
   run(args::String)
@@ -52,10 +52,9 @@ function run(args::String)
       MPI.Comm_size(comm)*Threads.nthreads())
   end
 
-
   #== read in input file ==#
   input_file::IOStream = open(args)
-    input_string::Array{String,1} = readlines(input_file)
+    input_string::String = read(input_file,String)
   close(input_file)
 
   #== initialize variables ==#
@@ -64,33 +63,26 @@ function run(args::String)
   model::Dict{String,Any} = Dict([])
   keywords::Dict{String,Any} = Dict([])
 
-  #== reformat input file and extract information from input ==#
-  i::Int64 = 1
-  while (i <= length(input_string))
-    if (input_string[i] != "{")
-      i += 1
-    else
-      #== do reformat ==#
-      j::Int64 = i
-      input_json::String = ""
-      input_name::String = ""
-      while (input_string[j] != "}")
-        input_json *= input_string[j]
-        j += 1
-      end
-      input_json *= "}"
+  #== do extraction ==#
+  json_parse::Dict{String,Any} = JSON.parse(input_string)
 
-      #== do extraction ==#
-      json_parse::Dict{String,Any} = JSON.parse(input_json)
+  merge!(molecule,Dict("geometry" => json_parse["molecule"]["geometry"]))
+  merge!(molecule,Dict("symbols" => json_parse["molecule"]["symbols"]))
+  merge!(molecule,Dict("charge" => json_parse["molecule"]["charge"]))
+  merge!(molecule,Dict("enuc" => json_parse["molecule"]["enuc"]))
+  merge!(molecule,Dict("ovr" => json_parse["molecule"]["ovr"]))
+  merge!(molecule,Dict("hcore" => json_parse["molecule"]["hcore"]))
 
-      merge!(molecule,json_parse["molecule"])
-      driver = json_parse["driver"]
-      merge!(model,json_parse["model"])
-      merge!(keywords,json_parse["keywords"])
-
-      i = j
+  if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
+    h5open("tei_all.h5", "w") do file
+      eri_array::Array{Float64,1} = json_parse["molecule"]["tei"]
+      write(file, "Integrals/All",eri_array)
     end
   end
+ 
+  driver = json_parse["driver"]
+  merge!(model,json_parse["model"])
+  merge!(keywords,json_parse["keywords"])
 
   if (MPI.Comm_rank(comm) == 0)
     println(" ")
