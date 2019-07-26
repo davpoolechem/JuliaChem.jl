@@ -27,7 +27,7 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
 
     #== read in input file ==#
     output_file::Dict{String,Any} = Dict([])
-    molecule, driver, model, keywords = JCInput.run(input_file)
+    @time molecule, driver, model, keywords = JCInput.run(input_file)
 
     #write("output.json",JSON.json(input_file))
     write("output.json",JSON.json(molecule))
@@ -36,7 +36,7 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     write("output.json",JSON.json(keywords))
 
     #== generate basis set ==#
-    basis = JCBasis.run(molecule, model)
+    @time basis = JCBasis.run(molecule, model)
     #display(basis)
 
     #== perform scf calculation ==#

@@ -346,6 +346,10 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Array{Float64,2} = zeros(basis.norb,basis.norb)
     
+    bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
+	  ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
+	  quartet::ShQuartet = ShQuartet(bra,ket)
+
     while true
       ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
       if (ijkl_index < 1) break end
@@ -364,9 +368,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		  
 		  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
   
-	    bra::ShPair = ShPair(basis.shells[ish], basis.shells[jsh])
-	    ket::ShPair = ShPair(basis.shells[ksh], basis.shells[lsh])
-	    quartet::ShQuartet = ShQuartet(bra,ket)
+	    bra = ShPair(basis.shells[ish], basis.shells[jsh])
+	    ket = ShPair(basis.shells[ksh], basis.shells[lsh])
+	    quartet = ShQuartet(bra,ket)
 
 		  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 	    qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
