@@ -6,7 +6,7 @@
 #=============================#
 #== put needed modules here ==#
 #=============================#
-@everywhere import JuliaChem
+import JuliaChem
 
 using .JuliaChem.JCInput
 using .JuliaChem.JCBasis

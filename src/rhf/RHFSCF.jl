@@ -138,12 +138,13 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 	  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
-      D_damp = map(x -> x*D + (1-x)*D_old, collect(0.05:0.05:0.90))
+      damp_values = (0.25,0.75)
+      D_damp = map(x -> x*D + (1-x)*D_old, damp_values)
       D_damp_rms = map(x->√(∑(x-D_old,x-D_old)), D_damp)
 
-      D = D_damp[argmax(D_damp_rms)] 
+      x = max(D_damp_rms...) > 1 ? min(damp_values...) : max(damp_values...)
+      D = x*D + (1-x)*D_old
 
- 
       #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
 	  D_rms::T = √(∑(ΔD,ΔD))
@@ -342,10 +343,10 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   eri_starts::Array{Int64,1} = read(tei, "Starts/$quartet_batch_num_old")
   eri_sizes::Array{Int64,1} = read(tei, "Sizes/$quartet_batch_num_old")
 
-  thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)              
+  thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Array{Float64,2} = zeros(basis.norb,basis.norb)
-    
+
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
 	  ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
 	  quartet::ShQuartet = ShQuartet(bra,ket)
@@ -353,21 +354,21 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
     while true
       ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
       if (ijkl_index < 1) break end
-    
-      if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end                   
+
+      if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
       bra_pair::Int64 = ceil(((-1+sqrt(1+8*ijkl_index))/2))
-      ket_pair::Int64 = (ijkl_index%bra_pair)+1      
- 
+      ket_pair::Int64 = (ijkl_index%bra_pair)+1
+
       ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
-      jsh::Int64 = (bra_pair%ish) + 1 
+      jsh::Int64 = (bra_pair%ish) + 1
       ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
-		  lsh::Int64 = (ket_pair%ksh) + 1
+	  lsh::Int64 = (ket_pair%ksh) + 1
 
       ijsh::Int64 = index(ish,jsh)
 		  klsh::Int64 = index(ksh,lsh)
-		  
+
 		  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
-  
+
 	    bra = ShPair(basis.shells[ish], basis.shells[jsh])
 	    ket = ShPair(basis.shells[ksh], basis.shells[lsh])
 	    quartet = ShQuartet(bra,ket)
@@ -392,7 +393,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		    (quartet_batch_num-1)
 	    eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
 		   eri_starts, eri_sizes, quartet_num_in_batch)
-  
+
 		  F_priv += dirfck(D, eri_quartet_batch, quartet,
 		    ish, jsh, ksh, lsh)
     end

@@ -4389,7 +4389,7 @@
 
 	"keywords": {
 		"scf":{
-			"niter":200,
+			"niter":500,
 			"dele":1E-8,
 			"rmsd":1E-6,
 			"prec":"Float64",
