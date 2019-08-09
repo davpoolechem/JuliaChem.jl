@@ -138,12 +138,13 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 	  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
-      damp_values = (0.25,0.75)
-      D_damp = map(x -> x*D + (1-x)*D_old, damp_values)
-      D_damp_rms = map(x->√(∑(x-D_old,x-D_old)), D_damp)
+      damp_values::Array{T,1} = [ 0.25, 0.75 ]
+      D_damp::Array{Array{T,2},1} = map(x -> x*D + (1.0-x)*D_old, damp_values)
+      D_damp_rms::Array{T,1} = map(x->√(∑(x-D_old,x-D_old)), D_damp)
 
-      x = max(D_damp_rms...) > 1 ? min(damp_values...) : max(damp_values...)
-      D = x*D + (1-x)*D_old
+      x::T = max(D_damp_rms...) > 1 ? min(damp_values...) :
+        max(damp_values...)
+      D = x*D + (1.0-x)*D_old
 
       #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
@@ -345,7 +346,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
-    F_priv::Array{Float64,2} = zeros(basis.norb,basis.norb)
+    F_priv::Array{T,2} = zeros(basis.norb,basis.norb)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
 	  ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
@@ -412,7 +413,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   return F
 end
 
-function shellquart(eri_batch::Array{Float64,1}, eri_starts::Array{Int64,1},
+function shellquart(eri_batch::Array{T,1}, eri_starts::Array{Int64,1},
   eri_sizes::Array{Int64,1}, quartet_num::Int64) where {T<:AbstractFloat}
 
   starting::Int64 = eri_starts[quartet_num]

@@ -56,11 +56,11 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
     if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
       h5open("tei_batch.h5", "w") do file
         #== write quartet eri lists to database ==#
-        eri_array::Array{Float64,1} = [] 
+        eri_array::Array{Float64,1} = []
         h5open("tei_all.h5", "r") do tei
-          eri_array = read(tei,"Integrals/All") 
+          eri_array = read(tei,"Integrals/All")
         end
-        
+
         nsh::Int64 = length(basis.shells)
 
         eri_array_batch::Array{Float64,1} = [ ]
