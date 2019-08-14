@@ -82,6 +82,13 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   D::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
   C::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
 
+  #== build DIIS arrays ==#
+  ndiis::Int64 = scf_flags["ndiis"]
+  F_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
+
+  e::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+  e_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
+
   if (MPI.Comm_rank(comm) == 0)
     println("----------------------------------------          ")
 	println("       Starting RHF iterations...                 ")
@@ -110,6 +117,7 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   rmsd::T = scf_flags["rmsd"]
 
   iter::Int64 = 1
+  B_dim::Int64 = 1
   h5open("tei_batch.h5", "r") do tei::HDF5File
     while(!converged)
       #== build fock matrix ==#
@@ -130,6 +138,22 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
         println("Total Fock matrix:")
         display(F)
         println("")
+      end
+
+	  #== do DIIS ==#
+      e = F*D*S - S*D*F
+	  e_array = [deepcopy(e), e_array[1:ndiis]...]
+	  F_array = [deepcopy(F), F_array[1:ndiis]...]
+
+	  if (iter > 1)
+		B_dim += 1
+		B_dim = min(B_dim,ndiis)
+		try
+		  F = DIIS(e_array, F_array, B_dim)
+	    catch
+		  B_dim = 2
+		  F = DIIS(e_array, F_array, B_dim)
+		end
       end
 
       #== obtain new F,D,C matrices ==#

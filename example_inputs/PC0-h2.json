@@ -95,6 +95,7 @@
 	"keywords": {
 		"scf":{
 			"niter":50,
+			"ndiis":3,
 			"dele":1E-8,
 			"rmsd":1E-6,
 			"prec":"Float64",
