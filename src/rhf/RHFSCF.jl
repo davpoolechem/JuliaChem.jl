@@ -82,13 +82,6 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   D::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
   C::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
 
-  #== build DIIS arrays ==#
-  ndiis::Int64 = scf_flags["ndiis"]
-  F_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
-
-  e::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
-  e_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
-
   if (MPI.Comm_rank(comm) == 0)
     println("----------------------------------------          ")
 	println("       Starting RHF iterations...                 ")
@@ -110,88 +103,10 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  converged::Bool = false
+  @time F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
+    E_elec, E_old, basis, scf_flags)
 
-  iter_limit::Int64 = scf_flags["niter"]
-  dele::T = scf_flags["dele"]
-  rmsd::T = scf_flags["rmsd"]
-
-  iter::Int64 = 1
-  B_dim::Int64 = 1
-  h5open("tei_batch.h5", "r") do tei::HDF5File
-    while(!converged)
-      #== build fock matrix ==#
-	  F_temp::Array{T,2} = twoei(F, D, tei, H, basis)
-
-	  F = MPI.Allreduce(F_temp,MPI.SUM,comm)
-	  MPI.Barrier(comm)
-
-	  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-        println("Skeleton Fock matrix:")
-        display(F)
-        println("")
-	  end
-
-	  F += H
-
-      if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-        println("Total Fock matrix:")
-        display(F)
-        println("")
-      end
-
-	  #== do DIIS ==#
-      e = F*D*S - S*D*F
-	  e_array = [deepcopy(e), e_array[1:ndiis]...]
-	  F_array = [deepcopy(F), F_array[1:ndiis]...]
-
-	  if (iter > 1)
-		B_dim += 1
-		B_dim = min(B_dim,ndiis)
-		try
-		  F = DIIS(e_array, F_array, B_dim)
-	    catch
-		  B_dim = 2
-		  F = DIIS(e_array, F_array, B_dim)
-		end
-      end
-
-      #== obtain new F,D,C matrices ==#
-      D_old::Array{T,2} = deepcopy(D)
-
-	  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
-
-      #== dynamic damping of density matrix ==#
-      damp_values::Array{T,1} = [ 0.25, 0.75 ]
-      D_damp::Array{Array{T,2},1} = map(x -> x*D + (1.0-x)*D_old, damp_values)
-      D_damp_rms::Array{T,1} = map(x->√(∑(x-D_old,x-D_old)), D_damp)
-
-      x::T = max(D_damp_rms...) > 1 ? min(damp_values...) :
-        max(damp_values...)
-      D = x*D + (1.0-x)*D_old
-
-      #== check for convergence ==#
-      ΔD::Array{T,2} = D - D_old
-	  D_rms::T = √(∑(ΔD,ΔD))
-
-	  E = E_elec+E_nuc
-	  ΔE::T = E - E_old
-
-	  if (MPI.Comm_rank(comm) == 0)
-	    println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
-	  end
-
-	  converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
-	  iter += 1
-      if (iter > iter_limit) break end
-
-      #== if not converged, replace old D and E values for next iteration ==#
-      #D_old = deepcopy(D)
-      E_old = E
-    end
-  end
-
-  if (iter > iter_limit)
+  if (!converged)
     if (MPI.Comm_rank(comm) == 0)
 	    println(" ")
       println("----------------------------------------")
@@ -243,6 +158,108 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   return (F, D, C, E, calculation_status)
 end
 
+function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
+  H::Array{T,2}, ortho::Array{T,2}, S::Array{T,2}, E_nuc::T, E_elec::T,
+  E_old::T, basis::BasisStructs.Basis,
+  scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
+
+  comm=MPI.COMM_WORLD
+
+  scf_converged::Bool = true
+  iter_converged::Bool = false
+
+  iter_limit::Int64 = scf_flags["niter"]
+  dele::T = scf_flags["dele"]
+  rmsd::T = scf_flags["rmsd"]
+
+  #== build DIIS arrays ==#
+  ndiis::Int64 = scf_flags["ndiis"]
+  F_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
+
+  e::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+  e_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
+
+  #== start convergence procedure ==#
+  iter::Int64 = 1
+  B_dim::Int64 = 1
+  h5open("tei_batch.h5", "r") do tei::HDF5File
+    while(!iter_converged)
+      #== build fock matrix ==#
+	    F_temp::Array{T,2} = twoei(F, D, tei, H, basis)
+
+	    F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+	    MPI.Barrier(comm)
+
+	    if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+        println("Skeleton Fock matrix:")
+        display(F)
+        println("")
+	    end
+
+	    F += H
+
+      if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+        println("Total Fock matrix:")
+        display(F)
+        println("")
+      end
+
+	    #== do DIIS ==#
+      e = F*D*S - S*D*F
+	    e_array = [deepcopy(e), e_array[1:ndiis]...]
+	    F_array = [deepcopy(F), F_array[1:ndiis]...]
+
+	    if (iter > 1)
+		    B_dim += 1
+		    B_dim = min(B_dim,ndiis)
+		    try
+		      F = DIIS(e_array, F_array, B_dim)
+	      catch
+		      B_dim = 2
+		      F = DIIS(e_array, F_array, B_dim)
+		    end
+      end
+
+      #== obtain new F,D,C matrices ==#
+      D_old::Array{T,2} = deepcopy(D)
+
+	    F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
+
+      #== dynamic damping of density matrix ==#
+      damp_values::Array{T,1} = [ 0.25, 0.75 ]
+      D_damp::Array{Array{T,2},1} = map(x -> x*D + (1.0-x)*D_old, damp_values)
+      D_damp_rms::Array{T,1} = map(x->√(∑(x-D_old,x-D_old)), D_damp)
+
+      x::T = max(D_damp_rms...) > 1 ? min(damp_values...) :
+        max(damp_values...)
+      D = x*D + (1.0-x)*D_old
+
+      #== check for convergence ==#
+      ΔD::Array{T,2} = D - D_old
+	    D_rms::T = √(∑(ΔD,ΔD))
+
+	    E = E_elec+E_nuc
+	    ΔE::T = E - E_old
+
+	    if (MPI.Comm_rank(comm) == 0)
+	      println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+	    end
+
+	    iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
+	    iter += 1
+      if (iter > iter_limit)
+        scf_converged = false
+        break
+      end
+
+      #== if not converged, replace old D and E values for next iteration ==#
+      #D_old = deepcopy(D)
+      E_old = E
+    end
+  end
+
+  return (F, D, C, E, iter, scf_converged)
+end
 #=
 """
 	 iteration(F::Array{T,2}, D::Array{T,2}, H::Array{T,2}, ortho::Array{T,2})
