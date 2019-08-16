@@ -1,6 +1,6 @@
-Base.include(@__MODULE__,"../math/math.jl")
-
 Base.include(@__MODULE__,"RHFHelpers.jl")
+
+using MATH
 
 using MPI
 using Base.Threads
@@ -228,7 +228,7 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
       #== dynamic damping of density matrix ==#
       damp_values::Array{T,1} = [ 0.25, 0.75 ]
       D_damp::Array{Array{T,2},1} = map(x -> x*D + (1.0-x)*D_old, damp_values)
-      D_damp_rms::Array{T,1} = map(x->√(∑(x-D_old,x-D_old)), D_damp)
+      D_damp_rms::Array{T,1} = map(x->√(@∑ x-D_old x-D_old), D_damp)
 
       x::T = max(D_damp_rms...) > 1 ? min(damp_values...) :
         max(damp_values...)
@@ -236,7 +236,7 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
 
       #== check for convergence ==#
       ΔD::Array{T,2} = D - D_old
-	    D_rms::T = √(∑(ΔD,ΔD))
+	    D_rms::T = √(@∑ ΔD ΔD)
 
 	    E = E_elec+E_nuc
 	    ΔE::T = E - E_old
@@ -305,8 +305,8 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   norb = basis.norb
 
   for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
-    D[i,j] = ∑(C[i,1:nocc],C[j,1:nocc])
-    #D[i,j] = ∑(C[1:nocc,i],C[1:nocc,j])
+    D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
+    #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
     D[i,j] *= 2
   end
 
@@ -317,8 +317,8 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   end
 
   #== compute new SCF energy ==#
-  EHF1::T = ∑(D,F_μν)
-  EHF2::T = ∑(D,H)
+  EHF1::T = @∑ D F_μν
+  EHF2::T = @∑ D H
   E_elec::T = (EHF1 + EHF2)/2
 
   if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
