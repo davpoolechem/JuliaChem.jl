@@ -1,4 +1,5 @@
 using Base.Threads
+using MATH
 
 function read_in_enuc()
 	enuc::Float64 = input_enuc()
@@ -41,7 +42,7 @@ function DIIS(e_array::Array{Array{T,2},1},
 
 	B::Array{T,2} = Matrix{T}(undef,B_dim+1,B_dim+1)
 	for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
-	  B[i,j] = ∑(e_array[i],e_array[j])
+	  B[i,j] = @∑ e_array[i] e_array[j]
 
 	  B[i,B_dim+1] = -1
 	  B[B_dim+1,i] = -1

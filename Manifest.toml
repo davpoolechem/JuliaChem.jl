@@ -86,6 +86,14 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
+[[MATH]]
+deps = ["LinearAlgebra", "Test"]
+git-tree-sha1 = "fca4164efdaedcefc5d5aaed5e472312117a155e"
+repo-rev = "master"
+repo-url = "https://github.com/davpoolechem/MATH.jl.git"
+uuid = "175a8a3e-c02e-11e9-3701-6726ac2668a8"
+version = "0.1.0"
+
 [[MPI]]
 deps = ["BinDeps", "Compat", "Distributed", "Libdl", "Random", "Sockets", "Test"]
 git-tree-sha1 = "b036c4e16c2e47854961896dfdbe1ec63ea6ee15"
