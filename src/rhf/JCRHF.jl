@@ -113,7 +113,7 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 
                 λσ::Int64 = index(λλ,σσ)
 
-                print("$μμ, $νν, $λλ, $σσ;") 
+                #print("$μμ, $νν, $λλ, $σσ;") 
                 if (μν < λσ)
                   two_shell::Bool = ibas == jbas
                   two_shell = two_shell || (ibas == kbas)
@@ -142,36 +142,42 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
                       four_same = four_same && ksh == lsh
 
                       if four_same
-                        print("\n")
+                        #print("\n")
                         continue
                       elseif three_same
                         if (μμ != λλ && νν != σσ)
                           μ,ν,λ,σ = λλ,σσ,μμ,νν
                         else
-                          print("\n")
+                          #print("\n")
                           continue
                         end
                       else
-                          print("\n")
+                          #print("\n")
                         continue
                       end
                   elseif three_shell
                     if (μμ != λλ && νν != σσ)
                         μ,ν,λ,σ = λλ,σσ,μμ,νν
                     else
-                          print("\n")
+                          #print("\n")
                       continue
                     end
                   elseif two_shell
-                    if (μμ != λλ && νν != σσ)
+                    if (ish == ksh && jsh == lsh &&
+                        μμ != νν && μμ != λλ && μμ != σσ &&
+                        νν != λλ && νν != σσ &&
+                        λλ != σσ )
+                         #print("\n")
+                      continue
+                    elseif (μμ != λλ && νν != σσ)
                       μ,ν,λ,σ = λλ,σσ,μμ,νν
                     else
-                          print("\n")
+                          #print("\n")
                       continue
                     end
                   end
                 end
-                println(" $μ, $ν, $λ, $σ")
+                #println(" $μ, $ν, $λ, $σ")
                 eri_size += 1
               end
             end

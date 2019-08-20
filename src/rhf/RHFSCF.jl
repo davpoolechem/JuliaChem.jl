@@ -544,7 +544,12 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
             continue
           end
         elseif two_shell
-          if (μμ != λλ && νν != σσ)
+          if (ish == ksh && jsh == lsh &&
+                        μμ != νν && μμ != λλ && μμ != σσ &&
+                        νν != λλ && νν != σσ &&
+                        λλ != σσ )
+                      continue
+          elseif (μμ != λλ && νν != σσ)
             μ,ν,λ,σ = λλ,σσ,μμ,νν
           else
             continue
