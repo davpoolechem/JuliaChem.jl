@@ -180,11 +180,11 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 
             if quartet_batch_num != quartet_batch_num_old
               #== write arrays to disk ==#
-              write(file, "Integrals/$quartet_batch_num",
+              write(file, "Integrals/$quartet_batch_num_old",
                 eri_array_batch)
-              write(file, "Starts/$quartet_batch_num",
+              write(file, "Starts/$quartet_batch_num_old",
                 eri_array_starts)
-              write(file, "Sizes/$quartet_batch_num",
+              write(file, "Sizes/$quartet_batch_num_old",
                 eri_array_sizes)
 
               #== reset variables as needed ==#

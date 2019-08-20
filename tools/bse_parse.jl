@@ -127,7 +127,7 @@ function parse_individual(atom::String, basis::String, bsed::HDF5File)
         return
     end
 
-    #println(bs_dict)
+    println(bs_dict)
 
     #== initialize some variables ==#
     outer_counter::Int64 = 1
@@ -173,7 +173,7 @@ function parse_individual(atom::String, basis::String, bsed::HDF5File)
         h5write("bsed.h5",
             "$atom/$basis/$shell_num/Coefficients", coeff)
 
-#=
+
         println("Exponents:")
         display(h5read("bsed.h5",
             "$atom/$basis/$shell_num/Exponents"))
@@ -182,7 +182,7 @@ function parse_individual(atom::String, basis::String, bsed::HDF5File)
         display(h5read("bsed.h5",
             "$atom/$basis/$shell_num/Coefficients"))
         println("")
-=#
+
 
         #== set index of next shell to loop over ==#
         outer_regex_index = findnext(regexmatch[1], bs_dict,
@@ -240,7 +240,7 @@ function parse_all()
             "In", "Sn", "Sb", "Te", "I", "Xe"
             ] #H-Xe
         basis_sets = ["3-21G", "4-31G", "5-21G", "5-31G", "6-21G",
-            "6-31G" ] #pople family
+            "6-31G","6-31G(d,p)" ] #pople family
 
         for atom::String in atoms
             for basis::String in basis_sets

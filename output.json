@@ -1,1 +1,1 @@
-{"error":{"error_type":"convergence_error","error_message":" SCF calculation did not converge within 200\n        iterations. "},"success":false}
+{"scf":{"niter":100,"direct":false,"rmsd":1.0e-6,"dele":1.0e-8,"prec":"Float64","debug":false,"ndiis":3}}
