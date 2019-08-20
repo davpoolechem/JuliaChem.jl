@@ -1,1 +1,1 @@
-{"scf":{"niter":100,"direct":false,"rmsd":1.0e-6,"dele":1.0e-8,"prec":"Float64","debug":false,"ndiis":3}}
+{"return_result":-75.53097580280112,"success":true,"properties":{"scf_total_energy":-75.53097580280112,"nuclear_repulsion_energy":4.2346705892,"scf_iterations":43,"return_energy":-75.53097580280112}}

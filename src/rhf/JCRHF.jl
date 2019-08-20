@@ -100,6 +100,7 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
             #push!(eri_start_index, eri_start)
 
             eri_size::Int64 = 0
+            println("$ish, $jsh, $ksh, $lsh")
             for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
               μ::Int64, ν::Int64 = μμ,νν
               if (μμ < νν) continue end
@@ -112,6 +113,7 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 
                 λσ::Int64 = index(λλ,σσ)
 
+                print("$μμ, $νν, $λλ, $σσ;") 
                 if (μν < λσ)
                   two_shell::Bool = ibas == jbas
                   two_shell = two_shell || (ibas == kbas)
@@ -140,36 +142,36 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
                       four_same = four_same && ksh == lsh
 
                       if four_same
-                        if (μμ != νν && μμ != λλ && μμ != σσ &&
-                          νν != λλ && νν != σσ && λλ != σσ)
-                          μ,ν,λ,σ = λλ,σσ,μμ,νν
-                        else
-                          continue
-                        end
+                        print("\n")
+                        continue
                       elseif three_same
                         if (μμ != λλ && νν != σσ)
                           μ,ν,λ,σ = λλ,σσ,μμ,νν
                         else
+                          print("\n")
                           continue
                         end
                       else
+                          print("\n")
                         continue
                       end
                   elseif three_shell
                     if (μμ != λλ && νν != σσ)
                         μ,ν,λ,σ = λλ,σσ,μμ,νν
                     else
+                          print("\n")
                       continue
                     end
                   elseif two_shell
                     if (μμ != λλ && νν != σσ)
                       μ,ν,λ,σ = λλ,σσ,μμ,νν
                     else
+                          print("\n")
                       continue
                     end
                   end
                 end
-
+                println(" $μ, $ν, $λ, $σ")
                 eri_size += 1
               end
             end
@@ -178,6 +180,8 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
             quartet_batch_num::Int64 = Int64(floor(quartet_num/
               quartets_per_batch)) + 1
 
+            display(eri_array[eri_start:eri_start+(eri_size-1)])
+            println(" ")
             if quartet_batch_num != quartet_batch_num_old
               #== write arrays to disk ==#
               write(file, "Integrals/$quartet_batch_num_old",

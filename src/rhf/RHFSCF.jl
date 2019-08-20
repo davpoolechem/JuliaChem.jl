@@ -527,12 +527,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
           four_same = four_same && ksh == lsh
 
           if four_same
-              if (μμ != νν && μμ != λλ && μμ != σσ &&
-                νν != λλ && νν != σσ && λλ != σσ)
-                μ,ν,λ,σ = λλ,σσ,μμ,νν
-              else
-                continue
-              end
+            continue
           elseif three_same
             if (μμ != λλ && νν != σσ)
               μ,ν,λ,σ = λλ,σσ,μμ,νν
@@ -563,7 +558,7 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
       #eri::T = 0
       if (abs(eri) <= 1E-10) continue end
 
-      #println("$μ, $ν, $λ, $σ, $eri, $Dij")
+      #println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
