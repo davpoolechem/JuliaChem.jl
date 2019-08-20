@@ -404,7 +404,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
       ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
       jsh::Int64 = (bra_pair%ish) + 1
       ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
-	  lsh::Int64 = (ket_pair%ksh) + 1
+	    lsh::Int64 = (ket_pair%ksh) + 1
 
       ijsh::Int64 = index(ish,jsh)
 		  klsh::Int64 = index(ksh,lsh)
@@ -436,7 +436,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 	    eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
 		   eri_starts, eri_sizes, quartet_num_in_batch)
 
-		  F_priv += dirfck(D, eri_quartet_batch, quartet,
+		  dirfck(F_priv, D, eri_quartet_batch, quartet,
 		    ish, jsh, ksh, lsh)
     end
 
@@ -463,13 +463,11 @@ function shellquart(eri_batch::Array{T,1}, eri_starts::Array{Int64,1},
   return eri_batch[starting:ending]
 end
 
-function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
+function dirfck(F_priv::Array{T,2}, D::Array{T,2}, eri_batch::Array{T,1},
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
   norb::Int64 = size(D)[1]
-
-  F_priv::Array{T,2} = fill(0.0,(norb,norb))
 
   nμ::Int64 = quartet.bra.sh_a.nbas
   nν::Int64 = quartet.bra.sh_b.nbas
@@ -583,6 +581,4 @@ function dirfck(D::Array{T,2}, eri_batch::Array{T,1},
 	  F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
     end
   end
-
-  return F_priv
 end
