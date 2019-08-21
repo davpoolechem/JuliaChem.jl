@@ -79,6 +79,9 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
 
   #== build the initial matrices ==#
   F::Array{T,2} = H
+  F_eval::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+  F_evec::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+
   D::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
   C::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
 
@@ -91,7 +94,8 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   end
 
   E_elec::T = 0.0
-  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
+  F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
+    ortho, basis, scf_flags)
 
   E::T = E_elec + E_nuc
   E_old::T = E
@@ -183,9 +187,17 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
   iter::Int64 = 1
   B_dim::Int64 = 1
   h5open("tei_batch.h5", "r") do tei::HDF5File
+    #== create temporary arrays needed for calculation ==#
     F_temp::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+    F_eval::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+    F_evec::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+
     D_old::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
     ΔD::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+
+    damp_values::Array{T,1} = [ 0.25, 0.75 ]
+    D_damp::Array{Array{T,2},1} = [ Matrix{T}(undef,basis.norb,basis.norb) ]
+    D_damp_rms::Array{T,1} = []
 
     eri_batch::Array{T,1} = read(tei, "Integrals/1")
     eri_starts::Array{Int64,1} = read(tei, "Starts/1")
@@ -231,12 +243,12 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
       #== obtain new F,D,C matrices ==#
       D_old = deepcopy(D)
 
-	  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
+	  F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
+        ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
-      damp_values::Array{T,1} = [ 0.25, 0.75 ]
-      D_damp::Array{Array{T,2},1} = map(x -> x*D + (1.0-x)*D_old, damp_values)
-      D_damp_rms::Array{T,1} = map(x->√(@∑ x-D_old x-D_old), D_damp)
+      D_damp = map(x -> x*D + (1.0-x)*D_old, damp_values)
+      D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
 
       x::T = max(D_damp_rms...) > 1 ? min(damp_values...) :
         max(damp_values...)
@@ -286,7 +298,8 @@ H = One-electron Hamiltonian Matrix
 ortho = Symmetric Orthogonalization Matrix
 """
 =#
-function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
+function iteration(F_μν::Array{T,2}, D::Array{T,2}, C::Array{T,2},
+  H::Array{T,2}, F_eval::Array{T,2}, F_evec::Array{T,2},
   ortho::Array{T,2}, basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
@@ -295,12 +308,12 @@ function iteration(F_μν::Array{T,2}, D::Array{T,2}, H::Array{T,2},
   #== obtain new orbital coefficients ==#
   F::Array{T,2} = transpose(ortho)*F_μν*ortho
 
-  F_eval::Array{T,1} = eigvals(LinearAlgebra.Hermitian(F))
+  F_eval = eigvals(LinearAlgebra.Hermitian(F))
 
-  F_evec::Array{T,2} = eigvecs(LinearAlgebra.Hermitian(F))
+  F_evec = eigvecs(LinearAlgebra.Hermitian(F))
   F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-  C::Array{T,2} = ortho*F_evec
+  C = ortho*F_evec
 
   if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
     println("New orbitals:")
