@@ -41,27 +41,3 @@ function script(input_file::String)
       end
     end
 end
-
-#================================================#
-#== we want to precompile all involved modules ==#
-#================================================#
-if (isfile("../snoop/precompile_Base.jl"))
-    include("../snoop/precompile_Base.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_Blosc.jl"))
-    include("../snoop/precompile_Blosc.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_Compat.jl"))
-    include("../snoop/precompile_Compat.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_HDF5.jl"))
-    include("../snoop/precompile_HDF5.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_MPI.jl"))
-    include("../snoop/precompile_MPI.jl")
-    _precompile_()
-end
