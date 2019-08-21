@@ -397,7 +397,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 2500
+  quartets_per_batch::Int64 = 1000
   quartet_batch_num_old::Int64 = 1
 
   F = zeros(basis.norb,basis.norb)
@@ -439,27 +439,32 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
 		  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 	    qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-	    quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+	    quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
 		  #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
 		  quartet_batch_num::Int64 = Int64(floor(quartet_num/
 		    quartets_per_batch)) + 1
 
 		  if quartet_batch_num != quartet_batch_num_old
-		    eri_batch = read(tei, "Integrals/$quartet_batch_num")
-		    eri_starts = read(tei, "Starts/$quartet_batch_num")
-		    eri_sizes = read(tei, "Sizes/$quartet_batch_num")
+		    eri_batch = Vector{T}(read(tei, "Integrals/$quartet_batch_num"))
+		    eri_starts = Vector{Int64}(read(tei, "Starts/$quartet_batch_num"))
+		    eri_sizes = Vector{Int64}(read(tei, "Sizes/$quartet_batch_num"))
+
+            eri_starts = eri_starts .- (eri_starts[1] - 1)
 
 		    quartet_batch_num_old = quartet_batch_num
 		  end
 
 		  quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-		    (quartet_batch_num-1)
+		    (quartet_batch_num-1) + 1
 	    eri_quartet_batch::Array{T,1} = shellquart(eri_batch,
 		   eri_starts, eri_sizes, quartet_num_in_batch)
+           #println("TEST2; $quartet_num_in_batch")
 
 		  dirfck(F_priv, D, eri_quartet_batch, quartet,
 		    ish, jsh, ksh, lsh)
+        #println("TEST3")
+
     end
 
     lock(mutex)

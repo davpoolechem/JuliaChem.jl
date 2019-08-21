@@ -91,7 +91,7 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
             lpos::Int64 = basis.shells[lsh].pos
 
             qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-            quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl
+            quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
 
             qint_ij::Int64 = ibas*(ibas-1)/2 + jbas
             qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
@@ -182,7 +182,7 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
               end
             end
 
-            quartets_per_batch::Int64 = 2500
+            quartets_per_batch::Int64 = 1000
             quartet_batch_num::Int64 = Int64(floor(quartet_num/
               quartets_per_batch)) + 1
 
@@ -203,16 +203,26 @@ function run(basis::BasisStructs.Basis, molecule::Dict{String,Any},
               eri_array_sizes = [ ]
 
               quartet_batch_num_old = quartet_batch_num
-            else
-              eri_array_batch = [ eri_array_batch;
-              eri_array[eri_start:eri_start+(eri_size-1)]]
-
-              eri_start_readin::Int64 = eri_start - quartets_per_batch*
-                (quartet_batch_num-1)
-              push!(eri_array_starts,eri_start_readin)
-
-              push!(eri_array_sizes,eri_size)
             end
+            #else
+            #  eri_array_batch = [ eri_array_batch;
+            #  eri_array[eri_start:eri_start+(eri_size-1)]]
+
+            #  eri_start_readin::Int64 = eri_start - quartets_per_batch*
+        #        (quartet_batch_num-1)
+        #      push!(eri_array_starts,eri_start_readin)
+
+        #      push!(eri_array_sizes,eri_size)
+        #    end
+
+            eri_array_batch = [ eri_array_batch;
+            eri_array[eri_start:eri_start+(eri_size-1)]]
+
+            eri_start_readin::Int64 = eri_start - quartets_per_batch*
+              (quartet_batch_num-1)
+            push!(eri_array_starts,eri_start_readin)
+
+            push!(eri_array_sizes,eri_size)
 
             eri_start += eri_size
 
