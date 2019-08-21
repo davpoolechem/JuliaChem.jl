@@ -18,13 +18,13 @@ using MPI
 #================================#
 #== JuliaChem execution script ==#
 #================================#
-function script(input_file::String)
+function script()
     #== initialize MPI ==#
     MPI.Init()
 
     #== read in input file ==#
     output_file::Dict{String,Any} = Dict([])
-    molecule, driver, model, keywords = JCInput.run(input_file)
+    molecule, driver, model, keywords = JCInput.run("../example_inputs/631G-H2O.json")
 
     #write("output.json",JSON.json(input_file))
     write("output.json",JSON.json(molecule))
@@ -47,29 +47,3 @@ function script(input_file::String)
     #== finalize MPI ==#
     @time MPI.Finalize()
 end
-
-#================================================#
-#== we want to precompile all involved modules ==#
-#================================================#
-if (isfile("../snoop/precompile_Base.jl"))
-    include("../snoop/precompile_Base.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_Blosc.jl"))
-    include("../snoop/precompile_Blosc.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_Compat.jl"))
-    include("../snoop/precompile_Compat.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_HDF5.jl"))
-    include("../snoop/precompile_HDF5.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_MPI.jl"))
-    include("../snoop/precompile_MPI.jl")
-    _precompile_()
-end
-
-@time script(ARGS[1])

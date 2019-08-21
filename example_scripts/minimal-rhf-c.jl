@@ -19,7 +19,7 @@ using MPI
 #== JuliaChem execution script ==#
 #================================#
 Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
-    #== process input file ==#    
+    #== process input file ==#
     input_file::String = ARGS[1]
 
     #== initialize MPI ==#
@@ -51,5 +51,29 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
     MPI.Finalize()
 
     #== we are done ==#
-    return 0 
+    return 0
+end
+
+#================================================#
+#== we want to precompile all involved modules ==#
+#================================================#
+if (isfile("../snoop/precompile_Base.jl"))
+    include("../snoop/precompile_Base.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_Blosc.jl"))
+    include("../snoop/precompile_Blosc.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_Compat.jl"))
+    include("../snoop/precompile_Compat.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_HDF5.jl"))
+    include("../snoop/precompile_HDF5.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_MPI.jl"))
+    include("../snoop/precompile_MPI.jl")
+    _precompile_()
 end
