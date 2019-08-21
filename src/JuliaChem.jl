@@ -37,6 +37,10 @@ if (isfile("../snoop/precompile_MPI.jl"))
     include("../snoop/precompile_MPI.jl")
     _precompile_()
 end
+if (isfile("../snoop/precompile_Parsers.jl"))
+    include("../snoop/precompile_Parsers.jl")
+    _precompile_()
+end
 if (isfile("../snoop/precompile_unknown.jl"))
     include("../snoop/precompile_unknown.jl")
     _precompile_()
