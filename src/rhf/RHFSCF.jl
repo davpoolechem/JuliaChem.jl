@@ -183,20 +183,28 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
   iter::Int64 = 1
   B_dim::Int64 = 1
   h5open("tei_batch.h5", "r") do tei::HDF5File
+    F_temp::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+    D_old::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+    ΔD::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
+
+    eri_batch::Array{T,1} = read(tei, "Integrals/1")
+    eri_starts::Array{Int64,1} = read(tei, "Starts/1")
+    eri_sizes::Array{Int64,1} = read(tei, "Sizes/1")
+
     while(!iter_converged)
       #== build fock matrix ==#
-	    F_temp::Array{T,2} = twoei(F, D, tei, H, basis)
+	  F_temp = twoei(F, D, tei, eri_batch, eri_starts, eri_sizes, H, basis)
 
-	    F = MPI.Allreduce(F_temp,MPI.SUM,comm)
-	    MPI.Barrier(comm)
+	  F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+	  MPI.Barrier(comm)
 
-	    if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+	  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Skeleton Fock matrix:")
         display(F)
         println("")
-	    end
+	  end
 
-	    F += H
+	  F += H
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Total Fock matrix:")
@@ -204,26 +212,26 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
         println("")
       end
 
-	    #== do DIIS ==#
+	  #== do DIIS ==#
       e = F*D*S - S*D*F
-	    e_array = [deepcopy(e), e_array[1:ndiis]...]
-	    F_array = [deepcopy(F), F_array[1:ndiis]...]
+	  e_array = [deepcopy(e), e_array[1:ndiis]...]
+	  F_array = [deepcopy(F), F_array[1:ndiis]...]
 
-	    if (iter > 1)
-		    B_dim += 1
-		    B_dim = min(B_dim,ndiis)
-		    try
-		      F = DIIS(e_array, F_array, B_dim)
-	      catch
-		      B_dim = 2
-		      F = DIIS(e_array, F_array, B_dim)
-		    end
+	  if (iter > 1)
+		B_dim += 1
+		B_dim = min(B_dim,ndiis)
+		try
+		  F = DIIS(e_array, F_array, B_dim)
+	    catch
+		  B_dim = 2
+		  F = DIIS(e_array, F_array, B_dim)
+		end
       end
 
       #== obtain new F,D,C matrices ==#
-      D_old::Array{T,2} = deepcopy(D)
+      D_old = deepcopy(D)
 
-	    F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
+	  F, D, C, E_elec = iteration(F, D, H, ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
       damp_values::Array{T,1} = [ 0.25, 0.75 ]
@@ -235,18 +243,18 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
       D = x*D + (1.0-x)*D_old
 
       #== check for convergence ==#
-      ΔD::Array{T,2} = D - D_old
-	    D_rms::T = √(@∑ ΔD ΔD)
+      ΔD = D - D_old
+	  D_rms::T = √(@∑ ΔD ΔD)
 
-	    E = E_elec+E_nuc
-	    ΔE::T = E - E_old
+	  E = E_elec+E_nuc
+	  ΔE::T = E - E_old
 
-	    if (MPI.Comm_rank(comm) == 0)
-	      println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
-	    end
+	  if (MPI.Comm_rank(comm) == 0)
+	    println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+	  end
 
-	    iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
-	    iter += 1
+	  iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
+	  iter += 1
       if (iter > iter_limit)
         scf_converged = false
         break
@@ -369,6 +377,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
+  eri_batch::Array{T,1}, eri_starts::Array{Int64,1}, eri_sizes::Array{Int64,1},
   H::Array{T,2}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -381,9 +390,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   F = zeros(basis.norb,basis.norb)
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
-  eri_batch::Array{T,1} = read(tei, "Integrals/$quartet_batch_num_old")
-  eri_starts::Array{Int64,1} = read(tei, "Starts/$quartet_batch_num_old")
-  eri_sizes::Array{Int64,1} = read(tei, "Sizes/$quartet_batch_num_old")
+  #eri_batch = read(tei, "Integrals/$quartet_batch_num_old")
+  #eri_starts = read(tei, "Starts/$quartet_batch_num_old")
+  #eri_sizes = read(tei, "Sizes/$quartet_batch_num_old")
 
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
