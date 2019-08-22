@@ -201,9 +201,19 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
     D_damp::Array{Array{T,2},1} = [ Matrix{T}(undef,basis.norb,basis.norb) ]
     D_damp_rms::Array{T,1} = []
 
-    eri_batch::Array{T,1} = read(tei, "Integrals/1")
-    eri_starts::Array{Int64,1} = read(tei, "Starts/1")
-    eri_sizes::Array{Int64,1} = read(tei, "Sizes/1")
+    nsh::Int64 = length(basis.shells)
+    nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
+
+    quartets_per_batch::Int64 = 1000
+    quartet_batch_num_old::Int64 = Int64(floor(nindices/
+      quartets_per_batch)) + 1
+
+    eri_batch::Array{T,1} = read(tei, "Integrals/$quartet_batch_num_old")
+
+    eri_starts::Array{Int64,1} = read(tei, "Starts/$quartet_batch_num_old")
+    eri_starts = eri_starts .- (eri_starts[1] - 1)
+
+    eri_sizes::Array{Int64,1} = read(tei, "Sizes/$quartet_batch_num_old")
 
     while(!iter_converged)
       #== build fock matrix ==#
@@ -400,14 +410,11 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
   quartets_per_batch::Int64 = 1000
-  quartet_batch_num_old::Int64 = 1
+  quartet_batch_num_old::Int64 = Int64(floor(nindices/
+    quartets_per_batch)) + 1
 
   F = zeros(basis.norb,basis.norb)
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
-
-  #eri_batch = read(tei, "Integrals/$quartet_batch_num_old")
-  #eri_starts = read(tei, "Starts/$quartet_batch_num_old")
-  #eri_sizes = read(tei, "Sizes/$quartet_batch_num_old")
 
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
@@ -452,7 +459,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		    eri_starts = Vector{Int64}(read(tei, "Starts/$quartet_batch_num"))
 		    eri_sizes = Vector{Int64}(read(tei, "Sizes/$quartet_batch_num"))
 
-            println("REREAD INTEGRALS")
+            #println("REREAD INTEGRALS")
 
             eri_starts = eri_starts .- (eri_starts[1] - 1)
 
