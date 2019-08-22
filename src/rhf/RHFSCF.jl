@@ -111,6 +111,8 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
     E_elec, E_old, basis, scf_flags)
 
   if (!converged)
+    iter_limit::Int64 = scf_flags["niter"]
+
     if (MPI.Comm_rank(comm) == 0)
 	    println(" ")
       println("----------------------------------------")
@@ -421,12 +423,12 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 
       if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
       bra_pair::Int64 = ceil(((-1+sqrt(1+8*ijkl_index))/2))
-      ket_pair::Int64 = (ijkl_index%bra_pair)+1
+      ket_pair::Int64 = ijkl_index-bra_pair*(bra_pair-1)/2
 
       ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
-      jsh::Int64 = (bra_pair%ish) + 1
+      jsh::Int64 = bra_pair-ish*(ish-1)/2
       ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
-	    lsh::Int64 = (ket_pair%ksh) + 1
+	    lsh::Int64 = ket_pair-ksh*(ksh-1)/2
 
       ijsh::Int64 = index(ish,jsh)
 		  klsh::Int64 = index(ksh,lsh)
@@ -449,6 +451,8 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		    eri_batch = Vector{T}(read(tei, "Integrals/$quartet_batch_num"))
 		    eri_starts = Vector{Int64}(read(tei, "Starts/$quartet_batch_num"))
 		    eri_sizes = Vector{Int64}(read(tei, "Sizes/$quartet_batch_num"))
+
+            println("REREAD INTEGRALS")
 
             eri_starts = eri_starts .- (eri_starts[1] - 1)
 
