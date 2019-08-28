@@ -24,7 +24,7 @@ function read_in_oei(oei::Array{T,1}, nbf::Int64) where {T}
 
     ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
 
-	oei_matrix::Array{Float64,2} = Matrix{Float64}(undef,(nbf,nbf))
+	oei_matrix::Array{T,2} = Matrix{T}(undef,(nbf,nbf))
 	Threads.@threads for index::Int64 in 1:nbf2
         i::Int64 = ceil(((-1+sqrt(1+8*index))/2))
         j::Int64 = index - ioff[i]

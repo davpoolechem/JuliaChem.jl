@@ -107,7 +107,7 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  @time F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
+  @timev F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags)
 
   if (!converged)
@@ -204,7 +204,7 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
     nsh::Int64 = length(basis.shells)
     nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-    quartets_per_batch::Int64 = 1000
+    quartets_per_batch::Int64 = 2000
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
@@ -246,8 +246,9 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
 		B_dim = min(B_dim,ndiis)
 		try
 		  F = DIIS(e_array, F_array, B_dim)
-	    catch
-		  B_dim = 2
+	  catch
+		  println("FAIL")
+      B_dim = 2
 		  F = DIIS(e_array, F_array, B_dim)
 		end
       end
@@ -259,14 +260,15 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
         ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
-      D_damp = map(x -> x*D + (1.0-x)*D_old, damp_values)
+      one::T = oneunit(typeof(dele))
+      D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
       D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
-
-      x::T = max(D_damp_rms...) > 1 ? min(damp_values...) :
+  
+      x::T = max(D_damp_rms...) > one ? min(damp_values...) :
         max(damp_values...)
-      D = x*D + (1.0-x)*D_old
-
-      #== check for convergence ==#
+      D = x*D + (one-x)*D_old
+      
+    #== check for convergence ==#
       ΔD = D - D_old
 	  D_rms::T = √(@∑ ΔD ΔD)
 
@@ -409,7 +411,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 1000
+  quartets_per_batch::Int64 = 2000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
