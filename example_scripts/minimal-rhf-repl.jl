@@ -21,7 +21,6 @@ function script(input_file::String)
   if (driver == "energy")
     if (model["method"] == "RHF")
       scf = JCRHF.run(basis, molecule, keywords)
-      write("output.json",JSON.json(scf[5]))
     end
   end
 end
