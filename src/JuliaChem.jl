@@ -8,6 +8,8 @@ Base.include(@__MODULE__, "io/JCInput.jl")
 
 Base.include(@__MODULE__, "rhf/JCRHF.jl")
 
+Base.include(@__MODULE__, "runtime/JCRuntime.jl")
+
 end
 
 #================================================#

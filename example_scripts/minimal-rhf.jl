@@ -1,51 +1,34 @@
-#================================#
-#==  This script only executes ==#
-#==     the rhf algorithm      ==#
-#================================#
-
 #=============================#
 #== put needed modules here ==#
 #=============================#
 import JuliaChem
 
-using .JuliaChem.JCInput
-using .JuliaChem.JCBasis
-using .JuliaChem.JCRHF
-
-import JSON
-using MPI
+using JuliaChem.JCInput
+using JuliaChem.JCBasis
+using JuliaChem.JCRHF
 
 #================================#
 #== JuliaChem execution script ==#
 #================================#
 function script(input_file::String)
-    #== initialize MPI ==#
-    MPI.Init()
+  #== initialize JuliaChem runtime ==#
+  JuliaChem.initialize()
 
-    #== read in input file ==#
-    output_file::Dict{String,Any} = Dict([])
-    molecule, driver, model, keywords = JCInput.run(input_file)
+  #== read in input file ==#
+  molecule, driver, model, keywords = JCInput.run(input_file)
 
-    #write("output.json",JSON.json(input_file))
-    write("output.json",JSON.json(molecule))
-    write("output.json",JSON.json(Dict("driver" => driver)))
-    write("output.json",JSON.json(model))
-    write("output.json",JSON.json(keywords))
+  #== generate basis set ==#
+  basis = JCBasis.run(molecule, model)
 
-    #== generate basis set ==#
-    basis = JCBasis.run(molecule, model)
-    #display(basis)
-
-    #== perform scf calculation ==#
-    if (driver == "energy")
-      if (model["method"] == "RHF")
-        @time scf = JCRHF.run(basis, molecule, keywords)
-        write("output.json",JSON.json(scf[5]))
-      end
+  #== perform scf calculation ==#
+  if (driver == "energy")
+    if (model["method"] == "RHF")
+      @time scf = JCRHF.run(basis, molecule, keywords)
     end
+  end
 
-    #== finalize MPI ==#
-    @time MPI.Finalize()
+  #== finalize JuliaChem runtime ==#
+  JuliaChem.finalize()
 end
 
 @time script(ARGS[1])

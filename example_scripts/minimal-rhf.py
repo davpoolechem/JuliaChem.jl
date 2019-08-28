@@ -1,24 +1,30 @@
+#=============================#
+#== put needed modules here ==#
+#=============================#
 import sys
 import julia
 
-#julia.install()
-
 from julia import JuliaChem
 
-from julia import JSON
-from julia import MPI
-
+#================================#
+#== JuliaChem execution script ==#
+#================================#
 def script(input_file):
-  MPI.Init()
+  #== initialize JuliaChem runtime ==#
+  JuliaChem.initialize() 
 
+  #== read in input file ==#
   molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
 
+  #== generate basis set ==#
   basis = JuliaChem.JCBasis.run(molecule, model)
 
+  #== perform scf calculation ==#
   if (driver == "energy"):
     if (model["method"] == "RHF"):
       scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
 
-  MPI.Finalize()
+  #== finalize JuliaChem runtime ==#
+  JuliaChem.finalize() 
 
 script(sys.argv[1])
