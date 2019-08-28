@@ -1,4 +1,3 @@
-import sys
 import julia
 
 julia.install()
@@ -21,4 +20,4 @@ def script(input_file):
 
     MPI.Finalize()
 
-script(sys.argv[0])
+script("example_inputs/631Gdp-H2O.json")

@@ -19,7 +19,7 @@ Arguments
 oei = array of one-electron integrals to extract
 """
 =#
-function read_in_oei(oei::Array{Any,1}, nbf::Int64)
+function read_in_oei(oei::Array{T,1}, nbf::Int64) where {T}
 	nbf2::Int64 = nbf*(nbf+1)/2
 
     ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
