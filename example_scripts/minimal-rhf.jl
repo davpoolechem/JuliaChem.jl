@@ -7,6 +7,8 @@ using JuliaChem.JCInput
 using JuliaChem.JCBasis
 using JuliaChem.JCRHF
 
+using BenchmarkTools
+
 #================================#
 #== JuliaChem execution script ==#
 #================================#
@@ -23,7 +25,7 @@ function script(input_file::String)
   #== perform scf calculation ==#
   if (driver == "energy")
     if (model["method"] == "RHF")
-      @time scf = JCRHF.run(basis, molecule, keywords)
+      scf = JCRHF.run(basis, molecule, keywords)
     end
   end
 
@@ -31,4 +33,4 @@ function script(input_file::String)
   JuliaChem.finalize()
 end
 
-@time script(ARGS[1])
+script(ARGS[1])

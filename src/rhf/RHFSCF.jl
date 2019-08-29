@@ -107,7 +107,7 @@ function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  @timev F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
+  F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags)
 
   if (!converged)

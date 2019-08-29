@@ -23,6 +23,7 @@ def script(input_file):
   if (driver == "energy"):
     if (model["method"] == "RHF"):
       scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
+      scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
 
   #== finalize JuliaChem runtime ==#
   JuliaChem.finalize() 

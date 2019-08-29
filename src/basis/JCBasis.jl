@@ -35,7 +35,7 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(molecule::Dict{T,Any}, model::Dict{T,Any}) where {T}
+function run(molecule, model) 
   comm=MPI.COMM_WORLD
 
   if (MPI.Comm_rank(comm) == 0)

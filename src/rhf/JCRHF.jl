@@ -35,8 +35,7 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(basis::BasisStructs.Basis, molecule_::Dict{T,Any},
-  keywords::Dict{T,Any}) where {T}
+function run(basis, molecule, keywords)
 
   comm=MPI.COMM_WORLD
 
@@ -50,7 +49,7 @@ function run(basis::BasisStructs.Basis, molecule_::Dict{T,Any},
 
   #== initialize scf flags ==#
   scf_flags::Dict{String,Any} = keywords["scf"]
-  molecule::Dict{String,Any} = molecule_ 
+  #molecule::Dict{String,Any} = molecule_ 
 
   #== set up eri database if not doing direct ==#
   if (scf_flags["direct"] == false)

@@ -30,7 +30,7 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(args::String)
+function run(args)
   comm=MPI.COMM_WORLD
 
   if (MPI.Comm_rank(comm) == 0)
