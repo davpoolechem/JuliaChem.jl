@@ -50,7 +50,7 @@ function run(molecule, model)
   geometry_array::Array{Float64,1} = molecule["geometry"]
   symbols::Array{String} = molecule["symbols"]
   basis::String = model["basis"]
-  charge::Int64 = molecule["charge"]
+  charge::Int64 = molecule["molecular_charge"]
 
   num_atoms::Int64 = length(geometry_array)/3
   geometry_array_t::Array{Float64,2} = reshape(geometry_array,(3,num_atoms))

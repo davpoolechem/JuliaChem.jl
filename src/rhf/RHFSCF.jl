@@ -8,7 +8,8 @@ using Base.Threads
 using LinearAlgebra
 using HDF5
 
-function rhf_energy(basis::BasisStructs.Basis, molecule::Dict{String,Any},
+function rhf_energy(basis::BasisStructs.Basis, 
+  molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags::Dict{String,Any})
 
   if (scf_flags["prec"] == "Float64")
@@ -36,7 +37,8 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(basis::BasisStructs.Basis, molecule::Dict{String,Any},
+function rhf_kernel(basis::BasisStructs.Basis, 
+  molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags::Dict{String,Any}, type::T) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD

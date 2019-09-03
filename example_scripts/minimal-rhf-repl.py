@@ -1,32 +1,23 @@
 #=============================#
 #== put needed modules here ==#
 #=============================#
-import JuliaChem
+import julia
+
+from julia import JuliaChem
 
 #================================#
 #== JuliaChem execution script ==#
 #================================#
-Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
-  #== initialize JuliaChem runtime ==#
-  JuliaChem.initialize()
-
+def script(input_file):
   #== read in input file ==#
-  input_file::String = ARGS[1]
   molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
 
   #== generate basis set ==#
-  basis = JCBasis.run(molecule, model)
+  basis = JuliaChem.JCBasis.run(molecule, model)
 
   #== perform scf calculation ==#
-  if (driver == "energy")
-    if (model["method"] == "RHF")
+  if (driver == "energy"):
+    if (model["method"] == "RHF"):
       scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
-    end
-  end
 
-  #== finalize JuliaChem runtime ==#
-  JuliaChem.finalize()
-
-  #== we are done ==#
-  return 0
-end
+JuliaChem.initialize()

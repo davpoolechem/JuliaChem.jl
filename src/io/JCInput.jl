@@ -68,7 +68,7 @@ function run(args)
 
   merge!(molecule,Dict("geometry" => json_parse["molecule"]["geometry"]))
   merge!(molecule,Dict("symbols" => json_parse["molecule"]["symbols"]))
-  merge!(molecule,Dict("charge" => json_parse["molecule"]["charge"]))
+  merge!(molecule,Dict("molecular_charge" => json_parse["molecule"]["molecular_charge"]))
   merge!(molecule,Dict("enuc" => json_parse["molecule"]["enuc"]))
   merge!(molecule,Dict("ovr" => json_parse["molecule"]["ovr"]))
   merge!(molecule,Dict("hcore" => json_parse["molecule"]["hcore"]))
