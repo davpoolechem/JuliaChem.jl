@@ -2,10 +2,10 @@
 #== put needed modules here ==#
 #=============================#
 import PyCall
-
 ptl = PyCall.pyimport("qcportal")
 
 import JuliaChem
+
 import JSON
 
 #================================#

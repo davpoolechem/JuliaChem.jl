@@ -6,7 +6,7 @@
 		],
 		"symbols": ["O", "H"],
 
-    "charge":-1,
+    "molecular_charge":-1,
 
 		"enuc":4.2334179939,
 		"ovr":[   1.0000000000000018     ,

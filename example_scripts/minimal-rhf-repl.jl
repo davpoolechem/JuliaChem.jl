@@ -6,7 +6,7 @@ import JuliaChem
 #================================#
 #== JuliaChem execution script ==#
 #================================#
-function script(input_file::String)
+function script(input_file)
   #== read in input file ==#
   molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
 

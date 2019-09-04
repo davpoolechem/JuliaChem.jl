@@ -2,7 +2,6 @@
 #== put needed modules here ==#
 #=============================#
 import julia
-
 from julia import JuliaChem
 
 #================================#

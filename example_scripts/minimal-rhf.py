@@ -2,8 +2,8 @@
 #== put needed modules here ==#
 #=============================#
 import sys
-import julia
 
+import julia
 from julia import JuliaChem
 
 #================================#

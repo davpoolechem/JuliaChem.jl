@@ -11,11 +11,11 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
   JuliaChem.initialize()
 
   #== read in input file ==#
-  input_file::String = ARGS[1]
+  input_file = ARGS[1]
   molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
 
   #== generate basis set ==#
-  basis = JCBasis.run(molecule, model)
+  basis = JuliaChem.JCBasis.run(molecule, model)
 
   #== perform scf calculation ==#
   if (driver == "energy")

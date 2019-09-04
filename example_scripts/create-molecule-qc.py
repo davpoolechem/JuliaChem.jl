@@ -4,7 +4,6 @@
 import qcportal as ptl
 
 import julia
-
 from julia import JuliaChem
 from julia import JSON
 
