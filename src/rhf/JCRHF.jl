@@ -49,7 +49,7 @@ function run(basis, molecule, keywords)
 
   #== initialize scf flags ==#
   scf_flags::Dict{String,Any} = keywords["scf"]
-  #molecule::Dict{String,Any} = molecule_ 
+  #molecule::Dict{String,Any} = molecule_
 
   #== set up eri database if not doing direct ==#
   if (scf_flags["direct"] == false)
@@ -215,8 +215,8 @@ function run(basis, molecule, keywords)
         #      push!(eri_array_sizes,eri_size)
         #    end
 
-            eri_array_batch = [ eri_array_batch;
-            eri_array[eri_start:eri_start+(eri_size-1)]]
+            append!(eri_array_batch,
+              eri_array[eri_start:eri_start+(eri_size-1)])
 
             eri_start_readin::Int64 = eri_start - quartets_per_batch*
               (quartet_batch_num-1)
@@ -230,6 +230,7 @@ function run(basis, molecule, keywords)
           end
         end
 
+        println("Write")
         write(file, "Integrals/$quartet_batch_num_old",
           eri_array_batch)
         write(file, "Starts/$quartet_batch_num_old",

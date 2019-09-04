@@ -8,7 +8,7 @@ using Base.Threads
 using LinearAlgebra
 using HDF5
 
-function rhf_energy(basis::BasisStructs.Basis, 
+function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags::Dict{String,Any})
 
@@ -37,7 +37,7 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(basis::BasisStructs.Basis, 
+function rhf_kernel(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags::Dict{String,Any}, type::T) where {T<:AbstractFloat}
 
@@ -182,10 +182,12 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
 
   #== build DIIS arrays ==#
   ndiis::Int64 = scf_flags["ndiis"]
-  F_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
+  F_array::Array{Array{T,2},1} = fill(Matrix{T}(undef,basis.norb,basis.norb),
+    ndiis)
 
   e::Array{T,2} = Matrix{T}(undef,basis.norb,basis.norb)
-  e_array::Array{Array{T,2},1} = fill(zeros(basis.norb,basis.norb), ndiis)
+  e_array::Array{Array{T,2},1} = fill(
+    Matrix{T}(undef,basis.norb,basis.norb), ndiis)
 
   #== start convergence procedure ==#
   iter::Int64 = 1
@@ -240,8 +242,9 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
 
 	  #== do DIIS ==#
       e = F*D*S - S*D*F
-	  e_array = [deepcopy(e), e_array[1:ndiis]...]
-	  F_array = [deepcopy(F), F_array[1:ndiis]...]
+
+	  e_array = [e, e_array[1:ndiis]...]
+	  F_array = [F, F_array[1:ndiis]...]
 
 	  if (iter > 1)
 		B_dim += 1
@@ -265,11 +268,11 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
       one::T = oneunit(typeof(dele))
       D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
       D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
-  
+
       x::T = max(D_damp_rms...) > one ? min(damp_values...) :
         max(damp_values...)
       D = x*D + (one-x)*D_old
-      
+
     #== check for convergence ==#
       ΔD = D - D_old
 	  D_rms::T = √(@∑ ΔD ΔD)
