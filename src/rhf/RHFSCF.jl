@@ -462,9 +462,9 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
 		    quartets_per_batch)) + 1
 
 		  if quartet_batch_num != quartet_batch_num_old
-		    read(eri_batch, "Integrals/$quartet_batch_num")
-		    read(eri_starts, "Starts/$quartet_batch_num")
-		    read(eri_sizes, "Sizes/$quartet_batch_num")
+              eri_batch = Vector{T}(read(tei, "Integrals/$quartet_batch_num"))
+  		    eri_starts = Vector{Int64}(read(tei, "Starts/$quartet_batch_num"))
+  		    eri_sizes = Vector{Int64}(read(tei, "Sizes/$quartet_batch_num"))
 
         eri_starts = eri_starts .- (eri_starts[1] - 1)
 
