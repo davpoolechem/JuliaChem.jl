@@ -208,7 +208,7 @@ function scf_cycles(F::Array{T,2}, D::Array{T,2}, C::Array{T,2}, E::T,
     nsh::Int64 = length(basis.shells)
     nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-    quartets_per_batch::Int64 = 2000
+    quartets_per_batch::Int64 = 1000
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
@@ -416,7 +416,7 @@ function twoei(F::Array{T,2}, D::Array{T,2}, tei::HDF5File,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 2000
+  quartets_per_batch::Int64 = 1000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
