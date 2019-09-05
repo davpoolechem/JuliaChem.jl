@@ -456,60 +456,13 @@ function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
       #println("$μ, $ν, $λ, $σ")
 
       if (μν < λσ)
-        two_shell::Bool = nμ == nν
-        two_shell = two_shell || (nμ == nλ)
-        two_shell = two_shell || (nμ == nσ)
-        two_shell = two_shell || (nν == nλ)
-        two_shell = two_shell || (nν == nσ)
-        two_shell = two_shell || (nλ == nσ)
+        do_continue::Bool = false
 
-        three_shell::Bool = nμ == nν && nν == nλ
-        three_shell = three_shell || (nμ == nν && nν == nσ)
-        three_shell = three_shell || (nμ == nλ && nλ == nσ)
-        three_shell = three_shell || (nν == nλ && nλ == nσ)
+        do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
+          ksh, lsh, ibas, jbas, kbas, lbas)
 
-        four_shell::Bool = nμ == nν
-        four_shell = four_shell && (nν == nλ)
-        four_shell = four_shell && (nλ == nσ)
-
-        if four_shell
-          three_same::Bool = ish == jsh && jsh == ksh
-          three_same = three_same || (ish == jsh && jsh == lsh)
-          three_same = three_same || (ish == ksh && ksh == lsh)
-          three_same = three_same || (jsh == ksh && ksh == lsh)
-
-          four_same::Bool = ish == jsh
-          four_same = four_same && jsh == ksh
-          four_same = four_same && ksh == lsh
-
-          if four_same
-            continue
-          elseif three_same
-            if (μμ != λλ && νν != σσ)
-              μ,ν,λ,σ = λλ,σσ,μμ,νν
-            else
-              continue
-            end
-          else
-            continue
-          end
-        elseif three_shell
-          if (μμ != λλ && νν != σσ)
-              μ,ν,λ,σ = λλ,σσ,μμ,νν
-          else
-            continue
-          end
-        elseif two_shell
-          if (ish == ksh && jsh == lsh &&
-            μμ != νν && μμ != λλ && μμ != σσ &&
-            νν != λλ && νν != σσ &&
-            λλ != σσ )
-            continue
-          elseif (μμ != λλ && νν != σσ)
-            μ,ν,λ,σ = λλ,σσ,μμ,νν
-          else
-            continue
-          end
+        if (do_continue)
+          continue
         end
       end
 

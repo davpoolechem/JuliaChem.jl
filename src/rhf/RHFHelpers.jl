@@ -3,6 +3,80 @@ using JCModules.BasisStructs
 using Base.Threads
 using MATH
 
+function sort_braket(μμ::Int64, λλ::Int64, νν::Int64, σσ::Int64,
+  ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
+  ibas::Int64, jbas::Int64, kbas::Int64, lbas::Int64)
+
+  do_continue::Bool = false
+  μ,ν,λ,σ = μμ,λλ,νν,σσ
+
+  two_shell::Bool = ibas == jbas
+  two_shell = two_shell || (ibas == kbas)
+  two_shell = two_shell || (ibas == lbas)
+  two_shell = two_shell || (jbas == kbas)
+  two_shell = two_shell || (jbas == lbas)
+  two_shell = two_shell || (kbas == lbas)
+
+  three_shell::Bool = ibas == jbas && jbas == kbas
+  three_shell = three_shell || (ibas == jbas && jbas == lbas)
+  three_shell = three_shell || (ibas == kbas && kbas == lbas)
+  three_shell = three_shell || (jbas == kbas && kbas == lbas)
+
+  four_shell::Bool = ibas == jbas
+  four_shell = four_shell && (jbas == kbas)
+  four_shell = four_shell && (kbas == lbas)
+
+  if four_shell
+    three_same::Bool = ish == jsh && jsh == ksh
+    three_same = three_same || (ish == jsh && jsh == lsh)
+    three_same = three_same || (ish == ksh && ksh == lsh)
+    three_same = three_same || (jsh == ksh && ksh == lsh)
+
+    four_same::Bool = ish == jsh
+    four_same = four_same && jsh == ksh
+    four_same = four_same && ksh == lsh
+
+    if four_same
+      #print("\n")
+      do_continue = true
+    elseif three_same
+      if (μμ != λλ && νν != σσ)
+        μ,ν,λ,σ = λλ,σσ,μμ,νν
+      else
+        #print("\n")
+        do_continue = true
+      end
+    else
+      #print("\n")
+      do_continue = true
+    end
+  elseif three_shell
+    if (μμ != λλ && νν != σσ)
+      μ,ν,λ,σ = λλ,σσ,μμ,νν
+    else
+      #print("\n")
+      do_continue = true
+    end
+  elseif two_shell
+    if (ish == ksh && jsh == lsh &&
+      μμ != νν && μμ != λλ && μμ != σσ &&
+      νν != λλ && νν != σσ &&
+      λλ != σσ )
+      #print("\n")
+      do_continue = true
+    elseif (μμ != λλ && νν != σσ)
+      μ,ν,λ,σ = λλ,σσ,μμ,νν
+    else
+      #print("\n")
+      do_continue = true
+    end
+  end
+  #println(" $μ, $ν, $λ, $σ")
+  #eri_size += 1
+
+  return (do_continue, μ, ν, λ, σ)
+end
+
 function set_up_eri_database(basis::BasisStructs.Basis)
   h5open("tei_batch.h5", "w") do file
     #== write quartet eri lists to database ==#
@@ -46,9 +120,6 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         qint_ij::Int64 = ibas*(ibas-1)/2 + jbas
         qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
 
-        #eri_start::Int64 += qint_ij*(qint_ij-1)/2 + qint_kl
-        #push!(eri_start_index, eri_start)
-
         eri_size::Int64 = 0
         #println("$ish, $jsh, $ksh, $lsh")
         for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
@@ -65,118 +136,64 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 
             #print("$μμ, $νν, $λλ, $σσ;")
             if (μν < λσ)
-              two_shell::Bool = ibas == jbas
-              two_shell = two_shell || (ibas == kbas)
-              two_shell = two_shell || (ibas == lbas)
-              two_shell = two_shell || (jbas == kbas)
-              two_shell = two_shell || (jbas == lbas)
-              two_shell = two_shell || (kbas == lbas)
+              do_continue::Bool = false
 
-              three_shell::Bool = ibas == jbas && jbas == kbas
-              three_shell = three_shell || (ibas == jbas && jbas == lbas)
-              three_shell = three_shell || (ibas == kbas && kbas == lbas)
-              three_shell = three_shell || (jbas == kbas && kbas == lbas)
+              do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
+                ksh, lsh, ibas, jbas, kbas, lbas)
 
-              four_shell::Bool = ibas == jbas
-              four_shell = four_shell && (jbas == kbas)
-              four_shell = four_shell && (kbas == lbas)
-
-              if four_shell
-                three_same::Bool = ish == jsh && jsh == ksh
-                three_same = three_same || (ish == jsh && jsh == lsh)
-                three_same = three_same || (ish == ksh && ksh == lsh)
-                three_same = three_same || (jsh == ksh && ksh == lsh)
-
-                four_same::Bool = ish == jsh
-                four_same = four_same && jsh == ksh
-                four_same = four_same && ksh == lsh
-
-                if four_same
-                  #print("\n")
-                  continue
-                elseif three_same
-                  if (μμ != λλ && νν != σσ)
-                    μ,ν,λ,σ = λλ,σσ,μμ,νν
-                  else
-                    #print("\n")
-                    continue
-                  end
-                else
-                  #print("\n")
-                  continue
-                end
-                elseif three_shell
-                  if (μμ != λλ && νν != σσ)
-                    μ,ν,λ,σ = λλ,σσ,μμ,νν
-                  else
-                    #print("\n")
-                    continue
-                  end
-                elseif two_shell
-                  if (ish == ksh && jsh == lsh &&
-                      μμ != νν && μμ != λλ && μμ != σσ &&
-                      νν != λλ && νν != σσ &&
-                      λλ != σσ )
-                       #print("\n")
-                    continue
-                  elseif (μμ != λλ && νν != σσ)
-                    μ,ν,λ,σ = λλ,σσ,μμ,νν
-                  else
-                    #print("\n")
-                    continue
-                  end
-                end
+              if (do_continue)
+                continue
               end
-              #println(" $μ, $ν, $λ, $σ")
-              eri_size += 1
             end
+            eri_size += 1
           end
-
-          quartets_per_batch::Int64 = 1000
-          quartet_batch_num::Int64 = Int64(floor(quartet_num/
-            quartets_per_batch)) + 1
-
-          #display(eri_array[eri_start:eri_start+(eri_size-1)])
-          #println(" ")
-          if quartet_batch_num != quartet_batch_num_old
-            #== write arrays to disk ==#
-            write(file, "Integrals/$quartet_batch_num_old",
-              eri_array_batch)
-            write(file, "Starts/$quartet_batch_num_old",
-              eri_array_starts)
-            write(file, "Sizes/$quartet_batch_num_old",
-              eri_array_sizes)
-
-            #== reset variables as needed ==#
-            eri_array_batch = [ ]
-            eri_array_starts = [ ]
-            eri_array_sizes = [ ]
-
-            quartet_batch_num_old = quartet_batch_num
-          end
-
-          append!(eri_array_batch,
-            eri_array[eri_start:eri_start+(eri_size-1)])
-
-          eri_start_readin::Int64 = eri_start - quartets_per_batch*
-            (quartet_batch_num-1)
-          push!(eri_array_starts,eri_start_readin)
-
-          push!(eri_array_sizes,eri_size)
-
-          eri_start += eri_size
-
-          #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
         end
-      end
 
-      println("Write")
-      write(file, "Integrals/$quartet_batch_num_old",
-        eri_array_batch)
-      write(file, "Starts/$quartet_batch_num_old",
-        eri_array_starts)
-      write(file, "Sizes/$quartet_batch_num_old",
-        eri_array_sizes)
+        quartets_per_batch::Int64 = 1000
+        quartet_batch_num::Int64 = Int64(floor(quartet_num/
+          quartets_per_batch)) + 1
+
+        #display(eri_array[eri_start:eri_start+(eri_size-1)])
+        #println(" ")
+        if quartet_batch_num != quartet_batch_num_old
+
+          #== write arrays to disk ==#
+          write(file, "Integrals/$quartet_batch_num_old",
+            eri_array_batch)
+          write(file, "Starts/$quartet_batch_num_old",
+            eri_array_starts)
+          write(file, "Sizes/$quartet_batch_num_old",
+            eri_array_sizes)
+
+          #== reset variables as needed ==#
+          eri_array_batch = [ ]
+          eri_array_starts = [ ]
+          eri_array_sizes = [ ]
+
+          quartet_batch_num_old = quartet_batch_num
+        end
+
+        append!(eri_array_batch,
+          eri_array[eri_start:eri_start+(eri_size-1)])
+
+        eri_start_readin::Int64 = eri_start - quartets_per_batch*
+          (quartet_batch_num-1)
+        push!(eri_array_starts,eri_start_readin)
+
+        push!(eri_array_sizes,eri_size)
+
+        eri_start += eri_size
+
+        #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
+      end
+    end
+
+    write(file, "Integrals/$quartet_batch_num_old",
+      eri_array_batch)
+    write(file, "Starts/$quartet_batch_num_old",
+      eri_array_starts)
+    write(file, "Sizes/$quartet_batch_num_old",
+      eri_array_sizes)
   end
 end
 
