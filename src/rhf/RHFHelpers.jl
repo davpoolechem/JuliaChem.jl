@@ -59,3 +59,23 @@ function DIIS(e_array::Vector{Matrix{T}},
 
   return F_DIIS
 end
+
+#=
+"""
+	 index(a::Int64,b::Int64)
+Summary
+======
+Triangular indexing determination.
+
+Arguments
+======
+a = row index
+
+b = column index
+"""
+=#
+@inline function index(a::Int64,b::Int64)
+  index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
+  index += b
+  return index
+end

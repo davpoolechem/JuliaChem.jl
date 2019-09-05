@@ -305,96 +305,6 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 end
 #=
 """
-	 iteration(F::Matrix{T}, D::Matrix{T}, H::Matrix{T}, ortho::Matrix{T})
-Summary
-======
-Perform single SCF iteration.
-
-Arguments
-======
-F = Current iteration's Fock Matrix
-
-D = Current iteration's Density Matrix
-
-H = One-electron Hamiltonian Matrix
-
-ortho = Symmetric Orthogonalization Matrix
-"""
-=#
-function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
-  H::Matrix{T}, F_eval::Matrix{T}, F_evec::Matrix{T},
-  ortho::Matrix{T}, basis::BasisStructs.Basis,
-  scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
-
-  comm=MPI.COMM_WORLD
-
-  #== obtain new orbital coefficients ==#
-  F::Matrix{T} = transpose(ortho)*F_μν*ortho
-
-  F_eval = eigvals(LinearAlgebra.Hermitian(F))
-
-  F_evec = eigvecs(LinearAlgebra.Hermitian(F))
-  F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
-
-  C = ortho*F_evec
-
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-    println("New orbitals:")
-    display(C)
-    println("")
-  end
-
-  #== build new density matrix ==#
-  nocc::Int64 = basis.nels/2
-  norb = basis.norb
-
-  for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
-    D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
-    #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
-    D[i,j] *= 2
-  end
-
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-    println("New density matrix:")
-    display(D)
-    println("")
-  end
-
-  #== compute new SCF energy ==#
-  EHF1::T = @∑ D F_μν
-  EHF2::T = @∑ D H
-  E_elec::T = (EHF1 + EHF2)/2
-
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-    println("New energy:")
-    println("$EHF1, $EHF2")
-    println("")
-  end
-
-  return (F, D, C, E_elec)
-end
-#=
-"""
-	 index(a::Int64,b::Int64)
-Summary
-======
-Triangular indexing determination.
-
-Arguments
-======
-a = row index
-
-b = column index
-"""
-=#
-@inline function index(a::Int64,b::Int64)
-  index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
-  index += b
-  return index
-end
-
-#=
-"""
 	 twoei(F::Array{T}, D::Array{T}, tei::Array{T}, H::Array{T})
 Summary
 ======
@@ -631,4 +541,75 @@ function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
 	  F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
     end
   end
+end
+
+#=
+"""
+	 iteration(F::Matrix{T}, D::Matrix{T}, H::Matrix{T}, ortho::Matrix{T})
+Summary
+======
+Perform single SCF iteration.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+H = One-electron Hamiltonian Matrix
+
+ortho = Symmetric Orthogonalization Matrix
+"""
+=#
+function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
+  H::Matrix{T}, F_eval::Matrix{T}, F_evec::Matrix{T},
+  ortho::Matrix{T}, basis::BasisStructs.Basis,
+  scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
+
+  comm=MPI.COMM_WORLD
+
+  #== obtain new orbital coefficients ==#
+  F::Matrix{T} = transpose(ortho)*F_μν*ortho
+
+  F_eval = eigvals(LinearAlgebra.Hermitian(F))
+
+  F_evec = eigvecs(LinearAlgebra.Hermitian(F))
+  F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+
+  C = ortho*F_evec
+
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("New orbitals:")
+    display(C)
+    println("")
+  end
+
+  #== build new density matrix ==#
+  nocc::Int64 = basis.nels/2
+  norb = basis.norb
+
+  for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
+    D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
+    #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
+    D[i,j] *= 2
+  end
+
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("New density matrix:")
+    display(D)
+    println("")
+  end
+
+  #== compute new SCF energy ==#
+  EHF1::T = @∑ D F_μν
+  EHF2::T = @∑ D H
+  E_elec::T = (EHF1 + EHF2)/2
+
+  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    println("New energy:")
+    println("$EHF1, $EHF2")
+    println("")
+  end
+
+  return (F, D, C, E_elec)
 end
