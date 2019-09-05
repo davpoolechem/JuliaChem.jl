@@ -1,0 +1,41 @@
+##################
+#= project info =#
+##################
+project(SIMINT.JL) 
+
+######################
+#= debug vs release =#
+######################
+cmake_minimum_required(VERSION 2.6)
+set(CMAKE_BUILD_TYPE DEBUG)
+
+if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+    set(CMAKE_VERBOSE_MAKEFILE ON)
+endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+
+####################################
+#= fortran compiler and flag info =#
+####################################
+enable_language(C)
+
+###################
+#= general flags =#
+###################
+set(OPT "-O3")
+if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+  set(OPT " -g -O0 -fPIC")
+endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+
+set(CMAKE_C_FLAGS "${OPT} -std=gnu99")
+
+set(SIMINT_PATH /export/home/david/programs/install/simint)
+
+#################################
+#= set up actual build process =#
+#################################
+include_directories(${SIMINT_PATH}/include)
+link_directories(${SIMINT_PATH}/lib64)
+add_library(simint SHARED simint.c) 
+target_link_libraries(simint ${SIMINT_PATH}/lib64/libsimint.a m)
+
+install(TARGETS simint DESTINATION /export/home/david/projects/Julia/JuliaChem.jl/src/eri)

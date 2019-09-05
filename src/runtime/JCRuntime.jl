@@ -1,10 +1,11 @@
 using MPI
+using .SIMINT 
 
 #== initialize JuliaChem runtime ==#
 function initialize()
-  #== initialize MPI ==#
   if(!MPI.Initialized())
     MPI.Init()
+    simint_initialize()
   else
     println("JuliaChem has already been initialized!")
   end
@@ -13,9 +14,9 @@ export initialize
 
 #== finalize JuliaChem runtime ==#
 function finalize() 
-  #== finalize MPI ==#
   if(!MPI.Finalized())
     MPI.Finalize()
+    simint_finalize()
   else
     println("JuliaChem has already been finalized!")
   end

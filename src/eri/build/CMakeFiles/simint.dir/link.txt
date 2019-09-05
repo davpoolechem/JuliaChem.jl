@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC  -g -O0 -fPIC -std=gnu99 -g  -shared -Wl,-soname,libsimint.so -o libsimint.so CMakeFiles/simint.dir/simint.c.o  -L/export/home/david/programs/install/simint/lib64 -Wl,-rpath,/export/home/david/programs/install/simint/lib64: /export/home/david/programs/install/simint/lib64/libsimint.a -lm 
