@@ -121,7 +121,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
 
         eri_size::Int64 = 0
-        println("QUARTET: $ish, $jsh, $ksh, $lsh")
+        #println("QUARTET: $ish, $jsh, $ksh, $lsh")
         for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
           μ::Int64, ν::Int64 = μμ,νν
           if (μμ < νν) continue end
@@ -145,7 +145,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
                 continue
               end
             end
-            println(" $μ, $ν, $λ, $σ")
+            #println(" $μ, $ν, $λ, $σ")
             eri_size += 1
           end
         end
@@ -154,8 +154,8 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         quartet_batch_num::Int64 = Int64(floor(quartet_num/
           quartets_per_batch)) + 1
 
-        display(eri_array[eri_start:eri_start+(eri_size-1)])
-        println(" ")
+        #display(eri_array[eri_start:eri_start+(eri_size-1)])
+        #println(" ")
         if quartet_batch_num != quartet_batch_num_old
 
           #== write arrays to disk ==#
