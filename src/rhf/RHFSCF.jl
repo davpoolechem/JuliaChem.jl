@@ -1,5 +1,3 @@
-Base.include(@__MODULE__,"RHFHelpers.jl")
-
 using MATH
 
 using MPI
