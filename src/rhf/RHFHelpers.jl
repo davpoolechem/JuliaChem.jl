@@ -74,7 +74,7 @@ function sort_braket(μμ::Int64, λλ::Int64, νν::Int64, σσ::Int64,
   #println(" $μ, $ν, $λ, $σ")
   #eri_size += 1
 
-  return (do_continue, μ, ν, λ, σ)
+  return do_continue, μ, ν, λ, σ
 end
 
 function set_up_eri_database(basis::BasisStructs.Basis)

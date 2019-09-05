@@ -459,7 +459,7 @@ function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
         do_continue::Bool = false
 
         do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
-          ksh, lsh, ibas, jbas, kbas, lbas)
+          ksh, lsh, nμ, nν, nλ, nσ)
 
         if (do_continue)
           continue
