@@ -75,11 +75,11 @@ function run(args)
 
   if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
     h5open("tei_all.h5", "w") do file
-      eri_array::Array{Float64,1} = json_parse["molecule"]["tei"]
+      eri_array::Vector{Float64} = json_parse["molecule"]["tei"]
       write(file, "Integrals/All",eri_array)
     end
   end
- 
+
   driver = json_parse["driver"]
   merge!(model,json_parse["model"])
   merge!(keywords,json_parse["keywords"])

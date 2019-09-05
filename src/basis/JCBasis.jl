@@ -35,7 +35,7 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(molecule, model) 
+function run(molecule, model)
   comm=MPI.COMM_WORLD
 
   if (MPI.Comm_rank(comm) == 0)
@@ -47,14 +47,14 @@ function run(molecule, model)
   end
 
   #== initialize variables ==#
-  geometry_array::Array{Float64,1} = molecule["geometry"]
-  symbols::Array{String} = molecule["symbols"]
+  geometry_array::Vector{Float64} = molecule["geometry"]
+  symbols::Vector{String} = molecule["symbols"]
   basis::String = model["basis"]
   charge::Int64 = molecule["molecular_charge"]
 
   num_atoms::Int64 = length(geometry_array)/3
-  geometry_array_t::Array{Float64,2} = reshape(geometry_array,(3,num_atoms))
-  geometry::Array{Float64,2} = transpose(geometry_array_t)
+  geometry_array_t::Matrix{Float64} = reshape(geometry_array,(3,num_atoms))
+  geometry::Matrix{Float64} = transpose(geometry_array_t)
 
   basis_set::Basis = Basis(basis, charge)
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
@@ -70,7 +70,7 @@ function run(molecule, model)
   h5open(hdf5name,"r") do bsed
     for atom_idx::Int64 in 1:length(symbols)
       #== initialize variables needed for shell ==#
-      atom_center::Array{Float64,1} = geometry[atom_idx,:]
+      atom_center::Vector{Float64} = geometry[atom_idx,:]
 
       symbol::String = symbols[atom_idx]
       atomic_number::Int64 = atomic_number_mapping[symbol]
@@ -90,7 +90,7 @@ function run(molecule, model)
         println("")
 
         new_shell_am::Int64 = shell_am_mapping[new_shell_dict["Shell Type"]]
-        new_shell_exp::Array{Float64,1} = new_shell_dict["Exponents"]
+        new_shell_exp::Vector{Float64} = new_shell_dict["Exponents"]
         new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
 
         new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff,

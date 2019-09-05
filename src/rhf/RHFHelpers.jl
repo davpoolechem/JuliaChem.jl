@@ -19,12 +19,12 @@ Arguments
 oei = array of one-electron integrals to extract
 """
 =#
-function read_in_oei(oei::Array{T,1}, nbf::Int64) where {T}
+function read_in_oei(oei::Vector{T}, nbf::Int64) where {T}
 	nbf2::Int64 = nbf*(nbf+1)/2
 
-    ioff::Array{Int64,1} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
+    ioff::Vector{Int64} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
 
-	oei_matrix::Array{T,2} = Matrix{T}(undef,(nbf,nbf))
+	oei_matrix::Matrix{T} = Matrix{T}(undef,(nbf,nbf))
 	Threads.@threads for index::Int64 in 1:nbf2
         i::Int64 = ceil(((-1+sqrt(1+8*index))/2))
         j::Int64 = index - ioff[i]
@@ -37,10 +37,10 @@ function read_in_oei(oei::Array{T,1}, nbf::Int64) where {T}
 	return oei_matrix
 end
 
-function DIIS(e_array::Array{Array{T,2},1},
-  F_array::Array{Array{T,2},1}, B_dim::Int64) where {T<:AbstractFloat}
+function DIIS(e_array::Vector{Matrix{T}},
+  F_array::Vector{Matrix{T}}, B_dim::Int64) where {T<:AbstractFloat}
 
-	B::Array{T,2} = Matrix{T}(undef,B_dim+1,B_dim+1)
+	B::Matrix{T} = Matrix{T}(undef,B_dim+1,B_dim+1)
 	for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
 	  B[i,j] = @∑ e_array[i] e_array[j]
 
@@ -48,11 +48,11 @@ function DIIS(e_array::Array{Array{T,2},1},
 	  B[B_dim+1,i] = -1
 	  B[B_dim+1,B_dim+1] =  0
 	end
-	DIIS_coeff::Array{T,1} = [ fill(0.0,B_dim)..., -1.0 ]
+	DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
 
 	DIIS_coeff, B, ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
 
-	F_DIIS::Array{T,2} = zeros(size(F_array[1],1),size(F_array[1],2))
+	F_DIIS::Matrix{T} = zeros(size(F_array[1],1),size(F_array[1],2))
 	for index::Int64 in 1:B_dim
     F_DIIS += DIIS_coeff[index]*F_array[index]
   end
