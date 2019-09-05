@@ -338,12 +338,13 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
+
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
-	  ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
-	  quartet::ShQuartet = ShQuartet(bra,ket)
+    ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
+    quartet::ShQuartet = ShQuartet(bra,ket)
 
     while true
       ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
@@ -356,48 +357,47 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
       ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
       jsh::Int64 = bra_pair-ish*(ish-1)/2
       ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
-	    lsh::Int64 = ket_pair-ksh*(ksh-1)/2
+	  lsh::Int64 = ket_pair-ksh*(ksh-1)/2
 
       ijsh::Int64 = index(ish,jsh)
-		  klsh::Int64 = index(ksh,lsh)
+      klsh::Int64 = index(ksh,lsh)
 
-		  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
+	  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
-	    bra = ShPair(basis.shells[ish], basis.shells[jsh])
-	    ket = ShPair(basis.shells[ksh], basis.shells[lsh])
-	    quartet = ShQuartet(bra,ket)
+	  bra = ShPair(basis.shells[ish], basis.shells[jsh])
+	  ket = ShPair(basis.shells[ksh], basis.shells[lsh])
+	  quartet = ShQuartet(bra,ket)
 
-		  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
-	    qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-	    quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
-		  #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+	  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
+	  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+	  quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
+      #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-		  quartet_batch_num::Int64 = Int64(floor(quartet_num/
-		    quartets_per_batch)) + 1
+	  quartet_batch_num::Int64 = Int64(floor(quartet_num/
+	    quartets_per_batch)) + 1
 
-		  if quartet_batch_num != quartet_batch_num_old
-            eri_batch = convert(Vector{T},
-              read(tei, "Integrals/$quartet_batch_num"))
-  		    eri_starts = convert(Vector{Int64},
-              read(tei, "Starts/$quartet_batch_num"))
-  		    eri_sizes = convert(Vector{Int64},
-              read(tei, "Sizes/$quartet_batch_num"))
+	  if quartet_batch_num != quartet_batch_num_old
+        eri_batch = convert(Vector{T},
+          read(tei, "Integrals/$quartet_batch_num"))
+  		eri_starts = convert(Vector{Int64},
+          read(tei, "Starts/$quartet_batch_num"))
+  		eri_sizes = convert(Vector{Int64},
+          read(tei, "Sizes/$quartet_batch_num"))
 
         eri_starts = eri_starts .- (eri_starts[1] - 1)
 
-		    quartet_batch_num_old = quartet_batch_num
-		  end
+		quartet_batch_num_old = quartet_batch_num
+      end
 
-		  quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-		    (quartet_batch_num-1) + 1
-	    eri_quartet_batch::Vector{T} = shellquart(eri_batch,
-		   eri_starts, eri_sizes, quartet_num_in_batch)
-           #println("TEST2; $quartet_num_in_batch")
+      quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+        (quartet_batch_num-1) + 1
+	  eri_quartet_batch::Vector{T} = shellquart(eri_batch,
+	    eri_starts, eri_sizes, quartet_num_in_batch)
+      #println("TEST2; $quartet_num_in_batch")
 
-		  dirfck(F_priv, D, eri_quartet_batch, quartet,
-		    ish, jsh, ksh, lsh)
-        #println("TEST3")
-
+      dirfck(F_priv, D, eri_quartet_batch, quartet,
+	    ish, jsh, ksh, lsh)
+      #println("TEST3")
     end
 
     lock(mutex)
@@ -503,10 +503,10 @@ function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
           end
         elseif two_shell
           if (ish == ksh && jsh == lsh &&
-                        μμ != νν && μμ != λλ && μμ != σσ &&
-                        νν != λλ && νν != σσ &&
-                        λλ != σσ )
-                      continue
+            μμ != νν && μμ != λλ && μμ != σσ &&
+            νν != λλ && νν != σσ &&
+            λλ != σσ )
+            continue
           elseif (μμ != λλ && νν != σσ)
             μ,ν,λ,σ = λλ,σσ,μμ,νν
           else
