@@ -89,10 +89,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   if (MPI.Comm_rank(comm) == 0)
     println("----------------------------------------          ")
-	println("       Starting RHF iterations...                 ")
-	println("----------------------------------------          ")
-	println(" ")
-	println("Iter      Energy                   ΔE                   Drms")
+    println("       Starting RHF iterations...                 ")
+    println("----------------------------------------          ")
+    println(" ")
+    println("Iter      Energy                   ΔE                   Drms")
   end
 
   E_elec::T = 0.0
@@ -116,7 +116,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     iter_limit::Int64 = scf_flags["niter"]
 
     if (MPI.Comm_rank(comm) == 0)
-	    println(" ")
+      println(" ")
       println("----------------------------------------")
       println(" The SCF calculation did not converge.  ")
       println("      Restart data is being output.     ")
@@ -158,7 +158,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
       merge!(calculation_status, calculation_success)
     end
 
-	#if (FLAGS.SCF.debug == true)
+    #if (FLAGS.SCF.debug == true)
     #  close(json_debug)
     #end
   end
@@ -225,18 +225,18 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
     while(!iter_converged)
       #== build fock matrix ==#
-	  F_temp = twoei(F, D, tei, eri_batch, eri_starts, eri_sizes, H, basis)
+      F_temp = twoei(F, D, tei, eri_batch, eri_starts, eri_sizes, H, basis)
 
-	  F = MPI.Allreduce(F_temp,MPI.SUM,comm)
-	  MPI.Barrier(comm)
+      F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+      MPI.Barrier(comm)
 
-	  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+      if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Skeleton Fock matrix:")
         display(F)
         println("")
-	  end
+      end
 
-	  F += H
+      F += H
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Total Fock matrix:")
@@ -244,28 +244,28 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
         println("")
       end
 
-	  #== do DIIS ==#
+      #== do DIIS ==#
       e = F*D*S - S*D*F
 
-	  e_array = [e, e_array[1:ndiis]...]
-	  F_array = [F, F_array[1:ndiis]...]
+      e_array = [e, e_array[1:ndiis]...]
+      F_array = [F, F_array[1:ndiis]...]
 
-	  if (iter > 1)
-		B_dim += 1
-		B_dim = min(B_dim,ndiis)
-		try
-		  F = DIIS(e_array, F_array, B_dim)
-	  catch
-		  println("FAIL")
-      B_dim = 2
-		  F = DIIS(e_array, F_array, B_dim)
-		end
+      if (iter > 1)
+        B_dim += 1
+        B_dim = min(B_dim,ndiis)
+        try
+          F = DIIS(e_array, F_array, B_dim)
+        catch
+          println("FAIL")
+          B_dim = 2
+          F = DIIS(e_array, F_array, B_dim)
+        end
       end
 
       #== obtain new F,D,C matrices ==#
       D_old = deepcopy(D)
 
-	  F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
+      F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
         ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
@@ -277,19 +277,19 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
         max(damp_values...)
       D = x*D + (one-x)*D_old
 
-    #== check for convergence ==#
+      #== check for convergence ==#
       ΔD = D - D_old
-	  D_rms::T = √(@∑ ΔD ΔD)
+      D_rms::T = √(@∑ ΔD ΔD)
 
-	  E = E_elec+E_nuc
-	  ΔE::T = E - E_old
+      E = E_elec+E_nuc
+      ΔE::T = E - E_old
 
-	  if (MPI.Comm_rank(comm) == 0)
-	    println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
-	  end
+      if (MPI.Comm_rank(comm) == 0)
+        println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+      end
 
-	  iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
-	  iter += 1
+      iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
+      iter += 1
       if (iter > iter_limit)
         scf_converged = false
         break
