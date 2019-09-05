@@ -1,7 +1,0 @@
-/export/home/david/projects/Julia/JuliaChem.jl/src/eri/build/CMakeFiles/install.dir
-/export/home/david/projects/Julia/JuliaChem.jl/src/eri/build/CMakeFiles/list_install_components.dir
-/export/home/david/projects/Julia/JuliaChem.jl/src/eri/build/CMakeFiles/rebuild_cache.dir
-/export/home/david/projects/Julia/JuliaChem.jl/src/eri/build/CMakeFiles/edit_cache.dir
-/export/home/david/projects/Julia/JuliaChem.jl/src/eri/build/CMakeFiles/install/strip.dir
-/export/home/david/projects/Julia/JuliaChem.jl/src/eri/build/CMakeFiles/install/local.dir
-/export/home/david/projects/Julia/JuliaChem.jl/src/eri/build/CMakeFiles/simint.dir
