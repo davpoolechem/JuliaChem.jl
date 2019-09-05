@@ -3,13 +3,15 @@ using JCModules.BasisStructs
 using Base.Threads
 using MATH
 
-function sort_braket(μμ::Int64, λλ::Int64, νν::Int64, σσ::Int64,
+function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
   ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
   ibas::Int64, jbas::Int64, kbas::Int64, lbas::Int64)
 
   do_continue::Bool = false
-  μ,ν,λ,σ = μμ,λλ,νν,σσ
+  μ,ν,λ,σ = μμ,νν,λλ,σσ
 
+  #print("$μμ, $νν, $λλ, $σσ => ")
+  
   two_shell::Bool = ibas == jbas
   two_shell = two_shell || (ibas == kbas)
   two_shell = two_shell || (ibas == lbas)
@@ -71,8 +73,6 @@ function sort_braket(μμ::Int64, λλ::Int64, νν::Int64, σσ::Int64,
       do_continue = true
     end
   end
-  #println(" $μ, $ν, $λ, $σ")
-  #eri_size += 1
 
   return do_continue, μ, ν, λ, σ
 end
@@ -121,7 +121,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
 
         eri_size::Int64 = 0
-        #println("$ish, $jsh, $ksh, $lsh")
+        println("QUARTET: $ish, $jsh, $ksh, $lsh")
         for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
           μ::Int64, ν::Int64 = μμ,νν
           if (μμ < νν) continue end
@@ -134,7 +134,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 
             λσ::Int64 = index(λλ,σσ)
 
-            #print("$μμ, $νν, $λλ, $σσ;")
+            #print("$μμ, $νν, $λλ, $σσ => ")
             if (μν < λσ)
               do_continue::Bool = false
 
@@ -145,6 +145,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
                 continue
               end
             end
+            println(" $μ, $ν, $λ, $σ")
             eri_size += 1
           end
         end
@@ -153,8 +154,8 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         quartet_batch_num::Int64 = Int64(floor(quartet_num/
           quartets_per_batch)) + 1
 
-        #display(eri_array[eri_start:eri_start+(eri_size-1)])
-        #println(" ")
+        display(eri_array[eri_start:eri_start+(eri_size-1)])
+        println(" ")
         if quartet_batch_num != quartet_batch_num_old
 
           #== write arrays to disk ==#
