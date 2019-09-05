@@ -134,10 +134,10 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 
             λσ::Int64 = index(λλ,σσ)
 
-            #print("$μμ, $νν, $λλ, $σσ => ")
             if (μν < λσ)
               do_continue::Bool = false
 
+              #print("$μμ, $νν, $λλ, $σσ => ")
               do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
                 ksh, lsh, ibas, jbas, kbas, lbas)
 
@@ -154,8 +154,6 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         quartet_batch_num::Int64 = Int64(floor(quartet_num/
           quartets_per_batch)) + 1
 
-        #display(eri_array[eri_start:eri_start+(eri_size-1)])
-        #println(" ")
         if quartet_batch_num != quartet_batch_num_old
 
           #== write arrays to disk ==#
