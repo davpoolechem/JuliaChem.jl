@@ -5,6 +5,7 @@ using Base.Threads
 #using Distributed
 using LinearAlgebra
 using HDF5
+using StaticArrays
 
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
@@ -210,16 +211,19 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    eri_batch::Vector{T} = convert(Vector{T},
-      read(tei, "Integrals/$quartet_batch_num_old"))
+    #eri_batch::Vector{T} = convert(Vector{T},
+    #  read(tei, "Integrals/$quartet_batch_num_old"))
+    eri_batch::Vector{T} = [] 
+    
+    #eri_starts::Vector{Int64} = convert(Vector{Int64},
+    #  read(tei, "Starts/$quartet_batch_num_old"))
+    eri_starts::Vector{Int64} = [] 
+    
+    #eri_starts = eri_starts .- (eri_starts[1] - 1)
 
-    eri_starts::Vector{Int64} = convert(Vector{Int64},
-      read(tei, "Starts/$quartet_batch_num_old"))
-
-    eri_starts = eri_starts .- (eri_starts[1] - 1)
-
-    eri_sizes::Vector{Int64} = convert(Vector{Int64},
-      read(tei, "Sizes/$quartet_batch_num_old"))
+    #eri_sizes::Vector{Int64} = convert(Vector{Int64},
+    #  read(tei, "Sizes/$quartet_batch_num_old"))
+    eri_sizes::Vector{Int64} = [] 
 
     while(!iter_converged)
       #== build fock matrix ==#
@@ -370,27 +374,29 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 	  quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
     #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-	  quartet_batch_num::Int64 = Int64(floor(quartet_num/
-	    quartets_per_batch)) + 1
+	  #quartet_batch_num::Int64 = Int64(floor(quartet_num/
+	   # quartets_per_batch)) + 1
 
-	  if quartet_batch_num != quartet_batch_num_old
-        eri_batch = convert(Vector{T},
-          read(tei, "Integrals/$quartet_batch_num"))
-  		eri_starts = convert(Vector{Int64},
-          read(tei, "Starts/$quartet_batch_num"))
-  		eri_sizes = convert(Vector{Int64},
-          read(tei, "Sizes/$quartet_batch_num"))
+	  #if quartet_batch_num != quartet_batch_num_old
+    #    eri_batch = convert(Vector{T},
+    #      read(tei, "Integrals/$quartet_batch_num"))
+  #		eri_starts = convert(Vector{Int64},
+  #        read(tei, "Starts/$quartet_batch_num"))
+  #		eri_sizes = convert(Vector{Int64},
+   #       read(tei, "Sizes/$quartet_batch_num"))
 
-        eri_starts = eri_starts .- (eri_starts[1] - 1)
+    #    eri_starts = eri_starts .- (eri_starts[1] - 1)
 
-		quartet_batch_num_old = quartet_batch_num
-      end
+		#quartet_batch_num_old = quartet_batch_num
+     # end
 
-      quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-        (quartet_batch_num-1) + 1
-	  eri_quartet_batch::Vector{T} = shellquart(eri_batch,
-	    eri_starts, eri_sizes, quartet_num_in_batch)
+      #quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+       # (quartet_batch_num-1) + 1
+	  #eri_quartet_batch::Vector{T} = shellquart(eri_batch,
+	  #  eri_starts, eri_sizes, quartet_num_in_batch)
       #println("TEST2; $quartet_num_in_batch")
+
+      eri_quartet_batch::Vector{T} = shellquart_direct(ish, jsh, ksh, lsh)
 
       dirfck(F_priv, D, eri_quartet_batch, quartet,
 	    ish, jsh, ksh, lsh)
@@ -411,7 +417,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
   return F
 end
 
-function shellquart(eri_batch::Vector{T}, eri_starts::Vector{Int64},
+function shellquart_read(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   eri_sizes::Vector{Int64}, quartet_num::Int64) where {T<:AbstractFloat}
 
   starting::Int64 = eri_starts[quartet_num]
@@ -419,6 +425,16 @@ function shellquart(eri_batch::Vector{T}, eri_starts::Vector{Int64},
 
   return eri_batch[starting:ending]
 end
+
+function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64)
+  
+  eri_quartet_batch::SVector{256,Float64} = Vector{Float64}(undef,256) 
+  SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
+
+  display(eri_quartet_batch)
+  return eri_quartet_batch
+end
+
 
 function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
   quartet::ShQuartet, ish::Int64, jsh::Int64,

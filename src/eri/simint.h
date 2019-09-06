@@ -53,6 +53,7 @@ extern struct shell {
 //All code below this line is automatically generated
 //-------------------------------------------------------------------//
 
+void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri); 
 /*
 void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* ghondo, int* fullsizes, int* L_);
 

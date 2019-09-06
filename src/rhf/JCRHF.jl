@@ -11,6 +11,7 @@ module JCRHF
 
 Base.include(@__MODULE__,"RHFHelpers.jl")
 Base.include(@__MODULE__,"RHFSCF.jl")
+Base.include(@__MODULE__,"../eri/simint.jl")
 
 using MPI
 using JSON
@@ -49,10 +50,20 @@ function run(basis, molecule, keywords)
   #== initialize scf flags ==#
   scf_flags::Dict{String,Any} = keywords["scf"]
 
-  #== set up eri database if not doing direct ==#
-  if (scf_flags["direct"] == false)
-    if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
+  #== set up eris ==# 
+  if ((MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1))
+    if (scf_flags["direct"] == false)
       set_up_eri_database(basis)
+    else
+      nshell_simint::Int64 = SIMINT.allocate_shell_array(basis)
+      for ishell::Int64 in 1:length(basis.shells)
+        SIMINT.add_shell(basis[ishell])
+      end
+
+      for ishell::Int64 in 0:(nshell_simint-1)
+        SIMINT.get_simint_shell_info(ishell)
+      end
+
     end
   end
 
