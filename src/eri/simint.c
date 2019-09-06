@@ -10,29 +10,18 @@
 static double* target = NULL; //array for storage of currently-being-computed (ij|kl) ERIs
 static double* work = NULL; //shared workspace for SIMINT ERI computations
 static struct simint_shell* shells = NULL; //array of basis set shells for SIMINT
-
-static int* sp_shell = NULL; //if shells[i] is an L shell in GAMESS
-static int nshell_simint = 0; //number of shells, counting L shells as split
-
-static int* ksize = NULL; //size of each shell
-static int* ksize_simint = NULL; //size of each shell, counting L shells as split
+static double* sp_shell = NULL //array telling if given shell is L shell or not
 
 struct simint_multi_shellpair left_pair; //bra SIMINT shell pair structure
 struct simint_multi_shellpair right_pair; //ket SIMINT shell pair structure
 
-int iold, jold;
-
-//------------------------------//
-//--some function declarations--//
-//------------------------------//
-//static void sort_L_shells(double* ghondo, double* target, int* sizes, int* fullsizes, int* L_, 
-//                    int* target_idx, int* buffer_idx, int* buffer_old);
+int iold, jold, ishell;
 
 //---------------------//
-//--initialize SIMGMS--//
+//--initialize SIMINT--//
 //---------------------//
-void simint_initialize_c() {
-
+void initialize_c() 
+{
     printf("Initializing SIMINT\n");
 
     simint_init();
@@ -40,26 +29,23 @@ void simint_initialize_c() {
     simint_initialize_multi_shellpair(&left_pair);
     simint_initialize_multi_shellpair(&right_pair);
 
-    iold = -1; jold = -1;
+    iold = -1; jold = -1; ishell = 0;
 }
 
 //-------------------//
-//--SIMGMS clean-up--//
+//--SIMINT clean-up--//
 //-------------------//
-void simint_finalize_c() {
-
+void finalize_c() 
+{
     printf("Finalizing SIMINT\n");
 
     //--Free remaining memory--//
     SIMINT_FREE(work);
     SIMINT_FREE(target);
+    free(sp_shell);
 
     for (int i = 0; i != nshell_simint; ++i) simint_free_shell(&shells[i]);
     free(shells);
-
-    free(ksize_simint);
-    free(ksize);
-    free(sp_shell);
 
     simint_free_multi_shellpair(&right_pair);
     simint_free_multi_shellpair(&left_pair);
@@ -67,118 +53,109 @@ void simint_finalize_c() {
     //--Finalize the SIMINT library--//
     simint_finalize();
 }
+//--------------------------------//
+//--Get info on basis set shells--//
+//--------------------------------//
+void get_julia_shell_info_c(struct shell* p_input) 
+{
+  struct shell input = (*p_input);
 
-//----------------------------------------------//
-//--Translate JuliaChem basis to simint_shells--//
-//----------------------------------------------//
-/* 
- * The inputs are from the INFOA and NSHEL Common blocks. Documentation on these variables can be found in SUBROUTINE ATOMS 
- * in source/inputa.src, and in src/bindings/gamess.h in LibCChem.
- */
+  printf("ATOM ID: %lld\n", input.atom_id);
+  printf("ATOM AM: %lld\n", input.am);
+  printf("ATOM NBAS: %lld\n", input.nbas);
+  printf("ATOM NPRIM: %lld\n", input.nprim);
+  printf("ATOM POS: %lld\n", input.pos);
 
-void simgms_create_shells_c_(const double* const ex, const double* const cs, const double* const cp, const double* const cd, 
-                            const double* const cf, double* cg, const  double* const ch, const double* const ci, 
-                            const int* const kstart, const int* const katom, const int* const ktype, const int* const kng, 
-                            const int* const kloc, const int* const kmin, const int* const kmax, int* nshell_,
-                            const double* const c) {
+  printf("ATOM EXPONENTS:\n");
+  for (int i = 0; i != input.nprim; ++i) { 
+    printf("%f\n",input.exponents[i]);
+  }
+  printf("\n");
 
-    //--Some variable set-up for basis set translation--//
-    int nshell = *nshell_;
-
-    const double* const coeff[7] = { cs, cp, cd, cf, cg, ch, ci };
-    int max_shl_sz = 0, max_am = 0, mxshell = 0;
-    bool sp; 
-
-    int sizeof_simint_shell = 2*sizeof(int); //account for am and nprim
-    sizeof_simint_shell += 3*sizeof(double); //account for x,y and z
-    sizeof_simint_shell += 2*sizeof(double*); //account for alpha and coeff 
-    sizeof_simint_shell += sizeof(size_t); //account for memsize
-    sizeof_simint_shell += sizeof(void*); //account for ptr
-
-    nshell_simint = nshell;
-    for (int ishell = 0; ishell != nshell; ++ishell) {
-        sp = (ktype[2*ishell] == 2) && (kmin[2*ishell] == 1);
-        nshell_simint += sp; //add an extra element to array for each L shell
-    }
-
-    sp_shell = calloc(nshell, sizeof(int));
-    for (int ishell = 0; ishell != nshell; ++ishell) {
-        sp = (ktype[2*ishell] == 2) && (kmin[2*ishell] == 1);
-        sp_shell[ishell] = sp; 
-    }
-
-    //--Find largest shell size and highest angular momentum--//
-    for (int ishell = 0; ishell != nshell; ++ishell) {  
-        int temp_shl_sz = kmax[2*ishell] - kmin[2*ishell] + 1 - sp_shell[ishell]; //size of L shell becomes that of p shell
-        if (temp_shl_sz > max_shl_sz) {
-            max_shl_sz = temp_shl_sz;
-            mxshell = ishell;
-        }
-    }
-    max_am = ktype[2*mxshell] - 1;
-
-    //--Copy some of the input arrays to static C arrays for later use--//
-    ksize = malloc(nshell*sizeof(int));
-    for (int i = 0; i != nshell; ++i) ksize[i] = kmax[2*i] - kmin[2*i] + 1;
-
-    ksize_simint = malloc(nshell_simint*sizeof(int));
-    for (int idx = 0, sim_idx = 0; idx != nshell; ++idx, ++sim_idx) {
-        if (sp_shell[idx]) {
-            ksize_simint[sim_idx] = 1;
-            ++sim_idx;
-            ksize_simint[sim_idx] = 3;
-        } else {
-            ksize_simint[sim_idx] = ksize[idx];
-        }
-    }
-
-    //--Allocate shells and perform actual basis set translation--//
-    shells = calloc(nshell_simint,sizeof_simint_shell);
-
-    int sp_count = 0;
-    for (int ishell = 0; ishell != nshell_simint; ++ishell) {     
-        simint_initialize_shell(&shells[ishell]); 
-
-        sp = sp_shell[ishell-sp_count];
-        const int atom = katom[2*(ishell-sp_count)]-1;
-
-        for (int isp = 0; isp != sp+1; ++isp) { //two iterations for L shells to split them into s and p components
-            shells[ishell+isp].x = c[3*atom]; 
-            shells[ishell+isp].y = c[3*atom + 1]; 
-            shells[ishell+isp].z = c[3*atom + 2];
-
-            shells[ishell+isp].am = ktype[2*(ishell-sp_count)] + isp - sp - 1; //isp-sp-1 = -2 for s shells in L; -1 for all other shells
-            shells[ishell+isp].nprim = kng[2*(ishell-sp_count)];
-
-            simint_allocate_shell(shells[ishell+isp].nprim, &shells[ishell+isp]);
-
-            const double* const icoeff = coeff[shells[ishell+isp].am];
-            int istart = kstart[2*(ishell-sp_count)] - 1;
-
-            for (int iprim = 0; iprim != shells[ishell+isp].nprim; ++iprim) {
-                shells[ishell+isp].alpha[iprim] = ex[istart+iprim];
-                shells[ishell+isp].coef[iprim] = icoeff[istart+iprim];
-            }
-        }
-        ishell += sp; //increment shell twice from L shells since s and p were both allocated
-        sp_count += sp;
-    }
-
-    //--No normalization needed since input coefficients are already normalized--//
-    //simint_normalize_shells(nshell_simint, shells);
-
-    //--Allocate some memory for integral arrays--//
-    int elements = max_shl_sz*max_shl_sz*max_shl_sz*max_shl_sz;
-
-    target = SIMINT_ALLOC(elements*sizeof(double));
-    work = SIMINT_ALLOC(simint_ostei_workmem(0,max_am));
+  int coeff_count = input.nbas == 4 ? 2*input.nprim : input.nprim;
+  printf("ATOM COEFFICIENTS:\n");
+  for (int i = 0; i != coeff_count; ++i) { 
+    printf("%f\n",input.coefficients[i]);
+  }
+  printf("\n");
 }
-/*
+
+void get_simint_shell_info_c(long long int shell_num) 
+{
+  struct simint_shell input = *(shells[shell_num]);
+
+  printf("ATOM AM: %lld\n", input.am);
+  printf("ATOM NPRIM: %lld\n", input.nprim);
+  printf("ATOM POS: %lld\n", shell_num);
+
+  printf("ATOM EXPONENTS:\n");
+  for (int i = 0; i != input.nprim; ++i) { 
+    printf("%f\n",.exp[i]);
+  }
+  printf("\n");
+
+  printf("ATOM COEFFICIENTS:\n");
+  for (int i = 0; i != input.nprim; ++i) { 
+    printf("%f\n",.coef[i]);
+  }
+  printf("\n");
+}
+
+//---------------------------------------------//
+//--Translate JuliaChem shell to simint_shell--//
+//---------------------------------------------//
+void allocate_shell_array_c(long long int nshell, 
+  long long int nshell_simint) 
+{
+  //--Some variable set-up for basis set translation--//
+  int sizeof_simint_shell = 2*sizeof(int); //account for am and nprim
+  sizeof_simint_shell += 3*sizeof(double); //account for x,y and z
+  sizeof_simint_shell += 2*sizeof(double*); //account for alpha and coeff 
+  sizeof_simint_shell += sizeof(size_t); //account for memsize
+  sizeof_simint_shell += sizeof(void*); //account for ptr
+
+  //--Allocate arrays--// 
+  shells = calloc(nshell_simint,sizeof_simint_shell);
+  sp_shell = calloc(nshell,sizeof(int));
+
+  target = SIMINT_ALLOC(256*sizeof(double));
+  work = SIMINT_ALLOC(simint_ostei_workmem(0,1));
+}
+
+void add_shell_c(struct shell* p_input) 
+{
+  struct shell input = (*p_input);
+    
+  simint_initialize_shell(&shells[ishell]); 
+
+  int sp = input.nbas == 4;
+
+  for (int isp = 0; isp != sp+1; ++isp) { //two iterations for L shells to split them into s and p components
+    shells[ishell+isp].x = (int)input.atom_center[0] 
+    shells[ishell+isp].y = (int)input.atom_center[1] 
+    shells[ishell+isp].z = (int)input.atom_center[2] 
+
+    shells[ishell+isp].am = input.am == -1 ? 1 : (int)input.am 
+    shells[ishell+isp].nprim = (int)input.nprim 
+
+    simint_allocate_shell(shells[ishell+isp].nprim, &shells[ishell+isp]);
+
+    nprim = input.nprim
+    for (int iprim = 0; iprim != nprim; ++iprim) {
+      shells[ishell+isp].alpha[iprim] = input.exponents[iprim+(isp*nprim)];
+      shells[ishell+isp].coef[iprim] = icoeff[iprim+(isp*nprim)];
+    }
+    ishell += 1; 
+  }
+}  
+  
+}
+
 //-------------------------------------------------------------//
 //--Copy list of ERIs of the form (ish jsh|ksh lsh) to ghondo--//
 //-------------------------------------------------------------//
-void simgms_retrieve_eris_c_(int* ish_, int* jsh_, int* ksh_, int* lsh_, double* ghondo) {
-
+void retrieve_eris_c(int* ish_, int* jsh_, int* ksh_, int* lsh_, double* eri) 
+{
     //--initialize some variables--//
     int ish = *ish_, jsh = *jsh_, ksh = *ksh_, lsh = *lsh_;
     int ii = ish-1, jj = jsh-1, kk = ksh-1, ll = lsh-1; //account for 1-indexing of ish,jsh
@@ -188,14 +165,14 @@ void simgms_retrieve_eris_c_(int* ish_, int* jsh_, int* ksh_, int* lsh_, double*
     for (int k = 0; k != ksh-1; ++k) kk += sp_shell[k];
     for (int l = 0; l != lsh-1; ++l) ll += sp_shell[l];
 
-    int fullsizes[4] = { ksize[ish-1], ksize[jsh-1], ksize[ksh-1], ksize[lsh-1] };
+    //int fullsizes[4] = { ksize[ish-1], ksize[jsh-1], ksize[ksh-1], ksize[lsh-1] };
     int L_[4] = { sp_shell[ish-1], sp_shell[jsh-1], sp_shell[ksh-1], sp_shell[lsh-1] };
 
     //--start ERI computation--//
-    if (L_[0] == 0 && L_[1] == 0 && L_[2] == 0 && L_[3] == 0)
-        simgms_retrieve_eris_c_0000(ii, jj, kk, ll, ghondo, fullsizes); 
-    else
-        simgms_retrieve_eris_c_L(ii, jj, kk, ll, ghondo, fullsizes, L_);
+    //if (L_[0] == 0 && L_[1] == 0 && L_[2] == 0 && L_[3] == 0)
+    simgms_retrieve_eris_c_0000(ii, jj, kk, ll, eri); 
+    //else
+     //   simgms_retrieve_eris_c_L(ii, jj, kk, ll, ghondo, fullsizes, L_);
 }
 
 //--------------------------------------------------------------------------------------------------//
@@ -204,29 +181,25 @@ void simgms_retrieve_eris_c_(int* ish_, int* jsh_, int* ksh_, int* lsh_, double*
 //For fxn simgms_retrieve_eris_c_ijkl, any of shells i,j,k,l = 1 means that shell is an L shell
 //Ex: simgms_retrieve_eris_c_0010 handles shell quartets where the third shell is an L shell
 
-void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* ghondo, int* fullsizes) {
+void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
 
-    int ncomputed = 0; 
+  int ncomputed = 0; 
 
-    //--start ERI computation--//
-    bool new_ij = ii != iold || jj != jold;
-    if (new_ij) { 
-        simint_create_multi_shellpair(1, &shells[ii], 1, &shells[jj], &left_pair, 0);
-        iold = ii; jold = jj; 
-    }
+  //--start ERI computation--//
+  bool new_ij = ii != iold || jj != jold;
+  if (new_ij) { 
+    simint_create_multi_shellpair(1, &shells[ii], 1, &shells[jj], &left_pair, 0);
+    iold = ii; jold = jj; 
+  }
 
-    simint_create_multi_shellpair(1, &shells[kk], 1, &shells[ll], &right_pair, 0);
-    ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, ghondo);
+  simint_create_multi_shellpair(1, &shells[kk], 1, &shells[ll], &right_pair, 0);
+  ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, eri);
 }
-
-
-
-
 
 //All code below this line is automatically generated
 //-------------------------------------------------------------------//
 
-
+/*
 
 
 

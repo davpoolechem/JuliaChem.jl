@@ -3,6 +3,24 @@
 extern struct simint_multi_shellpair left_pair; //bra SIMINT shell pair structure
 extern struct simint_multi_shellpair right_pair;  //ket SIMINT shell pair structure
 
+#define MAX_CONTRACTION 12
+
+extern struct shell {
+  long long int atom_id;
+
+  double exponents[MAX_CONTRACTION];
+  double coefficients[2*MAX_CONTRACTION];
+
+  double atom_center[3];
+
+  long long int am;
+  long long int nbas;
+  long long int nprim;
+  long long int pos;
+};
+
+#undef MAX_CONTRACTION
+
 /*    
       The following serves as the documentation example for the SIMGMS routine.
       

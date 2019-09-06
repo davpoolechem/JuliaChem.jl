@@ -26,7 +26,7 @@ function script()
 
   model = Dict(
     "method" => "RHF",
-    "basis" => "6-31G(d,p)"
+    "basis" => "STO-3G"
   )
 
   keywords = Dict(
@@ -43,6 +43,10 @@ function script()
 
   #== generate basis set ==#
   basis = JuliaChem.JCBasis.run(molecule, model)
+
+  shell = basis[2]
+  display(shell)
+  JuliaChem.SIMINT.simint_get_shell_info(shell)
 
   #== finalize JuliaChem runtime ==#
   JuliaChem.finalize()
