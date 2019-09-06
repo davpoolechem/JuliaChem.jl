@@ -33,7 +33,7 @@ int iold, jold;
 //---------------------//
 void simint_initialize_c() {
 
-    printf("Initializing SIMINT");
+    printf("Initializing SIMINT\n");
 
     simint_init();
 
@@ -48,7 +48,7 @@ void simint_initialize_c() {
 //-------------------//
 void simint_finalize_c() {
 
-    printf("Finalizing SIMINT");
+    printf("Finalizing SIMINT\n");
 
     //--Free remaining memory--//
     SIMINT_FREE(work);

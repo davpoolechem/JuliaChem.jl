@@ -17,7 +17,7 @@ function script()
 
   #== get molecule information from QCArchive ==# 
   client = ptl.FractalClient()
-  mol = client.query_molecules(1234)[1]
+  mol = client.query_molecules(6)[1]
 
   #== create input system ==#
   molecule = JSON.parse(mol.json())
@@ -43,6 +43,8 @@ function script()
 
   #== generate basis set ==#
   basis = JuliaChem.JCBasis.run(molecule, model)
+
+  display(basis[1])
   
   #== finalize JuliaChem runtime ==#
   JuliaChem.finalize()

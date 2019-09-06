@@ -9,9 +9,9 @@ project(SIMINT.JL)
 cmake_minimum_required(VERSION 2.6)
 set(CMAKE_BUILD_TYPE DEBUG)
 
-if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+if(CMAKE_BUILD_TYPE STREQUAL RELEASE)
     set(CMAKE_VERBOSE_MAKEFILE ON)
-endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+endif(CMAKE_BUILD_TYPE STREQUAL RELEASE)
 
 ####################################
 #= fortran compiler and flag info =#
@@ -23,10 +23,10 @@ enable_language(C)
 ###################
 set(OPT "-O3")
 if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
-  set(OPT " -g -O0 -fPIC")
+  set(OPT " -g -O0")
 endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
 
-set(CMAKE_C_FLAGS "${OPT} -std=gnu99")
+set(CMAKE_C_FLAGS "${OPT} -fPIC -std=gnu99")
 
 set(SIMINT_PATH /export/home/david/programs/install/simint)
 
