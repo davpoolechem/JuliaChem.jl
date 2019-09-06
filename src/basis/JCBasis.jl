@@ -93,8 +93,12 @@ function run(molecule, model)
         new_shell_exp::Vector{Float64} = new_shell_dict["Exponents"]
         new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
 
-        new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff,
-          atom_center, new_shell_am)
+        new_shell_nprim::Int64 = size(new_shell_exp)[1]
+        new_shell_coeff_array::Vector{Float64} = reshape(new_shell_coeff,
+          (length(new_shell_coeff),))       
+  
+        new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff_array,
+          atom_center, new_shell_am, size(new_shell_exp)[1])
         add_shell(basis_set,deepcopy(new_shell))
 
         basis_set.norb += new_shell.nbas

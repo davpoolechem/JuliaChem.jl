@@ -44,8 +44,6 @@ function script()
   #== generate basis set ==#
   basis = JuliaChem.JCBasis.run(molecule, model)
 
-  display(basis[1])
-  
   #== finalize JuliaChem runtime ==#
   JuliaChem.finalize()
 end
