@@ -357,8 +357,8 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
 	  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
-	  bra = ShPair(basis.shells[ish], basis.shells[jsh])
-	  ket = ShPair(basis.shells[ksh], basis.shells[lsh])
+	  bra = ShPair(basis[ish], basis[jsh])
+	  ket = ShPair(basis[ksh], basis[lsh])
 	  quartet = ShQuartet(bra,ket)
 
 	  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
@@ -404,7 +404,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   return F
 end
 
-function shellquart(eri_batch::Vector{T}, eri_starts::Vector{Int64},
+@inline function shellquart(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   eri_sizes::Vector{Int64}, quartet_num::Int64) where {T<:AbstractFloat}
 
   starting::Int64 = eri_starts[quartet_num]
@@ -413,7 +413,7 @@ function shellquart(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   return @view eri_batch[starting:ending]
 end
 
-function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch,
+@inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch,
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
@@ -473,15 +473,15 @@ function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch,
 	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
       F_priv[μ,λ] -= D[ν,σ] * eri
 	  F_priv[μ,σ] -= D[ν,λ] * eri
-	  F_priv[max(ν,λ),min(ν,λ)] -= D[max(μ,σ),min(μ,σ)] * eri
-	  F_priv[max(ν,σ),min(ν,σ)] -= D[max(μ,λ),min(μ,λ)] * eri
+      F_priv[ν,λ] -= D[max(μ,σ),min(μ,σ)] * eri
+      F_priv[ν,σ] -= D[max(μ,λ),min(μ,λ)] * eri
 
-	  F_priv[σ,λ] = F_priv[λ,σ]
-	  F_priv[ν,μ] = F_priv[μ,ν]
-	  F_priv[λ,μ] = F_priv[μ,λ]
-	  F_priv[σ,μ] = F_priv[μ,σ]
-	  F_priv[min(λ,ν),max(λ,ν)] = F_priv[max(ν,λ),min(ν,λ)]
-	  F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
+      if λ != σ F_priv[σ,λ] += 4.0 * D[μ,ν] * eri end
+	  if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
+      if μ != λ F_priv[λ,μ] -= D[ν,σ] * eri end
+	  if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
+      if ν != λ F_priv[λ,ν] -= D[max(μ,σ),min(μ,σ)] * eri end
+	  if ν != σ F_priv[σ,ν] -= D[max(μ,λ),min(μ,λ)] * eri end
     end
   end
 end
