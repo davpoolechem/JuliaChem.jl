@@ -4,7 +4,7 @@ using MPI
 using Base.Threads
 #using Distributed
 using LinearAlgebra
-using HDF5
+using JLD
 
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
@@ -190,7 +190,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   #== start convergence procedure ==#
   iter::Int64 = 1
   B_dim::Int64 = 1
-  h5open("tei_batch.h5", "r") do tei::HDF5File
+  jldopen("tei_batch.jld", "r") do tei
     #== create temporary arrays needed for calculation ==#
     F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
     F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
@@ -206,20 +206,16 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     nsh::Int64 = length(basis.shells)
     nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-    quartets_per_batch::Int64 = 1000
+    quartets_per_batch::Int64 = 25000
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    eri_batch::Vector{T} = convert(Vector{T},
-      read(tei, "Integrals/$quartet_batch_num_old"))
+    eri_batch::Vector{T} = read(tei, "Integrals/$quartet_batch_num_old")
 
-    eri_starts::Vector{Int64} = convert(Vector{Int64},
-      read(tei, "Starts/$quartet_batch_num_old"))
-
+    eri_starts::Vector{Int64} = read(tei, "Starts/$quartet_batch_num_old")
     eri_starts = eri_starts .- (eri_starts[1] - 1)
 
-    eri_sizes::Vector{Int64} = convert(Vector{Int64},
-      read(tei, "Sizes/$quartet_batch_num_old"))
+    eri_sizes::Vector{Int64} = read(tei, "Sizes/$quartet_batch_num_old")
 
     while(!iter_converged)
       #== build fock matrix ==#
@@ -270,8 +266,8 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
       D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
 
-      x::T = max(D_damp_rms...) > one ? min(damp_values...) :
-        max(damp_values...)
+      x::T = maximum(D_damp_rms) > one ? minimum(damp_values) :
+        maximum(damp_values)
       D = x*D + (one-x)*D_old
 
       #== check for convergence ==#
@@ -319,7 +315,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
+function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
@@ -327,7 +323,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 1000
+  quartets_per_batch::Int64 = 25000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
@@ -374,12 +370,9 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 	    quartets_per_batch)) + 1
 
 	  if quartet_batch_num != quartet_batch_num_old
-        eri_batch = convert(Vector{T},
-          read(tei, "Integrals/$quartet_batch_num"))
-  		eri_starts = convert(Vector{Int64},
-          read(tei, "Starts/$quartet_batch_num"))
-  		eri_sizes = convert(Vector{Int64},
-          read(tei, "Sizes/$quartet_batch_num"))
+        eri_batch = read(tei, "Integrals/$quartet_batch_num")
+  		eri_starts = read(tei, "Starts/$quartet_batch_num")
+  		eri_sizes = read(tei, "Sizes/$quartet_batch_num")
 
         eri_starts = eri_starts .- (eri_starts[1] - 1)
 
@@ -388,7 +381,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 
       quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
         (quartet_batch_num-1) + 1
-	  eri_quartet_batch::Vector{T} = shellquart(eri_batch,
+	  eri_quartet_batch = shellquart(eri_batch,
 	    eri_starts, eri_sizes, quartet_num_in_batch)
       #println("TEST2; $quartet_num_in_batch")
 
@@ -417,10 +410,10 @@ function shellquart(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   starting::Int64 = eri_starts[quartet_num]
   ending::Int64 = starting + (eri_sizes[quartet_num] - 1)
 
-  return eri_batch[starting:ending]
+  return @view eri_batch[starting:ending]
 end
 
-function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
+function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch,
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
@@ -469,7 +462,7 @@ function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
 
 	  eri::T = eri_batch[μνλσ]
       #eri::T = 0
-      #if (abs(eri) <= 1E-10) continue end
+      if (abs(eri) <= 1E-10) continue end
 
       #println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0

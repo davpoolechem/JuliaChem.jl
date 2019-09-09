@@ -10,7 +10,7 @@ using MPI
 using JSON
 using Base.Threads
 #using Distributed
-using HDF5
+using JLD
 
 """
   run(args::String)
@@ -74,7 +74,7 @@ function run(args)
   merge!(molecule,Dict("hcore" => json_parse["molecule"]["hcore"]))
 
   if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
-    h5open("tei_all.h5", "w") do file
+    jldopen("tei_all.jld", "w") do file
       eri_array::Vector{Float64} = json_parse["molecule"]["tei"]
       write(file, "Integrals/All",eri_array)
     end
