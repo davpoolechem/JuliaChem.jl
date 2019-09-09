@@ -335,6 +335,8 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
+  eri_quartet_batch::SVector{256,T} = fill(zero(T),256)
+
   F = zeros(basis.norb,basis.norb)
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
@@ -396,7 +398,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 	  #  eri_starts, eri_sizes, quartet_num_in_batch)
       #println("TEST2; $quartet_num_in_batch")
 
-      eri_quartet_batch::Vector{T} = shellquart_direct(ish, jsh, ksh, lsh)
+      eri_quartet_batch = shellquart_direct(ish, jsh, ksh, lsh, eri_quartet_batch)
 
       dirfck(F_priv, D, eri_quartet_batch, quartet,
 	    ish, jsh, ksh, lsh)
@@ -426,17 +428,18 @@ function shellquart_read(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   return eri_batch[starting:ending]
 end
 
-function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64)
+function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
+  eri_quartet_batch::SVector{256,T}) where {T<:AbstractFloat}
   
-  eri_quartet_batch::SVector{256,Float64} = Vector{Float64}(undef,256) 
   SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
 
   display(eri_quartet_batch)
+  println("")
   return eri_quartet_batch
 end
 
 
-function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
+function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::SVector{256,T},
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 

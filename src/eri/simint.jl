@@ -48,12 +48,14 @@ end
 export add_shell 
 
 function retrieve_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
-  eri::SVector{256,Float64}) 
+  eri::SVector{256,T}) where {T<:AbstractFloat}
   
-  ccall( (:retrieve_eris_c, "src/eri/build/libsimint"), Cvoid, 
-    (Int64, Int64, Int64, Int64, Ref{SVector{256,Float64}}), 
-    ish, jsh, ksh, lsh, Ref(eri) )
-  
+  if (T == Float64)
+    ccall( (:retrieve_eris_c, "src/eri/build/libsimint"), Cvoid, 
+      (Int64, Int64, Int64, Int64, Ref{SVector{256,Float64}}), 
+      ish, jsh, ksh, lsh, Ref(eri) )
+  end
+
   return eri
 end
 export retrieve_eris 
