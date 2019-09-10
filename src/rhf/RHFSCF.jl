@@ -95,7 +95,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec::T = 0.0
-  F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
+  F, E_elec = iteration(F, D, C, H, F_eval, F_evec,
     ortho, basis, scf_flags)
 
   E::T = E_elec + E_nuc
@@ -259,7 +259,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       #== obtain new F,D,C matrices ==#
       @views D_old[:,:] = deepcopy(D)[:,:]
 
-      F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
+      F, E_elec = iteration(F, D, C, H, F_eval, F_evec,
         ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
@@ -336,8 +336,13 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
+    r_bra::Ref{ShPair} = Ref(bra)
+
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
+    r_ket::Ref{ShPair} = Ref(ket)
+
     quartet::ShQuartet = ShQuartet(bra,ket)
+    r_quartet::Ref{ShQuartet} = Ref(quartet)
 
     while true
       ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
@@ -357,9 +362,9 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
 	  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
-	  bra = ShPair(basis[ish], basis[jsh])
-	  ket = ShPair(basis[ksh], basis[lsh])
-	  quartet = ShQuartet(bra,ket)
+	  r_bra[] = ShPair(basis[ish], basis[jsh])
+	  r_ket[] = ShPair(basis[ksh], basis[lsh])
+	  r_quartet[] = ShQuartet(bra,ket)
 
 	  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 	  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
@@ -512,12 +517,12 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   comm=MPI.COMM_WORLD
 
   #== obtain new orbital coefficients ==#
-  F::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
-  @views F[:,:] = transpose(ortho)[:,:]*F_μν[:,:]*ortho[:,:]
+  F_mo::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
+  @views F_mo[:,:] = transpose(ortho)[:,:]*F_μν[:,:]*ortho[:,:]
 
-  F_eval = eigvals(LinearAlgebra.Hermitian(F))
+  F_eval = eigvals(LinearAlgebra.Hermitian(F_mo))
 
-  @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F))[:,:]
+  @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F_mo))[:,:]
   F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   @views C[:,:] = ortho[:,:]*F_evec[:,:]
@@ -555,5 +560,5 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     println("")
   end
 
-  return (F, D, C, E_elec)
+  return (F_mo, E_elec)
 end
