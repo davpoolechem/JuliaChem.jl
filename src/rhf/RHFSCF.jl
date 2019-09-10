@@ -336,13 +336,13 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
-    r_bra::Ref{ShPair} = Ref(bra)
+    #r_bra::Ref{ShPair} = Ref(bra)
 
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
-    r_ket::Ref{ShPair} = Ref(ket)
+    #r_ket::Ref{ShPair} = Ref(ket)
 
     quartet::ShQuartet = ShQuartet(bra,ket)
-    r_quartet::Ref{ShQuartet} = Ref(quartet)
+    #r_quartet::Ref{ShQuartet} = Ref(quartet)
 
     while true
       ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
@@ -362,9 +362,14 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
 	  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
-	  r_bra[] = ShPair(basis[ish], basis[jsh])
-	  r_ket[] = ShPair(basis[ksh], basis[lsh])
-	  r_quartet[] = ShQuartet(bra,ket)
+	  #r_bra[] = ShPair(basis[ish], basis[jsh])
+	  #r_ket[] = ShPair(basis[ksh], basis[lsh])
+	  #r_quartet[] = ShQuartet(bra,ket)
+
+
+      bra = ShPair(basis[ish], basis[jsh])
+      ket = ShPair(basis[ksh], basis[lsh])
+      quartet = ShQuartet(bra,ket)
 
 	  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 	  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
