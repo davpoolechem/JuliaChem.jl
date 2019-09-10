@@ -240,9 +240,9 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== do DIIS ==#
-      @views e = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
+      @views e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
 
-      e_array = [e, e_array[1:ndiis]...]
+      e_array = [deepcopy(e), e_array[1:ndiis]...]
       F_array = [F, F_array[1:ndiis]...]
 
       if (iter > 1)
@@ -257,7 +257,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== obtain new F,D,C matrices ==#
-      @views D_old = deepcopy(D)[:,:]
+      @views D_old[:,:] = deepcopy(D)[:,:]
 
       F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
         ortho, basis, scf_flags)
