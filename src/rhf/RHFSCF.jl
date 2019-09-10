@@ -215,13 +215,14 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
     eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
-    eri_starts = eri_starts .- (eri_starts[1] - 1)
+    @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
     while(!iter_converged)
       #== build fock matrix ==#
-      F_temp = twoei(F, D, tei, eri_batch, eri_starts, eri_sizes, H, basis)
+      @views F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
+        eri_sizes, H, basis)[:,:]
 
-      F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+      @views F[:,:] = MPI.Allreduce(F_temp,MPI.SUM,comm)[:,:]
       MPI.Barrier(comm)
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
@@ -230,7 +231,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
         println("")
       end
 
-      F += H
+      @views F[:,:] += H[:,:]
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Total Fock matrix:")
@@ -256,7 +257,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== obtain new F,D,C matrices ==#
-      D_old = deepcopy(D)
+      @views D_old = deepcopy(D)[:,:]
 
       F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
         ortho, basis, scf_flags)
@@ -271,7 +272,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       #D = x*D + (one-x)*D_old
 
       #== check for convergence ==#
-      ΔD = D - D_old
+      @views ΔD[:,:] = D[:,:] - D_old[:,:]
       D_rms::T = √(@∑ ΔD ΔD)
 
       E = E_elec+E_nuc
@@ -373,7 +374,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
         eri_starts = tei["Starts"]["$quartet_batch_num"]
         eri_sizes = tei["Sizes"]["$quartet_batch_num"]
 
-        eri_starts = eri_starts .- (eri_starts[1] - 1)
+        eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
 		quartet_batch_num_old = quartet_batch_num
       end
