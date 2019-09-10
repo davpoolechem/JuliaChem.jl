@@ -327,7 +327,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
-  F = zeros(basis.norb,basis.norb)
+  @views F[:,:] = fill(zero(T),(basis.norb,basis.norb))
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
@@ -391,7 +391,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
     end
 
     lock(mutex)
-    F += F_priv
+    @views F[:,:] += F_priv[:,:]
     unlock(mutex)
   end
 
