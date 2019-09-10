@@ -211,7 +211,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    eri_batch::Vector{T} = tei["Integrals"]["$quartet_batch_num_old"]
+    r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
     eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
     eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
@@ -219,7 +219,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
     while(!iter_converged)
       #== build fock matrix ==#
-      @views F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
+      @views F_temp[:,:] = twoei(F, D, tei, r_eri_batch, eri_starts,
         eri_sizes, H, basis)[:,:]
 
       @views F[:,:] = MPI.Allreduce(F_temp,MPI.SUM,comm)[:,:]
@@ -316,7 +316,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Matrix{T}, D::Matrix{T}, tei,
-  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
+  r_eri_batch::Ref{Vector{T}}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -366,7 +366,6 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	  #r_ket[] = ShPair(basis[ksh], basis[lsh])
 	  #r_quartet[] = ShQuartet(bra,ket)
 
-
       bra = ShPair(basis[ish], basis[jsh])
       ket = ShPair(basis[ksh], basis[lsh])
       quartet = ShQuartet(bra,ket)
@@ -380,7 +379,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	    quartets_per_batch)) + 1
 
 	  if quartet_batch_num != quartet_batch_num_old
-        eri_batch = tei["Integrals"]["$quartet_batch_num"]
+        r_eri_batch[] = tei["Integrals"]["$quartet_batch_num"]
         eri_starts = tei["Starts"]["$quartet_batch_num"]
         eri_sizes = tei["Sizes"]["$quartet_batch_num"]
 
@@ -391,7 +390,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
       quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
         (quartet_batch_num-1) + 1
-	  eri_quartet_batch = shellquart(eri_batch,
+	  eri_quartet_batch = shellquart(r_eri_batch[],
 	    eri_starts, eri_sizes, quartet_num_in_batch)
       #println("TEST2; $quartet_num_in_batch")
 
