@@ -4,8 +4,8 @@ using MPI
 using Base.Threads
 #using Distributed
 using LinearAlgebra
-using HDF5
 using StaticArrays
+using JLD
 
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
@@ -69,8 +69,9 @@ function rhf_kernel(basis::BasisStructs.Basis,
     S_eval[i,i] = S_eval_diag[i]
   end
 
-  ortho::Matrix{T} = S_evec*
-    (LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
+  ortho::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
+  @views ortho[:,:] = S_evec[:,:]*
+    (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
 
   if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
     println("Ortho matrix:")
@@ -95,7 +96,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec::T = 0.0
-  F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
+  F, E_elec = iteration(F, D, C, H, F_eval, F_evec,
     ortho, basis, scf_flags)
 
   E::T = E_elec + E_nuc
@@ -191,7 +192,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   #== start convergence procedure ==#
   iter::Int64 = 1
   B_dim::Int64 = 1
-  h5open("tei_batch.h5", "r") do tei::HDF5File
+  tei = load("tei_batch.jld")
     #== create temporary arrays needed for calculation ==#
     F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
     F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
@@ -211,25 +212,18 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    #eri_batch::Vector{T} = convert(Vector{T},
-    #  read(tei, "Integrals/$quartet_batch_num_old"))
-    eri_batch::Vector{T} = [] 
-    
-    #eri_starts::Vector{Int64} = convert(Vector{Int64},
-    #  read(tei, "Starts/$quartet_batch_num_old"))
-    eri_starts::Vector{Int64} = [] 
-    
-    #eri_starts = eri_starts .- (eri_starts[1] - 1)
+    #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
+    #eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
+    #eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
-    #eri_sizes::Vector{Int64} = convert(Vector{Int64},
-    #  read(tei, "Sizes/$quartet_batch_num_old"))
-    eri_sizes::Vector{Int64} = [] 
+    #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
     while(!iter_converged)
       #== build fock matrix ==#
-      F_temp = twoei(F, D, tei, eri_batch, eri_starts, eri_sizes, H, basis)
+      @views F_temp[:,:] = twoei(F, D, tei, r_eri_batch, eri_starts,
+        eri_sizes, H, basis)[:,:]
 
-      F = MPI.Allreduce(F_temp,MPI.SUM,comm)
+      @views F[:,:] = MPI.Allreduce(F_temp,MPI.SUM,comm)[:,:]
       MPI.Barrier(comm)
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
@@ -238,7 +232,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
         println("")
       end
 
-      F += H
+      @views F[:,:] += H[:,:]
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Total Fock matrix:")
@@ -247,9 +241,9 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== do DIIS ==#
-      e = F*D*S - S*D*F
+      @views e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
 
-      e_array = [e, e_array[1:ndiis]...]
+      e_array = [deepcopy(e), e_array[1:ndiis]...]
       F_array = [F, F_array[1:ndiis]...]
 
       if (iter > 1)
@@ -264,22 +258,22 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== obtain new F,D,C matrices ==#
-      D_old = deepcopy(D)
+      @views D_old[:,:] = deepcopy(D)[:,:]
 
-      F, D, C, E_elec = iteration(F, D, C, H, F_eval, F_evec,
+      F, E_elec = iteration(F, D, C, H, F_eval, F_evec,
         ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
-      one::T = oneunit(typeof(dele))
-      D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
-      D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
+      #one::T = oneunit(typeof(dele))
+      #D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
+      #D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
 
-      x::T = max(D_damp_rms...) > one ? min(damp_values...) :
-        max(damp_values...)
-      D = x*D + (one-x)*D_old
+      #x::T = maximum(D_damp_rms) > one ? minimum(damp_values) :
+    #maximum(damp_values)
+      #D = x*D + (one-x)*D_old
 
       #== check for convergence ==#
-      ΔD = D - D_old
+      @views ΔD[:,:] = D[:,:] - D_old[:,:]
       D_rms::T = √(@∑ ΔD ΔD)
 
       E = E_elec+E_nuc
@@ -300,7 +294,6 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       #D_old = deepcopy(D)
       E_old = E
     end
-  end
 
   return (F, D, C, E, iter, scf_converged)
 end
@@ -323,8 +316,8 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
-  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
+function twoei(F::Matrix{T}, D::Matrix{T}, tei,
+  r_eri_batch::Ref{Vector{T}}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -337,7 +330,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 
   eri_quartet_batch::SVector{256,T} = fill(zero(T),256)
 
-  F = zeros(basis.norb,basis.norb)
+  @views F[:,:] = fill(zero(T),(basis.norb,basis.norb))
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
@@ -348,6 +341,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
     quartet::ShQuartet = ShQuartet(bra,ket)
+    #r_quartet::Ref{ShQuartet} = Ref(quartet)
 
     while true
       ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
@@ -367,9 +361,14 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 
 	  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
-	  bra = ShPair(basis.shells[ish], basis.shells[jsh])
-	  ket = ShPair(basis.shells[ksh], basis.shells[lsh])
-	  quartet = ShQuartet(bra,ket)
+      bra.sh_a = basis[ish]
+      bra.sh_b = basis[jsh]
+
+      ket.sh_a = basis[ksh]
+      ket.sh_b = basis[lsh]
+
+      quartet.bra = bra
+      quartet.ket = ket
 
 	  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 	  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
@@ -380,21 +379,18 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 	   # quartets_per_batch)) + 1
 
 	  #if quartet_batch_num != quartet_batch_num_old
-    #    eri_batch = convert(Vector{T},
-    #      read(tei, "Integrals/$quartet_batch_num"))
-  #		eri_starts = convert(Vector{Int64},
-  #        read(tei, "Starts/$quartet_batch_num"))
-  #		eri_sizes = convert(Vector{Int64},
-   #       read(tei, "Sizes/$quartet_batch_num"))
+    #    r_eri_batch[] = tei["Integrals"]["$quartet_batch_num"]
+    #    eri_starts = tei["Starts"]["$quartet_batch_num"]
+    #    eri_sizes = tei["Sizes"]["$quartet_batch_num"]
 
-    #    eri_starts = eri_starts .- (eri_starts[1] - 1)
+    #    eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
 		#quartet_batch_num_old = quartet_batch_num
      # end
 
-      #quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-       # (quartet_batch_num-1) + 1
-	  #eri_quartet_batch::Vector{T} = shellquart(eri_batch,
+    #  quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+    #    (quartet_batch_num-1) + 1
+	  #eri_quartet_batch = shellquart(r_eri_batch[],
 	  #  eri_starts, eri_sizes, quartet_num_in_batch)
       #println("TEST2; $quartet_num_in_batch")
 
@@ -406,7 +402,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
     end
 
     lock(mutex)
-    F += F_priv
+    @views F[:,:] += F_priv[:,:]
     unlock(mutex)
   end
 
@@ -420,12 +416,13 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei::HDF5File,
 end
 
 function shellquart_read(eri_batch::Vector{T}, eri_starts::Vector{Int64},
+@inline function shellquart_read(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   eri_sizes::Vector{Int64}, quartet_num::Int64) where {T<:AbstractFloat}
 
   starting::Int64 = eri_starts[quartet_num]
   ending::Int64 = starting + (eri_sizes[quartet_num] - 1)
 
-  return eri_batch[starting:ending]
+  return @view eri_batch[starting:ending]
 end
 
 function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
@@ -439,7 +436,7 @@ function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
 end
 
 
-function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::SVector{256,T},
+@inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::SVector{256,T},
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
@@ -499,15 +496,15 @@ function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::SVector{256,T},
 	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
       F_priv[μ,λ] -= D[ν,σ] * eri
 	  F_priv[μ,σ] -= D[ν,λ] * eri
-	  F_priv[max(ν,λ),min(ν,λ)] -= D[max(μ,σ),min(μ,σ)] * eri
-	  F_priv[max(ν,σ),min(ν,σ)] -= D[max(μ,λ),min(μ,λ)] * eri
+      F_priv[ν,λ] -= D[max(μ,σ),min(μ,σ)] * eri
+      F_priv[ν,σ] -= D[max(μ,λ),min(μ,λ)] * eri
 
-	  F_priv[σ,λ] = F_priv[λ,σ]
-	  F_priv[ν,μ] = F_priv[μ,ν]
-	  F_priv[λ,μ] = F_priv[μ,λ]
-	  F_priv[σ,μ] = F_priv[μ,σ]
-	  F_priv[min(λ,ν),max(λ,ν)] = F_priv[max(ν,λ),min(ν,λ)]
-	  F_priv[min(σ,ν),max(σ,ν)] = F_priv[max(ν,σ),min(ν,σ)]
+      if λ != σ F_priv[σ,λ] += 4.0 * D[μ,ν] * eri end
+	  if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
+      if μ != λ F_priv[λ,μ] -= D[ν,σ] * eri end
+	  if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
+      if ν != λ F_priv[λ,ν] -= D[max(μ,σ),min(μ,σ)] * eri end
+	  if ν != σ F_priv[σ,ν] -= D[max(μ,λ),min(μ,λ)] * eri end
     end
   end
 end
@@ -538,14 +535,15 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   comm=MPI.COMM_WORLD
 
   #== obtain new orbital coefficients ==#
-  F::Matrix{T} = transpose(ortho)*F_μν*ortho
+  F_mo::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
+  @views F_mo[:,:] = transpose(ortho)[:,:]*F_μν[:,:]*ortho[:,:]
 
-  F_eval = eigvals(LinearAlgebra.Hermitian(F))
+  F_eval = eigvals(LinearAlgebra.Hermitian(F_mo))
 
-  F_evec = eigvecs(LinearAlgebra.Hermitian(F))
+  @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F_mo))[:,:]
   F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-  C = ortho*F_evec
+  @views C[:,:] = ortho[:,:]*F_evec[:,:]
 
   if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
     println("New orbitals:")
@@ -558,7 +556,7 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   norb = basis.norb
 
   for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
-    D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
+    @views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
     #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
     D[i,j] *= 2
   end
@@ -580,5 +578,5 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     println("")
   end
 
-  return (F, D, C, E_elec)
+  return (F_mo, E_elec)
 end

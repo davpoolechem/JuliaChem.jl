@@ -15,7 +15,6 @@ Base.include(@__MODULE__,"../eri/simint.jl")
 
 using MPI
 using JSON
-using HDF5
 
 """
   run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)

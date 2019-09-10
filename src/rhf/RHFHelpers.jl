@@ -2,6 +2,7 @@ using JCModules.BasisStructs
 
 using Base.Threads
 using MATH
+using JLD
 
 function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
   ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
@@ -11,7 +12,7 @@ function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
   μ,ν,λ,σ = μμ,νν,λλ,σσ
 
   #print("$μμ, $νν, $λλ, $σσ => ")
-  
+
   two_shell::Bool = ibas == jbas
   two_shell = two_shell || (ibas == kbas)
   two_shell = two_shell || (ibas == lbas)
@@ -78,18 +79,15 @@ function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
 end
 
 function set_up_eri_database(basis::BasisStructs.Basis)
-  h5open("tei_batch.h5", "w") do file
+  jldopen("tei_batch.jld", "w") do file
     #== write quartet eri lists to database ==#
-    eri_array::Vector{Number} = []
-    h5open("tei_all.h5", "r") do tei
-      eri_array = convert(Vector{Float64}, read(tei,"Integrals/All"))
-    end
+    eri_array = load("tei_all.jld")["Integrals"]["All"]
 
     nsh::Int64 = length(basis.shells)
 
     eri_array_batch::Vector{Float64} = [ ]
-    eri_array_starts::Vector{Float64} = [ ]
-    eri_array_sizes::Vector{Float64} = [ ]
+    eri_array_starts::Vector{Int64} = [ ]
+    eri_array_sizes::Vector{Int64} = [ ]
 
     eri_start::Int64 = 1
     quartet_batch_num_old::Int64 = 1
@@ -173,7 +171,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         end
 
         append!(eri_array_batch,
-          eri_array[eri_start:eri_start+(eri_size-1)])
+          @view eri_array[eri_start:eri_start+(eri_size-1)])
 
         eri_start_readin::Int64 = eri_start - quartets_per_batch*
           (quartet_batch_num-1)
@@ -235,20 +233,20 @@ end
 function DIIS(e_array::Vector{Matrix{T}},
   F_array::Vector{Matrix{T}}, B_dim::Int64) where {T<:AbstractFloat}
 
-	B::Matrix{T} = Matrix{T}(undef,B_dim+1,B_dim+1)
-	for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
-	  B[i,j] = @∑ e_array[i] e_array[j]
+  B::Matrix{T} = Matrix{T}(undef,B_dim+1,B_dim+1)
+  for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
+    B[i,j] = @∑ e_array[i] e_array[j]
 
-	  B[i,B_dim+1] = -1
-	  B[B_dim+1,i] = -1
-	  B[B_dim+1,B_dim+1] =  0
-	end
-	DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
+	B[i,B_dim+1] = -1
+	B[B_dim+1,i] = -1
+	B[B_dim+1,B_dim+1] =  0
+  end
+  DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
 
-	DIIS_coeff, B, ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
+  DIIS_coeff, B, ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
 
-	F_DIIS::Matrix{T} = zeros(size(F_array[1],1),size(F_array[1],2))
-	for index::Int64 in 1:B_dim
+  F_DIIS::Matrix{T} = zeros(size(F_array[1],1),size(F_array[1],2))
+  for index::Int64 in 1:B_dim
     F_DIIS += DIIS_coeff[index]*F_array[index]
   end
 
