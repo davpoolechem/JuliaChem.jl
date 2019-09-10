@@ -233,20 +233,20 @@ end
 function DIIS(e_array::Vector{Matrix{T}},
   F_array::Vector{Matrix{T}}, B_dim::Int64) where {T<:AbstractFloat}
 
-	B::Matrix{T} = Matrix{T}(undef,B_dim+1,B_dim+1)
-	for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
-	  B[i,j] = @∑ e_array[i] e_array[j]
+  B::Matrix{T} = Matrix{T}(undef,B_dim+1,B_dim+1)
+  for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
+    B[i,j] = @∑ e_array[i] e_array[j]
 
-	  B[i,B_dim+1] = -1
-	  B[B_dim+1,i] = -1
-	  B[B_dim+1,B_dim+1] =  0
-	end
-	DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
+	B[i,B_dim+1] = -1
+	B[B_dim+1,i] = -1
+	B[B_dim+1,B_dim+1] =  0
+  end
+  DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
 
-	DIIS_coeff, B, ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
+  DIIS_coeff, B, ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
 
-	F_DIIS::Matrix{T} = zeros(size(F_array[1],1),size(F_array[1],2))
-	for index::Int64 in 1:B_dim
+  F_DIIS::Matrix{T} = zeros(size(F_array[1],1),size(F_array[1],2))
+  for index::Int64 in 1:B_dim
     F_DIIS += DIIS_coeff[index]*F_array[index]
   end
 

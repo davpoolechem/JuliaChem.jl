@@ -240,7 +240,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== do DIIS ==#
-      e = F*D*S - S*D*F
+      @views e = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
 
       e_array = [e, e_array[1:ndiis]...]
       F_array = [F, F_array[1:ndiis]...]
