@@ -206,7 +206,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     nsh::Int64 = length(basis.shells)
     nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-    quartets_per_batch::Int64 = 25000
+    quartets_per_batch::Int64 = 1000
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
@@ -323,7 +323,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 25000
+  quartets_per_batch::Int64 = 1000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 

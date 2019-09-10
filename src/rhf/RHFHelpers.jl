@@ -148,7 +148,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
           end
         end
 
-        quartets_per_batch::Int64 = 25000
+        quartets_per_batch::Int64 = 1000
         quartet_batch_num::Int64 = Int64(floor(quartet_num/
           quartets_per_batch)) + 1
 
