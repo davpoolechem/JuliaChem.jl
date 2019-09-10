@@ -261,13 +261,13 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
         ortho, basis, scf_flags)
 
       #== dynamic damping of density matrix ==#
-      one::T = oneunit(typeof(dele))
-      D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
-      D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
+      #one::T = oneunit(typeof(dele))
+      #D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
+      #D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
 
-      x::T = maximum(D_damp_rms) > one ? minimum(damp_values) :
-        maximum(damp_values)
-      D = x*D + (one-x)*D_old
+      #x::T = maximum(D_damp_rms) > one ? minimum(damp_values) :
+    #maximum(damp_values)
+      #D = x*D + (one-x)*D_old
 
       #== check for convergence ==#
       ΔD = D - D_old
