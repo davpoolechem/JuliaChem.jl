@@ -68,8 +68,9 @@ function rhf_kernel(basis::BasisStructs.Basis,
     S_eval[i,i] = S_eval_diag[i]
   end
 
-  ortho::Matrix{T} = S_evec*
-    (LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
+  ortho::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
+  @views ortho[:,:] = S_evec[:,:]*
+    (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
 
   if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
     println("Ortho matrix:")
@@ -510,14 +511,15 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   comm=MPI.COMM_WORLD
 
   #== obtain new orbital coefficients ==#
-  F::Matrix{T} = transpose(ortho)*F_μν*ortho
+  F::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
+  @views F[:,:] = transpose(ortho)[:,:]*F_μν[:,:]*ortho[:,:]
 
   F_eval = eigvals(LinearAlgebra.Hermitian(F))
 
-  F_evec = eigvecs(LinearAlgebra.Hermitian(F))
+  @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F))[:,:]
   F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-  C = ortho*F_evec
+  @views C[:,:] = ortho[:,:]*F_evec[:,:]
 
   if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
     println("New orbitals:")
@@ -530,7 +532,7 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   norb = basis.norb
 
   for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
-    D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
+    @views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
     #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
     D[i,j] *= 2
   end
