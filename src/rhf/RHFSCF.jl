@@ -190,7 +190,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   #== start convergence procedure ==#
   iter::Int64 = 1
   B_dim::Int64 = 1
-  jldopen("tei_batch.jld", "r") do tei
+  tei = load("tei_batch.jld")
     #== create temporary arrays needed for calculation ==#
     F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
     F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
@@ -210,12 +210,11 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    eri_batch::Vector{T} = read(tei, "Integrals/$quartet_batch_num_old")
+    eri_batch::Vector{T} = tei["Integrals"]["$quartet_batch_num_old"]
+    eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
+    eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
-    eri_starts::Vector{Int64} = read(tei, "Starts/$quartet_batch_num_old")
     eri_starts = eri_starts .- (eri_starts[1] - 1)
-
-    eri_sizes::Vector{Int64} = read(tei, "Sizes/$quartet_batch_num_old")
 
     while(!iter_converged)
       #== build fock matrix ==#
@@ -292,7 +291,6 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       #D_old = deepcopy(D)
       E_old = E
     end
-  end
 
   return (F, D, C, E, iter, scf_converged)
 end
@@ -370,9 +368,9 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	    quartets_per_batch)) + 1
 
 	  if quartet_batch_num != quartet_batch_num_old
-        eri_batch = read(tei, "Integrals/$quartet_batch_num")
-  		eri_starts = read(tei, "Starts/$quartet_batch_num")
-  		eri_sizes = read(tei, "Sizes/$quartet_batch_num")
+        eri_batch = tei["Integrals"]["$quartet_batch_num"]
+        eri_starts = tei["Starts"]["$quartet_batch_num"]
+        eri_sizes = tei["Sizes"]["$quartet_batch_num"]
 
         eri_starts = eri_starts .- (eri_starts[1] - 1)
 
