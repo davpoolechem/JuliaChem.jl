@@ -97,13 +97,6 @@ function run(molecule, model)
         new_shell_coeff_array::Vector{Float64} = reshape(new_shell_coeff,
           (length(new_shell_coeff),))       
 
-<<<<<<< HEAD
-        new_shell_nprim::Int64 = size(new_shell_exp)[1]
-        new_shell_coeff_array::Vector{Float64} = reshape(new_shell_coeff,
-          (length(new_shell_coeff),))       
-  
-=======
->>>>>>> development
         new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff_array,
           atom_center, new_shell_am, size(new_shell_exp)[1])
         add_shell(basis_set,deepcopy(new_shell))

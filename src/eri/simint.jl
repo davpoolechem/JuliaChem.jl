@@ -35,7 +35,7 @@ function allocate_shell_array(basis::JCModules.BasisStructs.Basis)
 
   ccall( (:allocate_shell_array_c, "src/eri/build/libsimint"), Cvoid, 
     (Int64,Int64), nshell, nshell_simint )
-
+  
   return nshell_simint
 end
 export allocate_shell_array 
@@ -44,19 +44,20 @@ function add_shell(shell::JCModules.BasisStructs.Shell)
   ccall( (:add_shell_c, "src/eri/build/libsimint"), Cvoid, 
     (Ref{JCModules.BasisStructs.Shell},), Ref(shell) )
 end
-
 export add_shell 
 
-function retrieve_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
-  eri::SVector{256,T}) where {T<:AbstractFloat}
-  
-  if (T == Float64)
-    ccall( (:retrieve_eris_c, "src/eri/build/libsimint"), Cvoid, 
-      (Int64, Int64, Int64, Int64, Ref{SVector{256,Float64}}), 
-      ish, jsh, ksh, lsh, Ref(eri) )
-  end
+function normalize_shells()
+  ccall( (:normalize_shells_c, "src/eri/build/libsimint"), Cvoid, 
+    () )
+end
+export normalize_shells
 
-  return eri
+function retrieve_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
+  eri::Vector{T}) where {T<:AbstractFloat}
+  
+  ccall( (:retrieve_eris_c, "src/eri/build/libsimint"), Cvoid, 
+    (Int64, Int64, Int64, Int64, Ptr{T}), 
+    ish, jsh, ksh, lsh, eri)
 end
 export retrieve_eris 
 

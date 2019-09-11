@@ -4,7 +4,6 @@ using MPI
 using Base.Threads
 #using Distributed
 using LinearAlgebra
-using StaticArrays
 using JLD
 
 function rhf_energy(basis::BasisStructs.Basis,
@@ -212,11 +211,11 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
-    #eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
-    #eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
+    r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
+    eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
+    eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
-    #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+    @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
     while(!iter_converged)
       #== build fock matrix ==#
@@ -328,7 +327,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
-  eri_quartet_batch::SVector{256,T} = fill(zero(T),256)
+  eri_quartet_batch::Vector{T} = fill(zero(T),256) 
 
   @views F[:,:] = fill(zero(T),(basis.norb,basis.norb))
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
@@ -394,7 +393,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	  #  eri_starts, eri_sizes, quartet_num_in_batch)
       #println("TEST2; $quartet_num_in_batch")
 
-      eri_quartet_batch = shellquart_direct(ish, jsh, ksh, lsh, eri_quartet_batch)
+      shellquart_direct(ish, jsh, ksh, lsh, eri_quartet_batch)
 
       dirfck(F_priv, D, eri_quartet_batch, quartet,
 	    ish, jsh, ksh, lsh)
@@ -415,7 +414,6 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   return F
 end
 
-function shellquart_read(eri_batch::Vector{T}, eri_starts::Vector{Int64},
 @inline function shellquart_read(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   eri_sizes::Vector{Int64}, quartet_num::Int64) where {T<:AbstractFloat}
 
@@ -425,18 +423,14 @@ function shellquart_read(eri_batch::Vector{T}, eri_starts::Vector{Int64},
   return @view eri_batch[starting:ending]
 end
 
-function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
-  eri_quartet_batch::SVector{256,T}) where {T<:AbstractFloat}
+@inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
+  eri_quartet_batch::Vector{T}) where {T<:AbstractFloat}
   
   SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
-
-  display(eri_quartet_batch)
-  println("")
-  return eri_quartet_batch
 end
 
 
-@inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::SVector{256,T},
+@inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
@@ -485,7 +479,7 @@ end
 
 	  eri::T = eri_batch[μνλσ]
       #eri::T = 0
-      if (abs(eri) <= 1E-10) continue end
+      #if (abs(eri) <= 1E-10) continue end
 
       #println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0

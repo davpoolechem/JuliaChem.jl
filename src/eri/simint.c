@@ -15,7 +15,8 @@ static double* sp_shell = NULL; //array telling if given shell is L shell or not
 struct simint_multi_shellpair left_pair; //bra SIMINT shell pair structure
 struct simint_multi_shellpair right_pair; //ket SIMINT shell pair structure
 
-int iold, jold, ishell;
+int iold, jold; 
+int nshells, ishell;
 int nshell_simint; 
 
 //---------------------//
@@ -109,17 +110,18 @@ void allocate_shell_array_c(long long int nshell,
   long long int t_nshell_simint) 
 {
   //--Some variable set-up for basis set translation--//
-  int sizeof_simint_shell = 2*sizeof(int); //account for am and nprim
-  sizeof_simint_shell += 3*sizeof(double); //account for x,y and z
-  sizeof_simint_shell += 2*sizeof(double*); //account for alpha and coeff 
-  sizeof_simint_shell += sizeof(size_t); //account for memsize
-  sizeof_simint_shell += sizeof(void*); //account for ptr
+  //int sizeof_simint_shell = 2*sizeof(int); //account for am and nprim
+  //sizeof_simint_shell += 3*sizeof(double); //account for x,y and z
+  //sizeof_simint_shell += 2*sizeof(double*); //account for alpha and coeff 
+  //sizeof_simint_shell += sizeof(size_t); //account for memsize
+  //sizeof_simint_shell += sizeof(void*); //account for ptr
 
-  int nshell_simint =  (int)t_nshell_simint;
+  nshells = (int)nshell;
+  int nshell_simint = (int)t_nshell_simint;
 
   //--Allocate arrays--// 
-  shells = calloc(nshell_simint,sizeof_simint_shell);
-  sp_shell = calloc(nshell,sizeof(int));
+  shells = malloc(nshells*sizeof(struct simint_shell));
+  sp_shell = malloc(nshells*sizeof(int));
 
   target = SIMINT_ALLOC(256*sizeof(double));
   work = SIMINT_ALLOC(simint_ostei_workmem(0,1));
@@ -128,51 +130,63 @@ void allocate_shell_array_c(long long int nshell,
 void add_shell_c(struct shell* p_input) 
 {
   struct shell input = (*p_input);
-    
+          
   simint_initialize_shell(&shells[ishell]); 
 
-  int sp = input.nbas == 4;
+  //int sp = input.nbas == 4;
+  
+  //sp_shell[ishell] = sp ? 1 : 0;
 
-  for (int isp = 0; isp != sp+1; ++isp) { //two iterations for L shells to split them into s and p components
-    shells[ishell+isp].x = (int)input.atom_center[0]; 
-    shells[ishell+isp].y = (int)input.atom_center[1];
-    shells[ishell+isp].z = (int)input.atom_center[2]; 
+//  for (int isp = 0; isp != sp+1; ++isp) { //two iterations for L shells to split them into s and p components
+    shells[ishell].x = (int)input.atom_center[0]; 
+    shells[ishell].y = (int)input.atom_center[1];
+    shells[ishell].z = (int)input.atom_center[2]; 
 
-    shells[ishell+isp].am = input.am == -1 ? 1 : (int)input.am; 
-    shells[ishell+isp].nprim = (int)input.nprim; 
+    shells[ishell].am = input.am == -1 ? 1 : (int)input.am; 
+    shells[ishell].nprim = (int)input.nprim; 
 
-    simint_allocate_shell(shells[ishell+isp].nprim, &shells[ishell+isp]);
+    simint_allocate_shell(shells[ishell].nprim, &shells[ishell]);
 
     int nprim = (int)input.nprim;
     for (int iprim = 0; iprim != nprim; ++iprim) {
-      shells[ishell+isp].alpha[iprim] = input.exponents[iprim+(isp*nprim)];
-      shells[ishell+isp].coef[iprim] = input.coefficients[iprim+(isp*nprim)];
+      shells[ishell].alpha[iprim] = input.exponents[iprim];
+      shells[ishell].coef[iprim] = input.coefficients[iprim];
     };
     ishell += 1; 
-  }
+  //}
 }  
+
+//------------------------//
+//--Normalize shell list--//
+//------------------------//
+void normalize_shells_c()
+{
+  simint_normalize_shells(nshells, shells);
+}
 
 //-------------------------------------------------------------//
 //--Copy list of ERIs of the form (ish jsh|ksh lsh) to ghondo--//
 //-------------------------------------------------------------//
-void retrieve_eris_c(int ish, int jsh, int ksh, int lsh, double* eri) 
+double* retrieve_eris_c(int ish, int jsh, int ksh, int lsh, double* eri) 
 {
-    //--initialize some variables--//
-    int ii = ish-1, jj = jsh-1, kk = ksh-1, ll = lsh-1; //account for 1-indexing of ish,jsh
+  //--initialize some variables--//
+  int ii = ish-1, jj = jsh-1, kk = ksh-1, ll = lsh-1; //account for 1-indexing of ish,jsh
 
-    for (int i = 0; i != ish-1; ++i) ii += sp_shell[i]; //account for splitting of GAMESS L shells into s and p SIMINT shells
-    for (int j = 0; j != jsh-1; ++j) jj += sp_shell[j];
-    for (int k = 0; k != ksh-1; ++k) kk += sp_shell[k];
-    for (int l = 0; l != lsh-1; ++l) ll += sp_shell[l];
+  //for (int i = 0; i != ish-1; ++i) ii += sp_shell[i]; //account for splitting of GAMESS L shells into s and p SIMINT shells
+  //for (int j = 0; j != jsh-1; ++j) jj += sp_shell[j];
+  //for (int k = 0; k != ksh-1; ++k) kk += sp_shell[k];
+  //for (int l = 0; l != lsh-1; ++l) ll += sp_shell[l];
 
-    //int fullsizes[4] = { ksize[ish-1], ksize[jsh-1], ksize[ksh-1], ksize[lsh-1] };
-    int L_[4] = { sp_shell[ish-1], sp_shell[jsh-1], sp_shell[ksh-1], sp_shell[lsh-1] };
+  //int fullsizes[4] = { ksize[ish-1], ksize[jsh-1], ksize[ksh-1], ksize[lsh-1] };
+  //int L_[4] = { sp_shell[ish-1], sp_shell[jsh-1], sp_shell[ksh-1], sp_shell[lsh-1] };
 
-    //--start ERI computation--//
-    //if (L_[0] == 0 && L_[1] == 0 && L_[2] == 0 && L_[3] == 0)
-    simgms_retrieve_eris_c_0000(ii, jj, kk, ll, eri); 
-    //else
-     //   simgms_retrieve_eris_c_L(ii, jj, kk, ll, ghondo, fullsizes, L_);
+  //--start ERI computation--//
+  //if (L_[0] == 0 && L_[1] == 0 && L_[2] == 0 && L_[3] == 0)
+  simgms_retrieve_eris_c_0000(ii, jj, kk, ll, eri); 
+  //else
+   //   simgms_retrieve_eris_c_L(ii, jj, kk, ll, ghondo, fullsizes, L_);
+
+  return eri;
 }
 
 //--------------------------------------------------------------------------------------------------//
@@ -184,7 +198,7 @@ void retrieve_eris_c(int ish, int jsh, int ksh, int lsh, double* eri)
 void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
 
   int ncomputed = 0; 
-
+  
   //--start ERI computation--//
   bool new_ij = ii != iold || jj != jold;
   if (new_ij) { 
