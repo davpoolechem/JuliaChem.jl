@@ -73,12 +73,12 @@ function run(args)
   merge!(molecule,Dict("ovr" => json_parse["molecule"]["ovr"]))
   merge!(molecule,Dict("hcore" => json_parse["molecule"]["hcore"]))
 
-  if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
-    jldopen("tei_all.jld", "w") do file
-      eri_array::Vector{Float64} = json_parse["molecule"]["tei"]
-      write(file, "Integrals/All",eri_array)
-    end
-  end
+  #if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
+  #  jldopen("tei_all.jld", "w") do file
+  #    eri_array::Vector{Float64} = json_parse["molecule"]["tei"]
+  #    write(file, "Integrals/All",eri_array)
+  #  end
+  #end
 
   driver = json_parse["driver"]
   merge!(model,json_parse["model"])

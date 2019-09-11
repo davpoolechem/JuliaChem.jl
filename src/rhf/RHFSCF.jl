@@ -245,7 +245,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       e_array = [deepcopy(e), e_array[1:ndiis]...]
       F_array = [F, F_array[1:ndiis]...]
 
-      if (iter > 1)
+      if iter > 1 && ndiis > 1
         B_dim += 1
         B_dim = min(B_dim,ndiis)
         try
@@ -372,7 +372,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
 	  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
 	  quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
-    #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+    println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
 	  #quartet_batch_num::Int64 = Int64(floor(quartet_num/
 	   # quartets_per_batch)) + 1
@@ -481,7 +481,7 @@ end
       #eri::T = 0
       #if (abs(eri) <= 1E-10) continue end
 
-      #println("$μ, $ν, $λ, $σ, $eri")
+      println("$μ, $ν, $λ, $σ, $eri")
 	  eri *= (μ == ν) ? 0.5 : 1.0
 	  eri *= (λ == σ) ? 0.5 : 1.0
 	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
