@@ -59,7 +59,7 @@ function run(basis, molecule, keywords)
         SIMINT.add_shell(basis[ishell])
       end
 
-      SIMINT.normalize_shells()
+      #SIMINT.normalize_shells()
 
       for ishell::Int64 in 0:(nshell_simint-1)
         SIMINT.get_simint_shell_info(ishell)

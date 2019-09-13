@@ -98,7 +98,7 @@ function run(molecule, model)
           (length(new_shell_coeff),))       
 
         new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff_array,
-          atom_center, new_shell_am, size(new_shell_exp)[1])
+          atom_center, new_shell_am, size(new_shell_exp)[1], true)
         add_shell(basis_set,deepcopy(new_shell))
 
         basis_set.norb += new_shell.nbas

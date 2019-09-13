@@ -46,11 +46,20 @@ function add_shell(shell::JCModules.BasisStructs.Shell)
 end
 export add_shell 
 
-function normalize_shells()
-  ccall( (:normalize_shells_c, "src/eri/build/libsimint"), Cvoid, 
-    () )
+#function normalize_shells()
+#  ccall( (:normalize_shells_c, "src/eri/build/libsimint"), Cvoid, 
+#    () )
+#end
+#export normalize_shells
+
+function unnormalize_shell(shell::JCModules.BasisStructs.Shell)
+  for iprim::Int64 in 1:shell.nprim
+    ee::Float64 = 2*shell.exponents[iprim]
+    facs::Float64 = (pi/ee)^1.5
+    shell.coefficients[iprim] /= sqrt(facs)
+  end
 end
-export normalize_shells
+export unnormalize_shell
 
 function retrieve_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
   eri::Vector{T}) where {T<:AbstractFloat}

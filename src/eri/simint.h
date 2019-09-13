@@ -17,6 +17,7 @@ extern struct shell {
   long long int nbas;
   long long int nprim;
   long long int pos;
+  bool unnormalize;
 };
 
 #undef MAX_CONTRACTION

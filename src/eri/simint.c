@@ -150,7 +150,7 @@ void add_shell_c(struct shell* p_input)
     int nprim = (int)input.nprim;
     for (int iprim = 0; iprim != nprim; ++iprim) {
       shells[ishell].alpha[iprim] = input.exponents[iprim];
-      shells[ishell].coef[iprim] = input.coefficients[iprim];
+      //shells[ishell].coef[iprim] = input.coefficients[iprim];
     };
     ishell += 1; 
   //}
