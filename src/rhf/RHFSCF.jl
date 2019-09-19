@@ -108,7 +108,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
+  @time F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags)
 
   if (!converged)
@@ -211,7 +211,8 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
+    #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
+    r_eri_batch::Vector{T} = Ref(tei["Integrals"]["$quartet_batch_num_old"])
     eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
     eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
@@ -219,7 +220,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
     while(!iter_converged)
       #== build fock matrix ==#
-      @views F_temp[:,:] = twoei(F, D, tei, r_eri_batch, eri_starts,
+      @views F_temp[:,:] = twoei(F, D, tei, r_eri_batch[], eri_starts,
         eri_sizes, H, basis)[:,:]
 
       @views F[:,:] = MPI.Allreduce(F_temp,MPI.SUM,comm)[:,:]
@@ -316,7 +317,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Matrix{T}, D::Matrix{T}, tei,
-  r_eri_batch::Ref{Vector{T}}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -334,6 +335,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
+    eri_quartet_batch::Vector{T} = Vector{T}(undef,256)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
@@ -376,7 +378,8 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	    quartets_per_batch)) + 1
 
 	  if quartet_batch_num != quartet_batch_num_old
-        r_eri_batch[] = tei["Integrals"]["$quartet_batch_num"]
+        #r_eri_batch[] = tei["Integrals"]["$quartet_batch_num"]
+        @views eri_batch[:] = tei["Integrals"]["$quartet_batch_num"]
         eri_starts = tei["Starts"]["$quartet_batch_num"]
         eri_sizes = tei["Sizes"]["$quartet_batch_num"]
 
@@ -387,8 +390,11 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
       quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
         (quartet_batch_num-1) + 1
-	  eri_quartet_batch = shellquart(r_eri_batch[],
-	    eri_starts, eri_sizes, quartet_num_in_batch)
+	
+      starting::Int64 = eri_starts[quartet_num_in_batch]
+      ending::Int64 = starting + (eri_sizes[quartet_num_in_batch] - 1)
+
+      @views eri_quartet_batch[1:(ending-starting+1)] = eri_batch[starting:ending]
       #println("TEST2; $quartet_num_in_batch")
 
       dirfck(F_priv, D, eri_quartet_batch, quartet,
