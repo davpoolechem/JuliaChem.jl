@@ -108,7 +108,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
+  @time F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags)
 
   if (!converged)
@@ -187,6 +187,10 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   e::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   e_array::Vector{Matrix{T}} = fill(
     Matrix{T}(undef,basis.norb,basis.norb), ndiis)
+  e_array_old::Vector{Matrix{T}} = fill(
+    Matrix{T}(undef,basis.norb,basis.norb), ndiis)
+  F_array_old::Vector{Matrix{T}} = fill(
+    Matrix{T}(undef,basis.norb,basis.norb), ndiis)
 
   #== start convergence procedure ==#
   iter::Int64 = 1
@@ -211,7 +215,8 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     quartet_batch_num_old::Int64 = Int64(floor(nindices/
       quartets_per_batch)) + 1
 
-    r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
+    #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
+    eri_batch::Vector{T} = tei["Integrals"]["$quartet_batch_num_old"]
     eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
     eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
@@ -219,10 +224,10 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
     while(!iter_converged)
       #== build fock matrix ==#
-      @views F_temp[:,:] = twoei(F, D, tei, r_eri_batch, eri_starts,
+      @views F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
         eri_sizes, H, basis)[:,:]
 
-      @views F[:,:] = MPI.Allreduce(F_temp,MPI.SUM,comm)[:,:]
+      @views F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)[:,:]
       MPI.Barrier(comm)
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
@@ -242,8 +247,11 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       #== do DIIS ==#
       @views e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
 
-      e_array = [deepcopy(e), e_array[1:ndiis]...]
-      F_array = [F, F_array[1:ndiis]...]
+      e_array_old = e_array[1:ndiis] 
+      @views e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
+      
+      F_array_old = F_array[1:ndiis] 
+      @views F_array[:] = [F, F_array[1:ndiis-1]...]
 
       if iter > 1 && ndiis > 1
         B_dim += 1
@@ -316,7 +324,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Matrix{T}, D::Matrix{T}, tei,
-  r_eri_batch::Ref{Vector{T}}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -336,6 +344,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
+    eri_quartet_batch::Vector{T} = Vector{T}(undef,256)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
@@ -378,19 +387,26 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	   # quartets_per_batch)) + 1
 
 	  #if quartet_batch_num != quartet_batch_num_old
-    #    r_eri_batch[] = tei["Integrals"]["$quartet_batch_num"]
+    #    #eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
+    #    #resize!(eri_batch, eri_batch_size)
+    #    eri_batch = tei["Integrals"]["$quartet_batch_num"]
+    #    println(eri_batch_2 === eri_batch)
     #    eri_starts = tei["Starts"]["$quartet_batch_num"]
     #    eri_sizes = tei["Sizes"]["$quartet_batch_num"]
 
-    #    eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+    #    @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
 		#quartet_batch_num_old = quartet_batch_num
      # end
 
     #  quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-    #    (quartet_batch_num-1) + 1
-	  #eri_quartet_batch = shellquart(r_eri_batch[],
-	  #  eri_starts, eri_sizes, quartet_num_in_batch)
+     #   (quartet_batch_num-1) + 1
+	
+     # starting::Int64 = eri_starts[quartet_num_in_batch]
+     # ending::Int64 = starting + 
+     #   (eri_sizes[quartet_num_in_batch] - 1)
+
+     # eri_quartet_batch = @view eri_batch[starting:ending]
       #println("TEST2; $quartet_num_in_batch")
 
       shellquart_direct(ish, jsh, ksh, lsh, eri_quartet_batch)

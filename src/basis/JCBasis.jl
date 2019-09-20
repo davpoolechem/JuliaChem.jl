@@ -65,9 +65,8 @@ function run(molecule, model)
   println("----------------------------------------          ")
 
   #== create basis set ==#
-  hdf5name::String = "bsed"
-  hdf5name *= ".h5"
-  h5open(hdf5name,"r") do bsed
+  #h5open("../../records/bsed.h5","r") do bsed
+  h5open("records/bsed.h5","r") do bsed
     for atom_idx::Int64 in 1:length(symbols)
       #== initialize variables needed for shell ==#
       atom_center::Vector{Float64} = geometry[atom_idx,:]
