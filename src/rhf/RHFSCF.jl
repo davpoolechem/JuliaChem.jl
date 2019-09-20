@@ -195,7 +195,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   #== start convergence procedure ==#
   iter::Int64 = 1
   B_dim::Int64 = 1
-  tei = load("tei_batch.jld")
+  #tei = load("tei_batch.jld")
 
   #== create temporary arrays needed for calculation ==#
   F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
@@ -213,20 +213,20 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 1000
+  quartets_per_batch::Int64 = 10000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
   #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
-  eri_batch::Vector{T} = tei["Integrals"]["$quartet_batch_num_old"]
-  eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
-  eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
+  eri_batch::Vector{T} = load("tei_batch.jld","Integrals/$quartet_batch_num_old")
+  eri_starts::Vector{Int64} = load("tei_batch.jld","Starts/$quartet_batch_num_old")
+  eri_sizes::Vector{Int64} = load("tei_batch.jld","Sizes/$quartet_batch_num_old")
 
   @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
   while(!iter_converged)
     #== build fock matrix ==#
-    F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
+    F_temp[:,:] = twoei(F, D, eri_batch, eri_starts,
       eri_sizes, H, basis)
 
     F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
@@ -325,7 +325,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{T}, D::Matrix{T}, tei,
+function twoei(F::Matrix{T}, D::Matrix{T},
   eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
@@ -333,7 +333,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 1000
+  quartets_per_batch::Int64 = 10000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
@@ -344,7 +344,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
-    eri_quartet_batch::Vector{T} = Vector{T}(undef,256)
+    eri_quartet_batch::Vector{T} = Vector{T}(undef,1028)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
@@ -387,18 +387,13 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	      quartets_per_batch)) + 1
 
 	    if quartet_batch_num != quartet_batch_num_old
-        eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
-        eri_starts_size = length(tei["Starts"]["$quartet_batch_num"])
-        eri_sizes_size = length(tei["Sizes"]["$quartet_batch_num"])
+        #eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
+        #eri_starts_size = length(tei["Starts"]["$quartet_batch_num"])
+        #eri_sizes_size = length(tei["Sizes"]["$quartet_batch_num"])
 
-        resize!(eri_batch, eri_batch_size)
-        eri_batch = deepcopy(tei["Integrals"]["$quartet_batch_num"])
-
-        resize!(eri_starts, eri_starts_size)
-        eri_starts = deepcopy(tei["Starts"]["$quartet_batch_num"])
-
-        resize!(eri_sizes, eri_sizes_size)
-        eri_sizes = deepcopy(tei["Sizes"]["$quartet_batch_num"])
+        eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
+        eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
+        eri_sizes = load("tei_batch.jld","Sizes/$quartet_batch_num")
 
         @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
@@ -412,7 +407,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
       ending::Int64 = starting +
         (eri_sizes[quartet_num_in_batch] - 1)
 
-      eri_quartet_batch = @view eri_batch[starting:ending]
+      @views eri_quartet_batch[1:(ending-starting+1)] = eri_batch[starting:ending]
       #println("TEST2; $quartet_num_in_batch")
 
       dirfck(F_priv, D, eri_quartet_batch, quartet,
