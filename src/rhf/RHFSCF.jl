@@ -335,8 +335,6 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
-  eri_quartet_batch::Vector{T} = fill(zero(T),256) 
-
   @views F[:,:] = fill(zero(T),(basis.norb,basis.norb))
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
