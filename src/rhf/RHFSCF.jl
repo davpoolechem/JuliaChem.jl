@@ -251,16 +251,16 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
 
       F_array_old[:] = F_array[1:ndiis]
-      F_array[:] = [F, F_array[1:ndiis-1]...]
+      F_array[:] = [deepcopy(F), F_array[1:ndiis-1]...]
 
       if (iter > 1)
         B_dim += 1
         B_dim = min(B_dim,ndiis)
         try
-          F = DIIS(e_array, F_array, B_dim)
+          F[:,:] = DIIS(e_array, F_array, B_dim)
         catch
           B_dim = 2
-          F = DIIS(e_array, F_array, B_dim)
+          F[:,:] = DIIS(e_array, F_array, B_dim)
         end
       end
 
@@ -335,7 +335,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
-  @views F[:,:] = fill(zero(T),(basis.norb,basis.norb))
+  F[:,:] = fill(zero(T),(basis.norb,basis.norb))
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
 
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
@@ -360,12 +360,12 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
       ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
       jsh::Int64 = bra_pair-ish*(ish-1)/2
       ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
-	  lsh::Int64 = ket_pair-ksh*(ksh-1)/2
+	    lsh::Int64 = ket_pair-ksh*(ksh-1)/2
 
       ijsh::Int64 = index(ish,jsh)
       klsh::Int64 = index(ksh,lsh)
 
-	  if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
+	    if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
       bra.sh_a = basis[ish]
       bra.sh_b = basis[jsh]
@@ -376,15 +376,15 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
       quartet.bra = bra
       quartet.ket = ket
 
-	  qnum_ij::Int64 = ish*(ish-1)/2 + jsh
-	  qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-	  quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
-    #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+	    qnum_ij::Int64 = ish*(ish-1)/2 + jsh
+	    qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+	    quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
+      #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-	  quartet_batch_num::Int64 = Int64(floor(quartet_num/
-	    quartets_per_batch)) + 1
+	    quartet_batch_num::Int64 = Int64(floor(quartet_num/
+	      quartets_per_batch)) + 1
 
-	  if quartet_batch_num != quartet_batch_num_old
+	    if quartet_batch_num != quartet_batch_num_old
         #eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
         #resize!(eri_batch, eri_batch_size)
         eri_batch = tei["Integrals"]["$quartet_batch_num"]
@@ -394,7 +394,7 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
         @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
-		quartet_batch_num_old = quartet_batch_num
+		    quartet_batch_num_old = quartet_batch_num
       end
 
       quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
@@ -408,12 +408,12 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
       #println("TEST2; $quartet_num_in_batch")
 
       dirfck(F_priv, D, eri_quartet_batch, quartet,
-	    ish, jsh, ksh, lsh)
+	      ish, jsh, ksh, lsh)
       #println("TEST3")
     end
 
     lock(mutex)
-    @views F[:,:] += F_priv[:,:]
+    F[:,:] += F_priv[:,:]
     unlock(mutex)
   end
 
@@ -482,28 +482,28 @@ end
 
       μνλσ += 1
 
-	  eri::T = eri_batch[μνλσ]
+	    eri::T = eri_batch[μνλσ]
       #eri::T = 0
       if (abs(eri) <= 1E-10) continue end
 
       #println("$μ, $ν, $λ, $σ, $eri")
-	  eri *= (μ == ν) ? 0.5 : 1.0
-	  eri *= (λ == σ) ? 0.5 : 1.0
-	  eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+	    eri *= (μ == ν) ? 0.5 : 1.0
+	    eri *= (λ == σ) ? 0.5 : 1.0
+	    eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-	  F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-	  F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+	    F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+	    F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
       F_priv[μ,λ] -= D[ν,σ] * eri
-	  F_priv[μ,σ] -= D[ν,λ] * eri
+	    F_priv[μ,σ] -= D[ν,λ] * eri
       F_priv[ν,λ] -= D[max(μ,σ),min(μ,σ)] * eri
       F_priv[ν,σ] -= D[max(μ,λ),min(μ,λ)] * eri
 
       if λ != σ F_priv[σ,λ] += 4.0 * D[μ,ν] * eri end
-	  if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
+	    if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
       if μ != λ F_priv[λ,μ] -= D[ν,σ] * eri end
-	  if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
+	    if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
       if ν != λ F_priv[λ,ν] -= D[max(μ,σ),min(μ,σ)] * eri end
-	  if ν != σ F_priv[σ,ν] -= D[max(μ,λ),min(μ,λ)] * eri end
+	    if ν != σ F_priv[σ,ν] -= D[max(μ,λ),min(μ,λ)] * eri end
     end
   end
 end

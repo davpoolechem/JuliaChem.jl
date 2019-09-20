@@ -56,7 +56,10 @@ function run(basis, molecule, keywords)
   end
 
   #== actually perform scf calculation ==#
+  GC.enable(false)
   scf = rhf_energy(basis, molecule, scf_flags)
+  GC.enable(true)
+  GC.gc()
 
   if (MPI.Comm_rank(comm) == 0)
     println("                       ========================================                 ")
