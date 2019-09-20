@@ -224,10 +224,10 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
     while(!iter_converged)
       #== build fock matrix ==#
-      @views F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
-        eri_sizes, H, basis)[:,:]
+      F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
+        eri_sizes, H, basis)
 
-      @views F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)[:,:]
+      F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
       MPI.Barrier(comm)
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
@@ -236,7 +236,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
         println("")
       end
 
-      @views F[:,:] += H[:,:]
+      F[:,:] += H[:,:]
 
       if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
         println("Total Fock matrix:")
@@ -245,13 +245,13 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== do DIIS ==#
-      @views e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
+      e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
 
-      e_array_old = e_array[1:ndiis] 
-      @views e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
-      
-      F_array_old = F_array[1:ndiis] 
-      @views F_array[:] = [F, F_array[1:ndiis-1]...]
+      e_array_old[:] = e_array[1:ndiis]
+      e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
+
+      F_array_old[:] = F_array[1:ndiis]
+      F_array[:] = [F, F_array[1:ndiis-1]...]
 
       if (iter > 1)
         B_dim += 1
@@ -265,7 +265,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
       end
 
       #== obtain new F,D,C matrices ==#
-      @views D_old[:,:] = deepcopy(D)[:,:]
+      D_old[:,:] = deepcopy(D)
 
       F, E_elec = iteration(F, D, C, H, F_eval, F_evec,
         ortho, basis, scf_flags)
@@ -399,9 +399,9 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 
       quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
         (quartet_batch_num-1) + 1
-	
+
       starting::Int64 = eri_starts[quartet_num_in_batch]
-      ending::Int64 = starting + 
+      ending::Int64 = starting +
         (eri_sizes[quartet_num_in_batch] - 1)
 
       eri_quartet_batch = @view eri_batch[starting:ending]
