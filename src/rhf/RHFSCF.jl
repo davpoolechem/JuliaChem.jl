@@ -196,111 +196,113 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   iter::Int64 = 1
   B_dim::Int64 = 1
   tei = load("tei_batch.jld")
-    #== create temporary arrays needed for calculation ==#
-    F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-    F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-    F_evec::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
 
-    D_old::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-    ΔD::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  #== create temporary arrays needed for calculation ==#
+  F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  F_evec::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
 
-    damp_values::Vector{T} = [ 0.25, 0.75 ]
-    D_damp::Vector{Matrix{T}} = [ Matrix{T}(undef,basis.norb,basis.norb) ]
-    D_damp_rms::Vector{T} = []
+  D_old::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  ΔD::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
 
-    nsh::Int64 = length(basis.shells)
-    nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
+  damp_values::Vector{T} = [ 0.25, 0.75 ]
+  D_damp::Vector{Matrix{T}} = [ Matrix{T}(undef,basis.norb,basis.norb)
+    for i in 1:2 ]
+  D_damp_rms::Vector{T} = [ zero(T), zero(T) ]
 
-    quartets_per_batch::Int64 = 1000
-    quartet_batch_num_old::Int64 = Int64(floor(nindices/
-      quartets_per_batch)) + 1
+  nsh::Int64 = length(basis.shells)
+  nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-    #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
-    eri_batch::Vector{T} = tei["Integrals"]["$quartet_batch_num_old"]
-    eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
-    eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
+  quartets_per_batch::Int64 = 1000
+  quartet_batch_num_old::Int64 = Int64(floor(nindices/
+    quartets_per_batch)) + 1
 
-    @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+  #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
+  eri_batch::Vector{T} = tei["Integrals"]["$quartet_batch_num_old"]
+  eri_starts::Vector{Int64} = tei["Starts"]["$quartet_batch_num_old"]
+  eri_sizes::Vector{Int64} = tei["Sizes"]["$quartet_batch_num_old"]
 
-    while(!iter_converged)
-      #== build fock matrix ==#
-      F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
-        eri_sizes, H, basis)
+  @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
-      F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
-      MPI.Barrier(comm)
+  while(!iter_converged)
+    #== build fock matrix ==#
+    F_temp[:,:] = twoei(F, D, tei, eri_batch, eri_starts,
+      eri_sizes, H, basis)
 
-      if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-        println("Skeleton Fock matrix:")
-        display(F)
-        println("")
+    F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
+    MPI.Barrier(comm)
+
+    if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+      println("Skeleton Fock matrix:")
+      display(F)
+      println("")
+    end
+
+    F[:,:] += H[:,:]
+
+    if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+      println("Total Fock matrix:")
+      display(F)
+      println("")
+    end
+
+    #== do DIIS ==#
+    e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
+
+    e_array_old[:] = e_array[1:ndiis]
+    e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
+
+    F_array_old[:] = F_array[1:ndiis]
+    F_array[:] = [deepcopy(F), F_array[1:ndiis-1]...]
+
+    if (iter > 1)
+      B_dim += 1
+      B_dim = min(B_dim,ndiis)
+      try
+        F[:,:] = DIIS(e_array, F_array, B_dim)
+      catch
+        B_dim = 2
+        F[:,:] = DIIS(e_array, F_array, B_dim)
       end
+    end
 
-      F[:,:] += H[:,:]
+    #== obtain new F,D,C matrices ==#
+    D_old[:,:] = deepcopy(D)
 
-      if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-        println("Total Fock matrix:")
-        display(F)
-        println("")
-      end
+    F[:,:], E_elec = iteration(deepcopy(F), D, C, H, F_eval, F_evec,
+      ortho, basis, scf_flags)
 
-      #== do DIIS ==#
-      e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
+    #== dynamic damping of density matrix ==#
+    #D_damp[:] = map(x -> x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:],
+    #  damp_values)
+    #D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
 
-      e_array_old[:] = e_array[1:ndiis]
-      e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
-
-      F_array_old[:] = F_array[1:ndiis]
-      F_array[:] = [deepcopy(F), F_array[1:ndiis-1]...]
-
-      if (iter > 1)
-        B_dim += 1
-        B_dim = min(B_dim,ndiis)
-        try
-          F[:,:] = DIIS(e_array, F_array, B_dim)
-        catch
-          B_dim = 2
-          F[:,:] = DIIS(e_array, F_array, B_dim)
-        end
-      end
-
-      #== obtain new F,D,C matrices ==#
-      D_old[:,:] = deepcopy(D)
-
-      F, E_elec = iteration(F, D, C, H, F_eval, F_evec,
-        ortho, basis, scf_flags)
-
-      #== dynamic damping of density matrix ==#
-      #one::T = oneunit(typeof(dele))
-      #D_damp = map(x -> x*D + (one-x)*D_old, damp_values)
-      #D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
-
-      #x::T = maximum(D_damp_rms) > one ? minimum(damp_values) :
-    #maximum(damp_values)
-      #D = x*D + (one-x)*D_old
+    #x::T = maximum(D_damp_rms) > oneunit(typeof(dele)) ? minimum(damp_values) :
+    #  maximum(damp_values)
+    #D[:,:] = x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:]
 
       #== check for convergence ==#
-      @views ΔD[:,:] = D[:,:] - D_old[:,:]
-      D_rms::T = √(@∑ ΔD ΔD)
+    @views ΔD[:,:] = D[:,:] - D_old[:,:]
+    D_rms::T = √(@∑ ΔD ΔD)
 
-      E = E_elec+E_nuc
-      ΔE::T = E - E_old
+    E = E_elec+E_nuc
+    ΔE::T = E - E_old
 
-      if (MPI.Comm_rank(comm) == 0)
-        println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
-      end
-
-      iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
-      iter += 1
-      if (iter > iter_limit)
-        scf_converged = false
-        break
-      end
-
-      #== if not converged, replace old D and E values for next iteration ==#
-      #D_old = deepcopy(D)
-      E_old = E
+    if (MPI.Comm_rank(comm) == 0)
+      println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
     end
+
+    iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
+    iter += 1
+    if (iter > iter_limit)
+      scf_converged = false
+      break
+    end
+
+    #== if not converged, replace old D and E values for next iteration ==#
+    #D_old = deepcopy(D)
+    E_old = E
+  end
 
   return (F, D, C, E, iter, scf_converged)
 end
@@ -385,12 +387,18 @@ function twoei(F::Matrix{T}, D::Matrix{T}, tei,
 	      quartets_per_batch)) + 1
 
 	    if quartet_batch_num != quartet_batch_num_old
-        #eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
-        #resize!(eri_batch, eri_batch_size)
-        eri_batch = tei["Integrals"]["$quartet_batch_num"]
-    #    println(eri_batch_2 === eri_batch)
-        eri_starts = tei["Starts"]["$quartet_batch_num"]
-        eri_sizes = tei["Sizes"]["$quartet_batch_num"]
+        eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
+        eri_starts_size = length(tei["Starts"]["$quartet_batch_num"])
+        eri_sizes_size = length(tei["Sizes"]["$quartet_batch_num"])
+
+        resize!(eri_batch, eri_batch_size)
+        eri_batch = deepcopy(tei["Integrals"]["$quartet_batch_num"])
+
+        resize!(eri_starts, eri_starts_size)
+        eri_starts = deepcopy(tei["Starts"]["$quartet_batch_num"])
+
+        resize!(eri_sizes, eri_sizes_size)
+        eri_sizes = deepcopy(tei["Sizes"]["$quartet_batch_num"])
 
         @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
