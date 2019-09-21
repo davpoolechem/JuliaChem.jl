@@ -83,6 +83,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   F::Matrix{T} = H
   F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   F_evec::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  F_mo::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
 
   D::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   C::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
@@ -96,8 +97,8 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec::T = 0.0
-  F, E_elec = iteration(F, D, C, H, F_eval, F_evec,
-    ortho, basis, scf_flags)
+  F, E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis,
+    scf_flags)
 
   E::T = E_elec + E_nuc
   E_old::T = E
@@ -109,8 +110,8 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  @time F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
-    E_elec, E_old, basis, scf_flags)
+  @time F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, F_eval,
+  F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags)
 
   if (!converged)
     iter_limit::Int64 = scf_flags["niter"]
@@ -167,8 +168,9 @@ function rhf_kernel(basis::BasisStructs.Basis,
 end
 
 function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
-  H::Matrix{T}, ortho::Matrix{T}, S::Matrix{T}, E_nuc::T, E_elec::T,
-  E_old::T, basis::BasisStructs.Basis,
+  H::Matrix{T}, ortho::Matrix{T}, S::Matrix{T}, F_eval::Matrix{T},
+  F_evec::Matrix{T}, F_mo::Matrix{T}, E_nuc::T, E_elec::T, E_old::T,
+  basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
   #== build DIIS arrays ==#
@@ -186,9 +188,6 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
   #== build arrays needed for post-fock build iteration calculations ==#
   F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-  F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-  F_evec::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-
   D_old::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   ΔD::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
 
@@ -218,7 +217,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
-    F_array_old, F_temp, F_eval, F_evec, D_old, ΔD, damp_values, D_damp,
+    F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
     D_damp_rms, eri_batch, eri_starts, scf_converged)
 
   #== we are done! ==#
@@ -231,9 +230,10 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   ndiis::Int64, F_array::Vector{Matrix{T}}, e::Matrix{T},
   e_array::Vector{Matrix{T}}, e_array_old::Vector{Matrix{T}},
   F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Matrix{T},
-  F_evec::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T}, damp_values::Vector{T},
-  D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T}, eri_batch::Vector{T},
-  eri_starts::Vector{Int64}, scf_converged::Bool) where {T<:AbstractFloat}
+  F_evec::Matrix{T}, F_mo::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T},
+  damp_values::Vector{T}, D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64},
+  scf_converged::Bool) where {T<:AbstractFloat}
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -295,7 +295,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     #== obtain new F,D,C matrices ==#
     D_old[:,:] = deepcopy(D)
 
-    F[:,:], E_elec = iteration(deepcopy(F), D, C, H, F_eval, F_evec,
+    F[:,:], E_elec = iteration(deepcopy(F), D, C, H, F_eval, F_evec, F_mo,
       ortho, basis, scf_flags)
 
     #== dynamic damping of density matrix ==#
@@ -569,14 +569,13 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
-  H::Matrix{T}, F_eval::Matrix{T}, F_evec::Matrix{T},
+  H::Matrix{T}, F_eval::Matrix{T}, F_evec::Matrix{T}, F_mo::Matrix{T},
   ortho::Matrix{T}, basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
 
   #== obtain new orbital coefficients ==#
-  F_mo::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
   @views F_mo[:,:] = transpose(ortho)[:,:]*F_μν[:,:]*ortho[:,:]
 
   F_eval = eigvals(LinearAlgebra.Hermitian(F_mo))
