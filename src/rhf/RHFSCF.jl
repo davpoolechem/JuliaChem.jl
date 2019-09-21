@@ -172,12 +172,9 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
   comm=MPI.COMM_WORLD
 
-  scf_converged::Bool = true
-  iter_converged::Bool = false
-
-  iter_limit::Int64 = scf_flags["niter"]
-  dele::T = scf_flags["dele"]
-  rmsd::T = scf_flags["rmsd"]
+  #iter_limit::Int64 = scf_flags["niter"]
+  #dele::T = scf_flags["dele"]
+  #rmsd::T = scf_flags["rmsd"]
 
   #== build DIIS arrays ==#
   ndiis::Int64 = scf_flags["ndiis"]
@@ -191,11 +188,6 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     Matrix{T}(undef,basis.norb,basis.norb), ndiis)
   F_array_old::Vector{Matrix{T}} = fill(
     Matrix{T}(undef,basis.norb,basis.norb), ndiis)
-
-  #== start convergence procedure ==#
-  iter::Int64 = 1
-  B_dim::Int64 = 1
-  #tei = load("tei_batch.jld")
 
   #== create temporary arrays needed for calculation ==#
   F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
@@ -223,6 +215,44 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
   @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
+  #== start convergence procedure ==#
+  iter::Int64 = 1
+  B_dim::Int64 = 1
+  #tei = load("tei_batch.jld")
+
+  scf_converged::Bool = true
+  iter_converged::Bool = false
+
+  scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
+    E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
+    F_array_old, F_temp, F_eval, F_evec, D_old, ΔD, damp_values, D_damp,
+    D_damp_rms, eri_batch, eri_starts, iter, B_dim, scf_converged,
+    iter_converged)
+
+  return (F, D, C, E, iter, scf_converged)
+end
+
+function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
+  E::T, H::Matrix{T}, ortho::Matrix{T}, S::Matrix{T}, E_nuc::T, E_elec::T,
+  E_old::T, basis::BasisStructs.Basis, scf_flags::Dict{String,Any},
+  ndiis::Int64, F_array::Vector{Matrix{T}}, e::Matrix{T},
+  e_array::Vector{Matrix{T}}, e_array_old::Vector{Matrix{T}},
+  F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Matrix{T},
+  F_evec::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T}, damp_values::Vector{T},
+  D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T}, eri_batch::Vector{T},
+  eri_starts::Vector{Int64}, iter::Int64, B_dim::Int64, scf_converged::Bool,
+  iter_converged::Bool) where {T<:AbstractFloat}
+
+  #== initialize a few variables from scf flags ==#
+  comm=MPI.COMM_WORLD
+
+  iter_limit::Int64 = scf_flags["niter"]
+  dele::T = scf_flags["dele"]
+  rmsd::T = scf_flags["rmsd"]
+
+  #=================================#
+  #== now we start scf iterations ==#
+  #=================================#
   while(!iter_converged)
     #== build fock matrix ==#
     F_temp[:,:] = twoei(F, D, eri_batch, eri_starts,
@@ -280,7 +310,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     #  maximum(damp_values)
     #D[:,:] = x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:]
 
-      #== check for convergence ==#
+    #== check for convergence ==#
     @views ΔD[:,:] = D[:,:] - D_old[:,:]
     D_rms::T = √(@∑ ΔD ΔD)
 
@@ -302,8 +332,6 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     #D_old = deepcopy(D)
     E_old = E
   end
-
-  return (F, D, C, E, iter, scf_converged)
 end
 #=
 """
