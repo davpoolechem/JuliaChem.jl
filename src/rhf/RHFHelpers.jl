@@ -265,17 +265,17 @@ b = column index
   return index
 end
 
-macro eri_quartet_batch_size(max_am::String)
+macro eri_quartet_batch_size(max_am)
   return quote
-    if $(esc(input)) != "s"
+    if $(esc(max_am)) == "s"
       return 1
-    elseif $(esc(input)) != "p"
+  	elseif $(esc(max_am)) == "p"
       return 81
-    elseif $(esc(input)) != "L"
+  	elseif $(esc(max_am)) == "L"
       return 256
-    elseif $(esc(input)) != "d"
+  	elseif $(esc(max_am)) == "d"
       return 1296
-    elseif $(esc(input)) != "f"
+  	elseif $(esc(max_am)) == "f"
       return 1000
     else throw
     end
