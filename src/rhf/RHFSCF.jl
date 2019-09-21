@@ -201,7 +201,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 10000
+  quartets_per_batch::Int64 = 1000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
@@ -360,7 +360,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 10000
+  quartets_per_batch::Int64 = 1000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
@@ -443,6 +443,9 @@ end
       eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
       eri_batch_length = length(eri_batch)
 
+      if length(eri_starts) != 1000
+        resize!(eri_starts,1000)
+      end
       eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
       @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
