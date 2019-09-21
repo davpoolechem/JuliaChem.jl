@@ -402,6 +402,7 @@ end
   quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
+  eri_batch_length::Int64 = length(eri_batch)
 
   while true
     ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
@@ -440,8 +441,9 @@ end
 
     if quartet_batch_num != quartet_batch_num_old
       eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
-      eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
+      eri_batch_length = length(eri_batch)
 
+      eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
       @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
       quartet_batch_num_old = quartet_batch_num
@@ -457,9 +459,12 @@ end
     nbas_max::Int64 = ni*nj*nk*nl
 
     starting::Int64 = eri_starts[quartet_num_in_batch]
-    ending::Int64 = min(length(eri_batch), starting + nbas_max - 1)
+    batch_ending_potential::Int64 = starting + nbas_max - 1
 
-    @views eri_quartet_batch[1:(ending-starting+1)] = eri_batch[starting:ending]
+    ending::Int64 = min(eri_batch_length, batch_ending_potential)
+    batch_ending_final::Int64 = ending - starting + 1
+
+    @views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
     #eri_quartet_batch = @view eri_batch[starting:ending]
     #println("TEST2; $quartet_num_in_batch")
 
@@ -469,7 +474,7 @@ end
   end
 end
 
-@inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch,
+@inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
