@@ -108,7 +108,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  @time F, D, C, E, iter, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
+  @time F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags)
 
   if (!converged)
@@ -149,7 +149,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
       "properties" => Dict(
         "return_energy" => E,
         "nuclear_repulsion_energy" => E_nuc,
-        "scf_iterations" => iter,
+        #"scf_iterations" => iter,
         "scf_total_energy" => E
         )
       )
@@ -170,12 +170,6 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   E_old::T, basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
-  comm=MPI.COMM_WORLD
-
-  #iter_limit::Int64 = scf_flags["niter"]
-  #dele::T = scf_flags["dele"]
-  #rmsd::T = scf_flags["rmsd"]
-
   #== build DIIS arrays ==#
   ndiis::Int64 = scf_flags["ndiis"]
   F_array::Vector{Matrix{T}} = fill(Matrix{T}(undef,basis.norb,basis.norb),
@@ -189,7 +183,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   F_array_old::Vector{Matrix{T}} = fill(
     Matrix{T}(undef,basis.norb,basis.norb), ndiis)
 
-  #== create temporary arrays needed for calculation ==#
+  #== build arrays needed for post-fock build iteration calculations ==#
   F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   F_evec::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
@@ -197,11 +191,13 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   D_old::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   ΔD::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
 
+  #== build arrays needed for dynamic damping ==#
   damp_values::Vector{T} = [ 0.25, 0.75 ]
   D_damp::Vector{Matrix{T}} = [ Matrix{T}(undef,basis.norb,basis.norb)
     for i in 1:2 ]
   D_damp_rms::Vector{T} = [ zero(T), zero(T) ]
 
+  #== build variables needed for eri batching ==#
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
@@ -209,27 +205,24 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
-  #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
-  eri_batch::Vector{T} = load("tei_batch.jld","Integrals/$quartet_batch_num_old")
-  eri_starts::Vector{Int64} = load("tei_batch.jld","Starts/$quartet_batch_num_old")
+  #== build eri batch arrays ==#
+  eri_batch::Vector{T} = load("tei_batch.jld",
+    "Integrals/$quartet_batch_num_old")
+  eri_starts::Vector{Int64} = load("tei_batch.jld",
+    "Starts/$quartet_batch_num_old")
 
   @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
-  #== start convergence procedure ==#
-  iter::Int64 = 1
-  B_dim::Int64 = 1
-  #tei = load("tei_batch.jld")
-
+  #== execute convergence procedure ==#
   scf_converged::Bool = true
-  iter_converged::Bool = false
 
-  scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
+  E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, eri_batch, eri_starts, iter, B_dim, scf_converged,
-    iter_converged)
+    D_damp_rms, eri_batch, eri_starts, scf_converged)
 
-  return (F, D, C, E, iter, scf_converged)
+  #== we are done! ==#
+  return (F, D, C, E, scf_converged)
 end
 
 function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
@@ -240,19 +233,23 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Matrix{T},
   F_evec::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T}, damp_values::Vector{T},
   D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T}, eri_batch::Vector{T},
-  eri_starts::Vector{Int64}, iter::Int64, B_dim::Int64, scf_converged::Bool,
-  iter_converged::Bool) where {T<:AbstractFloat}
+  eri_starts::Vector{Int64}, scf_converged::Bool) where {T<:AbstractFloat}
 
-  #== initialize a few variables from scf flags ==#
+  #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
 
   iter_limit::Int64 = scf_flags["niter"]
   dele::T = scf_flags["dele"]
   rmsd::T = scf_flags["rmsd"]
 
+  B_dim::Int64 = 1
+
   #=================================#
   #== now we start scf iterations ==#
   #=================================#
+  iter::Int64 = 1
+  iter_converged::Bool = false
+
   while(!iter_converged)
     #== build fock matrix ==#
     F_temp[:,:] = twoei(F, D, eri_batch, eri_starts,
@@ -332,6 +329,8 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     #D_old = deepcopy(D)
     E_old = E
   end
+
+  return E
 end
 #=
 """
