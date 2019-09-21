@@ -219,7 +219,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, eri_batch, eri_starts, scf_converged)
+    D_damp_rms, eri_batch, eri_starts, scf_converged, quartet_batch_num_old)
 
   #== we are done! ==#
   return (F, D, C, E, scf_converged)
@@ -234,7 +234,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   F_evec::Matrix{T}, F_mo::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T},
   damp_values::Vector{T}, D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T},
   eri_batch::Vector{T}, eri_starts::Vector{Int64},
-  scf_converged::Bool) where {T<:AbstractFloat}
+  scf_converged::Bool, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -244,6 +244,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   rmsd::T = scf_flags["rmsd"]
 
   B_dim::Int64 = 1
+  length_eri_starts::Int64 = length(eri_starts)
 
   #=================================#
   #== now we start scf iterations ==#
@@ -251,7 +252,17 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   iter::Int64 = 1
   iter_converged::Bool = false
 
-  while(!iter_converged)
+  while !iter_converged
+    #== reset eri arrays ==#
+    if quartet_batch_num_old != 1 && iter != 1
+      resize!(eri_starts,length_eri_starts)
+
+      eri_starts[:] = load("tei_batch.jld",
+        "Starts/$quartet_batch_num_old")
+
+      @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+    end
+
     #== build fock matrix ==#
     F_temp[:,:] = twoei(F, D, eri_batch, eri_starts,
       H, basis)
@@ -448,7 +459,7 @@ end
       if length(eri_starts) != QUARTET_BATCH_SIZE
         resize!(eri_starts,QUARTET_BATCH_SIZE)
       end
-      eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
+      eri_starts[:] = load("tei_batch.jld","Starts/$quartet_batch_num")
       @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
       quartet_batch_num_old = quartet_batch_num
