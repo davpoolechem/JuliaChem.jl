@@ -87,7 +87,6 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 
     eri_array_batch::Vector{Float64} = [ ]
     eri_array_starts::Vector{Int64} = [ ]
-    eri_array_sizes::Vector{Int64} = [ ]
 
     eri_start::Int64 = 1
     quartet_batch_num_old::Int64 = 1
@@ -159,13 +158,10 @@ function set_up_eri_database(basis::BasisStructs.Basis)
             eri_array_batch)
           write(file, "Starts/$quartet_batch_num_old",
             eri_array_starts)
-          write(file, "Sizes/$quartet_batch_num_old",
-            eri_array_sizes)
 
           #== reset variables as needed ==#
           eri_array_batch = [ ]
           eri_array_starts = [ ]
-          eri_array_sizes = [ ]
 
           quartet_batch_num_old = quartet_batch_num
         end
@@ -177,8 +173,6 @@ function set_up_eri_database(basis::BasisStructs.Basis)
           (quartet_batch_num-1)
         push!(eri_array_starts,eri_start_readin)
 
-        push!(eri_array_sizes,eri_size)
-
         eri_start += eri_size
 
         #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
@@ -189,8 +183,6 @@ function set_up_eri_database(basis::BasisStructs.Basis)
       eri_array_batch)
     write(file, "Starts/$quartet_batch_num_old",
       eri_array_starts)
-    write(file, "Sizes/$quartet_batch_num_old",
-      eri_array_sizes)
   end
 end
 

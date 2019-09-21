@@ -220,14 +220,13 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   #r_eri_batch::Ref{Vector{T}} =Ref(tei["Integrals"]["$quartet_batch_num_old"])
   eri_batch::Vector{T} = load("tei_batch.jld","Integrals/$quartet_batch_num_old")
   eri_starts::Vector{Int64} = load("tei_batch.jld","Starts/$quartet_batch_num_old")
-  eri_sizes::Vector{Int64} = load("tei_batch.jld","Sizes/$quartet_batch_num_old")
 
   @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
   while(!iter_converged)
     #== build fock matrix ==#
     F_temp[:,:] = twoei(F, D, eri_batch, eri_starts,
-      eri_sizes, H, basis)
+      H, basis)
 
     F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -326,7 +325,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Matrix{T}, D::Matrix{T},
-  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -344,7 +343,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
-    eri_quartet_batch::Vector{T} = Vector{T}(undef,1028)
+    eri_quartet_batch::Vector{T} = Vector{T}(undef,1296)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
@@ -389,11 +388,9 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 	    if quartet_batch_num != quartet_batch_num_old
         #eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
         #eri_starts_size = length(tei["Starts"]["$quartet_batch_num"])
-        #eri_sizes_size = length(tei["Sizes"]["$quartet_batch_num"])
 
         eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
         eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
-        eri_sizes = load("tei_batch.jld","Sizes/$quartet_batch_num")
 
         @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
@@ -403,11 +400,17 @@ function twoei(F::Matrix{T}, D::Matrix{T},
       quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
         (quartet_batch_num-1) + 1
 
+      ni::Int64 = quartet.bra.sh_a.nbas
+      nj::Int64 = quartet.bra.sh_b.nbas
+      nk::Int64 = quartet.ket.sh_a.nbas
+      nl::Int64 = quartet.ket.sh_b.nbas
+      nbas_max::Int64 = ni*nj*nk*nl
+
       starting::Int64 = eri_starts[quartet_num_in_batch]
-      ending::Int64 = starting +
-        (eri_sizes[quartet_num_in_batch] - 1)
+      ending::Int64 = min(length(eri_batch), starting + nbas_max - 1)
 
       @views eri_quartet_batch[1:(ending-starting+1)] = eri_batch[starting:ending]
+      #eri_quartet_batch = @view eri_batch[starting:ending]
       #println("TEST2; $quartet_num_in_batch")
 
       dirfck(F_priv, D, eri_quartet_batch, quartet,
