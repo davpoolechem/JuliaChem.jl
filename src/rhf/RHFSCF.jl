@@ -368,7 +368,8 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
-    eri_quartet_batch::Vector{T} = Vector{T}(undef,1296)
+    eri_quartet_batch::Vector{T} = Vector{T}(undef,
+      @eri_quartet_batch_size MAX_SHELL_AM)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])

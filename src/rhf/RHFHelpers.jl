@@ -229,9 +229,9 @@ function DIIS(e_array::Vector{Matrix{T}},
   for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
     B[i,j] = @∑ e_array[i] e_array[j]
 
-	B[i,B_dim+1] = -1
-	B[B_dim+1,i] = -1
-	B[B_dim+1,B_dim+1] =  0
+	  B[i,B_dim+1] = -1
+	  B[B_dim+1,i] = -1
+	  B[B_dim+1,B_dim+1] =  0
   end
   DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
 
@@ -263,4 +263,21 @@ b = column index
   index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
   index += b
   return index
+end
+
+macro eri_quartet_batch_size(max_am::String)
+  return quote
+    if $(esc(input)) != "s"
+      return 1
+    elseif $(esc(input)) != "p"
+      return 81
+    elseif $(esc(input)) != "L"
+      return 256
+    elseif $(esc(input)) != "d"
+      return 1296
+    elseif $(esc(input)) != "f"
+      return 1000
+    else throw
+    end
+  end
 end
