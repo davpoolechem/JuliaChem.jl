@@ -1,4 +1,5 @@
 using JCModules.BasisStructs
+using JCModules.Globals
 
 using Base.Threads
 using MATH
@@ -147,9 +148,8 @@ function set_up_eri_database(basis::BasisStructs.Basis)
           end
         end
 
-        quartets_per_batch::Int64 = 1000
         quartet_batch_num::Int64 = Int64(floor(quartet_num/
-          quartets_per_batch)) + 1
+          QUARTET_BATCH_SIZE)) + 1
 
         if quartet_batch_num != quartet_batch_num_old
 
@@ -169,7 +169,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         append!(eri_array_batch,
           @view eri_array[eri_start:eri_start+(eri_size-1)])
 
-        eri_start_readin::Int64 = eri_start - quartets_per_batch*
+        eri_start_readin::Int64 = eri_start - QUARTET_BATCH_SIZE*
           (quartet_batch_num-1)
         push!(eri_array_starts,eri_start_readin)
 

@@ -1,4 +1,5 @@
 using MATH
+using JCModules.Globals
 
 using MPI
 using Base.Threads
@@ -201,9 +202,8 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 1000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
-    quartets_per_batch)) + 1
+    QUARTET_BATCH_SIZE)) + 1
 
   #== build eri batch arrays ==#
   eri_batch::Vector{T} = load("tei_batch.jld",
@@ -360,9 +360,8 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartets_per_batch::Int64 = 1000
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
-    quartets_per_batch)) + 1
+    QUARTET_BATCH_SIZE)) + 1
 
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
@@ -377,7 +376,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 
     twoei_thread_kernel(F, D, eri_batch, eri_starts,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
-      bra, ket, quartet, nindices, quartets_per_batch, quartet_batch_num_old)
+      bra, ket, quartet, nindices, quartet_batch_num_old)
 
     lock(mutex)
     F[:,:] += F_priv[:,:]
@@ -398,8 +397,7 @@ end
   H::Matrix{T}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{T},
   eri_quartet_batch::Vector{T}, bra::ShPair , ket::ShPair, quartet::ShQuartet,
-  nindices::Int64, quartets_per_batch::Int64,
-  quartet_batch_num_old::Int64) where {T<:AbstractFloat}
+  nindices::Int64, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
   eri_batch_length::Int64 = length(eri_batch)
@@ -437,14 +435,14 @@ end
     #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
     quartet_batch_num::Int64 = Int64(floor(quartet_num/
-      quartets_per_batch)) + 1
+      QUARTET_BATCH_SIZE)) + 1
 
     if quartet_batch_num != quartet_batch_num_old
       eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
       eri_batch_length = length(eri_batch)
 
-      if length(eri_starts) != 1000
-        resize!(eri_starts,1000)
+      if length(eri_starts) != QUARTET_BATCH_SIZE
+        resize!(eri_starts,QUARTET_BATCH_SIZE)
       end
       eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
       @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
@@ -452,7 +450,7 @@ end
       quartet_batch_num_old = quartet_batch_num
     end
 
-    quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+    quartet_num_in_batch::Int64 = quartet_num - QUARTET_BATCH_SIZE*
       (quartet_batch_num-1) + 1
 
     ni::Int64 = quartet.bra.sh_a.nbas
