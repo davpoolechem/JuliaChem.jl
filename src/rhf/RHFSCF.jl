@@ -97,8 +97,9 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec::T = 0.0
-  F, E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis,
+  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis,
     scf_flags)
+  F = deepcopy(F_mo)
 
   E::T = E_elec + E_nuc
   E_old::T = E
@@ -295,8 +296,9 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     #== obtain new F,D,C matrices ==#
     D_old[:,:] = deepcopy(D)
 
-    F[:,:], E_elec = iteration(deepcopy(F), D, C, H, F_eval, F_evec, F_mo,
+    E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
       ortho, basis, scf_flags)
+    F = deepcopy(F_mo)
 
     #== dynamic damping of density matrix ==#
     #D_damp[:] = map(x -> x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:],
@@ -618,5 +620,5 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     println("")
   end
 
-  return (F_mo, E_elec)
+  return E_elec
 end
