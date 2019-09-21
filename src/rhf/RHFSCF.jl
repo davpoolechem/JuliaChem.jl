@@ -81,7 +81,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   #== build the initial matrices ==#
   F::Matrix{T} = H
-  F_eval::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  F_eval::Vector{T} = Vector{T}(undef,basis.norb)
   F_evec::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
   F_mo::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
 
@@ -168,7 +168,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
 end
 
 function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
-  H::Matrix{T}, ortho::Matrix{T}, S::Matrix{T}, F_eval::Matrix{T},
+  H::Matrix{T}, ortho::Matrix{T}, S::Matrix{T}, F_eval::Vector{T},
   F_evec::Matrix{T}, F_mo::Matrix{T}, E_nuc::T, E_elec::T, E_old::T,
   basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
@@ -229,7 +229,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   E_old::T, basis::BasisStructs.Basis, scf_flags::Dict{String,Any},
   ndiis::Int64, F_array::Vector{Matrix{T}}, e::Matrix{T},
   e_array::Vector{Matrix{T}}, e_array_old::Vector{Matrix{T}},
-  F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Matrix{T},
+  F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Vector{T},
   F_evec::Matrix{T}, F_mo::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T},
   damp_values::Vector{T}, D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T},
   eri_batch::Vector{T}, eri_starts::Vector{Int64},
@@ -569,7 +569,7 @@ ortho = Symmetric Orthogonalization Matrix
 """
 =#
 function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
-  H::Matrix{T}, F_eval::Matrix{T}, F_evec::Matrix{T}, F_mo::Matrix{T},
+  H::Matrix{T}, F_eval::Vector{T}, F_evec::Matrix{T}, F_mo::Matrix{T},
   ortho::Matrix{T}, basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
@@ -578,10 +578,10 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   #== obtain new orbital coefficients ==#
   @views F_mo[:,:] = transpose(ortho)[:,:]*F_μν[:,:]*ortho[:,:]
 
-  F_eval = eigvals(LinearAlgebra.Hermitian(F_mo))
+  F_eval[:] = eigvals(LinearAlgebra.Hermitian(F_mo))
 
   @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F_mo))[:,:]
-  F_evec = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+  F_evec[:] = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   @views C[:,:] = ortho[:,:]*F_evec[:,:]
 
