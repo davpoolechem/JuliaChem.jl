@@ -87,7 +87,8 @@ function set_up_eri_database(basis::BasisStructs.Basis)
     nsh::Int64 = length(basis.shells)
 
     eri_array_batch::Vector{Float64} = [ ]
-    eri_array_starts::Vector{Int64} = [ ]
+    #eri_array_starts::Vector{Int64} = [ ]
+	  eri_array_sizes::Vector{Int64} = [ ]
 
     eri_start::Int64 = 1
     quartet_batch_num_old::Int64 = 1
@@ -156,12 +157,15 @@ function set_up_eri_database(basis::BasisStructs.Basis)
           #== write arrays to disk ==#
           write(file, "Integrals/$quartet_batch_num_old",
             eri_array_batch)
-          write(file, "Starts/$quartet_batch_num_old",
-            eri_array_starts)
+        #  write(file, "Starts/$quartet_batch_num_old",
+          #  eri_array_starts)
+		      write(file, "Sizes/$quartet_batch_num_old",
+            eri_array_sizes)
 
           #== reset variables as needed ==#
           eri_array_batch = [ ]
-          eri_array_starts = [ ]
+      #    eri_array_starts = [ ]
+		       eri_array_sizes = [ ]
 
           quartet_batch_num_old = quartet_batch_num
         end
@@ -169,9 +173,10 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         append!(eri_array_batch,
           @view eri_array[eri_start:eri_start+(eri_size-1)])
 
-        eri_start_readin::Int64 = eri_start - QUARTET_BATCH_SIZE*
-          (quartet_batch_num-1)
-        push!(eri_array_starts,eri_start_readin)
+      #  eri_start_readin::Int64 = eri_start - QUARTET_BATCH_SIZE*
+    #      (quartet_batch_num-1)
+      #  push!(eri_array_starts,eri_start_readin)
+        push!(eri_array_sizes,eri_size)
 
         eri_start += eri_size
 
@@ -181,8 +186,10 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 
     write(file, "Integrals/$quartet_batch_num_old",
       eri_array_batch)
-    write(file, "Starts/$quartet_batch_num_old",
-      eri_array_starts)
+  #  write(file, "Starts/$quartet_batch_num_old",
+    #  eri_array_starts)
+  	write(file, "Sizes/$quartet_batch_num_old",
+	    eri_array_sizes)
   end
 end
 

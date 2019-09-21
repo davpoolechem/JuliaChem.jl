@@ -206,12 +206,14 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
     QUARTET_BATCH_SIZE)) + 1
 
   #== build eri batch arrays ==#
+  eri_sizes::Vector{Int64} = load("tei_batch.jld",
+    "Sizes/$quartet_batch_num_old")
+  length_eri_sizes::Int64 = length(eri_sizes)
+
+  @views eri_starts::Vector{Int64} = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(length_eri_sizes-1)]... ]
+
   eri_batch::Vector{T} = load("tei_batch.jld",
     "Integrals/$quartet_batch_num_old")
-  eri_starts::Vector{Int64} = load("tei_batch.jld",
-    "Starts/$quartet_batch_num_old")
-
-  @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
   #== execute convergence procedure ==#
   scf_converged::Bool = true
@@ -219,7 +221,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, eri_batch, eri_starts, scf_converged, quartet_batch_num_old)
+    D_damp_rms, eri_batch, eri_starts, eri_sizes, scf_converged, quartet_batch_num_old)
 
   #== we are done! ==#
   return (F, D, C, E, scf_converged)
@@ -233,7 +235,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Vector{T},
   F_evec::Matrix{T}, F_mo::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T},
   damp_values::Vector{T}, D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T},
-  eri_batch::Vector{T}, eri_starts::Vector{Int64},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   scf_converged::Bool, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   #== initialize a few more variables ==#
@@ -244,7 +246,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   rmsd::T = scf_flags["rmsd"]
 
   B_dim::Int64 = 1
-  length_eri_starts::Int64 = length(eri_starts)
+  length_eri_sizes::Int64 = length(eri_sizes)
 
   #=================================#
   #== now we start scf iterations ==#
@@ -255,16 +257,25 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   while !iter_converged
     #== reset eri arrays ==#
     if quartet_batch_num_old != 1 && iter != 1
-      resize!(eri_starts,length_eri_starts)
+      resize!(eri_sizes,length_eri_sizes)
+      resize!(eri_starts,length_eri_sizes)
 
-      eri_starts[:] = load("tei_batch.jld",
-        "Starts/$quartet_batch_num_old")
+      eri_sizes[:] = load("tei_batch.jld",
+        "Sizes/$quartet_batch_num_old")
 
-      @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+      @views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(length_eri_sizes-1)]... ]
+
+      #eri_starts[:] = load("tei_batch.jld",
+      #  "Starts/$quartet_batch_num_old")
+
+      #eri_starts[:] = load("tei_batch.jld",
+      #  "Starts/$quartet_batch_num_old")
+
+      #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
     end
 
     #== build fock matrix ==#
-    F_temp[:,:] = twoei(F, D, eri_batch, eri_starts,
+    F_temp[:,:] = twoei(F, D, eri_batch, eri_starts, eri_sizes,
       H, basis)
 
     F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
@@ -365,7 +376,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Matrix{T}, D::Matrix{T},
-  eri_batch::Vector{T}, eri_starts::Vector{Int64},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   F[:,:] = fill(zero(T),(basis.norb,basis.norb))
@@ -389,7 +400,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
     quartet::ShQuartet = ShQuartet(bra,ket)
 
-    twoei_thread_kernel(F, D, eri_batch, eri_starts,
+    twoei_thread_kernel(F, D, eri_batch, eri_starts, eri_sizes,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
       bra, ket, quartet, nindices, quartet_batch_num_old)
 
@@ -408,7 +419,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 end
 
 @inline function twoei_thread_kernel(F::Matrix{T}, D::Matrix{T},
-  eri_batch::Vector{T}, eri_starts::Vector{Int64},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{T},
   eri_quartet_batch::Vector{T}, bra::ShPair , ket::ShPair, quartet::ShQuartet,
@@ -453,14 +464,20 @@ end
       QUARTET_BATCH_SIZE)) + 1
 
     if quartet_batch_num != quartet_batch_num_old
-      eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
-      eri_batch_length = length(eri_batch)
-
-      if length(eri_starts) != QUARTET_BATCH_SIZE
+      if length(eri_starts) != QUARTET_BATCH_SIZE && length(eri_sizes) != QUARTET_BATCH_SIZE
+        resize!(eri_sizes,QUARTET_BATCH_SIZE)
         resize!(eri_starts,QUARTET_BATCH_SIZE)
       end
-      eri_starts[:] = load("tei_batch.jld","Starts/$quartet_batch_num")
-      @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+      #eri_starts[:] = load("tei_batch.jld","Starts/$quartet_batch_num")
+      #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+
+      eri_sizes[:] = load("tei_batch.jld",
+        "Sizes/$quartet_batch_num")
+
+      @views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(QUARTET_BATCH_SIZE-1)]... ]
+
+      eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
+      eri_batch_length = length(eri_batch)
 
       quartet_batch_num_old = quartet_batch_num
     end
