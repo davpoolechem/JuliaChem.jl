@@ -328,7 +328,8 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   eri_batch::Vector{T}, eri_starts::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
-  comm=MPI.COMM_WORLD
+  F[:,:] = fill(zero(T),(basis.norb,basis.norb))
+
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
@@ -336,9 +337,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   quartet_batch_num_old::Int64 = Int64(floor(nindices/
     quartets_per_batch)) + 1
 
-  F[:,:] = fill(zero(T),(basis.norb,basis.norb))
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
-
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
 
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
@@ -348,75 +347,10 @@ function twoei(F::Matrix{T}, D::Matrix{T},
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
     quartet::ShQuartet = ShQuartet(bra,ket)
-    #r_quartet::Ref{ShQuartet} = Ref(quartet)
 
-    while true
-      ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
-      if (ijkl_index < 1) break end
-
-      if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
-      bra_pair::Int64 = ceil(((-1+sqrt(1+8*ijkl_index))/2))
-      ket_pair::Int64 = ijkl_index-bra_pair*(bra_pair-1)/2
-
-      ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
-      jsh::Int64 = bra_pair-ish*(ish-1)/2
-      ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
-	    lsh::Int64 = ket_pair-ksh*(ksh-1)/2
-
-      ijsh::Int64 = index(ish,jsh)
-      klsh::Int64 = index(ksh,lsh)
-
-	    if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
-
-      bra.sh_a = basis[ish]
-      bra.sh_b = basis[jsh]
-
-      ket.sh_a = basis[ksh]
-      ket.sh_b = basis[lsh]
-
-      quartet.bra = bra
-      quartet.ket = ket
-
-	    qnum_ij::Int64 = ish*(ish-1)/2 + jsh
-	    qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-	    quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
-      #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
-
-	    quartet_batch_num::Int64 = Int64(floor(quartet_num/
-	      quartets_per_batch)) + 1
-
-	    if quartet_batch_num != quartet_batch_num_old
-        #eri_batch_size = length(tei["Integrals"]["$quartet_batch_num"])
-        #eri_starts_size = length(tei["Starts"]["$quartet_batch_num"])
-
-        eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
-        eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
-
-        @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
-
-		    quartet_batch_num_old = quartet_batch_num
-      end
-
-      quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
-        (quartet_batch_num-1) + 1
-
-      ni::Int64 = quartet.bra.sh_a.nbas
-      nj::Int64 = quartet.bra.sh_b.nbas
-      nk::Int64 = quartet.ket.sh_a.nbas
-      nl::Int64 = quartet.ket.sh_b.nbas
-      nbas_max::Int64 = ni*nj*nk*nl
-
-      starting::Int64 = eri_starts[quartet_num_in_batch]
-      ending::Int64 = min(length(eri_batch), starting + nbas_max - 1)
-
-      @views eri_quartet_batch[1:(ending-starting+1)] = eri_batch[starting:ending]
-      #eri_quartet_batch = @view eri_batch[starting:ending]
-      #println("TEST2; $quartet_num_in_batch")
-
-      dirfck(F_priv, D, eri_quartet_batch, quartet,
-	      ish, jsh, ksh, lsh)
-      #println("TEST3")
-    end
+    twoei_thread_kernel(F, D, eri_batch, eri_starts,
+      H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
+      bra, ket, quartet, nindices, quartets_per_batch, quartet_batch_num_old)
 
     lock(mutex)
     F[:,:] += F_priv[:,:]
@@ -432,13 +366,80 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   return F
 end
 
-@inline function shellquart(eri_batch::Vector{T}, eri_starts::Vector{Int64},
-  eri_sizes::Vector{Int64}, quartet_num::Int64) where {T<:AbstractFloat}
+@inline function twoei_thread_kernel(F::Matrix{T}, D::Matrix{T},
+  eri_batch::Vector{T}, eri_starts::Vector{Int64},
+  H::Matrix{T}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
+  thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{T},
+  eri_quartet_batch::Vector{T}, bra::ShPair , ket::ShPair, quartet::ShQuartet,
+  nindices::Int64, quartets_per_batch::Int64,
+  quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
-  starting::Int64 = eri_starts[quartet_num]
-  ending::Int64 = starting + (eri_sizes[quartet_num] - 1)
+  comm=MPI.COMM_WORLD
 
-  return @view eri_batch[starting:ending]
+  while true
+    ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
+    if (ijkl_index < 1) break end
+
+    if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
+    bra_pair::Int64 = ceil(((-1+sqrt(1+8*ijkl_index))/2))
+    ket_pair::Int64 = ijkl_index-bra_pair*(bra_pair-1)/2
+
+    ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
+    jsh::Int64 = bra_pair-ish*(ish-1)/2
+    ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
+    lsh::Int64 = ket_pair-ksh*(ksh-1)/2
+
+    ijsh::Int64 = index(ish,jsh)
+    klsh::Int64 = index(ksh,lsh)
+
+    if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
+
+    bra.sh_a = basis[ish]
+    bra.sh_b = basis[jsh]
+
+    ket.sh_a = basis[ksh]
+    ket.sh_b = basis[lsh]
+
+    quartet.bra = bra
+    quartet.ket = ket
+
+    qnum_ij::Int64 = ish*(ish-1)/2 + jsh
+    qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
+    quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
+    #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+
+    quartet_batch_num::Int64 = Int64(floor(quartet_num/
+      quartets_per_batch)) + 1
+
+    if quartet_batch_num != quartet_batch_num_old
+      eri_batch = load("tei_batch.jld","Integrals/$quartet_batch_num")
+      eri_starts = load("tei_batch.jld","Starts/$quartet_batch_num")
+
+      @views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+
+      quartet_batch_num_old = quartet_batch_num
+    end
+
+    quartet_num_in_batch::Int64 = quartet_num - quartets_per_batch*
+      (quartet_batch_num-1) + 1
+
+    ni::Int64 = quartet.bra.sh_a.nbas
+    nj::Int64 = quartet.bra.sh_b.nbas
+    nk::Int64 = quartet.ket.sh_a.nbas
+    nl::Int64 = quartet.ket.sh_b.nbas
+    nbas_max::Int64 = ni*nj*nk*nl
+
+    starting::Int64 = eri_starts[quartet_num_in_batch]
+    ending::Int64 = min(length(eri_batch), starting + nbas_max - 1)
+
+    @views eri_quartet_batch[1:(ending-starting+1)] = eri_batch[starting:ending]
+    #eri_quartet_batch = @view eri_batch[starting:ending]
+    #println("TEST2; $quartet_num_in_batch")
+
+    dirfck(F_priv, D, eri_quartet_batch, quartet,
+      ish, jsh, ksh, lsh)
+    #println("TEST3")
+  end
 end
 
 @inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch,
