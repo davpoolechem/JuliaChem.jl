@@ -267,16 +267,16 @@ end
 
 macro eri_quartet_batch_size(max_am)
   return quote
-    if $(esc(max_am)) == "s"
-      return 1
-  	elseif $(esc(max_am)) == "p"
-      return 81
-  	elseif $(esc(max_am)) == "L"
-      return 256
-  	elseif $(esc(max_am)) == "d"
-      return 1296
-  	elseif $(esc(max_am)) == "f"
-      return 1000
+    if $(max_am) == "s"
+      1
+    elseif $(max_am) == "p"
+      81
+    elseif $(max_am) == "L"
+      256
+    elseif $(max_am) == "d"
+      1296
+    elseif $(max_am) == "f"
+      10000
     else throw
     end
   end

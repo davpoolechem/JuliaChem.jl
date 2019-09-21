@@ -366,13 +366,11 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
 
-
   Threads.@threads for thread::Int64 in 1:Threads.nthreads()
     F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
 
     max_shell_am::String = MAX_SHELL_AM
-    eri_quartet_batch::Vector{T} = Vector{T}(undef,
-      @eri_quartet_batch_size max_shell_am)
+    eri_quartet_batch::Vector{T} = Vector{T}(undef,1296)
 
     bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
     ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
