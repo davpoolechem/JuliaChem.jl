@@ -202,12 +202,12 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  #quartet_batch_num_old::Int64 = Int64(floor(nindices/
-  #  QUARTET_BATCH_SIZE)) + 1
+  quartet_batch_num_old::Int64 = Int64(floor(nindices/
+    QUARTET_BATCH_SIZE)) + 1
 
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
-    "Sizes/$quartet_batch_num_old")
+  #  "Sizes/$quartet_batch_num_old")
   #length_eri_sizes::Int64 = length(eri_sizes)
 
   #@views eri_starts::Vector{Int64} = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(length_eri_sizes-1)]... ]
@@ -265,7 +265,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     #  resize!(eri_starts,length_eri_sizes)
 
     #  eri_sizes[:] = load("tei_batch.jld",
-        "Sizes/$quartet_batch_num_old")
+  #      "Sizes/$quartet_batch_num_old")
 
     #  @views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(length_eri_sizes-1)]... ]
       #eri_starts[:] = load("tei_batch.jld",
@@ -474,7 +474,7 @@ end
     #  eri_sizes[:] = load("tei_batch.jld",
     #    "Sizes/$quartet_batch_num")
 
-      @views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(QUARTET_BATCH_SIZE-1)]... ]
+      #@views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(QUARTET_BATCH_SIZE-1)]... ]
       #eri_starts[:] = load("tei_batch.jld","Starts/$quartet_batch_num")
       #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
@@ -494,7 +494,7 @@ end
     #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
     #eri_quartet_batch = @view eri_batch[starting:ending]
 
-    shellquart_direct(iush,jsh,ksh,lsh,eri_quartet_batch)
+    shellquart_direct(ish,jsh,ksh,lsh,eri_quartet_batch)
 
     dirfck(F_priv, D, eri_quartet_batch, quartet,
       ish, jsh, ksh, lsh)

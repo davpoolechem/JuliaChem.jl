@@ -104,14 +104,6 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
-[[MATH]]
-deps = ["LinearAlgebra", "Test"]
-git-tree-sha1 = "fca4164efdaedcefc5d5aaed5e472312117a155e"
-repo-rev = "master"
-repo-url = "https://github.com/davpoolechem/MATH.jl.git"
-uuid = "175a8a3e-c02e-11e9-3701-6726ac2668a8"
-version = "0.1.0"
-
 [[MPI]]
 deps = ["BinDeps", "Compat", "Distributed", "Libdl", "Random", "Sockets", "Test"]
 git-tree-sha1 = "b036c4e16c2e47854961896dfdbe1ec63ea6ee15"
@@ -133,9 +125,9 @@ version = "1.1.0"
 
 [[Parameters]]
 deps = ["OrderedCollections"]
-git-tree-sha1 = "1dfd7cd50a8eb06ef693a4c2bbe945943cd000c5"
+git-tree-sha1 = "b62b2558efb1eef1fa44e4be5ff58a515c287e38"
 uuid = "d96e819e-fc66-5662-9728-84c9c7592b0a"
-version = "0.11.0"
+version = "0.12.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
@@ -179,6 +171,12 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 [[SparseArrays]]
 deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[[StaticArrays]]
+deps = ["LinearAlgebra", "Random", "Statistics"]
+git-tree-sha1 = "db23bbf50064c582b6f2b9b043c8e7e98ea8c0c6"
+uuid = "90137ffa-7385-5640-81b9-e52037218182"
+version = "0.11.0"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
