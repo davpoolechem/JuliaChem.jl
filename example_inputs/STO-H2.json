@@ -25,7 +25,7 @@
 
 	"keywords": {
 		"scf":{
-			"niter":1,
+			"niter":50,
 			"ndiis":1,
 			"dele":1E-8,
 			"rmsd":1E-6,

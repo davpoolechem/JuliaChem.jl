@@ -64,7 +64,7 @@ function run(basis, molecule, keywords)
       for ishell::Int64 in 0:(nshell_simint-1)
   
       #  SIMINT.get_julia_shell_info(basis[ishell+1])
-        SIMINT.get_simint_shell_info(ishell)
+      #  SIMINT.get_simint_shell_info(ishell)
       end
 
     end

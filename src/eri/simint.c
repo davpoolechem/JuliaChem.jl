@@ -206,18 +206,18 @@ void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
   }
 
   simint_create_multi_shellpair(1, &shells[kk], 1, &shells[ll], &right_pair, 0);
-  printf("IJ %d, %d, %d, %d:\n", ii, jj, kk, ll);
-  printf("%d, %d, %d\n",left_pair.am1, left_pair.am2, left_pair.nprim);
-  printf("%d, %d, %d\n",left_pair.nshell12, left_pair.nshell12_clip, *(left_pair.nprim12));
-  printf("%f, %f, %f\n",*(left_pair.x), *(left_pair.y), *(left_pair.z));
+  //printf("IJ %d, %d, %d, %d:\n", ii, jj, kk, ll);
+  //printf("%d, %d, %d\n",left_pair.am1, left_pair.am2, left_pair.nprim);
+  //printf("%d, %d, %d\n",left_pair.nshell12, left_pair.nshell12_clip, *(left_pair.nprim12));
+  //printf("%f, %f, %f\n",*(left_pair.x), *(left_pair.y), *(left_pair.z));
 
-  printf("KL %d, %d, %d, %d:\n", ii, jj, kk, ll);
-  printf("%d, %d, %d\n",right_pair.am1, right_pair.am2, right_pair.nprim);
-  printf("%d, %d, %d\n",right_pair.nshell12, right_pair.nshell12_clip, *(right_pair.nprim12));
-  printf("%f, %f, %f\n",*(right_pair.x), *(right_pair.y), *(right_pair.z));
+  //printf("KL %d, %d, %d, %d:\n", ii, jj, kk, ll);
+  //printf("%d, %d, %d\n",right_pair.am1, right_pair.am2, right_pair.nprim);
+  //printf("%d, %d, %d\n",right_pair.nshell12, right_pair.nshell12_clip, *(right_pair.nprim12));
+  //printf("%f, %f, %f\n",*(right_pair.x), *(right_pair.y), *(right_pair.z));
  
   ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, eri);
-  printf("%f\n",eri[0]);
+  //printf("%f\n",eri[0]);
 }
 
 //All code below this line is automatically generated
