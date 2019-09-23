@@ -460,7 +460,7 @@ end
     qnum_ij::Int64 = ish*(ish-1)/2 + jsh
     qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
     quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
-    #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+    println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
    # quartet_batch_num::Int64 = Int64(floor(quartet_num/
    #   QUARTET_BATCH_SIZE)) + 1
@@ -559,7 +559,7 @@ end
       #eri::T = 0
       #if (abs(eri) <= 1E-10) continue end
 
-      #println("$μ, $ν, $λ, $σ, $eri")
+      println("$μ, $ν, $λ, $σ, $eri")
 	    eri *= (μ == ν) ? 0.5 : 1.0
 	    eri *= (λ == σ) ? 0.5 : 1.0
 	    eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
