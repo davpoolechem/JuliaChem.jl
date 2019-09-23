@@ -72,7 +72,7 @@ function run(basis, molecule, keywords)
 
   #== actually perform scf calculation ==#
   GC.enable(false)
-    scf = rhf_energy(basis, molecule, scf_flags)
+  scf = rhf_energy(basis, molecule, scf_flags)
   GC.enable(true)
   GC.gc()
 

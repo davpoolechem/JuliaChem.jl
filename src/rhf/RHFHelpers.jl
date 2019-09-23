@@ -1,4 +1,5 @@
 using JCModules.BasisStructs
+using JCModules.Globals
 
 using Base.Threads
 using MATH
@@ -86,8 +87,8 @@ function set_up_eri_database(basis::BasisStructs.Basis)
     nsh::Int64 = length(basis.shells)
 
     eri_array_batch::Vector{Float64} = [ ]
-    eri_array_starts::Vector{Int64} = [ ]
-    eri_array_sizes::Vector{Int64} = [ ]
+    #eri_array_starts::Vector{Int64} = [ ]
+	  eri_array_sizes::Vector{Int64} = [ ]
 
     eri_start::Int64 = 1
     quartet_batch_num_old::Int64 = 1
@@ -148,24 +149,23 @@ function set_up_eri_database(basis::BasisStructs.Basis)
           end
         end
 
-        quartets_per_batch::Int64 = 1000
         quartet_batch_num::Int64 = Int64(floor(quartet_num/
-          quartets_per_batch)) + 1
+          QUARTET_BATCH_SIZE)) + 1
 
         if quartet_batch_num != quartet_batch_num_old
 
           #== write arrays to disk ==#
           write(file, "Integrals/$quartet_batch_num_old",
             eri_array_batch)
-          write(file, "Starts/$quartet_batch_num_old",
-            eri_array_starts)
-          write(file, "Sizes/$quartet_batch_num_old",
+        #  write(file, "Starts/$quartet_batch_num_old",
+          #  eri_array_starts)
+		      write(file, "Sizes/$quartet_batch_num_old",
             eri_array_sizes)
 
           #== reset variables as needed ==#
           eri_array_batch = [ ]
-          eri_array_starts = [ ]
-          eri_array_sizes = [ ]
+      #    eri_array_starts = [ ]
+		       eri_array_sizes = [ ]
 
           quartet_batch_num_old = quartet_batch_num
         end
@@ -173,10 +173,9 @@ function set_up_eri_database(basis::BasisStructs.Basis)
         append!(eri_array_batch,
           @view eri_array[eri_start:eri_start+(eri_size-1)])
 
-        eri_start_readin::Int64 = eri_start - quartets_per_batch*
-          (quartet_batch_num-1)
-        push!(eri_array_starts,eri_start_readin)
-
+      #  eri_start_readin::Int64 = eri_start - QUARTET_BATCH_SIZE*
+    #      (quartet_batch_num-1)
+      #  push!(eri_array_starts,eri_start_readin)
         push!(eri_array_sizes,eri_size)
 
         eri_start += eri_size
@@ -187,10 +186,10 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 
     write(file, "Integrals/$quartet_batch_num_old",
       eri_array_batch)
-    write(file, "Starts/$quartet_batch_num_old",
-      eri_array_starts)
-    write(file, "Sizes/$quartet_batch_num_old",
-      eri_array_sizes)
+  #  write(file, "Starts/$quartet_batch_num_old",
+    #  eri_array_starts)
+  	write(file, "Sizes/$quartet_batch_num_old",
+	    eri_array_sizes)
   end
 end
 
@@ -237,9 +236,9 @@ function DIIS(e_array::Vector{Matrix{T}},
   for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
     B[i,j] = @∑ e_array[i] e_array[j]
 
-	B[i,B_dim+1] = -1
-	B[B_dim+1,i] = -1
-	B[B_dim+1,B_dim+1] =  0
+	  B[i,B_dim+1] = -1
+	  B[B_dim+1,i] = -1
+	  B[B_dim+1,B_dim+1] =  0
   end
   DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
 
@@ -271,4 +270,21 @@ b = column index
   index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
   index += b
   return index
+end
+
+macro eri_quartet_batch_size(max_am)
+  return quote
+    if $(max_am) == "s"
+      1
+    elseif $(max_am) == "p"
+      81
+    elseif $(max_am) == "L"
+      256
+    elseif $(max_am) == "d"
+      1296
+    elseif $(max_am) == "f"
+      10000
+    else throw
+    end
+  end
 end
