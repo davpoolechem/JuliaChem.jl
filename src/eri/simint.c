@@ -88,6 +88,8 @@ void get_simint_shell_info_c(long long int shell_num)
   printf("ATOM NPRIM: %lld\n", input.nprim);
   printf("ATOM POS: %lld\n", shell_num);
 
+  printf("ATOM COORD: %f, %f, %f\n:", input.x, input.y, input.z);
+
   printf("ATOM EXPONENTS:\n");
   for (int i = 0; i != input.nprim; ++i) { 
     printf("%f\n",input.alpha[i]);
@@ -135,9 +137,9 @@ void add_shell_c(struct shell* p_input)
   //sp_shell[ishell] = sp ? 1 : 0;
 
 //  for (int isp = 0; isp != sp+1; ++isp) { //two iterations for L shells to split them into s and p components
-    shells[ishell].x = (int)input.atom_center[0]; 
-    shells[ishell].y = (int)input.atom_center[1];
-    shells[ishell].z = (int)input.atom_center[2]; 
+    shells[ishell].x = input.atom_center[0]; 
+    shells[ishell].y = input.atom_center[1];
+    shells[ishell].z = input.atom_center[2]; 
 
     shells[ishell].am = input.am == -1 ? 1 : (int)(input.am-1); 
     shells[ishell].nprim = (int)input.nprim; 
@@ -207,10 +209,12 @@ void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
   printf("IJ %d, %d, %d, %d:\n", ii, jj, kk, ll);
   printf("%d, %d, %d\n",left_pair.am1, left_pair.am2, left_pair.nprim);
   printf("%d, %d, %d\n",left_pair.nshell12, left_pair.nshell12_clip, *(left_pair.nprim12));
+  printf("%f, %f, %f\n",*(left_pair.x), *(left_pair.y), *(left_pair.z));
 
   printf("KL %d, %d, %d, %d:\n", ii, jj, kk, ll);
   printf("%d, %d, %d\n",right_pair.am1, right_pair.am2, right_pair.nprim);
   printf("%d, %d, %d\n",right_pair.nshell12, right_pair.nshell12_clip, *(right_pair.nprim12));
+  printf("%f, %f, %f\n",*(right_pair.x), *(right_pair.y), *(right_pair.z));
  
   ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, eri);
   printf("%f\n",eri[0]);
