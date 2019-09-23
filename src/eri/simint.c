@@ -7,7 +7,6 @@
 
 #include "simint.h"
 
-static double* target = NULL; //array for storage of currently-being-computed (ij|kl) ERIs
 static double* work = NULL; //shared workspace for SIMINT ERI computations
 static struct simint_shell* shells = NULL; //array of basis set shells for SIMINT
 static double* sp_shell = NULL; //array telling if given shell is L shell or not
@@ -43,7 +42,6 @@ void finalize_c()
 
     //--Free remaining memory--//
     SIMINT_FREE(work);
-    SIMINT_FREE(target);
     free(sp_shell);
 
     for (int i = 0; i != nshell_simint; ++i) simint_free_shell(&shells[i]);
@@ -123,7 +121,6 @@ void allocate_shell_array_c(long long int nshell,
   shells = malloc(nshells*sizeof(struct simint_shell));
   sp_shell = malloc(nshells*sizeof(int));
 
-  target = SIMINT_ALLOC(256*sizeof(double));
   work = SIMINT_ALLOC(simint_ostei_workmem(0,1));
 }
 
@@ -142,7 +139,7 @@ void add_shell_c(struct shell* p_input)
     shells[ishell].y = (int)input.atom_center[1];
     shells[ishell].z = (int)input.atom_center[2]; 
 
-    shells[ishell].am = input.am == -1 ? 1 : (int)input.am; 
+    shells[ishell].am = input.am == -1 ? 1 : (int)(input.am-1); 
     shells[ishell].nprim = (int)input.nprim; 
 
     simint_allocate_shell(shells[ishell].nprim, &shells[ishell]);
@@ -207,7 +204,16 @@ void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
   }
 
   simint_create_multi_shellpair(1, &shells[kk], 1, &shells[ll], &right_pair, 0);
+  printf("IJ %d, %d, %d, %d:\n", ii, jj, kk, ll);
+  printf("%d, %d, %d\n",left_pair.am1, left_pair.am2, left_pair.nprim);
+  printf("%d, %d, %d\n",left_pair.nshell12, left_pair.nshell12_clip, *(left_pair.nprim12));
+
+  printf("KL %d, %d, %d, %d:\n", ii, jj, kk, ll);
+  printf("%d, %d, %d\n",right_pair.am1, right_pair.am2, right_pair.nprim);
+  printf("%d, %d, %d\n",right_pair.nshell12, right_pair.nshell12_clip, *(right_pair.nprim12));
+ 
   ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, eri);
+  printf("%f\n",eri[0]);
 }
 
 //All code below this line is automatically generated

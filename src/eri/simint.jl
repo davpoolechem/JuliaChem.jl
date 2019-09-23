@@ -46,11 +46,11 @@ function add_shell(shell::JCModules.BasisStructs.Shell)
 end
 export add_shell 
 
-#function normalize_shells()
-#  ccall( (:normalize_shells_c, "src/eri/build/libsimint"), Cvoid, 
-#    () )
-#end
-#export normalize_shells
+function normalize_shells()
+  ccall( (:normalize_shells_c, "src/eri/build/libsimint"), Cvoid, 
+    () )
+end
+export normalize_shells
 
 function unnormalize_shell(shell::JCModules.BasisStructs.Shell)
   for iprim::Int64 in 1:shell.nprim
