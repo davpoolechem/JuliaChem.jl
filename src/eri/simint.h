@@ -17,6 +17,7 @@ extern struct shell {
   long long int nbas;
   long long int nprim;
   long long int pos;
+  int sp;
 };
 
 #undef MAX_CONTRACTION
@@ -55,4 +56,4 @@ extern struct shell {
 
 void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri); 
 
-//void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* ghondo, int* fullsizes, int* L_);
+void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* ghondo, int* fullsizes, int* L_);

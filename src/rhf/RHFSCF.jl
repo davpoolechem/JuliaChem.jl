@@ -514,69 +514,91 @@ end
 
   norb::Int64 = size(D)[1]
 
-  nμ::Int64 = quartet.bra.sh_a.nbas
-  nν::Int64 = quartet.bra.sh_b.nbas
-  nλ::Int64 = quartet.ket.sh_a.nbas
-  nσ::Int64 = quartet.ket.sh_b.nbas
-
-  pμ::Int64 = quartet.bra.sh_a.pos
-  pν::Int64 = quartet.bra.sh_b.pos
-  pλ::Int64 = quartet.ket.sh_a.pos
-  pσ::Int64 = quartet.ket.sh_b.pos
+  spμ::Cint = quartet.bra.sh_a.sp
+  spν::Cint = quartet.bra.sh_b.sp
+  spλ::Cint = quartet.ket.sh_a.sp
+  spσ::Cint = quartet.ket.sh_b.sp
 
   μνλσ::Int64 = 0
+  
+  for spi::Int64 in 0:spμ, spj::Int64 in 0:spν
+    nμ::Int64 = 0 
+    pμ::Int64 = quartet.bra.sh_a.pos
+    if Bool(spμ)
+      nμ = spi == 1 ? 3 : 1 
+      pμ += spi == 1 ? 1 : 0  
+    else
+      nμ = quartet.bra.sh_a.nbas
+    end
 
-  for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
-    μ::Int64, ν::Int64 = μμ,νν
-    if (μμ < νν) continue end
+    nν::Int64 = 0 
+    pν::Int64 = quartet.bra.sh_b.pos
+    if Bool(spν)
+      nν = spj == 1 ? 3 : 1
+      pν += spj == 1 ? 1 : 0 
+    else   
+      nν = quartet.bra.sh_b.nbas
+    end
 
-    μν::Int64 = index(μμ,νν)
-
-    for λλ::Int64 in pλ:pλ+(nλ-1), σσ::Int64 in pσ:pσ+(nσ-1)
-      λ::Int64, σ::Int64 = λλ,σσ
-      if (λλ < σσ) continue end
-
-      λσ::Int64 = index(λλ,σσ)
-
-      #if (μν < λσ) continue end
-
-      #println("$μ, $ν, $λ, $σ")
-
-      if (μν < λσ)
-        do_continue::Bool = false
-
-        do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
-          ksh, lsh, nμ, nν, nλ, nσ)
-
-        if (do_continue)
-          continue
-        end
+    for spk::Int64 in 0:spλ, spl::Int64 in 0:spσ
+      nλ::Int64 = 0
+      pλ::Int64 = quartet.ket.sh_a.pos
+      if Bool(spλ) 
+        nλ = spk == 1 ? 3 : 1
+        pλ += spk == 1 ? 1 : 0 
+      else  
+        nλ = quartet.ket.sh_a.nbas
       end
 
-      μνλσ += 1
+      nσ::Int64 = 0  
+      pσ::Int64 = quartet.ket.sh_b.pos
+      if Bool(spσ)
+        nσ = spl == 1 ? 3 : 1
+        pσ += spl == 1 ? 1 : 0 
+      else 
+        nσ = quartet.ket.sh_b.nbas
+      end
 
-	    eri::T = eri_batch[μνλσ]
-      #eri::T = 0
-      #if (abs(eri) <= 1E-10) continue end
+      for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
+        μ::Int64, ν::Int64 = μμ,νν
+        if (μμ < νν) μ, ν = ν, μ end
 
-      println("$μ, $ν, $λ, $σ, $eri")
-	    eri *= (μ == ν) ? 0.5 : 1.0
-	    eri *= (λ == σ) ? 0.5 : 1.0
-	    eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+        μν::Int64 = index(μμ,νν)
 
-	    F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-	    F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
-      F_priv[μ,λ] -= D[ν,σ] * eri
-	    F_priv[μ,σ] -= D[ν,λ] * eri
-      F_priv[ν,λ] -= D[max(μ,σ),min(μ,σ)] * eri
-      F_priv[ν,σ] -= D[max(μ,λ),min(μ,λ)] * eri
+        for λλ::Int64 in pλ:pλ+(nλ-1), σσ::Int64 in pσ:pσ+(nσ-1)
+          λ::Int64, σ::Int64 = λλ,σσ
+          if (λλ < σσ) λ, σ = σ, λ end
 
-      if λ != σ F_priv[σ,λ] += 4.0 * D[μ,ν] * eri end
-	    if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
-      if μ != λ F_priv[λ,μ] -= D[ν,σ] * eri end
-	    if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
-      if ν != λ F_priv[λ,ν] -= D[max(μ,σ),min(μ,σ)] * eri end
-	    if ν != σ F_priv[σ,ν] -= D[max(μ,λ),min(μ,λ)] * eri end
+          λσ::Int64 = index(λλ,σσ)
+
+          if (μν < λσ) μ, ν, λ, σ = λ, σ, μ, ν end
+
+          μνλσ += 1
+
+	        eri::T = eri_batch[μνλσ]
+          #eri::T = 0
+          #if (abs(eri) <= 1E-10) continue end
+
+          println("$μ, $ν, $λ, $σ, $eri")
+	        eri *= (μ == ν) ? 0.5 : 1.0
+	        eri *= (λ == σ) ? 0.5 : 1.0
+	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+  
+	        F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+	        F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+          F_priv[μ,λ] -= D[ν,σ] * eri
+	        F_priv[μ,σ] -= D[ν,λ] * eri
+          F_priv[ν,λ] -= D[max(μ,σ),min(μ,σ)] * eri
+          F_priv[ν,σ] -= D[max(μ,λ),min(μ,λ)] * eri
+
+          if λ != σ F_priv[σ,λ] += 4.0 * D[μ,ν] * eri end
+	        if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
+          if μ != λ F_priv[λ,μ] -= D[ν,σ] * eri end
+	        if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
+          if ν != λ F_priv[λ,ν] -= D[max(μ,σ),min(μ,σ)] * eri end
+	        if ν != σ F_priv[σ,ν] -= D[max(μ,λ),min(μ,λ)] * eri end
+        end
+      end
     end
   end
 end

@@ -7,11 +7,14 @@
 
 #include "simint.h"
 
+static double* buffer = NULL; //shared workspace for SIMINT ERI computations
 static double* work = NULL; //shared workspace for SIMINT ERI computations
 static struct simint_shell* shells = NULL; //array of basis set shells for SIMINT
 
 static int* sp_shell = NULL; //array telling if given shell is L shell or not
 static int* ksize = NULL; //array telling if given shell is L shell or not
+static int* ksize_simint = NULL; //array telling if given shell is L shell or not
+static int* kstart_simint = NULL; //array telling if given shell is L shell or not
 
 struct simint_multi_shellpair left_pair; //bra SIMINT shell pair structure
 struct simint_multi_shellpair right_pair; //ket SIMINT shell pair structure
@@ -43,10 +46,13 @@ void finalize_c()
     printf("Finalizing SIMINT\n");
 
     //--Free remaining memory--//
+    SIMINT_FREE(buffer);
     SIMINT_FREE(work);
     
-    free(sp_shell);
+    free(kstart_simint);
+    free(ksize_simint);
     free(ksize);
+    free(sp_shell);
 
     for (int i = 0; i != nshell_simint; ++i) simint_free_shell(&shells[i]);
     free(shells);
@@ -128,15 +134,18 @@ void allocate_shell_array_c(long long int nshell,
   
   sp_shell = malloc(nshells*sizeof(int));
   ksize = malloc(nshells*sizeof(int));
+  ksize_simint = malloc(nshell_simint*sizeof(int));
+  kstart_simint = malloc(nshell_simint*sizeof(int));
 
   work = SIMINT_ALLOC(simint_ostei_workmem(0,1));
+  buffer = malloc(1296*sizeof(double)); 
 }
 
 void add_shell_c(struct shell* p_input) 
 {
   struct shell input = (*p_input);
           
-  int sp = input.nbas == 4;
+  int sp = input.sp; 
   
   sp_shell[ishell_base] = sp ? 1 : 0;
   ksize[ishell_base] = input.nbas;
@@ -159,10 +168,18 @@ void add_shell_c(struct shell* p_input)
       shells[ishell].alpha[iprim] = input.exponents[iprim];
       shells[ishell].coef[iprim] = input.coefficients[iprim+nprim*isp];
     };
-    ishell += 1; 
+    
+    if (sp) 
+      ksize_simint[ishell] = isp ? 3 : 1;
+    else
+      ksize_simint[ishell] = input.nbas; 
+
+    kstart_simint[ishell] = ishell == 0 ? 0 : kstart_simint[ishell-1] + ksize_simint[ishell-1];  
+  
+    ++ishell; 
   }
 
-  ishell_base += 1;
+  ++ishell_base;
 }  
 
 //------------------------//
@@ -189,15 +206,12 @@ double* retrieve_eris_c(int ish, int jsh, int ksh, int lsh, double* eri)
   int fullsizes[4] = { ksize[ish-1], ksize[jsh-1], ksize[ksh-1], ksize[lsh-1] };
   int L_[4] = { sp_shell[ish-1], sp_shell[jsh-1], sp_shell[ksh-1], sp_shell[lsh-1] };
 
-  printf("SH: %d, %d, %d, %d\n", ish-1, jsh-1, ksh-1, lsh-1);
-  printf("IJKL: %d, %d, %d, %d\n", ii, jj, kk, ll);
-  printf("SP: %d, %d, %d, %d\n", sp_shell[0], sp_shell[1], sp_shell[2], sp_shell[3]);
-  printf("L: %d, %d, %d, %d\n", L_[0], L_[1], L_[2], L_[3]);
+  //printf("START: %d, %d, %d, %d\n", kstart_simint[0], kstart_simint[1], kstart_simint[2], kstart_simint[3]);
   //--start ERI computation--//
   if (L_[0] == 0 && L_[1] == 0 && L_[2] == 0 && L_[3] == 0)
     simgms_retrieve_eris_c_0000(ii, jj, kk, ll, eri); 
-  //else
-  //  simgms_retrieve_eris_c_L(ii, jj, kk, ll, eri, fullsizes, L_);
+  else
+    simgms_retrieve_eris_c_L(ii, jj, kk, ll, eri, fullsizes, L_);
 
   return eri;
 }
@@ -234,39 +248,79 @@ void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
   //printf("%f\n",eri[0]);
 }
 
-//All code below this line is automatically generated
-//-------------------------------------------------------------------//
-/*
-void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* fullsizes, int* L_) {
 
-    int ncomputed = 0, ntotal = 0;
-    int target_idx = 0, buffer_idx = 0;
-    int buffer_old = 0;
-    int L_[4] = {0, 0, 0, 1};
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
 
-    //--start ERI computation--//
-    for (int isp = 0; isp <= L_[0]; ++isp) {
-        for (int jsp = 0; jsp <= L_[1]; ++jsp) {
+  //--start ERI computation--//
+  for (int isp = 0; isp <= L_[0]; ++isp) {
+    for (int jsp = 0; jsp <= L_[1]; ++jsp) {
 
-            bool new_ij = ii+isp != iold || jj+jsp != jold;
-            if (new_ij) { 
-                simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
-                iold = ii+isp; jold = jj+jsp; 
-            } 
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
 
-            for (int ksp = 0; ksp <= L[2]; ++ksp) {
-                for (int lsp = 0; lsp <= L_[3]; ++lsp) {
-                    int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] }; 
+      for (int ksp = 0; ksp <= L_[2]; ++ksp) {
+        for (int lsp = 0; lsp <= L_[3]; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
 
-                    simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
-                    ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, target);
-                    ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
-                    ntotal += ncomputed;
-
-                    //--sort separated L shells into proper GAMESS L shell order--//
-                }
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          for(int m = 0; m < ksize_simint[ii+isp]; ++m)
+          for(int n = 0; n < ksize_simint[jj+jsp]; ++n)
+          for(int o = 0; o < ksize_simint[kk+ksp]; ++o)
+          for(int p = 0; p < ksize_simint[ll+lsp]; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
             }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
         }
+      }
     }
+  }
 }
-*/
+
