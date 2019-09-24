@@ -9,7 +9,7 @@
 
 static double* work = NULL; //shared workspace for SIMINT ERI computations
 static struct simint_shell* shells = NULL; //array of basis set shells for SIMINT
-static double* sp_shell = NULL; //array telling if given shell is L shell or not
+static int* sp_shell = NULL; //array telling if given shell is L shell or not
 
 struct simint_multi_shellpair left_pair; //bra SIMINT shell pair structure
 struct simint_multi_shellpair right_pair; //ket SIMINT shell pair structure
