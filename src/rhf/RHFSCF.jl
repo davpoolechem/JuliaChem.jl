@@ -578,16 +578,16 @@ end
           #  μνλσ += 1
           #  continue 
           #end 
-          print("$μμ, $νν, $λλ, $σσ => ")
+          #print("$μμ, $νν, $λλ, $σσ => ")
           if (μμ < νν) 
             μνλσ += 1
-            println("DO CONTINUE")
+            #println("DO CONTINUE")
             continue 
           end 
       
           if (λλ < σσ) 
             μνλσ += 1
-            println("DO CONTINUE")
+            #println("DO CONTINUE")
             continue 
           end 
        
@@ -599,7 +599,7 @@ end
 
             if do_continue
               μνλσ += 1
-              println("DO CONTINUE")
+              #println("DO CONTINUE")
               continue
             end
           end
@@ -608,7 +608,7 @@ end
 
 	        eri::T = eri_batch[μνλσ]
           #eri::T = 0
-          #if (abs(eri) <= 1E-10) continue end
+          if (abs(eri) <= 1E-10) continue end
 
           println("$μ, $ν, $λ, $σ, $eri")
 	        eri *= (μ == ν) ? 0.5 : 1.0

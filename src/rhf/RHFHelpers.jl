@@ -68,6 +68,9 @@ function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
       λλ != σσ )
       #print("\n")
       do_continue = true
+    elseif (μμ == νν && λλ == σσ)
+      #print("\n")
+      do_continue = true
     elseif (μμ != λλ && νν != σσ)
       μ,ν,λ,σ = λλ,σσ,μμ,νν
     else
