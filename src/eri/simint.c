@@ -313,7 +313,7 @@ void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* 
 
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
-            printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
             ++eri_idx; ++buffer_idx;   
           }
