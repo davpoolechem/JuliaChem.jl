@@ -564,20 +564,12 @@ end
       for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
         μ::Int64, ν::Int64 = μμ,νν
         #if (μμ < νν) μ, ν = ν, μ end
-        if (μμ < νν) 
-          μνλσ += 1
-          continue 
-        end 
 
         μν::Int64 = index(μμ,νν)
 
         for λλ::Int64 in pλ:pλ+(nλ-1), σσ::Int64 in pσ:pσ+(nσ-1)
           λ::Int64, σ::Int64 = λλ,σσ
           #if (λλ < σσ) λ, σ = σ, λ end
-          if (λλ < σσ) 
-            μνλσ += 1
-            continue 
-          end 
 
           λσ::Int64 = index(λλ,σσ)
 
@@ -586,15 +578,28 @@ end
           #  μνλσ += 1
           #  continue 
           #end 
+          print("$μμ, $νν, $λλ, $σσ => ")
+          if (μμ < νν) 
+            μνλσ += 1
+            println("DO CONTINUE")
+            continue 
+          end 
+      
+          if (λλ < σσ) 
+            μνλσ += 1
+            println("DO CONTINUE")
+            continue 
+          end 
+       
           if (μν < λσ)
             do_continue::Bool = false
 
-            #print("$μμ, $νν, $λλ, $σσ => ")
             do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
               ksh, lsh, nμ, nν, nλ, nσ)
 
-            if (do_continue)
+            if do_continue
               μνλσ += 1
+              println("DO CONTINUE")
               continue
             end
           end
@@ -603,7 +608,7 @@ end
 
 	        eri::T = eri_batch[μνλσ]
           #eri::T = 0
-          if (abs(eri) <= 1E-10) continue end
+          #if (abs(eri) <= 1E-10) continue end
 
           println("$μ, $ν, $λ, $σ, $eri")
 	        eri *= (μ == ν) ? 0.5 : 1.0
