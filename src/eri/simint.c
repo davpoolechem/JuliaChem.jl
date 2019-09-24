@@ -120,7 +120,7 @@ void allocate_shell_array_c(long long int nshell,
   int nshell_simint = (int)t_nshell_simint;
 
   //--Allocate arrays--// 
-  shells = malloc(nshells*sizeof(struct simint_shell));
+  shells = malloc(nshell_simint*sizeof(struct simint_shell));
   sp_shell = malloc(nshells*sizeof(int));
 
   work = SIMINT_ALLOC(simint_ostei_workmem(0,1));
@@ -130,18 +130,19 @@ void add_shell_c(struct shell* p_input)
 {
   struct shell input = (*p_input);
           
-  simint_initialize_shell(&shells[ishell]); 
-
-  //int sp = input.nbas == 4;
+  int sp = input.nbas == 4;
   
-  //sp_shell[ishell] = sp ? 1 : 0;
+  sp_shell[ishell] = sp ? 1 : 0;
 
-//  for (int isp = 0; isp != sp+1; ++isp) { //two iterations for L shells to split them into s and p components
+  for (int isp = 0; isp < sp+1; ++isp) { //two iterations for L shells to split them into s and p components
+    printf("%d", ishell);
+    simint_initialize_shell(&shells[ishell]); 
+    
     shells[ishell].x = input.atom_center[0]; 
     shells[ishell].y = input.atom_center[1];
     shells[ishell].z = input.atom_center[2]; 
 
-    shells[ishell].am = input.am == -1 ? 1 : (int)(input.am-1); 
+    shells[ishell].am = sp ? isp : (int)(input.am-1); 
     shells[ishell].nprim = (int)input.nprim; 
 
     simint_allocate_shell(shells[ishell].nprim, &shells[ishell]);
@@ -149,10 +150,10 @@ void add_shell_c(struct shell* p_input)
     int nprim = (int)input.nprim;
     for (int iprim = 0; iprim != nprim; ++iprim) {
       shells[ishell].alpha[iprim] = input.exponents[iprim];
-      shells[ishell].coef[iprim] = input.coefficients[iprim];
+      shells[ishell].coef[iprim] = input.coefficients[iprim+nprim*isp];
     };
     ishell += 1; 
-  //}
+  }
 }  
 
 //------------------------//
@@ -160,7 +161,7 @@ void add_shell_c(struct shell* p_input)
 //------------------------//
 void normalize_shells_c()
 {
-  simint_normalize_shells(nshells, shells);
+  simint_normalize_shells(nshell_simint, shells);
 }
 
 //-------------------------------------------------------------//
