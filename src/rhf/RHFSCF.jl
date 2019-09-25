@@ -203,10 +203,10 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
   #== build variables needed for eri batching ==#
   nsh::Int64 = length(basis.shells)
-  nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
+  nindices::Int64 = div(nsh*(nsh+1)*(nsh^2 + nsh + 2),8)
 
-  quartet_batch_num_old::Int64 = Int64(fld(nindices,
-    QUARTET_BATCH_SIZE)) + 1
+  quartet_batch_num_old::Int64 = fld(nindices,
+    QUARTET_BATCH_SIZE) + 1
 
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
@@ -395,8 +395,8 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartet_batch_num_old::Int64 = Int64(fld(nindices,
-    QUARTET_BATCH_SIZE)) + 1
+  quartet_batch_num_old::Int64 = fld(nindices,
+    QUARTET_BATCH_SIZE) + 1
 
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
   thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
@@ -444,8 +444,8 @@ end
     if (ijkl_index < 1) break end
 
     if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
-    bra_pair::Int64 = cld((-1+sqrt(1+8*ijkl_index)),2)
-    ket_pair::Int64 = ijkl_index-Int64(bra_pair*(bra_pair-1)/2)
+    bra_pair::Int64 = cld((-1+sqrt(1+8*ijkl_index)),2) 
+    ket_pair::Int64 = ijkl_index-div(bra_pair*(bra_pair-1),2)
 
     ish::Int64 = cld((-1+sqrt(1+8*bra_pair)),2)
     jsh::Int64 = bra_pair-div(ish*(ish-1),2)
@@ -471,8 +471,8 @@ end
     quartet_num::Int64 = div(qnum_ij*(qnum_ij-1),2) + qnum_kl - 1
     #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-   # quartet_batch_num::Int64 = Int64(fld(quartet_num,
-   #   QUARTET_BATCH_SIZE)) + 1
+   # quartet_batch_num::Int64 = fld(quartet_num,
+   #   QUARTET_BATCH_SIZE) + 1
 
     #if quartet_batch_num != quartet_batch_num_old
     #  if length(eri_starts) != QUARTET_BATCH_SIZE && length(eri_sizes) != QUARTET_BATCH_SIZE
