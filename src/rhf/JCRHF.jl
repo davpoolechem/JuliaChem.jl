@@ -61,18 +61,18 @@ function run(basis, molecule, keywords)
 
       SIMINT.normalize_shells()
 
-      for ishell::Int64 in 0:(nshell_simint-1)
-        SIMINT.get_simint_shell_info(ishell)
-      end
+      #for ishell::Int64 in 0:(nshell_simint-1)
+      #  SIMINT.get_simint_shell_info(ishell)
+      #end
 
     end
   end
 
   #== actually perform scf calculation ==#
-  GC.enable(false)
+  #GC.enable(false)
   scf = rhf_energy(basis, molecule, scf_flags)
-  GC.enable(true)
-  GC.gc()
+  #GC.enable(true)
+  #GC.gc()
 
   if (MPI.Comm_rank(comm) == 0)
     println("                       ========================================                 ")

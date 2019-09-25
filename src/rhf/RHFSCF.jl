@@ -407,7 +407,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
       bra, ket, quartet, nindices, quartet_batch_num_old)
 
     lock(mutex)
-    F[:,:] += F_priv[:,:]
+    F[:,:] .+= F_priv[:,:]
     unlock(mutex)
   end
 
