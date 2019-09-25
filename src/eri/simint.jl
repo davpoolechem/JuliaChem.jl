@@ -13,6 +13,11 @@ function finalize()
 end
 export finalize
 
+function reset()
+  ccall((:reset_c, "src/eri/build/libsimint"), Cvoid, ())
+end
+export reset 
+
 function get_julia_shell_info(shell::JCModules.BasisStructs.Shell)
   ccall( (:get_julia_shell_info_c, "src/eri/build/libsimint"), Cvoid, 
     (Ref{JCModules.BasisStructs.Shell},), Ref(shell) )

@@ -19,6 +19,9 @@ function script(input_file)
       scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
     end
   end
+
+  #== reset JuliaChem runtime ==#
+  JuliaChem.reset()
 end
 
 JuliaChem.initialize()

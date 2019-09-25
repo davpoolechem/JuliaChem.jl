@@ -26,7 +26,10 @@ function finalize()
   end
   
   #==clean scratch directory==#
-
-
 end
 export finalize
+
+function reset()
+  SIMINT.reset()
+end
+export reset

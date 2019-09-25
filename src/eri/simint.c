@@ -28,14 +28,24 @@ int nshell_simint;
 //---------------------//
 void initialize_c() 
 {
-    printf("Initializing SIMINT\n");
+  printf("Initializing SIMINT\n");
 
-    simint_init();
+  simint_init();
 
-    simint_initialize_multi_shellpair(&left_pair);
-    simint_initialize_multi_shellpair(&right_pair);
+  simint_initialize_multi_shellpair(&left_pair);
+  simint_initialize_multi_shellpair(&right_pair);
+  
+  shells = malloc(1*sizeof(struct simint_shell));
+  
+  sp_shell = malloc(1*sizeof(int));
+  ksize = malloc(1*sizeof(int));
+  ksize_simint = malloc(1*sizeof(int));
+  kstart_simint = malloc(1*sizeof(int));
 
-    iold = -1; jold = -1; ishell = 0; ishell_base = 0;
+  work = malloc(simint_ostei_workmem(0,1)*sizeof(double));
+  buffer = malloc(1296*sizeof(double)); 
+  
+  iold = -1; jold = -1; ishell = 0; ishell_base = 0;
 }
 
 //-------------------//
@@ -62,6 +72,17 @@ void finalize_c()
 
     //--Finalize the SIMINT library--//
     simint_finalize();
+}
+
+//--------------------------//
+//--reset SIMINT variables--//
+//--------------------------//
+void reset_c() 
+{
+    printf("Resetting SIMINT\n");
+
+    //--reset necessary variables--//
+    iold = -1; jold = -1; ishell = 0; ishell_base = 0;
 }
 //--------------------------------//
 //--Get info on basis set shells--//
@@ -129,16 +150,16 @@ void allocate_shell_array_c(long long int nshell,
   nshells = (int)nshell;
   int nshell_simint = (int)t_nshell_simint;
 
-  //--Allocate arrays--// 
-  shells = malloc(nshell_simint*sizeof(struct simint_shell));
+  //--Resize arrays--// 
+  shells = realloc(shells, nshell_simint*sizeof(struct simint_shell));
   
-  sp_shell = malloc(nshells*sizeof(int));
-  ksize = malloc(nshells*sizeof(int));
-  ksize_simint = malloc(nshell_simint*sizeof(int));
-  kstart_simint = malloc(nshell_simint*sizeof(int));
+  sp_shell = realloc(sp_shell, nshells*sizeof(int));
+  ksize = realloc(ksize, nshells*sizeof(int));
+  ksize_simint = realloc(ksize_simint, nshell_simint*sizeof(int));
+  kstart_simint = realloc(kstart_simint, nshell_simint*sizeof(int));
 
-  work = SIMINT_ALLOC(simint_ostei_workmem(0,1));
-  buffer = malloc(1296*sizeof(double)); 
+  work = realloc(work, simint_ostei_workmem(0,1)*sizeof(double));
+  buffer = realloc(buffer, 1296*sizeof(double)); 
 }
 
 void add_shell_c(struct shell* p_input) 
