@@ -19,4 +19,6 @@ def script(input_file):
     if (model["method"] == "RHF"):
       scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
 
+  JuliaChem.reset()
+
 JuliaChem.initialize()
