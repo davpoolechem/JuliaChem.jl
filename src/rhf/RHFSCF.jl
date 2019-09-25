@@ -205,7 +205,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartet_batch_num_old::Int64 = Int64(floor(nindices/
+  quartet_batch_num_old::Int64 = Int64(fld(nindices,
     QUARTET_BATCH_SIZE)) + 1
 
   #== build eri batch arrays ==#
@@ -395,7 +395,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
 
-  quartet_batch_num_old::Int64 = Int64(floor(nindices/
+  quartet_batch_num_old::Int64 = Int64(fld(nindices,
     QUARTET_BATCH_SIZE)) + 1
 
   mutex::Base.Threads.Mutex = Base.Threads.Mutex()
@@ -444,13 +444,13 @@ end
     if (ijkl_index < 1) break end
 
     if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
-    bra_pair::Int64 = ceil(((-1+sqrt(1+8*ijkl_index))/2))
-    ket_pair::Int64 = ijkl_index-bra_pair*(bra_pair-1)/2
+    bra_pair::Int64 = cld((-1+sqrt(1+8*ijkl_index)),2)
+    ket_pair::Int64 = ijkl_index-Int64(bra_pair*(bra_pair-1)/2)
 
-    ish::Int64 = ceil(((-1+sqrt(1+8*bra_pair))/2))
-    jsh::Int64 = bra_pair-ish*(ish-1)/2
-    ksh::Int64 = ceil(((-1+sqrt(1+8*ket_pair))/2))
-    lsh::Int64 = ket_pair-ksh*(ksh-1)/2
+    ish::Int64 = cld((-1+sqrt(1+8*bra_pair)),2)
+    jsh::Int64 = bra_pair-div(ish*(ish-1),2)
+    ksh::Int64 = cld((-1+sqrt(1+8*ket_pair)),2)
+    lsh::Int64 = ket_pair-div(ksh*(ksh-1),2)
 
     ijsh::Int64 = index(ish,jsh)
     klsh::Int64 = index(ksh,lsh)
@@ -466,12 +466,12 @@ end
     quartet.bra = bra
     quartet.ket = ket
 
-    qnum_ij::Int64 = ish*(ish-1)/2 + jsh
-    qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-    quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
+    qnum_ij::Int64 = div(ish*(ish-1),2) + jsh
+    qnum_kl::Int64 = div(ksh*(ksh-1),2) + lsh
+    quartet_num::Int64 = div(qnum_ij*(qnum_ij-1),2) + qnum_kl - 1
     #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
-   # quartet_batch_num::Int64 = Int64(floor(quartet_num/
+   # quartet_batch_num::Int64 = Int64(fld(quartet_num,
    #   QUARTET_BATCH_SIZE)) + 1
 
     #if quartet_batch_num != quartet_batch_num_old
@@ -519,16 +519,16 @@ end
 end
 
 
-@inline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
+@noinline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
   norb::Int64 = size(D)[1]
 
-  spμ::Cint = quartet.bra.sh_a.sp
-  spν::Cint = quartet.bra.sh_b.sp
-  spλ::Cint = quartet.ket.sh_a.sp
-  spσ::Cint = quartet.ket.sh_b.sp
+  spμ::Int64 = quartet.bra.sh_a.sp
+  spν::Int64 = quartet.bra.sh_b.sp
+  spλ::Int64 = quartet.ket.sh_a.sp
+  spσ::Int64 = quartet.ket.sh_b.sp
 
   μνλσ::Int64 = 0
   
