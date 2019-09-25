@@ -100,7 +100,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis,
     scf_flags)
   F = deepcopy(F_mo)
-
+  #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1), 
+  #  1:size(F,2)))
+  #copyto!(F, indices_tocopy, F_mo, indices_tocopy) 
+  
   E::T = E_elec + E_nuc
   E_old::T = E
 
@@ -289,7 +292,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
       println("")
     end
 
-    F[:,:] += H[:,:]
+    F[:,:] .+= H[:,:]
 
     if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
       println("Total Fock matrix:")
@@ -298,7 +301,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     end
 
     #== do DIIS ==#
-    e[:,:] = F[:,:]*D[:,:]*S[:,:] - S[:,:]*D[:,:]*F[:,:]
+    e[:,:] = F[:,:]*D[:,:]*S[:,:] .- S[:,:]*D[:,:]*F[:,:]
 
     e_array_old[:] = e_array[1:ndiis]
     e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
@@ -318,12 +321,18 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     end
 
     #== obtain new F,D,C matrices ==#
-    D_old[:,:] = deepcopy(D)
+    indices_tocopy::CartesianIndices = CartesianIndices((1:size(D,1), 
+      1:size(D,2)))
+    copyto!(D_old, indices_tocopy, D, indices_tocopy) 
 
     E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
       ortho, basis, scf_flags)
-    F = deepcopy(F_mo)
-
+    
+    #F = deepcopy(F_mo)
+    indices_tocopy = CartesianIndices((1:size(F_mo,1), 
+      1:size(F_mo,2)))
+    copyto!(F, indices_tocopy, F_mo, indices_tocopy) 
+  
     #== dynamic damping of density matrix ==#
     #D_damp[:] = map(x -> x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:],
     #  damp_values)
@@ -334,7 +343,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     #D[:,:] = x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:]
 
     #== check for convergence ==#
-    @views ΔD[:,:] = D[:,:] - D_old[:,:]
+    @views ΔD[:,:] = D[:,:] .- D_old[:,:]
     D_rms::T = √(@∑ ΔD ΔD)
 
     E = E_elec+E_nuc
@@ -381,7 +390,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
-  F[:,:] = fill(zero(T),(basis.norb,basis.norb))
+  fill!(F,zero(T))
 
   nsh::Int64 = length(basis.shells)
   nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
@@ -665,7 +674,10 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   F_eval[:] = eigvals(LinearAlgebra.Hermitian(F_mo))
 
   @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F_mo))[:,:]
-  F_evec[:] = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+  @views F_evec[:,:] = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+  
+  #copyto!(F_evec, CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))),
+  #  F_evec[:,sortperm(F_eval)], CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))))
 
   @views C[:,:] = ortho[:,:]*F_evec[:,:]
 
