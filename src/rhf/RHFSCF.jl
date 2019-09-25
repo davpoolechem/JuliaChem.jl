@@ -535,7 +535,7 @@ end
   for spi::Int64 in 0:spμ, spj::Int64 in 0:spν
     nμ::Int64 = 0 
     pμ::Int64 = quartet.bra.sh_a.pos
-    if Bool(spμ)
+    if spμ == 1
       nμ = spi == 1 ? 3 : 1 
       pμ += spi == 1 ? 1 : 0  
     else
@@ -544,7 +544,7 @@ end
 
     nν::Int64 = 0 
     pν::Int64 = quartet.bra.sh_b.pos
-    if Bool(spν)
+    if spν == 1
       nν = spj == 1 ? 3 : 1
       pν += spj == 1 ? 1 : 0 
     else   
@@ -554,7 +554,7 @@ end
     for spk::Int64 in 0:spλ, spl::Int64 in 0:spσ
       nλ::Int64 = 0
       pλ::Int64 = quartet.ket.sh_a.pos
-      if Bool(spλ) 
+      if spλ == 1 
         nλ = spk == 1 ? 3 : 1
         pλ += spk == 1 ? 1 : 0 
       else  
@@ -563,7 +563,7 @@ end
 
       nσ::Int64 = 0  
       pσ::Int64 = quartet.ket.sh_b.pos
-      if Bool(spσ)
+      if spσ == 1
         nσ = spl == 1 ? 3 : 1
         pσ += spl == 1 ? 1 : 0 
       else 
