@@ -295,7 +295,6 @@ void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* 
 void simgms_retrieve_eris_c_L_0001(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 0; ++isp) {
@@ -334,11 +333,11 @@ void simgms_retrieve_eris_c_L_0001(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;   
           }
           //#endif
         }
@@ -350,7 +349,6 @@ void simgms_retrieve_eris_c_L_0001(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_0010(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 0; ++isp) {
@@ -390,11 +388,11 @@ void simgms_retrieve_eris_c_L_0010(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;   
           }
           //#endif
         }
@@ -406,7 +404,6 @@ void simgms_retrieve_eris_c_L_0010(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_0011(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 0; ++isp) {
@@ -446,11 +443,11 @@ void simgms_retrieve_eris_c_L_0011(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;   
           }
           //#endif
         }
@@ -462,7 +459,6 @@ void simgms_retrieve_eris_c_L_0011(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_0100(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 0; ++isp) {
@@ -502,11 +498,11 @@ void simgms_retrieve_eris_c_L_0100(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;   
           }
           //#endif
         }
@@ -518,7 +514,6 @@ void simgms_retrieve_eris_c_L_0100(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_0101(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 0; ++isp) {
@@ -558,11 +553,11 @@ void simgms_retrieve_eris_c_L_0101(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;   
           }
           //#endif
         }
@@ -574,7 +569,6 @@ void simgms_retrieve_eris_c_L_0101(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_0110(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 0; ++isp) {
@@ -614,11 +608,11 @@ void simgms_retrieve_eris_c_L_0110(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;   
           }
           //#endif
         }
@@ -630,7 +624,6 @@ void simgms_retrieve_eris_c_L_0110(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_0111(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 0; ++isp) {
@@ -670,11 +663,11 @@ void simgms_retrieve_eris_c_L_0111(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;   
           }
           //#endif
         }
@@ -686,7 +679,6 @@ void simgms_retrieve_eris_c_L_0111(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1000(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
@@ -726,11 +718,12 @@ void simgms_retrieve_eris_c_L_1000(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;
           }
           //#endif
         }
@@ -742,7 +735,6 @@ void simgms_retrieve_eris_c_L_1000(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1001(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
@@ -783,11 +775,12 @@ void simgms_retrieve_eris_c_L_1001(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;
           }
           //#endif
         }
@@ -799,8 +792,7 @@ void simgms_retrieve_eris_c_L_1001(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1010(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
-
+  
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
     for (int jsp = 0; jsp <= 0; ++jsp) {
@@ -839,11 +831,12 @@ void simgms_retrieve_eris_c_L_1010(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;
           }
           //#endif
         }
@@ -855,7 +848,6 @@ void simgms_retrieve_eris_c_L_1010(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1011(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
@@ -895,11 +887,12 @@ void simgms_retrieve_eris_c_L_1011(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx; 
           }
           //#endif
         }
@@ -911,7 +904,6 @@ void simgms_retrieve_eris_c_L_1011(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1100(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
@@ -951,11 +943,12 @@ void simgms_retrieve_eris_c_L_1100(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;
           }
           //#endif
         }
@@ -967,8 +960,7 @@ void simgms_retrieve_eris_c_L_1100(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1101(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
-
+  
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
     for (int jsp = 0; jsp <= 1; ++jsp) {
@@ -1007,11 +999,12 @@ void simgms_retrieve_eris_c_L_1101(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            ++buffer_idx;
           }
           //#endif
         }
@@ -1023,7 +1016,6 @@ void simgms_retrieve_eris_c_L_1101(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1110(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
@@ -1063,11 +1055,12 @@ void simgms_retrieve_eris_c_L_1110(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
-            ++eri_idx; ++buffer_idx;   
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
+            ++buffer_idx;  
           }
           //#endif
         }
@@ -1079,7 +1072,6 @@ void simgms_retrieve_eris_c_L_1110(int ii, int jj, int kk, int ll, double* eri, 
 void simgms_retrieve_eris_c_L_1111(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
-  int eri_idx = 0;
 
   //--start ERI computation--//
   for (int isp = 0; isp <= 1; ++isp) {
@@ -1119,10 +1111,10 @@ void simgms_retrieve_eris_c_L_1111(int ii, int jj, int kk, int ll, double* eri, 
             //int o_idx = kstart_simint[kk+ksp] + o; 
             //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            eri[eri_idx] = buffer[buffer_idx];
+            eri[ntotal-ncomputed+buffer_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
-
-            ++eri_idx; ++buffer_idx;   
+            //printf("%s\n", ntotal-ncomputed+buffer_idx == eri_idx ? "true" : "false");
+            ++buffer_idx;
           }
           //#endif
         }
