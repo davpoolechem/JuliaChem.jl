@@ -51,9 +51,38 @@ extern struct shell {
 
 
 
-//All code below this line is automatically generated
-//-------------------------------------------------------------------//
-
 void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri); 
 
-void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* ghondo, int* fullsizes, int* L_);
+void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* fullsizes, int* L_);
+
+void simgms_retrieve_eris_c_L_0000(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_0001(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_0010(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_0011(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_0100(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_0101(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_0110(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_0111(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1000(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1001(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1010(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1011(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1100(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1101(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1110(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);
+
+void simgms_retrieve_eris_c_L_1111(int ii, int jj, int kk, int ll, double* eri, int* fullsizes);

@@ -270,13 +270,36 @@ void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
 }
 
 void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* fullsizes, int* L_) {
+    int key = 8*L_[0] + 4*L_[1] + 2*L_[2] + 1*L_[3];
+    switch(key) {
+        case 1: simgms_retrieve_eris_c_L_0001(ii, jj, kk, ll, eri, fullsizes); break;
+        case 2: simgms_retrieve_eris_c_L_0010(ii, jj, kk, ll, eri, fullsizes); break;
+        case 3: simgms_retrieve_eris_c_L_0011(ii, jj, kk, ll, eri, fullsizes); break;
+        case 4: simgms_retrieve_eris_c_L_0100(ii, jj, kk, ll, eri, fullsizes); break;
+        case 5: simgms_retrieve_eris_c_L_0101(ii, jj, kk, ll, eri, fullsizes); break;
+        case 6: simgms_retrieve_eris_c_L_0110(ii, jj, kk, ll, eri, fullsizes); break;
+        case 7: simgms_retrieve_eris_c_L_0111(ii, jj, kk, ll, eri, fullsizes); break;
+        case 8: simgms_retrieve_eris_c_L_1000(ii, jj, kk, ll, eri, fullsizes); break;
+        case 9: simgms_retrieve_eris_c_L_1001(ii, jj, kk, ll, eri, fullsizes); break;
+        case 10: simgms_retrieve_eris_c_L_1010(ii, jj, kk, ll, eri, fullsizes); break;
+        case 11: simgms_retrieve_eris_c_L_1011(ii, jj, kk, ll, eri, fullsizes); break;
+        case 12: simgms_retrieve_eris_c_L_1100(ii, jj, kk, ll, eri, fullsizes); break;
+        case 13: simgms_retrieve_eris_c_L_1101(ii, jj, kk, ll, eri, fullsizes); break;
+        case 14: simgms_retrieve_eris_c_L_1110(ii, jj, kk, ll, eri, fullsizes); break;
+        case 15: simgms_retrieve_eris_c_L_1111(ii, jj, kk, ll, eri, fullsizes); break;
+    }
+}
+
+#define L_LOOP_BOUND(X) ((X) ? (3) : (1))
+
+void simgms_retrieve_eris_c_L_0001(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
 
   int ncomputed = 0, ntotal = 0;
   int eri_idx = 0;
 
   //--start ERI computation--//
-  for (int isp = 0; isp <= L_[0]; ++isp) {
-    for (int jsp = 0; jsp <= L_[1]; ++jsp) {
+  for (int isp = 0; isp <= 0; ++isp) {
+    for (int jsp = 0; jsp <= 0; ++jsp) {
 
       bool new_ij = ii+isp != iold || jj+jsp != jold;
       if (new_ij) { 
@@ -284,8 +307,8 @@ void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* 
         iold = ii+isp; jold = jj+jsp; 
       } 
 
-      for (int ksp = 0; ksp <= L_[2]; ++ksp) {
-        for (int lsp = 0; lsp <= L_[3]; ++lsp) {
+      for (int ksp = 0; ksp <= 0; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
           simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
           ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
           
@@ -296,11 +319,15 @@ void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* 
           //--sort separated L shells into proper JuliaChem L shell order--//
           
           int buffer_idx = 0;
-          //#if 0
-          for(int m = 0; m < ksize_simint[ii+isp]; ++m)
-          for(int n = 0; n < ksize_simint[jj+jsp]; ++n)
-          for(int o = 0; o < ksize_simint[kk+ksp]; ++o)
-          for(int p = 0; p < ksize_simint[ll+lsp]; ++p)
+          int m_loop_bound = ksize_simint[ii+isp];
+          int n_loop_bound = ksize_simint[jj+jsp];
+          int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < m_loop_bound; ++m)
+          for(int n = 0; n < n_loop_bound; ++n)
+          for(int o = 0; o < o_loop_bound; ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
             int m_idx = kstart_simint[ii+isp] + m; 
             int n_idx = kstart_simint[jj+jsp] + n; 
@@ -345,3 +372,1139 @@ void simgms_retrieve_eris_c_L(int ii, int jj, int kk, int ll, double* eri, int* 
   }
 }
 
+void simgms_retrieve_eris_c_L_0010(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 0; ++isp) {
+    for (int jsp = 0; jsp <= 0; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 0; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          int m_loop_bound = ksize_simint[ii+isp];
+          int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < m_loop_bound; ++m)
+          for(int n = 0; n < n_loop_bound; ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < p_loop_bound; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_0011(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 0; ++isp) {
+    for (int jsp = 0; jsp <= 0; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          int m_loop_bound = ksize_simint[ii+isp];
+          int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < m_loop_bound; ++m)
+          for(int n = 0; n < n_loop_bound; ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_0100(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 0; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 0; ++ksp) {
+        for (int lsp = 0; lsp <= 0; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          int o_loop_bound = ksize_simint[kk+ksp];
+          int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < m_loop_bound; ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < o_loop_bound; ++o)
+          for(int p = 0; p < p_loop_bound; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_0101(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 0; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 0; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < m_loop_bound; ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < o_loop_bound; ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_0110(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 0; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 0; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < m_loop_bound; ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < p_loop_bound; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_0111(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 0; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < m_loop_bound; ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1000(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 0; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 0; ++ksp) {
+        for (int lsp = 0; lsp <= 0; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          //int m_loop_bound = ksize_simint[ii+isp];
+          int n_loop_bound = ksize_simint[jj+jsp];
+          int o_loop_bound = ksize_simint[kk+ksp];
+          int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < n_loop_bound; ++n)
+          for(int o = 0; o < o_loop_bound; ++o)
+          for(int p = 0; p < p_loop_bound; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1001(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 0; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 0; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          
+          //int m_loop_bound = ksize_simint[ii+isp];
+          int n_loop_bound = ksize_simint[jj+jsp];
+          int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < n_loop_bound; ++n)
+          for(int o = 0; o < o_loop_bound; ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1010(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 0; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 0; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          //int m_loop_bound = ksize_simint[ii+isp];
+          int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < n_loop_bound; ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < p_loop_bound; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1011(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 0; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          //int m_loop_bound = ksize_simint[ii+isp];
+          int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < n_loop_bound; ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1100(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 0; ++ksp) {
+        for (int lsp = 0; lsp <= 0; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          //int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          int o_loop_bound = ksize_simint[kk+ksp];
+          int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < o_loop_bound; ++o)
+          for(int p = 0; p < p_loop_bound; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1101(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 0; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          //int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < o_loop_bound; ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1110(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 0; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          //int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < p_loop_bound; ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+void simgms_retrieve_eris_c_L_1111(int ii, int jj, int kk, int ll, double* eri, int* fullsizes) {
+
+  int ncomputed = 0, ntotal = 0;
+  int eri_idx = 0;
+
+  //--start ERI computation--//
+  for (int isp = 0; isp <= 1; ++isp) {
+    for (int jsp = 0; jsp <= 1; ++jsp) {
+
+      bool new_ij = ii+isp != iold || jj+jsp != jold;
+      if (new_ij) { 
+        simint_create_multi_shellpair(1, &shells[ii+isp], 1, &shells[jj+jsp], &left_pair, 0);
+        iold = ii+isp; jold = jj+jsp; 
+      } 
+
+      for (int ksp = 0; ksp <= 1; ++ksp) {
+        for (int lsp = 0; lsp <= 1; ++lsp) {
+          simint_create_multi_shellpair(1, &shells[kk+ksp], 1, &shells[ll+lsp], &right_pair, 0);
+          ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, buffer);
+          
+          int sizes[4] = { ksize_simint[ii+isp], ksize_simint[jj+jsp], ksize_simint[kk+ksp], ksize_simint[ll+lsp] };
+          ncomputed *= sizes[0]*sizes[1]*sizes[2]*sizes[3];
+          ntotal += ncomputed;
+
+          //--sort separated L shells into proper JuliaChem L shell order--//
+          
+          int buffer_idx = 0;
+          //#if 0
+          //int m_loop_bound = ksize_simint[ii+isp];
+          //int n_loop_bound = ksize_simint[jj+jsp];
+          //int o_loop_bound = ksize_simint[kk+ksp];
+          //int p_loop_bound = ksize_simint[ll+lsp];
+          
+          for(int m = 0; m < L_LOOP_BOUND(isp); ++m)
+          for(int n = 0; n < L_LOOP_BOUND(jsp); ++n)
+          for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
+          for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
+          {
+            int m_idx = kstart_simint[ii+isp] + m; 
+            int n_idx = kstart_simint[jj+jsp] + n; 
+            int o_idx = kstart_simint[kk+ksp] + o; 
+            int p_idx = kstart_simint[ll+lsp] + p; 
+      
+            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
+            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
+            
+            if (m_idx < n_idx) { //swap i,j
+              int tmp = m_idx;
+              m_idx = n_idx;
+              n_idx = tmp;
+            }
+
+            if (o_idx < p_idx) { //swap k,l
+              int tmp = o_idx;
+              o_idx = p_idx;
+              p_idx = tmp;
+            }
+            
+            if (mn_idx < op_idx) { //swap ij, kl
+              int tmp = m_idx;
+              m_idx = o_idx;
+              o_idx = tmp;
+
+              tmp = n_idx;
+              n_idx = p_idx;
+              p_idx = tmp;
+            }
+
+            eri[eri_idx] = buffer[buffer_idx];
+            //eri[mnop_idx] = buffer[buffer_idx];
+            //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
+
+            ++eri_idx; ++buffer_idx;   
+          }
+          //#endif
+        }
+      }
+    }
+  }
+}
+
+#undef L_LOOP_BOUND

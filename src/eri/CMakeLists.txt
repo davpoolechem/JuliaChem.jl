@@ -7,7 +7,7 @@ project(SIMINT.JL)
 #= debug vs release =#
 ######################
 cmake_minimum_required(VERSION 2.6)
-set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_BUILD_TYPE RELEASE)
 
 if(CMAKE_BUILD_TYPE STREQUAL RELEASE)
     set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -21,7 +21,7 @@ enable_language(C)
 ###################
 #= general flags =#
 ###################
-set(OPT "-O3")
+set(OPT "-Ofast -funroll-loops")
 if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
   set(OPT " -g -O0")
 endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
