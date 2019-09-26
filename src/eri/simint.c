@@ -43,7 +43,7 @@ void initialize_c()
   kstart_simint = malloc(1*sizeof(int));
 
   work = malloc(simint_ostei_workmem(0,1)*sizeof(double));
-  buffer = malloc(1296*sizeof(double)); 
+  buffer = malloc(81*sizeof(double)); 
   
   iold = -1; jold = -1; ishell = 0; ishell_base = 0;
 }
@@ -329,36 +329,11 @@ void simgms_retrieve_eris_c_L_0001(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < o_loop_bound; ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -410,36 +385,11 @@ void simgms_retrieve_eris_c_L_0010(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < p_loop_bound; ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -491,36 +441,11 @@ void simgms_retrieve_eris_c_L_0011(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -572,36 +497,11 @@ void simgms_retrieve_eris_c_L_0100(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < o_loop_bound; ++o)
           for(int p = 0; p < p_loop_bound; ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -653,36 +553,11 @@ void simgms_retrieve_eris_c_L_0101(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < o_loop_bound; ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -734,36 +609,11 @@ void simgms_retrieve_eris_c_L_0110(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < p_loop_bound; ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -815,36 +665,11 @@ void simgms_retrieve_eris_c_L_0111(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -896,36 +721,11 @@ void simgms_retrieve_eris_c_L_1000(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < o_loop_bound; ++o)
           for(int p = 0; p < p_loop_bound; ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -978,36 +778,11 @@ void simgms_retrieve_eris_c_L_1001(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < o_loop_bound; ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -1059,36 +834,11 @@ void simgms_retrieve_eris_c_L_1010(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < p_loop_bound; ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -1140,36 +890,11 @@ void simgms_retrieve_eris_c_L_1011(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -1221,36 +946,11 @@ void simgms_retrieve_eris_c_L_1100(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < o_loop_bound; ++o)
           for(int p = 0; p < p_loop_bound; ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -1302,36 +1002,11 @@ void simgms_retrieve_eris_c_L_1101(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < o_loop_bound; ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -1383,36 +1058,11 @@ void simgms_retrieve_eris_c_L_1110(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < p_loop_bound; ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
             //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
@@ -1464,38 +1114,12 @@ void simgms_retrieve_eris_c_L_1111(int ii, int jj, int kk, int ll, double* eri, 
           for(int o = 0; o < L_LOOP_BOUND(ksp); ++o)
           for(int p = 0; p < L_LOOP_BOUND(lsp); ++p)
           {
-            int m_idx = kstart_simint[ii+isp] + m; 
-            int n_idx = kstart_simint[jj+jsp] + n; 
-            int o_idx = kstart_simint[kk+ksp] + o; 
-            int p_idx = kstart_simint[ll+lsp] + p; 
+            //int m_idx = kstart_simint[ii+isp] + m; 
+            //int n_idx = kstart_simint[jj+jsp] + n; 
+            //int o_idx = kstart_simint[kk+ksp] + o; 
+            //int p_idx = kstart_simint[ll+lsp] + p; 
       
-            int mn_idx = m_idx < n_idx ? (n_idx*(n_idx+1))/2 + m_idx : (m_idx*(m_idx+1))/2 + n_idx;
-            int op_idx = o_idx < p_idx ? (p_idx*(p_idx+1))/2 + o_idx : (o_idx*(o_idx+1))/2 + p_idx;
-            
-            if (m_idx < n_idx) { //swap i,j
-              int tmp = m_idx;
-              m_idx = n_idx;
-              n_idx = tmp;
-            }
-
-            if (o_idx < p_idx) { //swap k,l
-              int tmp = o_idx;
-              o_idx = p_idx;
-              p_idx = tmp;
-            }
-            
-            if (mn_idx < op_idx) { //swap ij, kl
-              int tmp = m_idx;
-              m_idx = o_idx;
-              o_idx = tmp;
-
-              tmp = n_idx;
-              n_idx = p_idx;
-              p_idx = tmp;
-            }
-
             eri[eri_idx] = buffer[buffer_idx];
-            //eri[mnop_idx] = buffer[buffer_idx];
             //printf("%d, %d, %d, %d, %lf\n", m_idx+1, n_idx+1, o_idx+1, p_idx+1, eri[eri_idx]);
 
             ++eri_idx; ++buffer_idx;   
