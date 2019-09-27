@@ -28,8 +28,6 @@ int nshell_simint;
 //---------------------//
 void initialize_c() 
 {
-  printf("Initializing SIMINT\n");
-
   simint_init();
 
   simint_initialize_multi_shellpair(&left_pair);
@@ -53,8 +51,6 @@ void initialize_c()
 //-------------------//
 void finalize_c() 
 {
-    printf("Finalizing SIMINT\n");
-
     //--Free remaining memory--//
     SIMINT_FREE(buffer);
     SIMINT_FREE(work);
@@ -79,8 +75,6 @@ void finalize_c()
 //--------------------------//
 void reset_c() 
 {
-    printf("Resetting SIMINT\n");
-
     //--reset necessary variables--//
     iold = -1; jold = -1; ishell = 0; ishell_base = 0;
 }
@@ -172,7 +166,6 @@ void add_shell_c(struct shell* p_input)
   ksize[ishell_base] = input.nbas;
 
   for (int isp = 0; isp < sp+1; ++isp) { //two iterations for L shells to split them into s and p components
-    printf("%d", ishell);
     simint_initialize_shell(&shells[ishell]); 
     
     shells[ishell].x = input.atom_center[0]; 
