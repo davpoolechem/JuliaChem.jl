@@ -265,6 +265,25 @@ function parse_all()
                 parse_individual(atom, basis, bsed)
             end
         end
+    
+        #== parse correlation-consistent basis family ==#
+        atoms = [
+            "H", "He",
+            "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+            "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",
+            "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+            "Ga", "Ge", "As", "Se", "Br", "Kr",
+            "Rb", "Sr", "Y", "Zr", "Nb", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",
+            "In", "Sn", "Sb", "Te", "I", "Xe"
+            ] #H-Xe
+        basis_sets = ["cc-pVDZ", "cc-pVTZ", "cc-pVQZ", "cc-pV5Z", "cc-pV6Z"] 
+
+        for atom::String in atoms
+            for basis::String in basis_sets
+                parse_individual(atom, basis, bsed)
+            end
+        end
+
     end
 end
 

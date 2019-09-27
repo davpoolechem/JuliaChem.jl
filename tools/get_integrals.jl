@@ -230,5 +230,5 @@ end
 
 get_hamiltonian_integrals(ARGS[1])
 get_overlap_integrals(ARGS[1])
-get_two_electron_integrals(ARGS[1])
+#get_two_electron_integrals(ARGS[1])
 create_input()
