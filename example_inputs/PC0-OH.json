@@ -143,7 +143,7 @@
   "driver": "energy",
   "model": {
     "method": "RHF",
-    "basis": "PCSeg-0",
+    "basis": "PCSeg-0"
   },
   "keywords": {
     "scf":{
