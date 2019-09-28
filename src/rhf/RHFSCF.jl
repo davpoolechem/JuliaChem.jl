@@ -41,15 +41,15 @@ function rhf_kernel(basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}, type::T) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
-  calculation_status::Dict{String,Any} = Dict([])
+  calculation_status = Dict([])
 
   #== read variables from input if needed ==#
-  E_nuc::T = molecule["enuc"]
+  E_nuc = molecule["enuc"]
 
   S::Matrix{T} = read_in_oei(molecule["ovr"], basis.norb)
   H::Matrix{T} = read_in_oei(molecule["hcore"], basis.norb)
 
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+  if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
     println("Overlap matrix:")
     display(S)
     println("")
@@ -60,35 +60,35 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   #== build the orthogonalization matrix ==#
-  S_evec::Matrix{T} = eigvecs(LinearAlgebra.Hermitian(S))
+  S_evec = eigvecs(LinearAlgebra.Hermitian(S))
 
-  S_eval_diag::Vector{T} = eigvals(LinearAlgebra.Hermitian(S))
+  S_eval_diag = eigvals(LinearAlgebra.Hermitian(S))
 
-  S_eval::Matrix{T} = zeros(basis.norb,basis.norb)
-  for i::Int64 in 1:basis.norb
+  S_eval = zeros(basis.norb,basis.norb)
+  for i in 1:basis.norb
     S_eval[i,i] = S_eval_diag[i]
   end
 
-  ortho::Matrix{T} = Matrix{T}(undef, basis.norb, basis.norb)
+  ortho = Matrix{T}(undef, basis.norb, basis.norb)
   @views ortho[:,:] = S_evec[:,:]*
     (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
 
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+  if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
     println("Ortho matrix:")
     display(ortho)
     println("")
   end
 
   #== build the initial matrices ==#
-  F::Matrix{T} = H
-  F_eval::Vector{T} = Vector{T}(undef,basis.norb)
-  F_evec::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-  F_mo::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  F = H
+  F_eval = Vector{T}(undef,basis.norb)
+  F_evec = Matrix{T}(undef,basis.norb,basis.norb)
+  F_mo = Matrix{T}(undef,basis.norb,basis.norb)
 
-  D::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-  C::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  D = Matrix{T}(undef,basis.norb,basis.norb)
+  C = Matrix{T}(undef,basis.norb,basis.norb)
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0
     println("----------------------------------------          ")
     println("       Starting RHF iterations...                 ")
     println("----------------------------------------          ")
@@ -96,7 +96,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     println("Iter      Energy                   ΔE                   Drms")
   end
 
-  E_elec::T = 0.0
+  E_elec = 0.0
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis,
     scf_flags)
   F = deepcopy(F_mo)
@@ -104,10 +104,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #  1:size(F,2)))
   #copyto!(F, indices_tocopy, F_mo, indices_tocopy)
 
-  E::T = E_elec + E_nuc
-  E_old::T = E
+  E = E_elec + E_nuc
+  E_old = E
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0
     println(0,"     ", E)
   end
 
@@ -117,10 +117,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   @time F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, F_eval,
   F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags)
 
-  if (!converged)
-    iter_limit::Int64 = scf_flags["niter"]
+  if !converged
+    iter_limit = scf_flags["niter"]
 
-    if (MPI.Comm_rank(comm) == 0)
+    if MPI.Comm_rank(comm) == 0
       println(" ")
       println("----------------------------------------")
       println(" The SCF calculation did not converge.  ")
@@ -129,7 +129,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
       println(" ")
     end
 
-    calculation_fail::Dict{String,Any} = Dict(
+    calculation_fail = Dict(
     "success" => false,
     "error" => Dict(
       "error_type" => "convergence_error",
@@ -141,7 +141,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     merge!(calculation_status, calculation_fail)
 
   else
-    if (MPI.Comm_rank(comm) == 0)
+    if MPI.Comm_rank(comm) == 0
       println(" ")
       println("----------------------------------------")
       println("   The SCF calculation has converged!   ")
@@ -149,7 +149,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
       println("Total SCF Energy: ",E," h")
       println(" ")
 
-      calculation_success::Dict{String,Any} = Dict(
+      calculation_success = Dict(
       "return_result" => E,
       "success" => true,
       "properties" => Dict(
@@ -168,7 +168,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     #end
   end
 
-  return (F, D, C, E, calculation_status)
+  return F, D, C, E, calculation_status
 end
 
 function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
