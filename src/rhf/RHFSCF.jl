@@ -11,11 +11,7 @@ function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags::Dict{String,Any})
 
-  if (scf_flags["prec"] == "Float64")
-    return rhf_kernel(basis,molecule,scf_flags,oneunit(Float64))
-  elseif (scf_flags["prec"] == "Float32")
-    return rhf_kernel(basis,molecule,scf_flags,oneunit(Float32))
-  end
+  return rhf_kernel(basis,molecule,scf_flags)
 end
 
 
@@ -38,7 +34,7 @@ type = Precision of variables in calculation
 """
 function rhf_kernel(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
-  scf_flags::Dict{String,Any}, type::T) where {T<:AbstractFloat}
+  scf_flags::Dict{String,Any})
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
@@ -46,8 +42,8 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #== read variables from input if needed ==#
   E_nuc = molecule["enuc"]
 
-  S::Matrix{T} = read_in_oei(molecule["ovr"], basis.norb)
-  H::Matrix{T} = read_in_oei(molecule["hcore"], basis.norb)
+  S = read_in_oei(molecule["ovr"], basis.norb)
+  H = read_in_oei(molecule["hcore"], basis.norb)
 
   if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
     println("Overlap matrix:")
@@ -69,7 +65,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     S_eval[i,i] = S_eval_diag[i]
   end
 
-  ortho = Matrix{T}(undef, basis.norb, basis.norb)
+  ortho = Matrix{Float64}(undef, basis.norb, basis.norb)
   @views ortho[:,:] = S_evec[:,:]*
     (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
 
@@ -81,12 +77,12 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   #== build the initial matrices ==#
   F = H
-  F_eval = Vector{T}(undef,basis.norb)
-  F_evec = Matrix{T}(undef,basis.norb,basis.norb)
-  F_mo = Matrix{T}(undef,basis.norb,basis.norb)
+  F_eval = Vector{Float64}(undef,basis.norb)
+  F_evec = Matrix{Float64}(undef,basis.norb,basis.norb)
+  F_mo = Matrix{Float64}(undef,basis.norb,basis.norb)
 
-  D = Matrix{T}(undef,basis.norb,basis.norb)
-  C = Matrix{T}(undef,basis.norb,basis.norb)
+  D = Matrix{Float64}(undef,basis.norb,basis.norb)
+  C = Matrix{Float64}(undef,basis.norb,basis.norb)
 
   if MPI.Comm_rank(comm) == 0
     println("----------------------------------------          ")
@@ -171,35 +167,35 @@ function rhf_kernel(basis::BasisStructs.Basis,
   return F, D, C, E, calculation_status
 end
 
-function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
-  H::Matrix{T}, ortho::Matrix{T}, S::Matrix{T}, F_eval::Vector{T},
-  F_evec::Matrix{T}, F_mo::Matrix{T}, E_nuc::T, E_elec::T, E_old::T,
+function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64}, E::T,
+  H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64},
+  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, E_nuc::T, E_elec::T, E_old::T,
   basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
   #== build DIIS arrays ==#
   ndiis = scf_flags["ndiis"]
-  F_array = fill(Matrix{T}(undef,basis.norb,basis.norb),
+  F_array = fill(Matrix{Float64}(undef,basis.norb,basis.norb),
     ndiis)
 
-  e = Matrix{T}(undef,basis.norb,basis.norb)
+  e = Matrix{Float64}(undef,basis.norb,basis.norb)
   e_array = fill(
-    Matrix{T}(undef,basis.norb,basis.norb), ndiis)
+    Matrix{Float64}(undef,basis.norb,basis.norb), ndiis)
   e_array_old = fill(
-    Matrix{T}(undef,basis.norb,basis.norb), ndiis)
+    Matrix{Float64}(undef,basis.norb,basis.norb), ndiis)
   F_array_old = fill(
-    Matrix{T}(undef,basis.norb,basis.norb), ndiis)
+    Matrix{Float64}(undef,basis.norb,basis.norb), ndiis)
 
   #== build arrays needed for post-fock build iteration calculations ==#
-  F_temp = Matrix{T}(undef,basis.norb,basis.norb)
-  D_old = Matrix{T}(undef,basis.norb,basis.norb)
-  ΔD = Matrix{T}(undef,basis.norb,basis.norb)
+  F_temp = Matrix{Float64}(undef,basis.norb,basis.norb)
+  D_old = Matrix{Float64}(undef,basis.norb,basis.norb)
+  ΔD = Matrix{Float64}(undef,basis.norb,basis.norb)
 
   #== build arrays needed for dynamic damping ==#
   damp_values = [ 0.25, 0.75 ]
-  D_damp = [ Matrix{T}(undef,basis.norb,basis.norb)
+  D_damp = [ Matrix{Float64}(undef,basis.norb,basis.norb)
     for i in 1:2 ]
-  D_damp_rms = [ zero(T), zero(T) ]
+  D_damp_rms = [ zero(Float64), zero(Float64) ]
 
   #== build variables needed for eri batching ==#
   nsh = length(basis.shells)
@@ -215,7 +211,7 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
 
   #@views eri_starts::Vector{Int64} = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(length_eri_sizes-1)]... ]
 
-  #eri_batch::Vector{T} = load("tei_batch.jld",
+  #eri_batch::Vector{Float64} = load("tei_batch.jld",
   #  "Integrals/$quartet_batch_num_old")
 
   #eri_sizes = []
@@ -234,14 +230,14 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   return F, D, C, E, scf_converged
 end
 
-function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
-  E::T, H::Matrix{T}, ortho::Matrix{T}, S::Matrix{T}, E_nuc::T, E_elec::T,
+function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
+  E::T, H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64}, E_nuc::T, E_elec::T,
   E_old::T, basis::BasisStructs.Basis, scf_flags::Dict{String,Any},
-  ndiis::Int64, F_array::Vector{Matrix{T}}, e::Matrix{T},
-  e_array::Vector{Matrix{T}}, e_array_old::Vector{Matrix{T}},
-  F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Vector{T},
-  F_evec::Matrix{T}, F_mo::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T},
-  damp_values::Vector{T}, D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T},
+  ndiis::Int64, F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
+  e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
+  F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64}, F_eval::Vector{Float64},
+  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, D_old::Matrix{Float64}, ΔD::Matrix{Float64},
+  damp_values::Vector{Float64}, D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
   scf_converged::Bool, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   #== initialize a few more variables ==#
@@ -367,7 +363,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
 end
 #=
 """
-	 twoei(F::Array{T}, D::Array{T}, tei::Array{T}, H::Array{T})
+	 twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
 Summary
 ======
 Perform Fock build step.
@@ -384,10 +380,10 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{T}, D::Matrix{T},
-  H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
+function twoei(F::Matrix{Float64}, D::Matrix{Float64},
+  H::Matrix{Float64}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
-  fill!(F,zero(T))
+  fill!(F,zero(Float64))
 
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
@@ -402,7 +398,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
     F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
-    eri_quartet_batch = Vector{T}(undef,1296)
+    eri_quartet_batch = Vector{Float64}(undef,1296)
 
     bra = ShPair(basis.shells[1], basis.shells[1])
     ket = ShPair(basis.shells[1], basis.shells[1])
@@ -424,10 +420,10 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   return F
 end
 
-@inline function twoei_thread_kernel(F::Matrix{T}, D::Matrix{T},
-  H::Matrix{T}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
-  thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{T},
-  eri_quartet_batch::Vector{T}, bra::ShPair , ket::ShPair, quartet::ShQuartet,
+@inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
+  H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
+  thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
+  eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair, quartet::ShQuartet,
   nindices::Int64, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
@@ -516,13 +512,13 @@ end
 end
 
 @inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
-  eri_quartet_batch::Vector{T}) where {T<:AbstractFloat}
+  eri_quartet_batch::Vector{Float64}) where {T<:AbstractFloat}
 
   SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
 end
 
 
-@noinline function dirfck(F_priv::Matrix{T}, D::Matrix{T}, eri_batch::Vector{T},
+@noinline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64}, eri_batch::Vector{Float64},
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
@@ -648,7 +644,7 @@ end
 
 #=
 """
-	 iteration(F::Matrix{T}, D::Matrix{T}, H::Matrix{T}, ortho::Matrix{T})
+	 iteration(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64}, ortho::Matrix{Float64})
 Summary
 ======
 Perform single SCF iteration.
@@ -664,9 +660,9 @@ H = One-electron Hamiltonian Matrix
 ortho = Symmetric Orthogonalization Matrix
 """
 =#
-function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
-  H::Matrix{T}, F_eval::Vector{T}, F_evec::Matrix{T}, F_mo::Matrix{T},
-  ortho::Matrix{T}, basis::BasisStructs.Basis,
+function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
+  H::Matrix{Float64}, F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
+  ortho::Matrix{Float64}, basis::BasisStructs.Basis,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
