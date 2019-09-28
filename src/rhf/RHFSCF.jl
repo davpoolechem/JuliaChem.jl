@@ -248,18 +248,18 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
 
-  iter_limit::Int64 = scf_flags["niter"]
-  dele::T = scf_flags["dele"]
-  rmsd::T = scf_flags["rmsd"]
+  iter_limit = scf_flags["niter"]
+  dele = scf_flags["dele"]
+  rmsd = scf_flags["rmsd"]
 
-  B_dim::Int64 = 1
-  length_eri_sizes::Int64 = length(eri_sizes)
+  B_dim = 1
+  length_eri_sizes = length(eri_sizes)
 
   #=================================#
   #== now we start scf iterations ==#
   #=================================#
-  iter::Int64 = 1
-  iter_converged::Bool = false
+  iter = 1
+  iter_converged = false
 
   while !iter_converged
     #== reset eri arrays ==#
@@ -286,7 +286,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
     MPI.Barrier(comm)
 
-    if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
       println("Skeleton Fock matrix:")
       display(F)
       println("")
@@ -294,7 +294,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
 
     F[:,:] .+= H[:,:]
 
-    if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
+    if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
       println("Total Fock matrix:")
       display(F)
       println("")
@@ -309,7 +309,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     F_array_old[:] = F_array[1:ndiis]
     F_array[:] = [deepcopy(F), F_array[1:ndiis-1]...]
 
-    if (iter > 1)
+    if iter > 1
       B_dim += 1
       B_dim = min(B_dim,ndiis)
       try
@@ -321,7 +321,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     end
 
     #== obtain new F,D,C matrices ==#
-    indices_tocopy::CartesianIndices = CartesianIndices((1:size(D,1),
+    indices_tocopy = CartesianIndices((1:size(D,1),
       1:size(D,2)))
     copyto!(D_old, indices_tocopy, D, indices_tocopy)
 
@@ -344,18 +344,18 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
 
     #== check for convergence ==#
     @views ΔD[:,:] = D[:,:] .- D_old[:,:]
-    D_rms::T = √(@∑ ΔD ΔD)
+    D_rms = √(@∑ ΔD ΔD)
 
     E = E_elec+E_nuc
-    ΔE::T = E - E_old
+    ΔE = E - E_old
 
-    if (MPI.Comm_rank(comm) == 0)
+    if MPI.Comm_rank(comm) == 0
       println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
     end
 
     iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
     iter += 1
-    if (iter > iter_limit)
+    if iter > iter_limit
       scf_converged = false
       break
     end
@@ -421,9 +421,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   end
 
   for iorb in 1:basis.norb, jorb in 1:basis.norb
-    if (iorb != jorb)
-      F[iorb,jorb] /= 2.0
-    end
+    if iorb != jorb F[iorb,jorb] /= 2.0 end
   end
 
   return F
@@ -441,7 +439,7 @@ end
 
   while true
     ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
-    if (ijkl_index < 1) break end
+    if ijkl_index < 1 break end
 
     if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
     bra_pair = get_new_index(ijkl_index)
