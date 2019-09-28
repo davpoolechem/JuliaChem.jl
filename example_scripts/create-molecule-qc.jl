@@ -12,16 +12,15 @@ import JSON
 #== JuliaChem execution script ==#
 #================================#
 function script()
-  #== initialize JuliaChem runtime ==#
-  JuliaChem.initialize()
-
-  #== get molecule information from QCArchive ==# 
+  #== get molecule information from QCArchive ==#
   client = ptl.FractalClient()
   mol = client.query_molecules(6)[1]
 
   #== create input system ==#
   molecule = JSON.parse(mol.json())
 
+  display(molecule)
+  
   driver = "energy"
 
   model = Dict(
@@ -46,10 +45,6 @@ function script()
 
   shell = basis[2]
   display(shell)
-  JuliaChem.SIMINT.simint_get_shell_info(shell)
-
-  #== finalize JuliaChem runtime ==#
-  JuliaChem.finalize()
 end
 
-script()
+JuliaChem.initialize()
