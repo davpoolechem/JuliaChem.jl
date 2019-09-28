@@ -437,29 +437,29 @@ end
   nindices::Int64, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
-  eri_batch_length::Int64 = length(eri_batch)
+  eri_batch_length = length(eri_batch)
 
   while true
-    ijkl_index::Int64 = Threads.atomic_sub!(thread_index_counter, 1)
+    ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
     if (ijkl_index < 1) break end
 
-    if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
-    bra_pair::Int64 = get_new_index(ijkl_index)
-    ket_pair_sub::Int64 = (bra_pair*(bra_pair-1)) >> 1
-    ket_pair::Int64 = ijkl_index-ket_pair_sub
+    if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
+    bra_pair = get_new_index(ijkl_index)
+    ket_pair_sub = (bra_pair*(bra_pair-1)) >> 1
+    ket_pair = ijkl_index-ket_pair_sub
 
-    ish::Int64 = get_new_index(bra_pair)
-    jsh_sub::Int64 = (ish*(ish-1)) >> 1
-    jsh::Int64 = bra_pair-jsh_sub
+    ish = get_new_index(bra_pair)
+    jsh_sub = (ish*(ish-1)) >> 1
+    jsh = bra_pair-jsh_sub
 
-    ksh::Int64 = get_new_index(ket_pair)
-    lsh_sub::Int64 = (ksh*(ksh-1)) >> 1
-    lsh::Int64 = ket_pair-lsh_sub
+    ksh = get_new_index(ket_pair)
+    lsh_sub = (ksh*(ksh-1)) >> 1
+    lsh = ket_pair-lsh_sub
 
-    ijsh::Int64 = index(ish,jsh)
-    klsh::Int64 = index(ksh,lsh)
+    ijsh = index(ish,jsh)
+    klsh = index(ksh,lsh)
 
-    if (klsh > ijsh) ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
+    if klsh > ijsh ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
     bra.sh_a = basis[ish]
     bra.sh_b = basis[jsh]
@@ -470,13 +470,13 @@ end
     quartet.bra = bra
     quartet.ket = ket
 
-    qnum_ij::Int64 = (ish*(ish-1)) >> 1
+    qnum_ij = (ish*(ish-1)) >> 1
     qnum_ij += jsh
 
-    qnum_kl::Int64 = (ksh*(ksh-1)) >> 1
+    qnum_kl = (ksh*(ksh-1)) >> 1
     qnum_kl += lsh
 
-    quartet_num::Int64 = (qnum_ij*(qnum_ij-1)) >> 1
+    quartet_num = (qnum_ij*(qnum_ij-1)) >> 1
     quartet_num += qnum_kl - 1
 
     #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
