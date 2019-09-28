@@ -221,7 +221,7 @@ end
 end
 
 function decompose(input)
-  return trunc(Int64,cld((-1.0+√(1+8*input)),2.0))
+  return trunc(Integer,cld((-1.0+√(1+8*input)),2.0))
 end
 
 function read_in_enuc()
