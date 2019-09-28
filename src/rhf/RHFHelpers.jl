@@ -212,17 +212,17 @@ a = row index
 b = column index
 """
 =#
-function index(a::Int64,b::Int64)
+@inline function triangular_index(a::Int64,b::Int64)
   index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
   index += b
   return index
 end
 
-function index(a::Int64)
+@inline function triangular_index(a::Int64)
   return (a*(a-1)) >> 1
 end
 
-function get_new_index(input::Int64)
+function decompose(input::Int64)
   return trunc(Int64,cld((-1.0+sqrt(1+8*input)),2.0))
 end
 
@@ -247,8 +247,8 @@ function read_in_oei(oei, nbf)
 
 	oei_matrix = Matrix{Float64}(undef,(nbf,nbf))
 	for ibf in 1:nbf2
-    i = get_new_index(ibf)
-    j = ibf - index(i)
+    i = decompose(ibf)
+    j = ibf - triangular_index(i)
 
 		oei_matrix[i,j] = float(oei[ibf])
 		oei_matrix[j,i] = oei_matrix[i,j]

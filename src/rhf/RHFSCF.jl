@@ -433,20 +433,17 @@ end
     if ijkl_index < 1 break end
 
     if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
-    bra_pair = get_new_index(ijkl_index)
-    ket_pair_sub = (bra_pair*(bra_pair-1)) >> 1
-    ket_pair = ijkl_index-ket_pair_sub
+    bra_pair = decompose(ijkl_index)
+    ket_pair = ijkl_index - triangular_index(bra_pair)
 
-    ish = get_new_index(bra_pair)
-    jsh_sub = (ish*(ish-1)) >> 1
-    jsh = bra_pair-jsh_sub
+    ish = decompose(bra_pair)
+    jsh = bra_pair - triangular_index(ish)
 
-    ksh = get_new_index(ket_pair)
-    lsh_sub = (ksh*(ksh-1)) >> 1
-    lsh = ket_pair-lsh_sub
+    ksh = decompose(ket_pair)
+    lsh = ket_pair - triangular_index(ksh)
 
-    ijsh = index(ish,jsh)
-    klsh = index(ksh,lsh)
+    ijsh = triangular_index(ish,jsh)
+    klsh = triangular_index(ksh,lsh)
 
     if klsh > ijsh ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
 
@@ -459,14 +456,9 @@ end
     quartet.bra = bra
     quartet.ket = ket
 
-    qnum_ij = (ish*(ish-1)) >> 1
-    qnum_ij += jsh
-
-    qnum_kl = (ksh*(ksh-1)) >> 1
-    qnum_kl += lsh
-
-    quartet_num = (qnum_ij*(qnum_ij-1)) >> 1
-    quartet_num += qnum_kl - 1
+    qnum_ij = triangular_index(ish, jsh)
+    qnum_kl = triangular_index(ksh, lsh)
+    quartet_num = triangular_index(qnum_ij, (qnum_kl - 1))
 
     #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
@@ -573,13 +565,13 @@ end
         μ, ν = μμ,νν
         #if (μμ < νν) μ, ν = ν, μ end
 
-        μν = index(μμ,νν)
+        μν = triangular_index(μμ,νν)
 
         for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
           λ, σ = λλ,σσ
           #if (λλ < σσ) λ, σ = σ, λ end
 
-          λσ = index(λλ,σσ)
+          λσ = triangular_index(λλ,σσ)
 
           #if (μν < λσ) μ, ν, λ, σ = λ, σ, μ, ν end
           #if (μν < λσ)
