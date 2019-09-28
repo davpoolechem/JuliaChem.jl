@@ -5,38 +5,35 @@ using Base.Threads
 using MATH
 using JLD
 
-function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
-  ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
-  ibas::Int64, jbas::Int64, kbas::Int64, lbas::Int64)
-
-  do_continue::Bool = false
+function sort_braket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh, ibas, jbas, kbas, lbas)
+  do_continue = false
   μ,ν,λ,σ = μμ,νν,λλ,σσ
 
   #print("$μμ, $νν, $λλ, $σσ => ")
 
-  two_shell::Bool = ibas == jbas
+  two_shell = ibas == jbas
   two_shell = two_shell || (ibas == kbas)
   two_shell = two_shell || (ibas == lbas)
   two_shell = two_shell || (jbas == kbas)
   two_shell = two_shell || (jbas == lbas)
   two_shell = two_shell || (kbas == lbas)
 
-  three_shell::Bool = ibas == jbas && jbas == kbas
+  three_shell = ibas == jbas && jbas == kbas
   three_shell = three_shell || (ibas == jbas && jbas == lbas)
   three_shell = three_shell || (ibas == kbas && kbas == lbas)
   three_shell = three_shell || (jbas == kbas && kbas == lbas)
 
-  four_shell::Bool = ibas == jbas
+  four_shell = ibas == jbas
   four_shell = four_shell && (jbas == kbas)
   four_shell = four_shell && (kbas == lbas)
 
   if four_shell
-    three_same::Bool = ish == jsh && jsh == ksh
+    three_same = ish == jsh && jsh == ksh
     three_same = three_same || (ish == jsh && jsh == lsh)
     three_same = three_same || (ish == ksh && ksh == lsh)
     three_same = three_same || (jsh == ksh && ksh == lsh)
 
-    four_same::Bool = ish == jsh
+    four_same = ish == jsh
     four_same = four_same && jsh == ksh
     four_same = four_same && ksh == lsh
 
@@ -44,7 +41,7 @@ function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
       #print("\n")
       do_continue = true
     elseif three_same
-      if (μμ != λλ && νν != σσ)
+      if μμ != λλ && νν != σσ
         μ,ν,λ,σ = λλ,σσ,μμ,νν
       else
         #print("\n")
@@ -55,23 +52,23 @@ function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
       do_continue = true
     end
   elseif three_shell
-    if (μμ != λλ && νν != σσ)
+    if μμ != λλ && νν != σσ
       μ,ν,λ,σ = λλ,σσ,μμ,νν
     else
       #print("\n")
       do_continue = true
     end
   elseif two_shell
-    if (ish == ksh && jsh == lsh &&
+    if ish == ksh && jsh == lsh &&
       μμ != νν && μμ != λλ && μμ != σσ &&
       νν != λλ && νν != σσ &&
-      λλ != σσ )
+      λλ != σσ
       #print("\n")
       do_continue = true
-    elseif (μμ == νν && λλ == σσ)
+    elseif μμ == νν && λλ == σσ
       #print("\n")
       do_continue = true
-    elseif (μμ != λλ && νν != σσ)
+    elseif μμ != λλ && νν != σσ
       μ,ν,λ,σ = λλ,σσ,μμ,νν
     else
       #print("\n")
@@ -212,18 +209,19 @@ a = row index
 b = column index
 """
 =#
-@inline function triangular_index(a::Int64,b::Int64)
-  index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
+@inline function triangular_index(a::Integer,b::Integer)
+	if a < b a, b = b, a end
+  index = (a*(a-1)) >> 1 #bitwise divide by 2
   index += b
   return index
 end
 
-@inline function triangular_index(a::Int64)
+@inline function triangular_index(a::Integer)
   return (a*(a-1)) >> 1
 end
 
-function decompose(input::Int64)
-  return trunc(Int64,cld((-1.0+sqrt(1+8*input)),2.0))
+function decompose(input)
+  return trunc(Int64,cld((-1.0+√(1+8*input)),2.0))
 end
 
 function read_in_enuc()
@@ -242,7 +240,7 @@ Arguments
 oei = array of one-electron integrals to extract
 """
 =#
-function read_in_oei(oei, nbf)
+function read_in_oei(oei, nbf::Integer)
 	nbf2 = (nbf*(nbf+1)) >> 1
 
 	oei_matrix = Matrix{Float64}(undef,(nbf,nbf))
@@ -257,23 +255,21 @@ function read_in_oei(oei, nbf)
 	return oei_matrix
 end
 
-function DIIS(e_array::Vector{Matrix{T}},
-  F_array::Vector{Matrix{T}}, B_dim::Int64) where {T<:AbstractFloat}
-
-  B::Matrix{T} = Matrix{T}(undef,B_dim+1,B_dim+1)
-  for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
+function DIIS(e_array, F_array, B_dim)
+  B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
+  for i in 1:B_dim, j in 1:B_dim
     B[i,j] = @∑ e_array[i] e_array[j]
 
 	  B[i,B_dim+1] = -1
 	  B[B_dim+1,i] = -1
 	  B[B_dim+1,B_dim+1] =  0
   end
-  DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
+  DIIS_coeff = [ fill(0.0,B_dim)..., -1.0 ]
 
   DIIS_coeff[:,:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
 
-  F_DIIS::Matrix{T} = zeros(size(F_array[1],1),size(F_array[1],2))
-  for index::Int64 in 1:B_dim
+  F_DIIS = zeros(size(F_array[1],1),size(F_array[1],2))
+  for index in 1:B_dim
     F_DIIS[:,:] .+= DIIS_coeff[index]*F_array[index]
   end
 
