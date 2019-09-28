@@ -178,34 +178,34 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
 
   #== build DIIS arrays ==#
-  ndiis::Int64 = scf_flags["ndiis"]
-  F_array::Vector{Matrix{T}} = fill(Matrix{T}(undef,basis.norb,basis.norb),
+  ndiis = scf_flags["ndiis"]
+  F_array = fill(Matrix{T}(undef,basis.norb,basis.norb),
     ndiis)
 
-  e::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-  e_array::Vector{Matrix{T}} = fill(
+  e = Matrix{T}(undef,basis.norb,basis.norb)
+  e_array = fill(
     Matrix{T}(undef,basis.norb,basis.norb), ndiis)
-  e_array_old::Vector{Matrix{T}} = fill(
+  e_array_old = fill(
     Matrix{T}(undef,basis.norb,basis.norb), ndiis)
-  F_array_old::Vector{Matrix{T}} = fill(
+  F_array_old = fill(
     Matrix{T}(undef,basis.norb,basis.norb), ndiis)
 
   #== build arrays needed for post-fock build iteration calculations ==#
-  F_temp::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-  D_old::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
-  ΔD::Matrix{T} = Matrix{T}(undef,basis.norb,basis.norb)
+  F_temp = Matrix{T}(undef,basis.norb,basis.norb)
+  D_old = Matrix{T}(undef,basis.norb,basis.norb)
+  ΔD = Matrix{T}(undef,basis.norb,basis.norb)
 
   #== build arrays needed for dynamic damping ==#
-  damp_values::Vector{T} = [ 0.25, 0.75 ]
-  D_damp::Vector{Matrix{T}} = [ Matrix{T}(undef,basis.norb,basis.norb)
+  damp_values = [ 0.25, 0.75 ]
+  D_damp = [ Matrix{T}(undef,basis.norb,basis.norb)
     for i in 1:2 ]
-  D_damp_rms::Vector{T} = [ zero(T), zero(T) ]
+  D_damp_rms = [ zero(T), zero(T) ]
 
   #== build variables needed for eri batching ==#
-  nsh::Int64 = length(basis.shells)
-  nindices::Int64 = div(nsh*(nsh+1)*(nsh^2 + nsh + 2),8)
+  nsh = length(basis.shells)
+  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
 
-  quartet_batch_num_old::Int64 = fld(nindices,
+  quartet_batch_num_old = fld(nindices,
     QUARTET_BATCH_SIZE) + 1
 
   #== build eri batch arrays ==#
@@ -218,20 +218,20 @@ function scf_cycles(F::Matrix{T}, D::Matrix{T}, C::Matrix{T}, E::T,
   #eri_batch::Vector{T} = load("tei_batch.jld",
   #  "Integrals/$quartet_batch_num_old")
 
-  eri_sizes::Vector{Int64} = []
-  eri_starts::Vector{Int64} = []
-  eri_batch::Vector{T} = []
+  #eri_sizes = []
+  #eri_starts = []
+  #eri_batch = []
 
   #== execute convergence procedure ==#
-  scf_converged::Bool = true
+  scf_converged = true
 
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, eri_batch, eri_starts, eri_sizes, scf_converged, quartet_batch_num_old)
+    D_damp_rms, scf_converged, quartet_batch_num_old)
 
   #== we are done! ==#
-  return (F, D, C, E, scf_converged)
+  return F, D, C, E, scf_converged
 end
 
 function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
@@ -242,7 +242,6 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   F_array_old::Vector{Matrix{T}}, F_temp::Matrix{T}, F_eval::Vector{T},
   F_evec::Matrix{T}, F_mo::Matrix{T}, D_old::Matrix{T}, ΔD::Matrix{T},
   damp_values::Vector{T}, D_damp::Vector{Matrix{T}}, D_damp_rms::Vector{T},
-  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   scf_converged::Bool, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   #== initialize a few more variables ==#
@@ -253,7 +252,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   rmsd = scf_flags["rmsd"]
 
   B_dim = 1
-  length_eri_sizes = length(eri_sizes)
+  #length_eri_sizes = length(eri_sizes)
 
   #=================================#
   #== now we start scf iterations ==#
@@ -280,8 +279,7 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     #end
 
     #== build fock matrix ==#
-    F_temp[:,:] = twoei(F, D, eri_batch, eri_starts, eri_sizes,
-      H, basis)
+    F_temp[:,:] = twoei(F, D, H, basis)
 
     F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -387,7 +385,6 @@ H = One-electron Hamiltonian Matrix
 =#
 
 function twoei(F::Matrix{T}, D::Matrix{T},
-  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
 
   fill!(F,zero(T))
@@ -411,7 +408,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
     ket = ShPair(basis.shells[1], basis.shells[1])
     quartet = ShQuartet(bra,ket)
 
-    twoei_thread_kernel(F, D, eri_batch, eri_starts, eri_sizes,
+    twoei_thread_kernel(F, D,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
       bra, ket, quartet, nindices, quartet_batch_num_old)
 
@@ -428,14 +425,12 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 end
 
 @inline function twoei_thread_kernel(F::Matrix{T}, D::Matrix{T},
-  eri_batch::Vector{T}, eri_starts::Vector{Int64}, eri_sizes::Vector{Int64},
   H::Matrix{T}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{T},
   eri_quartet_batch::Vector{T}, bra::ShPair , ket::ShPair, quartet::ShQuartet,
   nindices::Int64, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
 
   comm=MPI.COMM_WORLD
-  eri_batch_length = length(eri_batch)
 
   while true
     ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
