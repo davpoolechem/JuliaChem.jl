@@ -29,8 +29,20 @@ if (isfile("../snoop/precompile_Compat.jl"))
     include("../snoop/precompile_Compat.jl")
     _precompile_()
 end
+if (isfile("../snoop/precompile_Core.jl"))
+    include("../snoop/precompile_Core.jl")
+    _precompile_()
+end
 if (isfile("../snoop/precompile_HDF5.jl"))
     include("../snoop/precompile_HDF5.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_JLD.jl"))
+    include("../snoop/precompile_JLD.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_Libdl.jl"))
+    include("../snoop/precompile_Libdl.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_MATH.jl"))
@@ -43,6 +55,10 @@ if (isfile("../snoop/precompile_MPI.jl"))
 end
 if (isfile("../snoop/precompile_Parsers.jl"))
     include("../snoop/precompile_Parsers.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_Requires.jl"))
+    include("../snoop/precompile_Requires.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_unknown.jl"))

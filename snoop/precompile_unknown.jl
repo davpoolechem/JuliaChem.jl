@@ -1,4 +1,4 @@
 function _precompile_()
     ccall(:jl_generating_output, Cint, ()) == 1 || return nothing
-    precompile(Tuple{Type{(Base.Dict{K, V} where V) where K}, Base.Pair{Symbol, String}, (Base.Pair{A, B} where B) where A})
+    precompile(Tuple{Type{Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1}, Axes, F, Args} where Args<:Tuple where F where Axes}, typeof(Base._views), Tuple{Array{Any, 1}}})
 end
