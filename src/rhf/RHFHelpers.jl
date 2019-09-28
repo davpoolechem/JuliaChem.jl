@@ -275,6 +275,10 @@ b = column index
   return index
 end
 
+function get_new_index(input::Int64)
+  return trunc(Int64,cld((-1.0+sqrt(1+8*input)),2.0))
+end
+
 macro eri_quartet_batch_size(max_am)
   return quote
     if $(max_am) == "s"

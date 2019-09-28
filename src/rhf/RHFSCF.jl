@@ -100,10 +100,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis,
     scf_flags)
   F = deepcopy(F_mo)
-  #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1), 
+  #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1),
   #  1:size(F,2)))
-  #copyto!(F, indices_tocopy, F_mo, indices_tocopy) 
-  
+  #copyto!(F, indices_tocopy, F_mo, indices_tocopy)
+
   E::T = E_elec + E_nuc
   E_old::T = E
 
@@ -321,18 +321,18 @@ function scf_cycles_kernel(F::Matrix{T}, D::Matrix{T}, C::Matrix{T},
     end
 
     #== obtain new F,D,C matrices ==#
-    indices_tocopy::CartesianIndices = CartesianIndices((1:size(D,1), 
+    indices_tocopy::CartesianIndices = CartesianIndices((1:size(D,1),
       1:size(D,2)))
-    copyto!(D_old, indices_tocopy, D, indices_tocopy) 
+    copyto!(D_old, indices_tocopy, D, indices_tocopy)
 
     E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
       ortho, basis, scf_flags)
-    
+
     #F = deepcopy(F_mo)
-    indices_tocopy = CartesianIndices((1:size(F_mo,1), 
+    indices_tocopy = CartesianIndices((1:size(F_mo,1),
       1:size(F_mo,2)))
-    copyto!(F, indices_tocopy, F_mo, indices_tocopy) 
-  
+    copyto!(F, indices_tocopy, F_mo, indices_tocopy)
+
     #== dynamic damping of density matrix ==#
     #D_damp[:] = map(x -> x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:],
     #  damp_values)
@@ -393,7 +393,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
   fill!(F,zero(T))
 
   nsh::Int64 = length(basis.shells)
-  nindices::Int64 = nsh*(nsh+1)*(nsh^2 + nsh + 2)/8
+  nindices::Int64 = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
 
   quartet_batch_num_old::Int64 = fld(nindices,
     QUARTET_BATCH_SIZE) + 1
@@ -422,7 +422,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 
   for iorb::Int64 in 1:basis.norb, jorb::Int64 in 1:basis.norb
     if (iorb != jorb)
-      F[iorb,jorb] /= 2
+      F[iorb,jorb] /= 2.0
     end
   end
 
@@ -444,13 +444,17 @@ end
     if (ijkl_index < 1) break end
 
     if(MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm)) continue end
-    bra_pair::Int64 = cld((-1+sqrt(1+8*ijkl_index)),2) 
-    ket_pair::Int64 = ijkl_index-div(bra_pair*(bra_pair-1),2)
+    bra_pair::Int64 = get_new_index(ijkl_index)
+    ket_pair_sub::Int64 = (bra_pair*(bra_pair-1)) >> 1
+    ket_pair::Int64 = ijkl_index-ket_pair_sub
 
-    ish::Int64 = cld((-1+sqrt(1+8*bra_pair)),2)
-    jsh::Int64 = bra_pair-div(ish*(ish-1),2)
-    ksh::Int64 = cld((-1+sqrt(1+8*ket_pair)),2)
-    lsh::Int64 = ket_pair-div(ksh*(ksh-1),2)
+    ish::Int64 = get_new_index(bra_pair)
+    jsh_sub::Int64 = (ish*(ish-1)) >> 1
+    jsh::Int64 = bra_pair-jsh_sub
+
+    ksh::Int64 = get_new_index(ket_pair)
+    lsh_sub::Int64 = (ksh*(ksh-1)) >> 1
+    lsh::Int64 = ket_pair-lsh_sub
 
     ijsh::Int64 = index(ish,jsh)
     klsh::Int64 = index(ksh,lsh)
@@ -466,9 +470,15 @@ end
     quartet.bra = bra
     quartet.ket = ket
 
-    qnum_ij::Int64 = div(ish*(ish-1),2) + jsh
-    qnum_kl::Int64 = div(ksh*(ksh-1),2) + lsh
-    quartet_num::Int64 = div(qnum_ij*(qnum_ij-1),2) + qnum_kl - 1
+    qnum_ij::Int64 = (ish*(ish-1)) >> 1
+    qnum_ij += jsh
+
+    qnum_kl::Int64 = (ksh*(ksh-1)) >> 1
+    qnum_kl += lsh
+
+    quartet_num::Int64 = (qnum_ij*(qnum_ij-1)) >> 1
+    quartet_num += qnum_kl - 1
+
     #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
 
    # quartet_batch_num::Int64 = fld(quartet_num,
@@ -514,7 +524,7 @@ end
 
 @inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
   eri_quartet_batch::Vector{T}) where {T<:AbstractFloat}
-  
+
   SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
 end
 
@@ -531,42 +541,42 @@ end
   spσ::Int64 = quartet.ket.sh_b.sp
 
   μνλσ::Int64 = 0
-  
+
   for spi::Int64 in 0:spμ, spj::Int64 in 0:spν
-    nμ::Int64 = 0 
+    nμ::Int64 = 0
     pμ::Int64 = quartet.bra.sh_a.pos
     if spμ == 1
-      nμ = spi == 1 ? 3 : 1 
-      pμ += spi == 1 ? 1 : 0  
+      nμ = spi == 1 ? 3 : 1
+      pμ += spi == 1 ? 1 : 0
     else
       nμ = quartet.bra.sh_a.nbas
     end
 
-    nν::Int64 = 0 
+    nν::Int64 = 0
     pν::Int64 = quartet.bra.sh_b.pos
     if spν == 1
       nν = spj == 1 ? 3 : 1
-      pν += spj == 1 ? 1 : 0 
-    else   
+      pν += spj == 1 ? 1 : 0
+    else
       nν = quartet.bra.sh_b.nbas
     end
 
     for spk::Int64 in 0:spλ, spl::Int64 in 0:spσ
       nλ::Int64 = 0
       pλ::Int64 = quartet.ket.sh_a.pos
-      if spλ == 1 
+      if spλ == 1
         nλ = spk == 1 ? 3 : 1
-        pλ += spk == 1 ? 1 : 0 
-      else  
+        pλ += spk == 1 ? 1 : 0
+      else
         nλ = quartet.ket.sh_a.nbas
       end
 
-      nσ::Int64 = 0  
+      nσ::Int64 = 0
       pσ::Int64 = quartet.ket.sh_b.pos
       if spσ == 1
         nσ = spl == 1 ? 3 : 1
-        pσ += spl == 1 ? 1 : 0 
-      else 
+        pσ += spl == 1 ? 1 : 0
+      else
         nσ = quartet.ket.sh_b.nbas
       end
 
@@ -583,23 +593,23 @@ end
           λσ::Int64 = index(λλ,σσ)
 
           #if (μν < λσ) μ, ν, λ, σ = λ, σ, μ, ν end
-          #if (μν < λσ) 
+          #if (μν < λσ)
           #  μνλσ += 1
-          #  continue 
-          #end 
+          #  continue
+          #end
           #print("$μμ, $νν, $λλ, $σσ => ")
-          if (μμ < νν) 
+          if (μμ < νν)
             μνλσ += 1
             #println("DO CONTINUE")
-            continue 
-          end 
-      
-          if (λλ < σσ) 
+            continue
+          end
+
+          if (λλ < σσ)
             μνλσ += 1
             #println("DO CONTINUE")
-            continue 
-          end 
-       
+            continue
+          end
+
           if (μν < λσ)
             do_continue::Bool = false
 
@@ -612,7 +622,7 @@ end
               continue
             end
           end
-           
+
           μνλσ += 1
 
 	        eri::T = eri_batch[μνλσ]
@@ -623,7 +633,7 @@ end
 	        eri *= (μ == ν) ? 0.5 : 1.0
 	        eri *= (λ == σ) ? 0.5 : 1.0
 	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
-  
+
 	        F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
 	        F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
           F_priv[μ,λ] -= D[ν,σ] * eri
@@ -675,7 +685,7 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
 
   @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F_mo))[:,:]
   @views F_evec[:,:] = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
-  
+
   #copyto!(F_evec, CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))),
   #  F_evec[:,sortperm(F_eval)], CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))))
 
