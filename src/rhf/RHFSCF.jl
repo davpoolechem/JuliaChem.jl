@@ -533,18 +533,18 @@ end
   quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
 
-  norb::Int64 = size(D)[1]
+  norb = size(D)[1]
 
-  spμ::Int64 = quartet.bra.sh_a.sp
-  spν::Int64 = quartet.bra.sh_b.sp
-  spλ::Int64 = quartet.ket.sh_a.sp
-  spσ::Int64 = quartet.ket.sh_b.sp
+  spμ = quartet.bra.sh_a.sp
+  spν = quartet.bra.sh_b.sp
+  spλ = quartet.ket.sh_a.sp
+  spσ = quartet.ket.sh_b.sp
 
-  μνλσ::Int64 = 0
+  μνλσ = 0
 
-  for spi::Int64 in 0:spμ, spj::Int64 in 0:spν
-    nμ::Int64 = 0
-    pμ::Int64 = quartet.bra.sh_a.pos
+  for spi in 0:spμ, spj in 0:spν
+    nμ = 0
+    pμ = quartet.bra.sh_a.pos
     if spμ == 1
       nμ = spi == 1 ? 3 : 1
       pμ += spi == 1 ? 1 : 0
@@ -552,8 +552,8 @@ end
       nμ = quartet.bra.sh_a.nbas
     end
 
-    nν::Int64 = 0
-    pν::Int64 = quartet.bra.sh_b.pos
+    nν = 0
+    pν = quartet.bra.sh_b.pos
     if spν == 1
       nν = spj == 1 ? 3 : 1
       pν += spj == 1 ? 1 : 0
@@ -561,9 +561,9 @@ end
       nν = quartet.bra.sh_b.nbas
     end
 
-    for spk::Int64 in 0:spλ, spl::Int64 in 0:spσ
-      nλ::Int64 = 0
-      pλ::Int64 = quartet.ket.sh_a.pos
+    for spk in 0:spλ, spl in 0:spσ
+      nλ = 0
+      pλ = quartet.ket.sh_a.pos
       if spλ == 1
         nλ = spk == 1 ? 3 : 1
         pλ += spk == 1 ? 1 : 0
@@ -571,8 +571,8 @@ end
         nλ = quartet.ket.sh_a.nbas
       end
 
-      nσ::Int64 = 0
-      pσ::Int64 = quartet.ket.sh_b.pos
+      nσ = 0
+      pσ = quartet.ket.sh_b.pos
       if spσ == 1
         nσ = spl == 1 ? 3 : 1
         pσ += spl == 1 ? 1 : 0
@@ -580,17 +580,17 @@ end
         nσ = quartet.ket.sh_b.nbas
       end
 
-      for μμ::Int64 in pμ:pμ+(nμ-1), νν::Int64 in pν:pν+(nν-1)
-        μ::Int64, ν::Int64 = μμ,νν
+      for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
+        μ, ν = μμ,νν
         #if (μμ < νν) μ, ν = ν, μ end
 
-        μν::Int64 = index(μμ,νν)
+        μν = index(μμ,νν)
 
-        for λλ::Int64 in pλ:pλ+(nλ-1), σσ::Int64 in pσ:pσ+(nσ-1)
-          λ::Int64, σ::Int64 = λλ,σσ
+        for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
+          λ, σ = λλ,σσ
           #if (λλ < σσ) λ, σ = σ, λ end
 
-          λσ::Int64 = index(λλ,σσ)
+          λσ = index(λλ,σσ)
 
           #if (μν < λσ) μ, ν, λ, σ = λ, σ, μ, ν end
           #if (μν < λσ)
@@ -611,7 +611,7 @@ end
           end
 
           if (μν < λσ)
-            do_continue::Bool = false
+            do_continue = false
 
             do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
               ksh, lsh, nμ, nν, nλ, nσ)
@@ -625,7 +625,7 @@ end
 
           μνλσ += 1
 
-	        eri::T = eri_batch[μνλσ]
+	        eri = eri_batch[μνλσ]
           #eri::T = 0
           if (abs(eri) <= 1E-10) continue end
 
@@ -698,10 +698,10 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   end
 
   #== build new density matrix ==#
-  nocc::Int64 = basis.nels/2
+  nocc = div(basis.nels,2)
   norb = basis.norb
 
-  for i::Int64 in 1:basis.norb, j::Int64 in 1:basis.norb
+  for i in 1:basis.norb, j in 1:basis.norb
     @views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
     #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
     D[i,j] *= 2
@@ -714,9 +714,9 @@ function iteration(F_μν::Matrix{T}, D::Matrix{T}, C::Matrix{T},
   end
 
   #== compute new SCF energy ==#
-  EHF1::T = @∑ D F_μν
-  EHF2::T = @∑ D H
-  E_elec::T = (EHF1 + EHF2)/2
+  EHF1 = @∑ D F_μν
+  EHF2 = @∑ D H
+  E_elec = (EHF1 + EHF2)/2
 
   if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
     println("New energy:")
