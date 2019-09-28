@@ -82,6 +82,7 @@ function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
   return do_continue, μ, ν, λ, σ
 end
 
+#=
 function set_up_eri_database(basis::BasisStructs.Basis)
   jldopen("tei_batch.jld", "w") do file
     #== write quartet eri lists to database ==#
@@ -195,11 +196,38 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 	    eri_array_sizes)
   end
 end
+=#
+
+#=
+"""
+	 index(a::Int64,b::Int64)
+Summary
+======
+Triangular indexing determination.
+
+Arguments
+======
+a = row index
+
+b = column index
+"""
+=#
+function index(a::Int64,b::Int64)
+  index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
+  index += b
+  return index
+end
+
+function index(a::Int64)
+  return (a*(a-1)) >> 1
+end
+
+function get_new_index(input::Int64)
+  return trunc(Int64,cld((-1.0+sqrt(1+8*input)),2.0))
+end
 
 function read_in_enuc()
-	enuc::Float64 = input_enuc()
-
-	return enuc
+	return input_enuc()
 end
 #=
 """
@@ -214,18 +242,15 @@ Arguments
 oei = array of one-electron integrals to extract
 """
 =#
-function read_in_oei(oei::Vector{T}, nbf::Int64) where {T}
-	nbf2::Int64 = nbf*(nbf+1)/2
+function read_in_oei(oei, nbf)
+	nbf2 = (nbf*(nbf+1)) >> 1
 
-    ioff::Vector{Int64} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
+	oei_matrix = Matrix{Float64}(undef,(nbf,nbf))
+	for ibf in 1:nbf2
+    i = get_new_index(ibf)
+    j = ibf - index(i)
 
-	oei_matrix::Matrix{T} = Matrix{T}(undef,(nbf,nbf))
-	Threads.@threads for index::Int64 in 1:nbf2
-        i::Int64 = ceil(((-1+sqrt(1+8*index))/2))
-        j::Int64 = index - ioff[i]
-
-        eri = oei[index]
-		oei_matrix[i,j] = oei[index]
+		oei_matrix[i,j] = float(oei[ibf])
 		oei_matrix[j,i] = oei_matrix[i,j]
 	end
 
@@ -253,30 +278,6 @@ function DIIS(e_array::Vector{Matrix{T}},
   end
 
   return F_DIIS
-end
-
-#=
-"""
-	 index(a::Int64,b::Int64)
-Summary
-======
-Triangular indexing determination.
-
-Arguments
-======
-a = row index
-
-b = column index
-"""
-=#
-@inline function index(a::Int64,b::Int64)
-  index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
-  index += b
-  return index
-end
-
-function get_new_index(input::Int64)
-  return trunc(Int64,cld((-1.0+sqrt(1+8*input)),2.0))
 end
 
 macro eri_quartet_batch_size(max_am)
