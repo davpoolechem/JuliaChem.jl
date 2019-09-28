@@ -392,24 +392,24 @@ function twoei(F::Matrix{T}, D::Matrix{T},
 
   fill!(F,zero(T))
 
-  nsh::Int64 = length(basis.shells)
-  nindices::Int64 = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
+  nsh = length(basis.shells)
+  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
 
-  quartet_batch_num_old::Int64 = fld(nindices,
+  quartet_batch_num_old = fld(nindices,
     QUARTET_BATCH_SIZE) + 1
 
-  mutex::Base.Threads.Mutex = Base.Threads.Mutex()
-  thread_index_counter::Threads.Atomic{Int64} = Threads.Atomic{Int64}(nindices)
+  mutex = Base.Threads.Mutex()
+  thread_index_counter = Threads.Atomic{Int64}(nindices)
 
-  Threads.@threads for thread::Int64 in 1:Threads.nthreads()
-    F_priv::Matrix{T} = zeros(basis.norb,basis.norb)
+  Threads.@threads for thread in 1:Threads.nthreads()
+    F_priv = zeros(basis.norb,basis.norb)
 
-    max_shell_am::String = MAX_SHELL_AM
-    eri_quartet_batch::Vector{T} = Vector{T}(undef,1296)
+    max_shell_am = MAX_SHELL_AM
+    eri_quartet_batch = Vector{T}(undef,1296)
 
-    bra::ShPair = ShPair(basis.shells[1], basis.shells[1])
-    ket::ShPair = ShPair(basis.shells[1], basis.shells[1])
-    quartet::ShQuartet = ShQuartet(bra,ket)
+    bra = ShPair(basis.shells[1], basis.shells[1])
+    ket = ShPair(basis.shells[1], basis.shells[1])
+    quartet = ShQuartet(bra,ket)
 
     twoei_thread_kernel(F, D, eri_batch, eri_starts, eri_sizes,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
@@ -420,7 +420,7 @@ function twoei(F::Matrix{T}, D::Matrix{T},
     unlock(mutex)
   end
 
-  for iorb::Int64 in 1:basis.norb, jorb::Int64 in 1:basis.norb
+  for iorb in 1:basis.norb, jorb in 1:basis.norb
     if (iorb != jorb)
       F[iorb,jorb] /= 2.0
     end
