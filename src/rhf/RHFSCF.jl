@@ -8,8 +8,7 @@ using LinearAlgebra
 using JLD
 
 function rhf_energy(basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}},
-  scf_flags::Dict{String,Any})
+  molecule::Union{Dict{String,Any},Dict{Any,Any}}, scf_flags::Dict{String,Any})
 
   return rhf_kernel(basis,molecule,scf_flags)
 end
@@ -33,8 +32,7 @@ read_in = file required to read in from input file
 type = Precision of variables in calculation
 """
 function rhf_kernel(basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}},
-  scf_flags::Dict{String,Any})
+  molecule::Union{Dict{String,Any},Dict{Any,Any}}, scf_flags::Dict{String,Any})
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
@@ -167,11 +165,11 @@ function rhf_kernel(basis::BasisStructs.Basis,
   return F, D, C, E, calculation_status
 end
 
-function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64}, E::T,
-  H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64},
-  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, E_nuc::T, E_elec::T, E_old::T,
-  basis::BasisStructs.Basis,
-  scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
+function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
+  E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64},
+  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
+  E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
+  scf_flags::Dict{String,Any})
 
   #== build DIIS arrays ==#
   ndiis = scf_flags["ndiis"]
@@ -230,15 +228,17 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64}, 
   return F, D, C, E, scf_converged
 end
 
-function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
-  E::T, H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64}, E_nuc::T, E_elec::T,
-  E_old::T, basis::BasisStructs.Basis, scf_flags::Dict{String,Any},
-  ndiis::Int64, F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
+function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
+  C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
+  S::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64,
+  basis::BasisStructs.Basis, scf_flags::Dict{String,Any}, ndiis::Int64,
+  F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
-  F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64}, F_eval::Vector{Float64},
-  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, D_old::Matrix{Float64}, ΔD::Matrix{Float64},
-  damp_values::Vector{Float64}, D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
-  scf_converged::Bool, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
+  F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
+  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
+  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
+  D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
+  scf_converged::Bool, quartet_batch_num_old::Int64)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -380,8 +380,8 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{Float64}, D::Matrix{Float64},
-  H::Matrix{Float64}, basis::BasisStructs.Basis) where {T<:AbstractFloat}
+function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
+  basis::BasisStructs.Basis)
 
   fill!(F,zero(Float64))
 
@@ -423,8 +423,8 @@ end
 @inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
-  eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair, quartet::ShQuartet,
-  nindices::Int64, quartet_batch_num_old::Int64) where {T<:AbstractFloat}
+  eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
+  quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64)
 
   comm=MPI.COMM_WORLD
 
@@ -503,16 +503,16 @@ end
   end
 end
 
-@inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
-  eri_quartet_batch::Vector{Float64}) where {T<:AbstractFloat}
+@inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64,
+  lsh::Int64, eri_quartet_batch::Vector{Float64})
 
   SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
 end
 
 
-@noinline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64}, eri_batch::Vector{Float64},
-  quartet::ShQuartet, ish::Int64, jsh::Int64,
-  ksh::Int64, lsh::Int64) where {T<:AbstractFloat}
+@noinline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
+  eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
+  ksh::Int64, lsh::Int64)
 
   norb = size(D)[1]
 
@@ -652,10 +652,10 @@ H = One-electron Hamiltonian Matrix
 ortho = Symmetric Orthogonalization Matrix
 """
 =#
-function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
-  H::Matrix{Float64}, F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
-  ortho::Matrix{Float64}, basis::BasisStructs.Basis,
-  scf_flags::Dict{String,Any}) where {T<:AbstractFloat}
+function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
+  C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
+  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
+  basis::BasisStructs.Basis, scf_flags::Dict{String,Any})
 
   comm=MPI.COMM_WORLD
 
