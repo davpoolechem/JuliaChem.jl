@@ -295,22 +295,24 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
 
     #== do DIIS ==#
-    e[:,:] = F[:,:]*D[:,:]*S[:,:] .- S[:,:]*D[:,:]*F[:,:]
+    if ndiis > 0
+      e[:,:] = F[:,:]*D[:,:]*S[:,:] .- S[:,:]*D[:,:]*F[:,:]
 
-    e_array_old[:] = e_array[1:ndiis]
-    e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
+      e_array_old[:] = e_array[1:ndiis]
+      e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
 
-    F_array_old[:] = F_array[1:ndiis]
-    F_array[:] = [deepcopy(F), F_array[1:ndiis-1]...]
+      F_array_old[:] = F_array[1:ndiis]
+      F_array[:] = [deepcopy(F), F_array[1:ndiis-1]...]
 
-    if iter > 1
-      B_dim += 1
-      B_dim = min(B_dim,ndiis)
-      try
-        F[:,:] = DIIS(e_array, F_array, B_dim)
-      catch
-        B_dim = 2
-        F[:,:] = DIIS(e_array, F_array, B_dim)
+      if iter > 1
+        B_dim += 1
+        B_dim = min(B_dim,ndiis)
+        try
+          F[:,:] = DIIS(e_array, F_array, B_dim)
+        catch
+          B_dim = 2
+          F[:,:] = DIIS(e_array, F_array, B_dim)
+        end
       end
     end
 
