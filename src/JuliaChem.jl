@@ -17,16 +17,17 @@ end
 #================================================#
 #== we want to precompile all involved modules ==#
 #================================================#
+#=
 if (isfile("../snoop/precompile_Base.jl"))
-    include("../snoop/precompile_Base.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_Base.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_Blosc.jl"))
-    include("../snoop/precompile_Blosc.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_Blosc.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_Compat.jl"))
-    include("../snoop/precompile_Compat.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_Compat.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_Core.jl"))
@@ -34,7 +35,7 @@ if (isfile("../snoop/precompile_Core.jl"))
     _precompile_()
 end
 if (isfile("../snoop/precompile_HDF5.jl"))
-    include("../snoop/precompile_HDF5.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_HDF5.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_JLD.jl"))
@@ -46,15 +47,15 @@ if (isfile("../snoop/precompile_Libdl.jl"))
     _precompile_()
 end
 if (isfile("../snoop/precompile_MATH.jl"))
-    include("../snoop/precompile_MATH.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_MATH.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_MPI.jl"))
-    include("../snoop/precompile_MPI.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_MPI.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_Parsers.jl"))
-    include("../snoop/precompile_Parsers.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_Parsers.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_Requires.jl"))
@@ -62,6 +63,7 @@ if (isfile("../snoop/precompile_Requires.jl"))
     _precompile_()
 end
 if (isfile("../snoop/precompile_unknown.jl"))
-    include("../snoop/precompile_unknown.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_unknown.jl")
     _precompile_()
 end
+=#
