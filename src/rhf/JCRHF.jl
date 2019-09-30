@@ -49,10 +49,10 @@ function run(basis, molecule, keywords)
   scf_flags = keywords["scf"]
 
   #== set up eris ==#
-  if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
-    if scf_flags["direct"] == false
-      set_up_eri_database(basis)
-    else
+  #if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
+    #if scf_flags["direct"] == false
+    #  set_up_eri_database(basis)
+    #else
       nshell_simint = SIMINT.allocate_shell_array(basis)
       for shell in basis.shells
         SIMINT.add_shell(shell)
@@ -64,8 +64,8 @@ function run(basis, molecule, keywords)
       #  SIMINT.get_simint_shell_info(ishell)
       #end
 
-    end
-  end
+    #end
+  #end
 
   #== actually perform scf calculation ==#
   #GC.enable(false)
