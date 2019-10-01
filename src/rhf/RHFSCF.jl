@@ -46,11 +46,27 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
     println("Overlap matrix:")
-    display(S)
+    for shell_group in 0:cld(size(S)[1],5)
+      ending = min((5*shell_group + 5), size(S)[2])
+      S_debug = S[:,(5*shell_group + 1):ending]
+      pretty_table(hcat(collect(1:1:size(S)[1]),S_debug),
+        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+        formatter = ft_printf("%5.6f", collect(2:1:6)),
+        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+    end
+    #display(S)
     println("")
 
     println("Hamiltonian matrix:")
-    display(H)
+    #display(H)
+    for shell_group in 0:cld(size(H)[1],5)
+      ending = min((5*shell_group + 5), size(H)[2])
+      H_debug = H[:,(5*shell_group + 1):ending]
+      pretty_table(hcat(collect(1:1:size(H)[1]),H_debug),
+        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+        formatter = ft_printf("%5.6f", collect(2:1:6)),
+        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+    end
     println("")
   end
 
@@ -70,7 +86,15 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
     println("Ortho matrix:")
-    display(ortho)
+    #display(ortho)
+    for shell_group in 0:cld(size(ortho)[1],5)
+      ending = min((5*shell_group + 5), size(ortho)[2])
+      ortho_debug = ortho[:,(5*shell_group + 1):ending]
+      pretty_table(hcat(collect(1:1:size(ortho)[1]),ortho_debug),
+        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+        formatter = ft_printf("%5.6f", collect(2:1:6)),
+        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+    end
     println("")
   end
 
