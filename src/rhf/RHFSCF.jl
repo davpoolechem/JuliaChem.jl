@@ -6,6 +6,7 @@ using Base.Threads
 #using Distributed
 using LinearAlgebra
 using JLD
+using PrettyTables
 
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}}, scf_flags::Dict{String,Any})
@@ -282,7 +283,15 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
       println("Skeleton Fock matrix:")
-      display(F)
+      #display(F)
+      for shell_group in 0:cld(size(F)[1],5)
+        ending = min((5*shell_group + 5), size(F)[2]) 
+        F_debug = F[:,(5*shell_group + 1):ending]
+        pretty_table(hcat(collect(1:1:size(F)[1]),F_debug), 
+          vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))), 
+          formatter = ft_printf("%5.6f", collect(2:1:6)), 
+          highlighters = Highlighter((data,i,j)-> ((5*shell_group+1) < j), crayon"black"))
+      end
       println("")
     end
 
