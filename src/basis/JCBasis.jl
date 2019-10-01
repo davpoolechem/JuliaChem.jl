@@ -14,6 +14,7 @@ using MPI
 using Base.Threads
 #using Distributed
 using HDF5
+using PrettyTables
 
 Base.include(@__MODULE__, "BasisHelpers.jl")
 
@@ -84,14 +85,17 @@ function run(molecule, model)
       println("ATOM $symbol:")
       for shell_num::Int64 in 1:length(shells)
         new_shell_dict::Dict{String,Any} = shells["$shell_num"]
-        println("Shell #$shell_num:")
-        display(new_shell_dict)
-        println("")
 
         new_shell_am::Int64 = shell_am_mapping[new_shell_dict["Shell Type"]]
         new_shell_exp::Vector{Float64} = new_shell_dict["Exponents"]
         new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
   
+        println("Shell #$shell_num:")
+        pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, new_shell_coeff), 
+          vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
+          formatter = ft_printf("%5.6f", [2,3]) ) 
+        println("")
+        
         new_shell_nprim::Int64 = size(new_shell_exp)[1]
         new_shell_coeff_array::Vector{Float64} = reshape(new_shell_coeff,
           (length(new_shell_coeff),))       
