@@ -662,7 +662,7 @@ end
           printit = printit || (ν==23 && λ==8)
           printit = printit || (ν==23 && σ==8)
           printit = printit || (λ==23 && σ==8)
-          if printit 
+          if true 
             println("$μ, $ν, $λ, $σ, $eri")
           end
 	        eri *= (μ == ν) ? 0.5 : 1.0

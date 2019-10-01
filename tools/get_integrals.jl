@@ -179,12 +179,6 @@ function create_input()
     hcore = readlines(file)
   end
 
-  #== read in two-electron integrals ==# 
-  tei::Array{String,1} = []
-  open("tools/tei.json") do file
-    tei = readlines(file)
-  end
-
   #== generate output file array ==#
   output_file_array::Array{String,1} = [] 
   push!(output_file_array,"{")
@@ -200,7 +194,6 @@ function create_input()
 
   push!(output_file_array, overlap...)
   push!(output_file_array, hcore...)
-  push!(output_file_array, tei...)
 
   push!(output_file_array,"  },")
   push!(output_file_array,"  \"driver\": \"energy\",")
@@ -230,5 +223,4 @@ end
 
 get_hamiltonian_integrals(ARGS[1])
 get_overlap_integrals(ARGS[1])
-#get_two_electron_integrals(ARGS[1])
 create_input()
