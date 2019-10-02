@@ -48,8 +48,12 @@ function sort_braket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh, ibas, jbas, kba
         do_continue = true
       end
     else
-      #print("\n")
-      do_continue = true
+      if ish == ksh && jsh != lsh
+        μ,ν,λ,σ = λλ,σσ,μμ,νν
+      else
+        #print("\n")
+        do_continue = true
+      end
     end
   elseif three_shell
     if μμ != λλ && νν != σσ

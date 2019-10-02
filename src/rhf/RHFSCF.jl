@@ -653,7 +653,10 @@ end
 
 	        eri = eri_batch[μνλσ]
           #eri::T = 0
-          if (abs(eri) <= 1E-10) continue end
+          if (abs(eri) <= 1E-10) 
+            #println("DO CONTINUE - SCREENED")
+            continue 
+          end
 
           
           printit = μ==23 && ν==8
