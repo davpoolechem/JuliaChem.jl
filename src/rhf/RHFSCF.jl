@@ -9,7 +9,8 @@ using JLD
 using PrettyTables
 
 function rhf_energy(basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}}, scf_flags::Dict{String,Any})
+  molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
+  scf_flags)
 
   return rhf_kernel(basis,molecule,scf_flags)
 end
@@ -33,7 +34,7 @@ read_in = file required to read in from input file
 type = Precision of variables in calculation
 """
 function rhf_kernel(basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}}, scf_flags::Dict{String,Any})
+  molecule::Union{Dict{String,Any},Dict{Any,Any}}, scf_flags)
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
@@ -194,7 +195,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
   E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
-  scf_flags::Dict{String,Any})
+  scf_flags)
 
   #== build DIIS arrays ==#
   ndiis = scf_flags["ndiis"]
@@ -256,7 +257,7 @@ end
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
   S::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64,
-  basis::BasisStructs.Basis, scf_flags::Dict{String,Any}, ndiis::Int64,
+  basis::BasisStructs.Basis, scf_flags, ndiis::Int64,
   F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
@@ -704,7 +705,7 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
-  basis::BasisStructs.Basis, scf_flags::Dict{String,Any})
+  basis::BasisStructs.Basis, scf_flags)
 
   comm=MPI.COMM_WORLD
 
