@@ -134,7 +134,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  @time F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, F_eval,
+  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, F_eval,
   F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags)
 
   if !converged
