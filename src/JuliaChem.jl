@@ -17,7 +17,6 @@ end
 #================================================#
 #== we want to precompile all involved modules ==#
 #================================================#
-#=
 if (isfile("../snoop/precompile_Base.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Base.jl")
     _precompile_()
@@ -31,6 +30,10 @@ if (isfile("../snoop/precompile_Compat.jl"))
     _precompile_()
 end
 if (isfile("../snoop/precompile_Core.jl"))
+    include("../snoop/precompile_Core.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_Crayons.jl"))
     include("../snoop/precompile_Core.jl")
     _precompile_()
 end
@@ -66,4 +69,3 @@ if (isfile("../snoop/precompile_unknown.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_unknown.jl")
     _precompile_()
 end
-=#
