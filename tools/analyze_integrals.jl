@@ -111,6 +111,15 @@ end
 for key in keys(julia_dict)
   has_julia_key = haskey(gamess_dict,key)
   if !has_julia_key
-    println("Missing GAMESS key:", key)
+    println("Missing GAMESS key:", key,": ",julia_dict[key])
   end 
+  
+  #=
+  if has_julia_key
+    same = isapprox(gamess_dict[key], julia_dict[key], rtol = 1e-8)
+    if !same
+      println("Not same!: ", gamess_dict[key], ", ", julia_dict[key])
+    end
+  end
+  =#
 end
