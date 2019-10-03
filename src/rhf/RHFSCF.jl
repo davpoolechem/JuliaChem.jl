@@ -9,7 +9,7 @@ using JLD
 using PrettyTables
 
 function rhf_energy(basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
+  molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags)
 
   return rhf_kernel(basis,molecule,scf_flags)
@@ -310,11 +310,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       println("Skeleton Fock matrix:")
       #display(F)
       for shell_group in 0:cld(size(F)[1],5)
-        ending = min((5*shell_group + 5), size(F)[2]) 
+        ending = min((5*shell_group + 5), size(F)[2])
         F_debug = F[:,(5*shell_group + 1):ending]
-        pretty_table(hcat(collect(1:1:size(F)[1]),F_debug), 
-          vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))), 
-          formatter = ft_printf("%5.6f", collect(2:1:6)), 
+        pretty_table(hcat(collect(1:1:size(F)[1]),F_debug),
+          vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+          formatter = ft_printf("%5.6f", collect(2:1:6)),
           highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
       end
       println("")
@@ -326,11 +326,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       println("Total Fock matrix:")
       #display(F)
       for shell_group in 0:cld(size(F)[1],5)
-        ending = min((5*shell_group + 5), size(F)[2]) 
+        ending = min((5*shell_group + 5), size(F)[2])
         F_debug = F[:,(5*shell_group + 1):ending]
-        pretty_table(hcat(collect(1:1:size(F)[1]),F_debug), 
-          vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))), 
-          formatter = ft_printf("%5.6f", collect(2:1:6)), 
+        pretty_table(hcat(collect(1:1:size(F)[1]),F_debug),
+          vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+          formatter = ft_printf("%5.6f", collect(2:1:6)),
           highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
       end
       println("")
@@ -432,6 +432,9 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
 
+  ish_old = 0
+  jsh_old = 0
+
   quartet_batch_num_old = fld(nindices,
     QUARTET_BATCH_SIZE) + 1
 
@@ -442,7 +445,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
     F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
-    eri_quartet_batch = Vector{Float64}(undef,1296)
+    eri_quartet_batch = Vector{Float64}(undef,81)
 
     bra = ShPair(basis.shells[1], basis.shells[1])
     ket = ShPair(basis.shells[1], basis.shells[1])
@@ -450,7 +453,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 
     twoei_thread_kernel(F, D,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
-      bra, ket, quartet, nindices, quartet_batch_num_old)
+      bra, ket, quartet, nindices, quartet_batch_num_old, ish_old, jsh_old)
 
     lock(mutex)
     F[:,:] .+= F_priv[:,:]
@@ -468,7 +471,8 @@ end
   H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
   eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
-  quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64)
+  quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
+  ish_old::Int64, jsh_old::Int64)
 
   comm=MPI.COMM_WORLD
 
@@ -552,7 +556,10 @@ end
 @inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64, eri_quartet_batch::Vector{Float64})
 
-  SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
+  SIMINT.create_ij_shell_pair(ish,jsh)
+  SIMINT.create_kl_shell_pair(ksh,lsh)
+
+  SIMINT.compute_eris(eri_quartet_batch)
 end
 
 
@@ -654,12 +661,12 @@ end
 
 	        eri = eri_batch[μνλσ]
           #eri::T = 0
-          if (abs(eri) <= 1E-10) 
+          if (abs(eri) <= 1E-10)
             #println("DO CONTINUE - SCREENED")
-            continue 
+            continue
           end
 
-          
+
           #println("$μ, $ν, $λ, $σ, $eri")
 	        eri *= (μ == ν) ? 0.5 : 1.0
 	        eri *= (λ == σ) ? 0.5 : 1.0
@@ -726,11 +733,11 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
     println("New orbitals:")
     #display(C)
     for shell_group in 0:cld(size(C)[1],5)
-      ending = min((5*shell_group + 5), size(C)[2]) 
+      ending = min((5*shell_group + 5), size(C)[2])
       C_debug = C[:,(5*shell_group + 1):ending]
-      pretty_table(hcat(collect(1:1:size(C)[1]),C_debug), 
-        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))), 
-        formatter = ft_printf("%5.6f", collect(2:1:6)), 
+      pretty_table(hcat(collect(1:1:size(C)[1]),C_debug),
+        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+        formatter = ft_printf("%5.6f", collect(2:1:6)),
         highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
     end
     println("")
@@ -750,11 +757,11 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
     println("New density matrix:")
     #display(D)
     for shell_group in 0:cld(size(D)[1],5)
-      ending = min((5*shell_group + 5), size(D)[2]) 
+      ending = min((5*shell_group + 5), size(D)[2])
       D_debug = D[:,(5*shell_group + 1):ending]
-      pretty_table(hcat(collect(1:1:size(D)[1]),D_debug), 
-        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))), 
-        formatter = ft_printf("%5.6f", collect(2:1:6)), 
+      pretty_table(hcat(collect(1:1:size(D)[1]),D_debug),
+        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+        formatter = ft_printf("%5.6f", collect(2:1:6)),
         highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
     end
     println("")
