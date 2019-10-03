@@ -543,7 +543,8 @@ end
     #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
     #eri_quartet_batch = @view eri_batch[starting:ending]
 
-    shellquart_direct(ish,jsh,ksh,lsh,eri_quartet_batch)
+    ish_old, jsh_old = shellquart_direct(ish,jsh,ksh,lsh,eri_quartet_batch,
+      ish_old,jsh_old)
 
     #if abs(maximum(eri_quartet_batch)) > 1E-10
       dirfck(F_priv, D, eri_quartet_batch, quartet,
@@ -554,12 +555,19 @@ end
 end
 
 @inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64,
-  lsh::Int64, eri_quartet_batch::Vector{Float64})
+  lsh::Int64, eri_quartet_batch::Vector{Float64}, ish_old::Int64,
+  jsh_old::Int64)
 
-  SIMINT.create_ij_shell_pair(ish,jsh)
+  if ish != ish_old || jsh != jsh_old
+    SIMINT.create_ij_shell_pair(ish,jsh)
+    ish_old = ish
+    jsh_old = jsh
+  end
   SIMINT.create_kl_shell_pair(ksh,lsh)
 
   SIMINT.compute_eris(eri_quartet_batch)
+
+  return ish_old, jsh_old
 end
 
 
