@@ -166,7 +166,7 @@ function get_two_electron_integrals(input_file_string::String)
     end
 end
 
-function create_input()
+function create_input(input_file_string::String)
   #== read in overlap integrals ==# 
   overlap::Array{String,1} = []
   open("tools/overlap.json") do file
@@ -199,7 +199,7 @@ function create_input()
   push!(output_file_array,"  \"driver\": \"energy\",")
   push!(output_file_array,"  \"model\": {")
   push!(output_file_array,"    \"method\": \"RHF\",")
-  push!(output_file_array,"    \"basis\": \"6-31G\"")
+  push!(output_file_array,"    \"basis\": \"PCSeg-0\"")
   push!(output_file_array,"  },")
   push!(output_file_array,"  \"keywords\": {")
   push!(output_file_array,"    \"scf\":{")
@@ -208,13 +208,15 @@ function create_input()
   push!(output_file_array,"      \"dele\":1E-8,")
   push!(output_file_array,"      \"rmsd\":1E-6,")
   push!(output_file_array,"      \"prec\":\"Float64\",")
-  push!(output_file_array,"      \"direct\":false,")
+  push!(output_file_array,"      \"direct\":true,")
   push!(output_file_array,"      \"debug\":false")
   push!(output_file_array,"    }")
   push!(output_file_array,"  }")
   push!(output_file_array,"}")
   #== write to output file ==#
-  open("tools/input.json", "w") do file
+  output_file_match = match(r"^(.*?)\.",input_file_string)
+  output_file = output_file_match.match*"json" 
+  open(output_file, "w") do file
     for line::String in output_file_array
       write(file, "$line\n")
     end
@@ -223,4 +225,4 @@ end
 
 get_hamiltonian_integrals(ARGS[1])
 get_overlap_integrals(ARGS[1])
-create_input()
+create_input(ARGS[1])
