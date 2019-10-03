@@ -19,7 +19,7 @@ enable_language(C)
 ###################
 #= general flags =#
 ###################
-set(OPT "-Ofast -funroll-loops -m64 -msse3")
+set(OPT "-O3 -m64")
 if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
   set(OPT " -g -O0")
 endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)

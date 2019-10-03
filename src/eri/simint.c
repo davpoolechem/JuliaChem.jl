@@ -203,16 +203,26 @@ void normalize_shells_c()
   simint_normalize_shells(nshell_simint, shells);
 }
 
-//----------------------//
-//--Create shell pairs--//
-//----------------------//
+//-------------------------------//
+//--Create and fill shell pairs--//
+//-------------------------------//
 void create_ij_shell_pair_c(long long int ish, long long int jsh) {
   simint_create_multi_shellpair(1, &shells[ish-1], 1, &shells[jsh-1],
     &left_pair, 0);
 }
 
+void allocate_kl_shell_pair_c(long long int ksh, long long int lsh) {
+  simint_allocate_multi_shellpair(1, &shells[ksh-1], 1, &shells[lsh-1],
+    &right_pair, 0);
+}
+
 void create_kl_shell_pair_c(long long int ksh, long long int lsh) {
   simint_create_multi_shellpair(1, &shells[ksh-1], 1, &shells[lsh-1],
+    &right_pair, 0);
+}
+
+void fill_kl_shell_pair_c(long long int ksh, long long int lsh) {
+  simint_fill_multi_shellpair(1, &shells[ksh-1], 1, &shells[lsh-1],
     &right_pair, 0);
 }
 

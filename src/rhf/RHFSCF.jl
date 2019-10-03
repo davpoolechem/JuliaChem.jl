@@ -434,6 +434,8 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 
   ish_old = 0
   jsh_old = 0
+  ksh_old = 0
+  lsh_old = 0
 
   quartet_batch_num_old = fld(nindices,
     QUARTET_BATCH_SIZE) + 1
@@ -453,7 +455,8 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 
     twoei_thread_kernel(F, D,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
-      bra, ket, quartet, nindices, quartet_batch_num_old, ish_old, jsh_old)
+      bra, ket, quartet, nindices, quartet_batch_num_old, ish_old, jsh_old,
+      ksh_old, lsh_old)
 
     lock(mutex)
     F[:,:] .+= F_priv[:,:]
@@ -472,7 +475,7 @@ end
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
   eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
   quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
-  ish_old::Int64, jsh_old::Int64)
+  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64)
 
   comm=MPI.COMM_WORLD
 
@@ -543,8 +546,8 @@ end
     #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
     #eri_quartet_batch = @view eri_batch[starting:ending]
 
-    ish_old, jsh_old = shellquart_direct(ish,jsh,ksh,lsh,eri_quartet_batch,
-      ish_old,jsh_old)
+    ish_old, jsh_old, ksh_old, lsh_old = shellquart(ish,jsh,ksh,lsh,ish_old,
+      jsh_old,ksh_old,lsh_old,basis,eri_quartet_batch)
 
     #if abs(maximum(eri_quartet_batch)) > 1E-10
       dirfck(F_priv, D, eri_quartet_batch, quartet,
@@ -554,20 +557,48 @@ end
   #println("END TWO-ELECTRON INTEGRALS")
 end
 
-@inline function shellquart_direct(ish::Int64, jsh::Int64, ksh::Int64,
-  lsh::Int64, eri_quartet_batch::Vector{Float64}, ish_old::Int64,
-  jsh_old::Int64)
+@inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
+  lsh::Int64, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64,
+  basis::BasisStructs.Basis, eri_quartet_batch::Vector{Float64})
 
+  #= set up ij shell pair if necessary =#
   if ish != ish_old || jsh != jsh_old
     SIMINT.create_ij_shell_pair(ish,jsh)
     ish_old = ish
     jsh_old = jsh
   end
-  SIMINT.create_kl_shell_pair(ksh,lsh)
 
+  #=set up kl shell pair if necessary =#
+  if ksh != ksh_old || lsh != lsh_old #always true
+    if ksh_old == 0 && lsh_old == 0
+      SIMINT.allocate_kl_shell_pair(ksh,lsh)
+      ksh_old = ksh
+      lsh_old = lsh
+    end
+
+    old_kl = basis[ksh].atom_id == basis[ksh_old].atom_id
+    old_kl = old_kl && (basis[lsh].atom_id == basis[lsh_old].atom_id)
+
+    old_kl = old_kl && (basis[ksh].am == basis[ksh_old].am)
+    old_kl = old_kl && (basis[lsh].am == basis[lsh_old].am)
+
+    old_kl = old_kl && (basis[ksh].nprim == basis[ksh_old].nprim)
+    old_kl = old_kl && (basis[lsh].nprim == basis[lsh_old].nprim)
+
+    if old_kl
+      SIMINT.fill_kl_shell_pair(ksh,lsh)
+    else
+      SIMINT.create_kl_shell_pair(ksh,lsh)
+    end
+
+    ksh_old = ksh
+    lsh_old = lsh
+  end
+
+  #= actually compute integrals =#
   SIMINT.compute_eris(eri_quartet_batch)
 
-  return ish_old, jsh_old
+  return ish_old, jsh_old, ksh_old, lsh_old
 end
 
 

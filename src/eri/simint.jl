@@ -81,11 +81,23 @@ function create_ij_shell_pair(ish::Int64, jsh::Int64)
 end
 export create_ij_shell_pair
 
+function allocate_kl_shell_pair(ksh::Int64, lsh::Int64)
+  ccall( (:allocate_kl_shell_pair_c, "/home/david/Server/Documents/Programming/julia/JuliaChem.jl/src/eri/libsimint.so"),
+    Cvoid, (Int64, Int64), ksh, lsh)
+end
+export allocate_kl_shell_pair
+
 function create_kl_shell_pair(ksh::Int64, lsh::Int64)
   ccall( (:create_kl_shell_pair_c, "/home/david/Server/Documents/Programming/julia/JuliaChem.jl/src/eri/libsimint.so"),
     Cvoid, (Int64, Int64), ksh, lsh)
 end
 export create_kl_shell_pair
+
+function fill_kl_shell_pair(ksh::Int64, lsh::Int64)
+  ccall( (:fill_kl_shell_pair_c, "/home/david/Server/Documents/Programming/julia/JuliaChem.jl/src/eri/libsimint.so"),
+    Cvoid, (Int64, Int64), ksh, lsh)
+end
+export fill_kl_shell_pair
 
 function compute_eris(eri::Vector{Float64})
 #  ccall( (:compute_eris_c, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libsimint.so"), Cvoid,
