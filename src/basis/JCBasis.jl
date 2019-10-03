@@ -70,7 +70,7 @@ function run(molecule, model)
     for atom_idx::Int64 in 1:length(symbols)
       #== initialize variables needed for shell ==#
       atom_center::Vector{Float64} = geometry[atom_idx,:]
-      atom_center[:] .*= 1.8897259886 #switch from angs to bohr
+      atom_center[:] .*= 1.0/0.52917724924 #switch from angs to bohr
 
       symbol::String = symbols[atom_idx]
       atomic_number::Int64 = atomic_number_mapping[symbol]
