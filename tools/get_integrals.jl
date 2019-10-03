@@ -1,3 +1,60 @@
+#== extract geometry and symbols ==# 
+function get_geometry_and_symbols(input_file_string::String)
+  #== read in input file ==#
+  input_file = [] 
+  open(input_file_string) do file
+    input_file = readlines(file)
+  end
+
+  #== find DATA line ==#
+  data_line = 0
+  for input_line in 1:length(input_file)
+    if occursin("\$DATA", input_file[input_line])
+      data_line = input_line
+      break
+    end
+  end
+
+  #== extract geometry from input ==# 
+  starting = data_line + 3 
+  ending = length(input_file) - 1
+
+  geometry = input_file[starting:ending]
+  symbols::Array{String,1} = []
+
+  #== write output string array ==#
+  output_file_array::Array{String,1} = []
+  push!(output_file_array,"    \"geometry\": [")
+  
+  for geometry_line in geometry
+    #coords_match = eachmatch(r"([-]?[\d]{1,}\.[\d]{1,}\s{0,})",geometry_line)
+    coords_match = eachmatch(r"([-]?[\d]{1,}\.[\d]{1,})",geometry_line)
+    coords = collect(coords_match)
+    coords_x = coords[2].match 
+    coords_y = coords[3].match
+    coords_z = coords[4].match
+
+    if geometry_line == geometry[end]
+      push!(output_file_array, "      $coords_x, $coords_y, $coords_z")
+    else
+      push!(output_file_array, "      $coords_x, $coords_y, $coords_z,")
+    end
+ 
+    symbol_match = match(r"[A-Z]",geometry_line)
+    push!(symbols, symbol_match.match)
+  end
+
+  push!(output_file_array,"    ],") 
+  push!(output_file_array,"    \"symbols\": $symbols,") 
+
+  #== write to output file ==#
+  open("geometry.json", "w") do file
+    for line in output_file_array
+      write(file, "$line\n")
+    end
+  end
+end
+  
 #== extract nuclear energy ==# 
 function get_nuclear_energy(input_file_string::String)
   input_file::Array{String,1} = []
@@ -50,7 +107,6 @@ function get_hamiltonian_integrals(input_file_string::String)
     for integral_num in 2:length(integrals)
         integral::String = integrals[integral_num]
         if integral_num == length(integrals)
-            #push!(output_file_array,"$integral"*" ],")
             push!(output_file_array,"$integral"*" ]")
         else
             push!(output_file_array,"$integral"*",")
@@ -58,7 +114,7 @@ function get_hamiltonian_integrals(input_file_string::String)
     end
 
     #== write to output file ==#
-    open("tools/hcore.json", "w") do file
+    open("hcore.json", "w") do file
         for line::String in output_file_array
             write(file, "$line\n")
         end
@@ -100,7 +156,7 @@ function get_overlap_integrals(input_file_string::String)
     end
 
     #== write to output file ==#
-    open("tools/overlap.json", "w") do file
+    open("overlap.json", "w") do file
         for line::String in output_file_array
             write(file, "$line\n")
         end
@@ -142,7 +198,7 @@ function get_overlap_integrals(input_file_string::String)
     end
 
     #== write to output file ==#
-    open("tools/overlap.json", "w") do file
+    open("overlap.json", "w") do file
         for line::String in output_file_array
             write(file, "$line\n")
         end
@@ -184,7 +240,7 @@ function get_two_electron_integrals(input_file_string::String)
     end
 
     #== write to output file ==#
-    open("tools/tei.json", "w") do file
+    open("tei.json", "w") do file
         for line::String in output_file_array
             write(file, "$line\n")
         end
@@ -192,15 +248,21 @@ function get_two_electron_integrals(input_file_string::String)
 end
 
 function create_input(input_file_string::String)
+  #== read in geometry ==# 
+  geometry::Array{String,1} = []
+  open("geometry.json") do file
+    geometry = readlines(file)
+  end
+
   #== read in overlap integrals ==# 
   overlap::Array{String,1} = []
-  open("tools/overlap.json") do file
+  open("overlap.json") do file
     overlap = readlines(file)
   end
 
   #== read in hcore integrals ==# 
   hcore::Array{String,1} = []
-  open("tools/hcore.json") do file
+  open("hcore.json") do file
     hcore = readlines(file)
   end
 
@@ -208,12 +270,7 @@ function create_input(input_file_string::String)
   output_file_array::Array{String,1} = [] 
   push!(output_file_array,"{")
   push!(output_file_array,"  \"molecule\": {")
-  push!(output_file_array,"    \"geometry\": [")
-  push!(output_file_array,"      0.000000000000,  -0.143225816552,   0.000000000000,")
-  push!(output_file_array,"      1.638036840407,   1.136548822547,  -0.000000000000,")
-  push!(output_file_array,"     -1.638036840407,   1.136548822547,  -0.000000000000
-    ],")
-  push!(output_file_array,"    \"symbols\": [\"O\", \"H\", \"H\"],")
+  push!(output_file_array, geometry...)
   push!(output_file_array,"    \"molecular_charge\":0,")
   
   nuclear_energy = get_nuclear_energy(input_file_string)
@@ -250,6 +307,21 @@ function create_input(input_file_string::String)
   end
 end
 
-get_hamiltonian_integrals(ARGS[1])
-get_overlap_integrals(ARGS[1])
-create_input(ARGS[1])
+#== create_all S22 inputs ==#
+function get_all_S22()
+  for input_number in 1:22
+    input_number_string = input_number < 10 ? "0"*"$input_number" : "$input_number"
+    input_file_log_string = "S22/"*input_number_string*"_MP2.log" 
+    input_file_inp_string = "S22/"*input_number_string*"_MP2.inp" 
+    println("Working on input file "*input_file_log_string)
+   
+    get_geometry_and_symbols(input_file_inp_string) 
+    get_hamiltonian_integrals(input_file_log_string)
+    get_overlap_integrals(input_file_log_string)
+    create_input(input_file_log_string)
+  end
+end
+
+get_all_S22()
+
+
