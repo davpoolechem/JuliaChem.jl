@@ -1,3 +1,27 @@
+#== extract nuclear energy ==# 
+function get_nuclear_energy(input_file_string::String)
+  input_file::Array{String,1} = []
+  open(input_file_string) do file
+    input_file = readlines(file)
+  end
+  
+  #== find nuclear energy line ==#
+  nuclear_energy_line = "" 
+  for input_line in input_file
+    if occursin("NUCLEAR ENERGY =", input_line)
+      nuclear_energy_line = input_line
+      break
+    end
+  end
+
+  #== get nuclear energy from line ==#
+  nuclear_energy_match = match(r"=(.*)", nuclear_energy_line)
+
+  nuclear_energy = parse(Float64, nuclear_energy_match.match[2:end])
+  return nuclear_energy 
+end
+
+
 #== extract hamiltonian integrals from file ==#
 function get_hamiltonian_integrals(input_file_string::String)
     #== read in input file ==#
@@ -26,7 +50,8 @@ function get_hamiltonian_integrals(input_file_string::String)
     for integral_num in 2:length(integrals)
         integral::String = integrals[integral_num]
         if integral_num == length(integrals)
-            push!(output_file_array,"$integral"*" ],")
+            #push!(output_file_array,"$integral"*" ],")
+            push!(output_file_array,"$integral"*" ]")
         else
             push!(output_file_array,"$integral"*",")
         end
@@ -190,7 +215,9 @@ function create_input(input_file_string::String)
     ],")
   push!(output_file_array,"    \"symbols\": [\"O\", \"H\", \"H\"],")
   push!(output_file_array,"    \"molecular_charge\":0,")
-  push!(output_file_array,"    \"enuc\":4.2346705892, ")
+  
+  nuclear_energy = get_nuclear_energy(input_file_string)
+  push!(output_file_array,"    \"enuc\":$nuclear_energy, ")
 
   push!(output_file_array, overlap...)
   push!(output_file_array, hcore...)
