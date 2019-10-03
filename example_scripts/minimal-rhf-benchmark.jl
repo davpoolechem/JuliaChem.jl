@@ -75,7 +75,7 @@ function script(input_file)
   println("")
   
   #== perform t-test to compare to GAMESS ==#
-  p = HypothesisTests.OneSampleTTest(timeof,0.39+0.17)
+  p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)
   println(p)
 
   #== finalize JuliaChem runtime ==#

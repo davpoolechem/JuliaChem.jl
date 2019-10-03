@@ -54,7 +54,7 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
 
       JuliaChem.reset()
 
-      for index in 1:100
+      for index in 1:10
         molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
         basis = JuliaChem.JCBasis.run(molecule, model)
 
@@ -77,7 +77,7 @@ Base.@ccallable function julia_main(ARGS::Vector{String})::Cint
   println("")
 
   #== perform t-test to compare to GAMESS ==#
-  p = HypothesisTests.OneSampleTTest(timeof,0.39+0.17)
+  p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)
   println(p)
 
   #== finalize JuliaChem runtime ==#

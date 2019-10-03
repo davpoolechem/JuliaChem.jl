@@ -376,7 +376,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #  damp_values)
     #D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
 
-    #x::T = maximum(D_damp_rms) > oneunit(typeof(dele)) ? minimum(damp_values) :
+    #x = maximum(D_damp_rms) > oneunit(typeof(dele)) ? minimum(damp_values) :
     #  maximum(damp_values)
     #D[:,:] = x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:]
 
