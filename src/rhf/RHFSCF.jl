@@ -664,8 +664,16 @@ end
           condition2 = μμ == νν && λλ == σσ && 
             ish == jsh && jsh == ksh && ksh == lsh
 
+          two_same = ish == jsh
+          two_same = two_same || (ish == ksh)
+          two_same = two_same || (ish == lsh)
+          two_same = two_same || (jsh == ksh)
+          two_same = two_same || (jsh == lsh)
+          two_same = two_same || (ksh == lsh)
+          condition3 = two_same && !(ish == ksh && jsh == lsh)
+
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-          if μμ < νν && condition1
+          if μμ < νν && condition1 
             μνλσ += 1
             #println("DO CONTINUE")
             continue
@@ -673,7 +681,7 @@ end
           μν = triangular_index(μμ,νν)
 
           λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-          if λλ < σσ && condition1
+          if λλ < σσ && condition1 
             μνλσ += 1
             #println("DO CONTINUE")
             continue
@@ -686,13 +694,19 @@ end
             continue
           end  
 
+          #if (μμ < νν && λλ < σσ) && condition3
+          #  μνλσ += 1
+            #println("DO CONTINUE")
+          #  continue
+          #end  
+
           #print("$μ, $ν, $λ, $σ => ")
 
           if (μν < λσ)
             do_continue = false
 
-            do_continue, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh,
-              ksh, lsh, nμ, nν, nλ, nσ)
+            do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
+              ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
             if do_continue
               μνλσ += 1

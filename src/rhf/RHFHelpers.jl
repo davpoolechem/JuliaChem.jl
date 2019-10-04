@@ -5,9 +5,10 @@ using Base.Threads
 using MATH
 using JLD
 
-function sort_braket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh, ibas, jbas, kbas, lbas)
+function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, ksh, lsh, 
+  ibas, jbas, kbas, lbas)
   do_continue = false
-  μ,ν,λ,σ = μμ,νν,λλ,σσ
+  μ,ν,λ,σ = t_μ, t_ν, t_λ, t_σ
 
   two_shell = ibas == jbas
   two_shell = two_shell || (ibas == kbas)
@@ -34,19 +35,15 @@ function sort_braket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh, ibas, jbas, kba
     four_same = ish == jsh
     four_same = four_same && jsh == ksh
     four_same = four_same && ksh == lsh
-
-    #if four_same
-    #elseif three_same
-    #else
-    #end
-  #elseif three_shell
-  #  if μμ == λλ || νν == σσ
-  #    do_continue = true
-  #  end
+    
+  elseif three_shell
+    if μμ < νν && λλ < σσ
+      do_continue = true
+    end
   #elseif two_shell
   end
 
-  if !do_continue λ, σ, μ, ν = μ, ν, λ, σ end
+  if !do_continue λ, σ, μ, ν = t_μ, t_ν, t_λ, t_σ end
   return do_continue, μ, ν, λ, σ
 end
 
