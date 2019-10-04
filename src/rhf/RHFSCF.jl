@@ -656,17 +656,14 @@ end
       for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
         for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
           #print("$μμ, $νν, $λλ, $σσ => ")
-          #condition1 = μμ == λλ && νν == σσ
-          #condition1 = condition1 || (μμ == νν && λλ == σσ)
-          condition1 = μμ == νν && λλ == σσ
+          condition1 = μμ == λλ && νν == σσ && 
+            nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+          condition1 = condition1 || (μμ == νν && λλ == σσ)
           condition1 = condition1 || (μμ == σσ && λλ == νν)
 
-          #if μμ < λλ && νν < σσ
-          #  μνλσ += 1
-          #  println("DO CONTINUE")
-          #  continue
-          #end  
-          
+          condition2 = μμ == νν && λλ == σσ && 
+            ish == jsh && jsh == ksh && ksh == lsh
+
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           if μμ < νν && condition1
             μνλσ += 1
@@ -682,6 +679,12 @@ end
             continue
           end 
           λσ = triangular_index(λλ,σσ)
+
+          if μμ < λλ && νν < σσ && condition2
+            μνλσ += 1
+            #println("DO CONTINUE")
+            continue
+          end  
 
           #print("$μ, $ν, $λ, $σ => ")
 
@@ -706,7 +709,6 @@ end
             #println("DO CONTINUE - SCREENED")
             continue
           end
-
 
           println("$μ, $ν, $λ, $σ, $eri")
 	        eri *= (μ == ν) ? 0.5 : 1.0
