@@ -112,6 +112,8 @@ function run(molecule, model)
     end
   end
 
+  sort!(basis_set.shells, by = x->x.am)
+ 
   if (MPI.Comm_rank(comm) == 0)
     println(" ")
     println("                       ========================================                 ")

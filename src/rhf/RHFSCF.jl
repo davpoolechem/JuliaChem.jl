@@ -654,47 +654,29 @@ end
       end
 
       for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
-        μ, ν = μμ,νν
-        #if (μμ < νν) μ, ν = ν, μ end
-
-        μν = triangular_index(μμ,νν)
-
         for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
-          λ, σ = λλ,σσ
-          #if (λλ < σσ) λ, σ = σ, λ end
+          μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
+          μν = triangular_index(μμ,νν)
 
+          λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
           λσ = triangular_index(λλ,σσ)
 
-          #if (μν < λσ) μ, ν, λ, σ = λ, σ, μ, ν end
-          #if (μν < λσ)
-          #  μνλσ += 1
-          #  continue
-          #end
+          if (μν < λσ) μ, ν, λ, σ = λ, σ, μ, ν end
           #print("$μμ, $νν, $λλ, $σσ => ")
-          if (μμ < νν)
-            μνλσ += 1
-            #println("DO CONTINUE")
-            continue
-          end
+          #print("$μ, $ν, $λ, $σ => ")
 
-          if (λλ < σσ)
-            μνλσ += 1
-            #println("DO CONTINUE")
-            continue
-          end
+          #if (μν < λσ)
+          #  do_continue = false
 
-          if (μν < λσ)
-            do_continue = false
+          #  do_continue, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh,
+          #    ksh, lsh, nμ, nν, nλ, nσ)
 
-            do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
-              ksh, lsh, nμ, nν, nλ, nσ)
-
-            if do_continue
-              μνλσ += 1
-              #println("DO CONTINUE")
-              continue
-            end
-          end
+          #  if do_continue
+          #    μνλσ += 1
+          #    println("DO CONTINUE")
+          #    continue
+          #  end
+          #end
 
           μνλσ += 1
 
