@@ -479,7 +479,7 @@ end
 
   comm=MPI.COMM_WORLD
 
-  #println("START TWO-ELECTRON INTEGRALS")
+  println("START TWO-ELECTRON INTEGRALS")
   while true
     ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
     if ijkl_index < 1 break end
@@ -554,7 +554,7 @@ end
         ish, jsh, ksh, lsh)
     #end
   end
-  #println("END TWO-ELECTRON INTEGRALS")
+  println("END TWO-ELECTRON INTEGRALS")
 end
 
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
@@ -686,6 +686,10 @@ end
           condition4 =  condition4 || (nμ > 1 && nλ > 1 && nσ > 1)
           condition4 =  condition4 || (nν > 1 && nλ > 1 && nσ > 1)
 
+          condition5 = ish == ksh && jsh == lsh
+          condition5 = condition5 &&
+            nμ > 1 && nν == 1 && nλ > 1 && nσ == 1
+          
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           if μμ < νν && condition1 
             μνλσ += 1
@@ -720,6 +724,12 @@ end
             continue
           end  
 
+          if μμ < λλ && condition5
+             μνλσ += 1
+             #println("DO CONTINUE")
+            continue
+          end  
+
           #print("$μ, $ν, $λ, $σ => ")
 
           if (μν < λσ)
@@ -744,7 +754,7 @@ end
             continue
           end
 
-          #println("$μ, $ν, $λ, $σ, $eri")
+          println("$μ, $ν, $λ, $σ, $eri")
 	        eri *= (μ == ν) ? 0.5 : 1.0
 	        eri *= (λ == σ) ? 0.5 : 1.0
 	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
