@@ -39,7 +39,11 @@ function get_two_electron_integrals_julia(input_file_string::String)
     end
     
     integral_value = parse(Float64,integral_match.match)
-    integral_dict["$i,$j,$k,$l"] = integral_value
+    if haskey(integral_dict,"$i,$j,$k,$l")
+      println("Duplicate Julia key at: "*"$i,$j,$k,$l")
+    else
+      integral_dict["$i,$j,$k,$l"] = integral_value
+    end
   end
 
   return integral_dict
@@ -115,7 +119,7 @@ for key in keys(julia_dict)
   end 
   
   if has_julia_key
-    same = isapprox(gamess_dict[key], julia_dict[key], rtol = 1e-8)
+    same = isapprox(gamess_dict[key], julia_dict[key], rtol = 1e-10)
     if !same
       println("Not same!: ", gamess_dict[key], ", ", julia_dict[key])
     end

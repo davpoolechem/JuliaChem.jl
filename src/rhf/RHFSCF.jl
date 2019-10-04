@@ -479,7 +479,7 @@ end
 
   comm=MPI.COMM_WORLD
 
-  #println("START TWO-ELECTRON INTEGRALS")
+  println("START TWO-ELECTRON INTEGRALS")
   while true
     ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
     if ijkl_index < 1 break end
@@ -554,7 +554,7 @@ end
         ish, jsh, ksh, lsh)
     #end
   end
-  #println("END TWO-ELECTRON INTEGRALS")
+  println("END TWO-ELECTRON INTEGRALS")
 end
 
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
@@ -655,28 +655,48 @@ end
 
       for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
         for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
+          #print("$μμ, $νν, $λλ, $σσ => ")
+          #condition1 = μμ == λλ && νν == σσ
+          #condition1 = condition1 || (μμ == νν && λλ == σσ)
+          condition1 = μμ == νν && λλ == σσ
+          condition1 = condition1 || (μμ == σσ && λλ == νν)
+
+          #if μμ < λλ && νν < σσ
+          #  μνλσ += 1
+          #  println("DO CONTINUE")
+          #  continue
+          #end  
+          
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
+          if μμ < νν && condition1
+            μνλσ += 1
+            #println("DO CONTINUE")
+            continue
+          end 
           μν = triangular_index(μμ,νν)
 
           λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
+          if λλ < σσ && condition1
+            μνλσ += 1
+            #println("DO CONTINUE")
+            continue
+          end 
           λσ = triangular_index(λλ,σσ)
 
-          if (μν < λσ) μ, ν, λ, σ = λ, σ, μ, ν end
-          #print("$μμ, $νν, $λλ, $σσ => ")
           #print("$μ, $ν, $λ, $σ => ")
 
-          #if (μν < λσ)
-          #  do_continue = false
+          if (μν < λσ)
+            do_continue = false
 
-          #  do_continue, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh,
-          #    ksh, lsh, nμ, nν, nλ, nσ)
+            do_continue, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh,
+              ksh, lsh, nμ, nν, nλ, nσ)
 
-          #  if do_continue
-          #    μνλσ += 1
-          #    println("DO CONTINUE")
-          #    continue
-          #  end
-          #end
+            if do_continue
+              μνλσ += 1
+              #println("DO CONTINUE")
+              continue
+            end
+          end
 
           μνλσ += 1
 
@@ -688,7 +708,7 @@ end
           end
 
 
-          #println("$μ, $ν, $λ, $σ, $eri")
+          println("$μ, $ν, $λ, $σ, $eri")
 	        eri *= (μ == ν) ? 0.5 : 1.0
 	        eri *= (λ == σ) ? 0.5 : 1.0
 	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0

@@ -9,9 +9,6 @@ function sort_braket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh, ibas, jbas, kba
   do_continue = false
   μ,ν,λ,σ = μμ,νν,λλ,σσ
 
-  #print("$μμ, $νν, $λλ, $σσ => ")
-
-  #=
   two_shell = ibas == jbas
   two_shell = two_shell || (ibas == kbas)
   two_shell = two_shell || (ibas == lbas)
@@ -38,49 +35,16 @@ function sort_braket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh, ibas, jbas, kba
     four_same = four_same && jsh == ksh
     four_same = four_same && ksh == lsh
 
-    if four_same
-      #print("\n")
-      do_continue = true
-    elseif three_same
-      #if μμ != λλ && νν != σσ
-        μ,ν,λ,σ = λλ,σσ,μμ,νν
-      #else
-        #print("\n")
-      #  do_continue = true
-      #end
-    else
-      if ish == ksh && jsh != lsh
-        μ,ν,λ,σ = λλ,σσ,μμ,νν
-      else
-        #print("\n")
-        do_continue = true
-      end
-    end
-  elseif three_shell
-    #if μμ != λλ && νν != σσ
-      μ,ν,λ,σ = λλ,σσ,μμ,νν
+    #if four_same
+    #elseif three_same
     #else
-      #print("\n")
-    #  do_continue = true
     #end
-  elseif two_shell
-    if ish == ksh && jsh == lsh &&
-      μμ != νν && μμ != λλ && μμ != σσ &&
-      νν != λλ && νν != σσ &&
-      λλ != σσ
-      #print("\n")
-      do_continue = true
-    elseif μμ == νν && λλ == σσ
-      #print("\n")
-      do_continue = true
-    elseif μμ != λλ && νν != σσ
-      μ,ν,λ,σ = λλ,σσ,μμ,νν
-    else
-      #print("\n")
-      do_continue = true
-    end
+  #elseif three_shell
+  #  if μμ == λλ || νν == σσ
+  #    do_continue = true
+  #  end
+  #elseif two_shell
   end
-  =#
 
   if !do_continue λ, σ, μ, ν = μ, ν, λ, σ end
   return do_continue, μ, ν, λ, σ
