@@ -670,6 +670,12 @@ end
           two_same = two_same || (jsh == ksh)
           two_same = two_same || (jsh == lsh)
           two_same = two_same || (ksh == lsh)
+          
+          three_same = ish == jsh && jsh == ksh
+          three_same = three_same || (ish == jsh && jsh == lsh)
+          three_same = three_same || (ish == ksh && ksh == lsh)
+          three_same = three_same || (jsh == ksh && ksh == lsh)
+
           condition3 = two_same && !(ish == ksh && jsh == lsh)
 
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
@@ -694,11 +700,11 @@ end
             continue
           end  
 
-          #if (μμ < νν && λλ < σσ) && condition3
-          #  μνλσ += 1
+          if (μμ < νν || λλ < σσ) && condition3
+            μνλσ += 1
             #println("DO CONTINUE")
-          #  continue
-          #end  
+            continue
+          end  
 
           #print("$μ, $ν, $λ, $σ => ")
 

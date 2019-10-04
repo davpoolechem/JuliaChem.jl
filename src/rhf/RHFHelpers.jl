@@ -36,6 +36,9 @@ function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, k
     four_same = four_same && jsh == ksh
     four_same = four_same && ksh == lsh
     
+    if ish == ksh && jsh == lsh
+      do_continue = true
+    end
   elseif three_shell
     if μμ < νν && λλ < σσ
       do_continue = true
