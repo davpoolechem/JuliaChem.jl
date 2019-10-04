@@ -677,7 +677,9 @@ end
           three_same = three_same || (jsh == ksh && ksh == lsh)
 
           condition3 = two_same && !(ish == ksh && jsh == lsh)
-
+          condition3 = condition3 &&  
+            nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+      
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           if μμ < νν && condition1 
             μνλσ += 1
@@ -701,8 +703,8 @@ end
           end  
 
           if (μμ < νν || λλ < σσ) && condition3
-            μνλσ += 1
-            #println("DO CONTINUE")
+             μνλσ += 1
+             #println("DO CONTINUE")
             continue
           end  
 
