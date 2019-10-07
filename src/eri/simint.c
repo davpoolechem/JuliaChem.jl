@@ -19,6 +19,7 @@ static int* kstart_simint = NULL; //array telling if given shell is L shell or n
 struct simint_multi_shellpair left_pair; //bra SIMINT shell pair structure
 struct simint_multi_shellpair right_pair; //ket SIMINT shell pair structure
 
+int iold, jold;
 int nshells, ishell, ishell_base;
 int nshell_simint;
 
@@ -42,6 +43,7 @@ void initialize_c()
   work = malloc(simint_ostei_workmem(0,1)*sizeof(double));
   buffer = malloc(81*sizeof(double));
 
+  iold = -1; jold = -1;
   ishell = 0; ishell_base = 0;
 }
 
@@ -74,8 +76,9 @@ void finalize_c()
 //--------------------------//
 void reset_c()
 {
-    //--reset necessary variables--//
-    ishell = 0; ishell_base = 0;
+  //--reset necessary variables--//
+  iold = -1; jold = -1;
+  ishell = 0; ishell_base = 0;
 }
 //--------------------------------//
 //--Get info on basis set shells--//
@@ -237,12 +240,11 @@ void compute_eris_c(double* eri) {
 //-------------------------------------------------------------//
 //--Copy list of ERIs of the form (ish jsh|ksh lsh) to eri--//
 //-------------------------------------------------------------//
-/*
-double* retrieve_eris_c(long long int ish, long long int jsh,
+void retrieve_eris_c(long long int ish, long long int jsh,
   long long int ksh, long long int lsh, double* eri)
 {
   //--initialize some variables--//
-  //int ii = (int)ish-1, jj = (int)jsh-1, kk = (int)ksh-1, ll = (int)lsh-1; //account for 1-indexing of ish,jsh
+  int ii = (int)ish-1, jj = (int)jsh-1, kk = (int)ksh-1, ll = (int)lsh-1; //account for 1-indexing of ish,jsh
 
   //--start ERI computation--//
   bool new_ij = ish != iold || jsh != jold;
@@ -265,22 +267,20 @@ double* retrieve_eris_c(long long int ish, long long int jsh,
   ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, eri);
   //printf("%f\n",eri[0]);
 
-  //for (int i = 0; i != ish-1; ++i) ii += sp_shell[i]; //account for splitting of GAMESS L shells into s and p SIMINT shells
-  //for (int j = 0; j != jsh-1; ++j) jj += sp_shell[j];
-  //for (int k = 0; k != ksh-1; ++k) kk += sp_shell[k];
-  //for (int l = 0; l != lsh-1; ++l) ll += sp_shell[l];
+  for (int i = 0; i != ish-1; ++i) ii += sp_shell[i]; //account for splitting of GAMESS L shells into s and p SIMINT shells
+  for (int j = 0; j != jsh-1; ++j) jj += sp_shell[j];
+  for (int k = 0; k != ksh-1; ++k) kk += sp_shell[k];
+  for (int l = 0; l != lsh-1; ++l) ll += sp_shell[l];
 
-  //int fullsizes[4] = { ksize[ish-1], ksize[jsh-1], ksize[ksh-1], ksize[lsh-1] };
-  //int L_[4] = { sp_shell[ish-1], sp_shell[jsh-1], sp_shell[ksh-1], sp_shell[lsh-1] };
+  int fullsizes[4] = { ksize[ish-1], ksize[jsh-1], ksize[ksh-1], ksize[lsh-1] };
+  int L_[4] = { sp_shell[ish-1], sp_shell[jsh-1], sp_shell[ksh-1], sp_shell[lsh-1] };
 
   //printf("START: %d, %d, %d, %d\n", kstart_simint[0], kstart_simint[1], kstart_simint[2], kstart_simint[3]);
   //--start ERI computation--//
-  //if (L_[0] == 0 && L_[1] == 0 && L_[2] == 0 && L_[3] == 0)
-  //  simgms_retrieve_eris_c_0000(ii, jj, kk, ll, eri);
-  //else
-  //  simgms_retrieve_eris_c_L(ii, jj, kk, ll, eri, fullsizes, L_);
-
-  return eri;
+  if (L_[0] == 0 && L_[1] == 0 && L_[2] == 0 && L_[3] == 0)
+    simgms_retrieve_eris_c_0000(ii, jj, kk, ll, eri);
+  else
+    simgms_retrieve_eris_c_L(ii, jj, kk, ll, eri, fullsizes, L_);
 }
 
 //--------------------------------------------------------------------------------------------------//
@@ -289,7 +289,6 @@ double* retrieve_eris_c(long long int ish, long long int jsh,
 //For fxn simgms_retrieve_eris_c_ijkl, any of shells i,j,k,l = 1 means that shell is an L shell
 //Ex: simgms_retrieve_eris_c_0010 handles shell quartets where the third shell is an L shell
 
-/*
 void simgms_retrieve_eris_c_0000(int ii, int jj, int kk, int ll, double* eri) {
 
   int ncomputed = 0;
@@ -1169,5 +1168,4 @@ void simgms_retrieve_eris_c_L_1111(int ii, int jj, int kk, int ll, double* eri, 
     }
   }
 }
-*/
 #undef L_LOOP_BOUND

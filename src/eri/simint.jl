@@ -99,7 +99,6 @@ export fill_kl_shell_pair
 end
 export compute_eris
 
-#=
 function retrieve_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
   eri::Vector{T}) where {T<:AbstractFloat}
 
@@ -108,6 +107,5 @@ function retrieve_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
     ish, jsh, ksh, lsh, eri)
 end
 export retrieve_eris
-=#
 
 end
