@@ -5,7 +5,8 @@ using MPI
 using Base.Threads
 #using Distributed
 using LinearAlgebra
-using JLD
+#using JLD
+using HDF5 
 using PrettyTables
 
 function rhf_energy(basis::BasisStructs.Basis,
@@ -38,6 +39,12 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
+  
+  #== read in some variables from scf input ==#
+  debug = scf_flags["debug"]
+  debug_output = debug ? h5open("debug.h5","w") : nothing
+
+  niter = scf_flags["niter"] 
 
   #== read variables from input if needed ==#
   E_nuc = molecule["enuc"]
@@ -45,30 +52,31 @@ function rhf_kernel(basis::BasisStructs.Basis,
   S = read_in_oei(molecule["ovr"], basis.norb)
   H = read_in_oei(molecule["hcore"], basis.norb)
 
-  if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
-    println("Overlap matrix:")
-    for shell_group in 0:cld(size(S)[1],5)
-      ending = min((5*shell_group + 5), size(S)[2])
-      S_debug = S[:,(5*shell_group + 1):ending]
-      pretty_table(hcat(collect(1:1:size(S)[1]),S_debug),
-        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
-        formatter = ft_printf("%5.6f", collect(2:1:6)),
-        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
-    end
-    #display(S)
-    println("")
-
-    println("Hamiltonian matrix:")
-    #display(H)
-    for shell_group in 0:cld(size(H)[1],5)
-      ending = min((5*shell_group + 5), size(H)[2])
-      H_debug = H[:,(5*shell_group + 1):ending]
-      pretty_table(hcat(collect(1:1:size(H)[1]),H_debug),
-        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
-        formatter = ft_printf("%5.6f", collect(2:1:6)),
-        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
-    end
-    println("")
+  if debug && MPI.Comm_rank(comm) == 0
+    #println("Overlap matrix:")
+    #for shell_group in 0:cld(size(S)[1],5)
+    #  ending = min((5*shell_group + 5), size(S)[2])
+    #  S_debug = S[:,(5*shell_group + 1):ending]
+    #  pretty_table(hcat(collect(1:1:size(S)[1]),S_debug),
+    #    vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+    #    formatter = ft_printf("%5.6f", collect(2:1:6)),
+    #    highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+    #end
+    h5write("debug.h5","SCF/0/S", S)
+    #println("")
+      
+      
+    #println("Hamiltonian matrix:")
+    #for shell_group in 0:cld(size(H)[1],5)
+    #  ending = min((5*shell_group + 5), size(H)[2])
+    #  H_debug = H[:,(5*shell_group + 1):ending]
+    #  pretty_table(hcat(collect(1:1:size(H)[1]),H_debug),
+    #    vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+    #    formatter = ft_printf("%5.6f", collect(2:1:6)),
+    #    highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+    #end
+    h5write("debug.h5","SCF/0/H", H)
+    #println("")
   end
 
   #== build the orthogonalization matrix ==#
@@ -85,18 +93,18 @@ function rhf_kernel(basis::BasisStructs.Basis,
   @views ortho[:,:] = S_evec[:,:]*
     (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
 
-  if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
-    println("Ortho matrix:")
-    #display(ortho)
-    for shell_group in 0:cld(size(ortho)[1],5)
-      ending = min((5*shell_group + 5), size(ortho)[2])
-      ortho_debug = ortho[:,(5*shell_group + 1):ending]
-      pretty_table(hcat(collect(1:1:size(ortho)[1]),ortho_debug),
-        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
-        formatter = ft_printf("%5.6f", collect(2:1:6)),
-        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
-    end
-    println("")
+  if debug && MPI.Comm_rank(comm) == 0
+  #  println("Ortho matrix:")
+  #  for shell_group in 0:cld(size(ortho)[1],5)
+  #    ending = min((5*shell_group + 5), size(ortho)[2])
+  #    ortho_debug = ortho[:,(5*shell_group + 1):ending]
+  #    pretty_table(hcat(collect(1:1:size(ortho)[1]),ortho_debug),
+  #      vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+  #      formatter = ft_printf("%5.6f", collect(2:1:6)),
+  #      highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+  #  end
+    h5write("debug.h5","SCF/0/Ortho", ortho)
+  #  println("")
   end
 
   #== build the initial matrices ==#
@@ -117,8 +125,8 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec = 0.0
-  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis,
-    scf_flags)
+  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis, 0;
+    debug=debug)
   F = deepcopy(F_mo)
   #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1),
   #  1:size(F,2)))
@@ -135,11 +143,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #== start scf cycles: #7-10 ==#
   #=============================#
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, F_eval,
-  F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags)
+    F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags; debug=debug,
+    niter=niter)
 
   if !converged
-    iter_limit = scf_flags["niter"]
-
     if MPI.Comm_rank(comm) == 0
       println(" ")
       println("----------------------------------------")
@@ -153,7 +160,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     "success" => false,
     "error" => Dict(
       "error_type" => "convergence_error",
-      "error_message" => " SCF calculation did not converge within $iter_limit
+      "error_message" => " SCF calculation did not converge within $niter
         iterations. "
       )
     )
@@ -182,12 +189,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
       merge!(calculation_status, calculation_success)
     end
-
-    #if (FLAGS.SCF.debug == true)
-    #  close(json_debug)
-    #end
   end
 
+  if debug close(debug_output) end
+  
   return F, D, C, E, calculation_status
 end
 
@@ -195,10 +200,14 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
   E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
-  scf_flags)
+  scf_flags; debug, niter)
+
+  #== read in some more variables from scf flags input ==#
+  ndiis = scf_flags["ndiis"]
+  dele = scf_flags["dele"]
+  rmsd = scf_flags["rmsd"]
 
   #== build DIIS arrays ==#
-  ndiis = scf_flags["ndiis"]
   F_array = fill(Matrix{Float64}(undef,basis.norb,basis.norb),
     ndiis)
 
@@ -246,32 +255,38 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   scf_converged = true
 
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
-    E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
+    E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, scf_converged, quartet_batch_num_old)
+    D_damp_rms, scf_converged, quartet_batch_num_old; debug=debug, 
+    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd)
 
   #== we are done! ==#
+  if debug  
+    h5write("debug.h5","SCF/Final/F", F)
+    h5write("debug.h5","SCF/Final/D", D)
+    h5write("debug.h5","SCF/Final/C", C)
+    h5write("debug.h5","SCF/Final/E", E)
+    h5write("debug.h5","SCF/Final/converged", scf_converged)
+  end
+
   return F, D, C, E, scf_converged
 end
 
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
   S::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64,
-  basis::BasisStructs.Basis, scf_flags, ndiis::Int64,
+  basis::BasisStructs.Basis, 
   F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
   D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
-  scf_converged::Bool, quartet_batch_num_old::Int64)
+  scf_converged::Bool, quartet_batch_num_old::Int64; debug, niter,
+  ndiis, dele, rmsd)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
-
-  iter_limit = scf_flags["niter"]
-  dele = scf_flags["dele"]
-  rmsd = scf_flags["rmsd"]
 
   B_dim = 1
   #length_eri_sizes = length(eri_sizes)
@@ -301,39 +316,39 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build fock matrix ==#
-    F_temp[:,:] = twoei(F, D, H, basis)
+    F_temp[:,:] = twoei(F, D, H, basis; debug=debug)
 
     F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
     MPI.Barrier(comm)
 
-    if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
-      println("Skeleton Fock matrix:")
-      #display(F)
-      for shell_group in 0:cld(size(F)[1],5)
-        ending = min((5*shell_group + 5), size(F)[2])
-        F_debug = F[:,(5*shell_group + 1):ending]
-        pretty_table(hcat(collect(1:1:size(F)[1]),F_debug),
-          vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
-          formatter = ft_printf("%5.6f", collect(2:1:6)),
-          highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
-      end
-      println("")
+    if debug && MPI.Comm_rank(comm) == 0
+    #  println("Skeleton Fock matrix:")
+    #  for shell_group in 0:cld(size(F)[1],5)
+    #    ending = min((5*shell_group + 5), size(F)[2])
+    #    F_debug = F[:,(5*shell_group + 1):ending]
+    #    pretty_table(hcat(collect(1:1:size(F)[1]),F_debug),
+    #      vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+    #      formatter = ft_printf("%5.6f", collect(2:1:6)),
+    #      highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+    #  end
+      h5write("debug.h5","SCF/$iter/F/Skeleton", F)
+    #  println("")
     end
 
     F[:,:] .+= H[:,:]
 
-    if scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0
-      println("Total Fock matrix:")
-      #display(F)
-      for shell_group in 0:cld(size(F)[1],5)
-        ending = min((5*shell_group + 5), size(F)[2])
-        F_debug = F[:,(5*shell_group + 1):ending]
-        pretty_table(hcat(collect(1:1:size(F)[1]),F_debug),
-          vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
-          formatter = ft_printf("%5.6f", collect(2:1:6)),
-          highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
-      end
-      println("")
+    if debug && MPI.Comm_rank(comm) == 0
+    #  println("Total Fock matrix:")
+    #  for shell_group in 0:cld(size(F)[1],5)
+    #    ending = min((5*shell_group + 5), size(F)[2])
+    #    F_debug = F[:,(5*shell_group + 1):ending]
+    #    pretty_table(hcat(collect(1:1:size(F)[1]),F_debug),
+    #      vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+    #      formatter = ft_printf("%5.6f", collect(2:1:6)),
+    #      highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+    #  end
+      h5write("debug.h5","SCF/$iter/F/Total", F)
+    #  println("")
     end
 
     #== do DIIS ==#
@@ -364,7 +379,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     copyto!(D_old, indices_tocopy, D, indices_tocopy)
 
     E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
-      ortho, basis, scf_flags)
+      ortho, basis, iter; debug=debug)
 
     #F = deepcopy(F_mo)
     indices_tocopy = CartesianIndices((1:size(F_mo,1),
@@ -391,9 +406,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
     end
 
-    iter_converged = (abs(ΔE) <= dele) && (D_rms <= rmsd)
+    iter_converged = abs(ΔE) <= dele && D_rms <= rmsd
     iter += 1
-    if iter > iter_limit
+    if iter > niter 
       scf_converged = false
       break
     end
@@ -424,8 +439,8 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
-  basis::BasisStructs.Basis)
+function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64}, 
+  basis::BasisStructs.Basis; debug)
 
   fill!(F,zero(Float64))
 
@@ -456,7 +471,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
     twoei_thread_kernel(F, D,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
       bra, ket, quartet, nindices, quartet_batch_num_old, ish_old, jsh_old,
-      ksh_old, lsh_old)
+      ksh_old, lsh_old; debug=debug)
 
     lock(mutex)
     F[:,:] .+= F_priv[:,:]
@@ -475,11 +490,11 @@ end
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
   eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
   quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
-  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64)
+  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
 
-  println("START TWO-ELECTRON INTEGRALS")
+  if debug println("START TWO-ELECTRON INTEGRALS") end
   while true
     ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
     if ijkl_index < 1 break end
@@ -512,7 +527,7 @@ end
     qnum_kl = triangular_index(ksh, lsh)
     quartet_num = triangular_index(qnum_ij, (qnum_kl - 1))
 
-    #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+    #if debug println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
 
    # quartet_batch_num::Int64 = fld(quartet_num,
    #   QUARTET_BATCH_SIZE) + 1
@@ -551,10 +566,10 @@ end
 
     #if abs(maximum(eri_quartet_batch)) > 1E-10
       dirfck(F_priv, D, eri_quartet_batch, quartet,
-        ish, jsh, ksh, lsh)
+        ish, jsh, ksh, lsh; debug=debug)
     #end
   end
-  println("END TWO-ELECTRON INTEGRALS")
+  if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
@@ -604,7 +619,7 @@ end
 
 @noinline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
-  ksh::Int64, lsh::Int64)
+  ksh::Int64, lsh::Int64; debug)
 
   norb = size(D)[1]
 
@@ -655,7 +670,7 @@ end
 
       for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
         for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
-          #print("$μμ, $νν, $λλ, $σσ => ")
+          if debug print("$μμ, $νν, $λλ, $σσ => ") end
           condition1 = μμ == λλ && νν == σσ 
           condition1 = condition1 || (μμ == νν && λλ == σσ)
           condition1 = condition1 || (μμ == σσ && λλ == νν)
@@ -693,7 +708,7 @@ end
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           if μμ < νν && condition1 
             μνλσ += 1
-            #println("DO CONTINUE")
+            #if debug println("DO CONTINUE") end
             continue
           end 
           μν = triangular_index(μμ,νν)
@@ -701,7 +716,7 @@ end
           λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
           if λλ < σσ && condition1 
             μνλσ += 1
-            #println("DO CONTINUE")
+            #if debug println("DO CONTINUE") end
             continue
           end 
           λσ = triangular_index(λλ,σσ)
@@ -740,7 +755,7 @@ end
 
             if do_continue
               μνλσ += 1
-              #println("DO CONTINUE")
+              #if debug println("DO CONTINUE") end
               continue
             end
           end
@@ -749,12 +764,12 @@ end
 
 	        eri = eri_batch[μνλσ]
           #eri::T = 0
-          if (abs(eri) <= 1E-10)
-            #println("DO CONTINUE - SCREENED")
+          if abs(eri) <= 1E-10
+            #if debug println("DO CONTINUE - SCREENED") end
             continue
           end
 
-          println("$μ, $ν, $λ, $σ, $eri")
+          if debug println("$μ, $ν, $λ, $σ, $eri") end
 	        eri *= (μ == ν) ? 0.5 : 1.0
 	        eri *= (λ == σ) ? 0.5 : 1.0
 	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
@@ -799,7 +814,7 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
-  basis::BasisStructs.Basis, scf_flags)
+  basis::BasisStructs.Basis, iter; debug)
 
   comm=MPI.COMM_WORLD
 
@@ -816,18 +831,18 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
 
   @views C[:,:] = ortho[:,:]*F_evec[:,:]
 
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-    println("New orbitals:")
-    #display(C)
-    for shell_group in 0:cld(size(C)[1],5)
-      ending = min((5*shell_group + 5), size(C)[2])
-      C_debug = C[:,(5*shell_group + 1):ending]
-      pretty_table(hcat(collect(1:1:size(C)[1]),C_debug),
-        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
-        formatter = ft_printf("%5.6f", collect(2:1:6)),
-        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
-    end
-    println("")
+  if debug && MPI.Comm_rank(comm) == 0
+  #  println("New orbitals:")
+  #  for shell_group in 0:cld(size(C)[1],5)
+  #    ending = min((5*shell_group + 5), size(C)[2])
+  #    C_debug = C[:,(5*shell_group + 1):ending]
+  #    pretty_table(hcat(collect(1:1:size(C)[1]),C_debug),
+  #      vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+  #      formatter = ft_printf("%5.6f", collect(2:1:6)),
+  #      highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+  #  end
+    h5write("debug.h5","SCF/$iter/C", C)
+  #  println("")
   end
 
   #== build new density matrix ==#
@@ -840,18 +855,18 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
     D[i,j] *= 2
   end
 
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-    println("New density matrix:")
-    #display(D)
-    for shell_group in 0:cld(size(D)[1],5)
-      ending = min((5*shell_group + 5), size(D)[2])
-      D_debug = D[:,(5*shell_group + 1):ending]
-      pretty_table(hcat(collect(1:1:size(D)[1]),D_debug),
-        vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
-        formatter = ft_printf("%5.6f", collect(2:1:6)),
-        highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
-    end
-    println("")
+  if debug && MPI.Comm_rank(comm) == 0
+  #  println("New density matrix:")
+  #  for shell_group in 0:cld(size(D)[1],5)
+  #    ending = min((5*shell_group + 5), size(D)[2])
+  #    D_debug = D[:,(5*shell_group + 1):ending]
+  #    pretty_table(hcat(collect(1:1:size(D)[1]),D_debug),
+  #      vcat( [ "Shell" ], map( x -> "$x", collect((5*shell_group+1):1:ending))),
+  #      formatter = ft_printf("%5.6f", collect(2:1:6)),
+  #      highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
+  #  end
+    h5write("debug.h5","SCF/$iter/D", D)
+  #  println("")
   end
 
   #== compute new SCF energy ==#
@@ -859,10 +874,13 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   EHF2 = @∑ D H
   E_elec = (EHF1 + EHF2)/2
 
-  if (scf_flags["debug"] == true && MPI.Comm_rank(comm) == 0)
-    println("New energy:")
-    println("$EHF1, $EHF2")
-    println("")
+  if debug && MPI.Comm_rank(comm) == 0
+    #println("New energy:")
+    #println("$EHF1, $EHF2")
+    h5write("debug.h5","SCF/$iter/E/EHF1", EHF1)
+    h5write("debug.h5","SCF/$iter/E/EHF2", EHF2)
+    h5write("debug.h5","SCF/$iter/E/EHF", E_elec)
+    #println("")
   end
 
   return E_elec
