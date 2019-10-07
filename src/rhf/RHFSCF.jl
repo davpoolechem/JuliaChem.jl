@@ -601,8 +601,8 @@ end
     old_kl = old_kl && (basis[ksh].am == basis[ksh_old].am)
     old_kl = old_kl && (basis[lsh].am == basis[lsh_old].am)
 
-    old_kl = old_kl && (basis[ksh].nprim == basis[ksh_old].nprim)
-    old_kl = old_kl && (basis[lsh].nprim == basis[lsh_old].nprim)
+    old_kl = old_kl && (basis[ksh].nprim <= basis[ksh_old].nprim)
+    old_kl = old_kl && (basis[lsh].nprim <= basis[lsh_old].nprim)
 
     if old_kl
       SIMINT.fill_kl_shell_pair(ksh,lsh)
