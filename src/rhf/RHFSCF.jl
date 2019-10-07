@@ -9,6 +9,8 @@ using LinearAlgebra
 using HDF5 
 using PrettyTables
 
+const do_continue_print = false 
+
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags)
@@ -527,7 +529,9 @@ end
     qnum_kl = triangular_index(ksh, lsh)
     quartet_num = triangular_index(qnum_ij, (qnum_kl - 1))
 
-    #if debug println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
+    if debug
+      if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
+    end
 
    # quartet_batch_num::Int64 = fld(quartet_num,
    #   QUARTET_BATCH_SIZE) + 1
@@ -670,7 +674,10 @@ end
 
       for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
         for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
-          if debug print("$μμ, $νν, $λλ, $σσ => ") end
+          if debug 
+            if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
+          end
+
           condition1 = μμ == λλ && νν == σσ 
           condition1 = condition1 || (μμ == νν && λλ == σσ)
           condition1 = condition1 || (μμ == σσ && λλ == νν)
@@ -704,11 +711,17 @@ end
           condition5 = ish == ksh && jsh == lsh
           condition5 = condition5 &&
             nμ > 1 && nν == 1 && nλ > 1 && nσ == 1
-          
+
+          condition6 = ish == jsh 
+          condition6 = condition6 &&
+            nμ > 1 && nν > 1 && nλ == 1 && nσ == 1
+
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           if μμ < νν && condition1 
             μνλσ += 1
-            #if debug println("DO CONTINUE") end
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
             continue
           end 
           μν = triangular_index(μμ,νν)
@@ -716,32 +729,50 @@ end
           λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
           if λλ < σσ && condition1 
             μνλσ += 1
-            #if debug println("DO CONTINUE") end
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
             continue
           end 
           λσ = triangular_index(λλ,σσ)
 
           if μμ < λλ && νν < σσ && condition2
             μνλσ += 1
-            #println("DO CONTINUE")
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
             continue
           end  
 
           if (μμ < νν || λλ < σσ) && condition3
-             μνλσ += 1
-             #println("DO CONTINUE")
+            μνλσ += 1
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
             continue
           end  
 
-          if μμ < νν && λλ < σσ && condition4
-             μνλσ += 1
-             #println("DO CONTINUE")
+          if (μμ < νν && λλ < σσ) && condition4
+            μνλσ += 1
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
             continue
           end  
 
           if μμ < λλ && condition5
-             μνλσ += 1
-             #println("DO CONTINUE")
+            μνλσ += 1
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
+            continue
+          end  
+
+          if μμ < νν && condition6
+            μνλσ += 1
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
             continue
           end  
 
@@ -755,7 +786,9 @@ end
 
             if do_continue
               μνλσ += 1
-              #if debug println("DO CONTINUE") end
+              if debug 
+                if do_continue_print println("DO CONTINUE") end
+              end
               continue
             end
           end
@@ -765,7 +798,9 @@ end
 	        eri = eri_batch[μνλσ]
           #eri::T = 0
           if abs(eri) <= 1E-10
-            #if debug println("DO CONTINUE - SCREENED") end
+            if debug 
+              if do_continue_print println("DO CONTINUE - SCREENED") end
+            end  
             continue
           end
 
