@@ -50,22 +50,25 @@ function run(basis, molecule, keywords)
 
   #== set up eris ==#
   #if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
-    #if scf_flags["direct"] == false
-    #  set_up_eri_database(basis)
-    #else
-      nshell_simint = SIMINT.allocate_shell_array(basis)
-      for shell in basis.shells
-        SIMINT.add_shell(shell)
-      end
+  if scf_flags["direct"] == true
+  #  set_up_eri_database(basis)
+  #else
+    nshell_simint = SIMINT.allocate_shell_array(basis)
+    for shell in basis.shells
+      SIMINT.add_shell(shell)
+    end
 
-      SIMINT.normalize_shells()
+    SIMINT.normalize_shells()
 
-      #for ishell::Int64 in 0:(nshell_simint-1)
-      #  SIMINT.get_simint_shell_info(ishell)
-      #end
+    #for ishell::Int64 in 0:(nshell_simint-1)
+    #  SIMINT.get_simint_shell_info(ishell)
+    #end
 
     #end
-  #end
+  else
+    println("REading integrals from disk is not implemented yet!")
+    throw()
+  end
 
   #== actually perform scf calculation ==#
   #GC.enable(false)

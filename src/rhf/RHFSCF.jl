@@ -262,6 +262,14 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
     niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd)
 
   #== we are done! ==#
+  if debug  
+    h5write("debug.h5","SCF/Final/F", F)
+    h5write("debug.h5","SCF/Final/D", D)
+    h5write("debug.h5","SCF/Final/C", C)
+    h5write("debug.h5","SCF/Final/E", E)
+    h5write("debug.h5","SCF/Final/converged", scf_converged)
+  end
+
   return F, D, C, E, scf_converged
 end
 
@@ -487,7 +495,7 @@ end
 
   comm=MPI.COMM_WORLD
 
-  #println("START TWO-ELECTRON INTEGRALS")
+  if debug println("START TWO-ELECTRON INTEGRALS") end
   while true
     ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
     if ijkl_index < 1 break end
@@ -520,7 +528,7 @@ end
     qnum_kl = triangular_index(ksh, lsh)
     quartet_num = triangular_index(qnum_ij, (qnum_kl - 1))
 
-    #println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):")
+    if debug println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
 
    # quartet_batch_num::Int64 = fld(quartet_num,
    #   QUARTET_BATCH_SIZE) + 1
@@ -562,7 +570,7 @@ end
         ish, jsh, ksh, lsh; debug=debug)
     #end
   end
-  #println("END TWO-ELECTRON INTEGRALS")
+  if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
@@ -678,16 +686,16 @@ end
           #  μνλσ += 1
           #  continue
           #end
-          #print("$μμ, $νν, $λλ, $σσ => ")
+          if debug print("$μμ, $νν, $λλ, $σσ => ") end
           if (μμ < νν)
             μνλσ += 1
-            #println("DO CONTINUE")
+            if debug println("DO CONTINUE") end
             continue
           end
 
           if (λλ < σσ)
             μνλσ += 1
-            #println("DO CONTINUE")
+            if debug println("DO CONTINUE") end
             continue
           end
 
@@ -699,7 +707,7 @@ end
 
             if do_continue
               μνλσ += 1
-              #println("DO CONTINUE")
+              if debug println("DO CONTINUE") end
               continue
             end
           end
@@ -708,13 +716,13 @@ end
 
 	        eri = eri_batch[μνλσ]
           #eri::T = 0
-          if (abs(eri) <= 1E-10)
-            #println("DO CONTINUE - SCREENED")
+          if abs(eri) <= 1E-10
+            if debug println("DO CONTINUE - SCREENED") end
             continue
           end
 
 
-          #println("$μ, $ν, $λ, $σ, $eri")
+          if debug println("$μ, $ν, $λ, $σ, $eri") end
 	        eri *= (μ == ν) ? 0.5 : 1.0
 	        eri *= (λ == σ) ? 0.5 : 1.0
 	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
