@@ -714,7 +714,11 @@ end
 
           condition6 = ish == jsh 
           condition6 = condition6 &&
-            nμ > 1 && nν > 1 && nλ == 1 && nσ == 1
+            nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
+
+          condition7 = ksh == lsh 
+          condition7 = condition7 &&
+            (nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
 
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           if μμ < νν && condition1 
@@ -776,7 +780,13 @@ end
             continue
           end  
 
-          #print("$μ, $ν, $λ, $σ => ")
+          if λλ < σσ && condition7
+            μνλσ += 1
+            if debug 
+              if do_continue_print println("DO CONTINUE") end
+            end
+            continue
+          end  
 
           if (μν < λσ)
             do_continue = false
