@@ -580,7 +580,6 @@ end
   lsh::Int64, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64,
   basis::BasisStructs.Basis, eri_quartet_batch::Vector{Float64})
 
-  #=
   #= set up ij shell pair if necessary =#
   if ish != ish_old || jsh != jsh_old
     SIMINT.create_ij_shell_pair(ish,jsh)
@@ -617,9 +616,8 @@ end
 
   #= actually compute integrals =#
   SIMINT.compute_eris(eri_quartet_batch)
-  =#
 
-  SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
+  #SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
 
   return ish_old, jsh_old, ksh_old, lsh_old
 end
