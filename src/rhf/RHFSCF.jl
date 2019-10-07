@@ -39,9 +39,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
   
-  #== read in som e variables from scf input ==#
+  #== read in some variables from scf input ==#
   debug = scf_flags["debug"]
- 
+  niter = scf_flags["niter"] 
+
   #== read variables from input if needed ==#
   E_nuc = molecule["enuc"]
 
@@ -138,11 +139,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #== start scf cycles: #7-10 ==#
   #=============================#
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, F_eval,
-    F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags; debug=debug)
+    F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags; debug=debug,
+    niter=niter)
 
   if !converged
-    iter_limit = scf_flags["niter"]
-
     if MPI.Comm_rank(comm) == 0
       println(" ")
       println("----------------------------------------")
@@ -156,7 +156,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     "success" => false,
     "error" => Dict(
       "error_type" => "convergence_error",
-      "error_message" => " SCF calculation did not converge within $iter_limit
+      "error_message" => " SCF calculation did not converge within $niter
         iterations. "
       )
     )
@@ -198,10 +198,14 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
   E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
-  scf_flags; debug=false)
+  scf_flags; debug, niter)
+
+  #== read in some more variables from scf flags input ==#
+  ndiis = scf_flags["ndiis"]
+  dele = scf_flags["dele"]
+  rmsd = scf_flags["rmsd"]
 
   #== build DIIS arrays ==#
-  ndiis = scf_flags["ndiis"]
   F_array = fill(Matrix{Float64}(undef,basis.norb,basis.norb),
     ndiis)
 
@@ -249,9 +253,10 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   scf_converged = true
 
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
-    E_elec, E_old, basis, scf_flags, ndiis, F_array, e, e_array, e_array_old,
+    E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, scf_converged, quartet_batch_num_old; debug=debug)
+    D_damp_rms, scf_converged, quartet_batch_num_old; debug=debug, 
+    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd)
 
   #== we are done! ==#
   return F, D, C, E, scf_converged
@@ -260,21 +265,18 @@ end
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
   S::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64,
-  basis::BasisStructs.Basis, scf_flags, ndiis::Int64,
+  basis::BasisStructs.Basis, 
   F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
   D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
-  scf_converged::Bool, quartet_batch_num_old::Int64; debug=false)
+  scf_converged::Bool, quartet_batch_num_old::Int64; debug, niter,
+  ndiis, dele, rmsd)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
-
-  iter_limit = scf_flags["niter"]
-  dele = scf_flags["dele"]
-  rmsd = scf_flags["rmsd"]
 
   B_dim = 1
   #length_eri_sizes = length(eri_sizes)
@@ -396,7 +398,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     iter_converged = abs(ΔE) <= dele && D_rms <= rmsd
     iter += 1
-    if iter > iter_limit
+    if iter > niter 
       scf_converged = false
       break
     end
@@ -427,8 +429,8 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
-  basis::BasisStructs.Basis; debug=false)
+function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64}, 
+  basis::BasisStructs.Basis; debug)
 
   fill!(F,zero(Float64))
 
@@ -478,7 +480,7 @@ end
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
   eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
   quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
-  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug=false)
+  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
 
@@ -554,7 +556,7 @@ end
 
     #if abs(maximum(eri_quartet_batch)) > 1E-10
       dirfck(F_priv, D, eri_quartet_batch, quartet,
-        ish, jsh, ksh, lsh, debug=debug)
+        ish, jsh, ksh, lsh; debug=debug)
     #end
   end
   #println("END TWO-ELECTRON INTEGRALS")
@@ -607,7 +609,7 @@ end
 
 @noinline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
-  ksh::Int64, lsh::Int64; debug=false)
+  ksh::Int64, lsh::Int64; debug)
 
   norb = size(D)[1]
 
@@ -754,7 +756,7 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
-  basis::BasisStructs.Basis; debug=false)
+  basis::BasisStructs.Basis; debug)
 
   comm=MPI.COMM_WORLD
 
