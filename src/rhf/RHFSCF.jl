@@ -5,7 +5,8 @@ using MPI
 using Base.Threads
 #using Distributed
 using LinearAlgebra
-using JLD
+#using JLD
+using HDF5 
 using PrettyTables
 
 function rhf_energy(basis::BasisStructs.Basis,
@@ -41,6 +42,8 @@ function rhf_kernel(basis::BasisStructs.Basis,
   
   #== read in some variables from scf input ==#
   debug = scf_flags["debug"]
+  debug_output = debug ? h5open("debug.h5","w") : nothing
+
   niter = scf_flags["niter"] 
 
   #== read variables from input if needed ==#
@@ -59,11 +62,11 @@ function rhf_kernel(basis::BasisStructs.Basis,
         formatter = ft_printf("%5.6f", collect(2:1:6)),
         highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
     end
-    #display(S)
+    h5write("debug.h5","SCF/0/S", S)
     println("")
-
+      
+      
     println("Hamiltonian matrix:")
-    #display(H)
     for shell_group in 0:cld(size(H)[1],5)
       ending = min((5*shell_group + 5), size(H)[2])
       H_debug = H[:,(5*shell_group + 1):ending]
@@ -72,6 +75,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
         formatter = ft_printf("%5.6f", collect(2:1:6)),
         highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
     end
+    h5write("debug.h5","SCF/0/H", H)
     println("")
   end
 
@@ -100,6 +104,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
         formatter = ft_printf("%5.6f", collect(2:1:6)),
         highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
     end
+    h5write("debug.h5","SCF/0/Ortho", ortho)
     println("")
   end
 
@@ -121,7 +126,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec = 0.0
-  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis;
+  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis, 0;
     debug=debug)
   F = deepcopy(F_mo)
   #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1),
@@ -185,12 +190,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
       merge!(calculation_status, calculation_success)
     end
-
-    #if (FLAGS.SCF.debug == true)
-    #  close(json_debug)
-    #end
   end
 
+  if debug close(debug_output) end
+  
   return F, D, C, E, calculation_status
 end
 
@@ -313,7 +316,6 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     if debug && MPI.Comm_rank(comm) == 0
       println("Skeleton Fock matrix:")
-      #display(F)
       for shell_group in 0:cld(size(F)[1],5)
         ending = min((5*shell_group + 5), size(F)[2])
         F_debug = F[:,(5*shell_group + 1):ending]
@@ -322,6 +324,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
           formatter = ft_printf("%5.6f", collect(2:1:6)),
           highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
       end
+      h5write("debug.h5","SCF/$iter/F/Skeleton", F)
       println("")
     end
 
@@ -329,7 +332,6 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     if debug && MPI.Comm_rank(comm) == 0
       println("Total Fock matrix:")
-      #display(F)
       for shell_group in 0:cld(size(F)[1],5)
         ending = min((5*shell_group + 5), size(F)[2])
         F_debug = F[:,(5*shell_group + 1):ending]
@@ -338,6 +340,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
           formatter = ft_printf("%5.6f", collect(2:1:6)),
           highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
       end
+      h5write("debug.h5","SCF/$iter/F/Total", F)
       println("")
     end
 
@@ -369,7 +372,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     copyto!(D_old, indices_tocopy, D, indices_tocopy)
 
     E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
-      ortho, basis; debug=debug)
+      ortho, basis, iter; debug=debug)
 
     #F = deepcopy(F_mo)
     indices_tocopy = CartesianIndices((1:size(F_mo,1),
@@ -756,7 +759,7 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
-  basis::BasisStructs.Basis; debug)
+  basis::BasisStructs.Basis, iter; debug)
 
   comm=MPI.COMM_WORLD
 
@@ -784,6 +787,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
         formatter = ft_printf("%5.6f", collect(2:1:6)),
         highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
     end
+    h5write("debug.h5","SCF/$iter/C", C)
     println("")
   end
 
@@ -808,6 +812,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
         formatter = ft_printf("%5.6f", collect(2:1:6)),
         highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
     end
+    h5write("debug.h5","SCF/$iter/D", D)
     println("")
   end
 
@@ -819,6 +824,9 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   if debug && MPI.Comm_rank(comm) == 0
     println("New energy:")
     println("$EHF1, $EHF2")
+    h5write("debug.h5","SCF/$iter/E/EHF1", EHF1)
+    h5write("debug.h5","SCF/$iter/E/EHF2", EHF2)
+    h5write("debug.h5","SCF/$iter/E/EHF", E_elec)
     println("")
   end
 
