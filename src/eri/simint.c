@@ -38,7 +38,7 @@ void initialize_c()
 
   shells = malloc(1*sizeof(struct simint_shell));
   shell_pair_data = malloc(1*sizeof(struct simint_multi_shellpair));
-
+  
   sp_shell = malloc(1*sizeof(int));
   ksize = malloc(1*sizeof(int));
   ksize_simint = malloc(1*sizeof(int));
@@ -154,7 +154,8 @@ void allocate_shell_array_c(long long int nshell,
   //--Resize arrays--//
   shells = realloc(shells, nshell_simint*sizeof(struct simint_shell));
   shell_pair_data = realloc(shell_pair_data,(nshells*(nshells+1)/2)*sizeof(struct simint_multi_shellpair));
-    
+  //printf("SHELL PAIR DATA SIZE: %d\n", (nshells*(nshells+1)/2)*sizeof(struct simint_multi_shellpair));
+
   sp_shell = realloc(sp_shell, nshells*sizeof(int));
   ksize = realloc(ksize, nshells*sizeof(int));
   ksize_simint = realloc(ksize_simint, nshell_simint*sizeof(int));
@@ -216,17 +217,22 @@ void normalize_shells_c()
 //--Precompute shell pair data--//
 //------------------------------//
 void precompute_shell_pair_data_c() {
+  simint_initialize_multi_shellpairs(nshells*(nshells+1)/2, shell_pair_data);
+
   for (int sha = 0; sha != nshells; ++sha) {
     for (int shb = 0; shb <= sha; ++shb) { 
       int sh_idx = (sha*(sha+1)/2) + shb;
-      printf("ENTER PRECOMPUTE\n");
-      printf("%d, %d\n",sh_idx, nshells*(nshells+1)/2);
-      printf("%p\n",&shell_pair_data[sh_idx]);
-      
+      //printf("ENTER PRECOMPUTE\n");
+      //printf("%d, %d\n",sh_idx, nshells*(nshells+1)/2);
+      //printf("%p\n",&shell_pair_data[sh_idx]);
+   
+      //simint_create_multi_shellpair(1, &shells[sha], 1, &shells[shb],
+      //  &left_pair, 0);
+      //printf("SHELL DATA SIZE: %d\n", sizeof(left_pair));
+     
       simint_create_multi_shellpair(1, &shells[sha], 1, &shells[shb],
-        &left_pair, 0);
-      memcpy(&shell_pair_data[sh_idx], &left_pair, sizeof(struct simint_multi_shellpair));
-      printf("EXIT PRECOMPUTE\n");
+        &shell_pair_data[sh_idx], 0);
+      //printf("EXIT PRECOMPUTE\n");
     }
   }
 }
@@ -262,9 +268,24 @@ void fill_kl_shell_pair_c(long long int ksh, long long int lsh) {
 void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
   long long int lsh, double* eri) {
   
-  int ij_idx = (ish*(ish-1)/2) + jsh;
-  int kl_idx = (ksh*(ksh-1)/2) + lsh;
-  
+  int ij_idx = (ish*(ish-1)/2) + jsh - 1;
+  int kl_idx = (ksh*(ksh-1)/2) + lsh - 1;
+
+  struct simint_multi_shellpair left_pair_ = shell_pair_data[ij_idx]; 
+  struct simint_multi_shellpair right_pair_ = shell_pair_data[kl_idx]; 
+ 
+#if 0 
+  printf("IJ %d, %d, %d, %d:\n", ish, jsh, ksh, lsh);
+  printf("%d, %d, %d\n",left_pair_.am1, left_pair_.am2, left_pair_.nprim);
+  printf("%d, %d, %d\n",left_pair_.nshell12, left_pair_.nshell12_clip, *(left_pair_.nprim12));
+  printf("%f, %f, %f\n",*(left_pair_.x), *(left_pair_.y), *(left_pair_.z));
+
+  printf("KL %d, %d, %d, %d:\n", ish, jsh, ksh, lsh);
+  printf("%d, %d, %d\n",right_pair_.am1, right_pair_.am2, right_pair_.nprim);
+  printf("%d, %d, %d\n",right_pair_.nshell12, right_pair_.nshell12_clip, *(right_pair_.nprim12));
+  printf("%f, %f, %f\n",*(right_pair_.x), *(right_pair_.y), *(right_pair_.z));
+ #endif
+
   int ncomputed = 0;
   ncomputed = simint_compute_eri(&shell_pair_data[ij_idx], 
     &shell_pair_data[kl_idx], 0.0, work, eri);

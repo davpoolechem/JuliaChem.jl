@@ -460,7 +460,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   mutex = Base.Threads.Mutex()
   thread_index_counter = Threads.Atomic{Int64}(nindices)
 
-  Threads.@threads for thread in 1:Threads.nthreads()
+  for thread in 1:Threads.nthreads()
     F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
