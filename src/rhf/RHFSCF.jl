@@ -465,6 +465,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 
     max_shell_am = MAX_SHELL_AM
     eri_quartet_batch = Vector{Float64}(undef,1296)
+    eri_quartet_batch_abs = Vector{Float64}(undef,1296)
 
     bra = ShPair(basis.shells[1], basis.shells[1])
     ket = ShPair(basis.shells[1], basis.shells[1])
@@ -472,8 +473,8 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 
     twoei_thread_kernel(F, D,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
-      bra, ket, quartet, nindices, quartet_batch_num_old, ish_old, jsh_old,
-      ksh_old, lsh_old; debug=debug)
+      eri_quartet_batch_abs, bra, ket, quartet, nindices, 
+      quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
 
     lock(mutex)
     F[:,:] .+= F_priv[:,:]
@@ -490,7 +491,7 @@ end
 @inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
-  eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
+  eri_quartet_batch::Vector{Float64}, eri_quartet_batch_abs, bra::ShPair , ket::ShPair,
   quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
@@ -567,7 +568,10 @@ end
 
     shellquart(ish, jsh, ksh, lsh, eri_quartet_batch)
 
-    #if abs(maximum(eri_quartet_batch)) > 1E-10
+    #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am 
+    #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size]) 
+    
+    #if maximum(eri_quartet_batch_abs[1:eqb_size]) > 1E-10
       dirfck(F_priv, D, eri_quartet_batch, quartet,
         ish, jsh, ksh, lsh; debug=debug)
     #end
