@@ -35,7 +35,7 @@ set(SIMINT_PATH /export/home/david/programs/install/simint)
 include_directories(${SIMINT_PATH}/include)
 link_directories(${SIMINT_PATH}/lib64)
 add_library(jeri SHARED simint.c)
-target_link_libraries(jeri simint)
+target_link_libraries(jeri ${SIMINT_PATH}/lib64/libsimint.a)
 
 #install(TARGETS simint DESTINATION /home/david/Server/Documents/Programming/julia/JuliaChem.jl/src/eri)
 install(TARGETS jeri DESTINATION /export/home/david/projects/Julia/JuliaChem.jl/src/eri)
