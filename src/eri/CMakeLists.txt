@@ -24,7 +24,7 @@ if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
   set(OPT " -g -O0")
 endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
 
-set(CMAKE_C_FLAGS "${OPT} -std=gnu99")
+set(CMAKE_C_FLAGS "${OPT} -std=c99")
 
 #set(SIMINT_PATH /home/david/Local/Documents/Programs/simint-install)
 set(SIMINT_PATH /export/home/david/programs/install/simint)

@@ -59,6 +59,7 @@ function run(basis, molecule, keywords)
     end
 
     SIMINT.normalize_shells()
+    SIMINT.precompute_shell_pair_data()
 
     #for ishell::Int64 in 0:(nshell_simint-1)
     #  SIMINT.get_simint_shell_info(ishell)
@@ -66,7 +67,7 @@ function run(basis, molecule, keywords)
 
     #end
   else
-    println("REading integrals from disk is not implemented yet!")
+    println("Reading integrals from disk is not implemented yet!")
     throw()
   end
 

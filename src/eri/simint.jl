@@ -59,6 +59,13 @@ export add_shell
 end
 export normalize_shells
 
+@inline function precompute_shell_pair_data() 
+  ccall( (:precompute_shell_pair_data_c, 
+    "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"), 
+    Cvoid, () )
+end
+export normalize_shells
+
 @inline function unnormalize_shell(shell::JCModules.BasisStructs.Shell)
   for iprim::Int64 in 1:shell.nprim
     ee::Float64 = 2*shell.exponents[iprim]
@@ -93,9 +100,9 @@ export create_kl_shell_pair
 end
 export fill_kl_shell_pair
 
-@inline function compute_eris(eri::Vector{Float64})
+@inline function compute_eris(ish, jsh, ksh, lsh, eri::Vector{Float64})
   ccall( (:compute_eris_c, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"), Cvoid,
-    (Ptr{Float64},), eri)
+    (Int64, Int64, Int64, Int64, Ptr{Float64},), ish, jsh, ksh, lsh, eri)
 end
 export compute_eris
 

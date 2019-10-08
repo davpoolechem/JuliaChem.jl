@@ -464,7 +464,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
     F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
-    eri_quartet_batch = Vector{Float64}(undef,81)
+    eri_quartet_batch = Vector{Float64}(undef,1296)
 
     bra = ShPair(basis.shells[1], basis.shells[1])
     ket = ShPair(basis.shells[1], basis.shells[1])
@@ -581,6 +581,7 @@ end
   basis::BasisStructs.Basis, eri_quartet_batch::Vector{Float64})
 
   #= set up ij shell pair if necessary =#
+  #=
   if ish != ish_old || jsh != jsh_old
     SIMINT.create_ij_shell_pair(ish,jsh)
     ish_old = ish
@@ -613,11 +614,10 @@ end
     ksh_old = ksh
     lsh_old = lsh
   end
-
+  =#
+  
   #= actually compute integrals =#
-  SIMINT.compute_eris(eri_quartet_batch)
-
-  #SIMINT.retrieve_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
+  SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
 
   return ish_old, jsh_old, ksh_old, lsh_old
 end

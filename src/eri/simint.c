@@ -4,12 +4,15 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <assert.h>
+#include <string.h>
 
 #include "simint.h"
 
 static double* buffer = NULL; //shared workspace for SIMINT ERI computations
 static double* work = NULL; //shared workspace for SIMINT ERI computations
 static struct simint_shell* shells = NULL; //array of basis set shells for SIMINT
+
+static struct simint_multi_shellpair* shell_pair_data = NULL; //array of shell pair data 
 
 static int* sp_shell = NULL; //array telling if given shell is L shell or not
 static int* ksize = NULL; //array telling if given shell is L shell or not
@@ -34,14 +37,15 @@ void initialize_c()
   simint_initialize_multi_shellpair(&right_pair);
 
   shells = malloc(1*sizeof(struct simint_shell));
+  shell_pair_data = malloc(1*sizeof(struct simint_multi_shellpair));
 
   sp_shell = malloc(1*sizeof(int));
   ksize = malloc(1*sizeof(int));
   ksize_simint = malloc(1*sizeof(int));
   kstart_simint = malloc(1*sizeof(int));
 
-  work = malloc(simint_ostei_workmem(0,1)*sizeof(double));
-  buffer = malloc(81*sizeof(double));
+  work = malloc(simint_ostei_workmem(0,2)*sizeof(double));
+  buffer = malloc(1296*sizeof(double));
 
   iold = -1; jold = -1;
   ishell = 0; ishell_base = 0;
@@ -61,6 +65,7 @@ void finalize_c()
     free(ksize);
     free(sp_shell);
 
+    free(shell_pair_data);
     for (int i = 0; i != nshell_simint; ++i) simint_free_shell(&shells[i]);
     free(shells);
 
@@ -148,13 +153,14 @@ void allocate_shell_array_c(long long int nshell,
 
   //--Resize arrays--//
   shells = realloc(shells, nshell_simint*sizeof(struct simint_shell));
-
+  shell_pair_data = realloc(shell_pair_data,(nshells*(nshells+1)/2)*sizeof(struct simint_multi_shellpair));
+    
   sp_shell = realloc(sp_shell, nshells*sizeof(int));
   ksize = realloc(ksize, nshells*sizeof(int));
   ksize_simint = realloc(ksize_simint, nshell_simint*sizeof(int));
   kstart_simint = realloc(kstart_simint, nshell_simint*sizeof(int));
 
-  work = realloc(work, simint_ostei_workmem(0,1)*sizeof(double));
+  work = realloc(work, simint_ostei_workmem(0,2)*sizeof(double));
   buffer = realloc(buffer, 1296*sizeof(double));
 }
 
@@ -206,9 +212,29 @@ void normalize_shells_c()
   simint_normalize_shells(nshell_simint, shells);
 }
 
+//------------------------------//
+//--Precompute shell pair data--//
+//------------------------------//
+void precompute_shell_pair_data_c() {
+  for (int sha = 0; sha != nshells; ++sha) {
+    for (int shb = 0; shb <= sha; ++shb) { 
+      int sh_idx = (sha*(sha+1)/2) + shb;
+      printf("ENTER PRECOMPUTE\n");
+      printf("%d, %d\n",sh_idx, nshells*(nshells+1)/2);
+      printf("%p\n",&shell_pair_data[sh_idx]);
+      
+      simint_create_multi_shellpair(1, &shells[sha], 1, &shells[shb],
+        &left_pair, 0);
+      memcpy(&shell_pair_data[sh_idx], &left_pair, sizeof(struct simint_multi_shellpair));
+      printf("EXIT PRECOMPUTE\n");
+    }
+  }
+}
+
 //-------------------------------//
 //--Create and fill shell pairs--//
 //-------------------------------//
+/*
 void create_ij_shell_pair_c(long long int ish, long long int jsh) {
   simint_create_multi_shellpair(1, &shells[ish-1], 1, &shells[jsh-1],
     &left_pair, 0);
@@ -228,13 +254,20 @@ void fill_kl_shell_pair_c(long long int ksh, long long int lsh) {
   simint_fill_multi_shellpair(1, &shells[ksh-1], 1, &shells[lsh-1],
     &right_pair, 0);
 }
+*/
 
 //----------------//
 //--Compute ERIs--//
 //----------------//
-void compute_eris_c(double* eri) {
+void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
+  long long int lsh, double* eri) {
+  
+  int ij_idx = (ish*(ish-1)/2) + jsh;
+  int kl_idx = (ksh*(ksh-1)/2) + lsh;
+  
   int ncomputed = 0;
-  ncomputed = simint_compute_eri(&left_pair, &right_pair, 0.0, work, eri);
+  ncomputed = simint_compute_eri(&shell_pair_data[ij_idx], 
+    &shell_pair_data[kl_idx], 0.0, work, eri);
 }
 
 //-------------------------------------------------------------//
