@@ -565,8 +565,7 @@ end
     #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
     #eri_quartet_batch = @view eri_batch[starting:ending]
 
-    ish_old, jsh_old, ksh_old, lsh_old = shellquart(ish,jsh,ksh,lsh,ish_old,
-      jsh_old,ksh_old,lsh_old,basis,eri_quartet_batch)
+    shellquart(ish, jsh, ksh, lsh, eri_quartet_batch)
 
     #if abs(maximum(eri_quartet_batch)) > 1E-10
       dirfck(F_priv, D, eri_quartet_batch, quartet,
@@ -577,49 +576,10 @@ end
 end
 
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
-  lsh::Int64, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64,
-  basis::BasisStructs.Basis, eri_quartet_batch::Vector{Float64})
+  lsh::Int64, eri_quartet_batch::Vector{Float64})
 
-  #= set up ij shell pair if necessary =#
-  #=
-  if ish != ish_old || jsh != jsh_old
-    SIMINT.create_ij_shell_pair(ish,jsh)
-    ish_old = ish
-    jsh_old = jsh
-  end
-
-  #=set up kl shell pair if necessary =#
-  if ksh != ksh_old || lsh != lsh_old #always true
-    if ksh_old == 0 && lsh_old == 0
-      SIMINT.allocate_kl_shell_pair(ksh,lsh)
-      ksh_old = ksh
-      lsh_old = lsh
-    end
-
-    old_kl = basis[ksh].atom_id == basis[ksh_old].atom_id
-    old_kl = old_kl && (basis[lsh].atom_id == basis[lsh_old].atom_id)
-
-    old_kl = old_kl && (basis[ksh].am == basis[ksh_old].am)
-    old_kl = old_kl && (basis[lsh].am == basis[lsh_old].am)
-
-    old_kl = old_kl && (basis[ksh].nprim <= basis[ksh_old].nprim)
-    old_kl = old_kl && (basis[lsh].nprim <= basis[lsh_old].nprim)
-
-    if old_kl
-      SIMINT.fill_kl_shell_pair(ksh,lsh)
-    else
-      SIMINT.create_kl_shell_pair(ksh,lsh)
-    end
-
-    ksh_old = ksh
-    lsh_old = lsh
-  end
-  =#
-  
   #= actually compute integrals =#
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
-
-  return ish_old, jsh_old, ksh_old, lsh_old
 end
 
 
