@@ -643,6 +643,15 @@ end
           if debug 
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
+          
+          μνλσ += 1
+          if abs(eri_batch[μνλσ]) <= 1E-10
+            if debug 
+              if do_continue_print println("DO CONTINUE - SCREENED") end
+            end  
+            continue
+          end
+
 
           condition1 = μμ == λλ && νν == σσ 
           condition1 = condition1 || (μμ == νν && λλ == σσ)
@@ -688,7 +697,6 @@ end
 
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           if μμ < νν && condition1 
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -698,7 +706,6 @@ end
 
           λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
           if λλ < σσ && condition1 
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -707,7 +714,6 @@ end
           λσ = triangular_index(λλ,σσ)
 
           if μμ < λλ && νν < σσ && condition2
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -715,7 +721,6 @@ end
           end  
 
           if (μμ < νν || λλ < σσ) && condition3
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -723,7 +728,6 @@ end
           end  
 
           if (μμ < νν && λλ < σσ) && condition4
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -731,7 +735,6 @@ end
           end  
 
           if μμ < λλ && condition5
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -739,7 +742,6 @@ end
           end  
 
           if μμ < νν && condition6
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -747,7 +749,6 @@ end
           end  
 
           if λλ < σσ && condition7
-            μνλσ += 1
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
@@ -761,7 +762,6 @@ end
               ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
             if do_continue
-              μνλσ += 1
               if debug 
                 if do_continue_print println("DO CONTINUE") end
               end
@@ -769,16 +769,14 @@ end
             end
           end
 
-          μνλσ += 1
-
 	        eri = eri_batch[μνλσ]
           #eri::T = 0
-          if abs(eri) <= 1E-10
-            if debug 
-              if do_continue_print println("DO CONTINUE - SCREENED") end
-            end  
-            continue
-          end
+          #if abs(eri) <= 1E-10
+          #  if debug 
+          #    if do_continue_print println("DO CONTINUE - SCREENED") end
+          #  end  
+          #  continue
+          #end
 
           if debug println("$μ, $ν, $λ, $σ, $eri") end
 	        eri *= (μ == ν) ? 0.5 : 1.0
