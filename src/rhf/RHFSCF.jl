@@ -652,7 +652,6 @@ end
             continue
           end
 
-
           condition1 = μμ == λλ && νν == σσ 
           condition1 = condition1 || (μμ == νν && λλ == σσ)
           condition1 = condition1 || (μμ == σσ && λλ == νν)
@@ -718,44 +717,32 @@ end
               if do_continue_print println("DO CONTINUE") end
             end
             continue
-          end  
-
-          if (μμ < νν || λλ < σσ) && condition3
+          elseif (μμ < νν || λλ < σσ) && condition3
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
             continue
-          end  
-
-          if (μμ < νν && λλ < σσ) && condition4
+          elseif (μμ < νν && λλ < σσ) && condition4
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
             continue
-          end  
-
-          if μμ < λλ && condition5
+          elseif μμ < λλ && condition5
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
             continue
-          end  
-
-          if μμ < νν && condition6
+          elseif μμ < νν && condition6
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
             continue
-          end  
-
-          if λλ < σσ && condition7
+          elseif λλ < σσ && condition7
             if debug 
               if do_continue_print println("DO CONTINUE") end
             end
             continue
-          end  
-
-          if (μν < λσ)
+          elseif μν < λσ
             do_continue = false
 
             do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
