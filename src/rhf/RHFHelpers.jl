@@ -250,7 +250,7 @@ end
   return (a*(a-1)) >> 1
 end
 
-function decompose(input)
+@noinline function decompose(input)
   return trunc(Integer,cld((-1.0+√(1+8*input)),2.0))
 end
 

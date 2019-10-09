@@ -488,7 +488,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   return F
 end
 
-@inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
+function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
   eri_quartet_batch::Vector{Float64}, eri_quartet_batch_abs, bra::ShPair , ket::ShPair,
@@ -587,7 +587,7 @@ end
 end
 
 
-@noinline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
+function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64; debug)
 
