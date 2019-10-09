@@ -6,10 +6,10 @@ using Base.Threads
 #using Distributed
 using LinearAlgebra
 #using JLD
-using HDF5 
+using HDF5
 using PrettyTables
 
-const do_continue_print = false 
+const do_continue_print = false
 
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
@@ -41,12 +41,12 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
-  
+
   #== read in some variables from scf input ==#
   debug = scf_flags["debug"]
   debug_output = debug ? h5open("debug.h5","w") : nothing
 
-  niter = scf_flags["niter"] 
+  niter = scf_flags["niter"]
 
   #== read variables from input if needed ==#
   E_nuc = molecule["enuc"]
@@ -66,8 +66,8 @@ function rhf_kernel(basis::BasisStructs.Basis,
     #end
     h5write("debug.h5","SCF/0/S", S)
     #println("")
-      
-      
+
+
     #println("Hamiltonian matrix:")
     #for shell_group in 0:cld(size(H)[1],5)
     #  ending = min((5*shell_group + 5), size(H)[2])
@@ -194,7 +194,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   if debug close(debug_output) end
-  
+
   return F, D, C, E, calculation_status
 end
 
@@ -259,11 +259,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, scf_converged, quartet_batch_num_old; debug=debug, 
+    D_damp_rms, scf_converged, quartet_batch_num_old; debug=debug,
     niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd)
 
   #== we are done! ==#
-  if debug  
+  if debug
     h5write("debug.h5","SCF/Final/F", F)
     h5write("debug.h5","SCF/Final/D", D)
     h5write("debug.h5","SCF/Final/C", C)
@@ -277,7 +277,7 @@ end
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
   S::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64,
-  basis::BasisStructs.Basis, 
+  basis::BasisStructs.Basis,
   F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
@@ -410,7 +410,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     iter_converged = abs(ΔE) <= dele && D_rms <= rmsd
     iter += 1
-    if iter > niter 
+    if iter > niter
       scf_converged = false
       break
     end
@@ -441,7 +441,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64}, 
+function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   basis::BasisStructs.Basis; debug)
 
   fill!(F,zero(Float64))
@@ -473,7 +473,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 
     twoei_thread_kernel(F, D,
       H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
-      eri_quartet_batch_abs, bra, ket, quartet, nindices, 
+      eri_quartet_batch_abs, bra, ket, quartet, nindices,
       quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
 
     lock(mutex)
@@ -568,9 +568,9 @@ end
 
     shellquart(ish, jsh, ksh, lsh, eri_quartet_batch)
 
-    #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am 
-    #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size]) 
-    
+    #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
+    #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
+
     #if maximum(eri_quartet_batch_abs[1:eqb_size]) > 1E-10
       dirfck(F_priv, D, eri_quartet_batch, quartet,
         ish, jsh, ksh, lsh; debug=debug)
@@ -597,18 +597,6 @@ end
   spν = quartet.bra.sh_b.sp
   spλ = quartet.ket.sh_a.sp
   spσ = quartet.ket.sh_b.sp
-
-  two_same = ish == jsh
-  two_same = two_same || (ish == ksh)
-  two_same = two_same || (ish == lsh)
-  two_same = two_same || (jsh == ksh)
-  two_same = two_same || (jsh == lsh)
-  two_same = two_same || (ksh == lsh)
-          
-  three_same = ish == jsh && jsh == ksh
-  three_same = three_same || (ish == jsh && jsh == lsh)
-  three_same = three_same || (ish == ksh && ksh == lsh)
-  three_same = three_same || (jsh == ksh && ksh == lsh)
 
   μνλσ = 0
 
@@ -652,108 +640,31 @@ end
 
       for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
         for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
-          if debug 
+          if debug
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
-          
+
           μνλσ += 1
           if abs(eri_batch[μνλσ]) <= 1E-10
-            if debug 
+            if debug
               if do_continue_print println("DO CONTINUE - SCREENED") end
-            end  
+            end
             continue
           end
 
-          condition1 = μμ == λλ && νν == σσ 
-          condition1 = condition1 || (μμ == νν && λλ == σσ)
-          condition1 = condition1 || (μμ == σσ && λλ == νν)
-          condition1 = condition1 &&          
-            nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
- 
-          condition2 = μμ == νν && λλ == σσ && 
-            ish == jsh && jsh == ksh && ksh == lsh
+          do_continue = false
+          μ = μμ
+          ν = νν
+          λ = λλ
+          σ = σσ
+          do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
+            ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
-          condition3 = two_same && !(ish == ksh && jsh == lsh)
-          condition3 = condition3 &&  
-            nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
-      
-          condition4 =  nμ > 1 && nν > 1 && nλ > 1
-          condition4 =  condition4 || (nμ > 1 && nν > 1 && nσ > 1)
-          condition4 =  condition4 || (nμ > 1 && nλ > 1 && nσ > 1)
-          condition4 =  condition4 || (nν > 1 && nλ > 1 && nσ > 1)
-
-          condition5 = ish == ksh && jsh == lsh
-          condition5 = condition5 &&
-            nμ > 1 && nν == 1 && nλ > 1 && nσ == 1
-
-          condition6 = ish == jsh 
-          condition6 = condition6 &&
-            nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
-
-          condition7 = ksh == lsh 
-          condition7 = condition7 &&
-            (nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
-
-          μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-          if μμ < νν && condition1 
-            if debug 
+          if do_continue
+            if debug
               if do_continue_print println("DO CONTINUE") end
             end
             continue
-          end 
-          μν = triangular_index(μμ,νν)
-
-          λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-          if λλ < σσ && condition1 
-            if debug 
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          end 
-          λσ = triangular_index(λλ,σσ)
-
-          if μμ < λλ && νν < σσ && condition2
-            if debug 
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          elseif (μμ < νν || λλ < σσ) && condition3
-            if debug 
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          elseif (μμ < νν && λλ < σσ) && condition4
-            if debug 
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          elseif μμ < λλ && condition5
-            if debug 
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          elseif μμ < νν && condition6
-            if debug 
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          elseif λλ < σσ && condition7
-            if debug 
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          elseif μν < λσ
-            do_continue = false
-
-            do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
-              ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
-
-            if do_continue
-              if debug 
-                if do_continue_print println("DO CONTINUE") end
-              end
-              continue
-            end
           end
 
 	        eri = eri_batch[μνλσ]
