@@ -598,6 +598,18 @@ end
   spλ = quartet.ket.sh_a.sp
   spσ = quartet.ket.sh_b.sp
 
+  two_same = ish == jsh
+  two_same = two_same || (ish == ksh)
+  two_same = two_same || (ish == lsh)
+  two_same = two_same || (jsh == ksh)
+  two_same = two_same || (jsh == lsh)
+  two_same = two_same || (ksh == lsh)
+          
+  three_same = ish == jsh && jsh == ksh
+  three_same = three_same || (ish == jsh && jsh == lsh)
+  three_same = three_same || (ish == ksh && ksh == lsh)
+  three_same = three_same || (jsh == ksh && ksh == lsh)
+
   μνλσ = 0
 
   for spi in 0:spμ, spj in 0:spν
@@ -660,18 +672,6 @@ end
  
           condition2 = μμ == νν && λλ == σσ && 
             ish == jsh && jsh == ksh && ksh == lsh
-
-          two_same = ish == jsh
-          two_same = two_same || (ish == ksh)
-          two_same = two_same || (ish == lsh)
-          two_same = two_same || (jsh == ksh)
-          two_same = two_same || (jsh == lsh)
-          two_same = two_same || (ksh == lsh)
-          
-          three_same = ish == jsh && jsh == ksh
-          three_same = three_same || (ish == jsh && jsh == lsh)
-          three_same = three_same || (ish == ksh && ksh == lsh)
-          three_same = three_same || (jsh == ksh && ksh == lsh)
 
           condition3 = two_same && !(ish == ksh && jsh == lsh)
           condition3 = condition3 &&  
