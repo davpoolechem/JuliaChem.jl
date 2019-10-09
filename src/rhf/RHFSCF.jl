@@ -770,13 +770,6 @@ end
           end
 
 	        eri = eri_batch[μνλσ]
-          #eri::T = 0
-          #if abs(eri) <= 1E-10
-          #  if debug 
-          #    if do_continue_print println("DO CONTINUE - SCREENED") end
-          #  end  
-          #  continue
-          #end
 
           if debug println("$μ, $ν, $λ, $σ, $eri") end
 	        eri *= (μ == ν) ? 0.5 : 1.0
