@@ -29,17 +29,17 @@ function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, k
   condition1 = condition1 &&
 	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
 
-  condition2 = μμ == νν && λλ == σσ &&
-	ish == jsh && jsh == ksh && ksh == lsh
+  #condition2 = μμ == νν && λλ == σσ &&
+	#ish == jsh && jsh == ksh && ksh == lsh
 
   condition3 = two_same && !(ish == ksh && jsh == lsh)
   condition3 = condition3 &&
 	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
 
-  condition4 =  nμ > 1 && nν > 1 && nλ > 1
-  condition4 =  condition4 || (nμ > 1 && nν > 1 && nσ > 1)
-  condition4 =  condition4 || (nμ > 1 && nλ > 1 && nσ > 1)
-  condition4 =  condition4 || (nν > 1 && nλ > 1 && nσ > 1)
+  #condition4 =  nμ > 1 && nν > 1 && nλ > 1
+  #condition4 =  condition4 || (nμ > 1 && nν > 1 && nσ > 1)
+  #condition4 =  condition4 || (nμ > 1 && nλ > 1 && nσ > 1)
+  #condition4 =  condition4 || (nν > 1 && nλ > 1 && nσ > 1)
 
   condition5 = ish == ksh && jsh == lsh
   condition5 = condition5 &&
@@ -65,12 +65,12 @@ function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, k
   end
   λσ = triangular_index(λλ,σσ)
 
-  if μμ < λλ && νν < σσ && condition2
+  #if μμ < λλ && νν < σσ && condition2
+	#do_continue = true
+  if (μμ < νν || λλ < σσ) && condition3
 	do_continue = true
-  elseif (μμ < νν || λλ < σσ) && condition3
-	do_continue = true
-  elseif (μμ < νν && λλ < σσ) && condition4
-	do_continue = true
+  #elseif (μμ < νν && λλ < σσ) && condition4
+	#do_continue = true
   elseif μμ < λλ && condition5
 	do_continue = true
   elseif μμ < νν && condition6
