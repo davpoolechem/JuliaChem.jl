@@ -53,13 +53,13 @@ function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, k
   condition7 = condition7 &&
 	(nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
 
-  μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
+  #μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
   if μμ < νν && condition1
 	do_continue = true
   end
   μν = triangular_index(μμ,νν)
 
-  λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
+  #λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
   if λλ < σσ && condition1
 	do_continue = true
   end
