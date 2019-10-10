@@ -682,15 +682,15 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 	        F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
           F_priv[μ,λ] -= D[ν,σ] * eri
 	        F_priv[μ,σ] -= D[ν,λ] * eri
-          F_priv[ν,λ] -= D[max(μ,σ),min(μ,σ)] * eri
-          F_priv[ν,σ] -= D[max(μ,λ),min(μ,λ)] * eri
+          F_priv[ν,λ] -= D[μ,σ] * eri
+          F_priv[ν,σ] -= D[μ,λ] * eri
 
           if λ != σ F_priv[σ,λ] += 4.0 * D[μ,ν] * eri end
 	        if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
           if μ != λ F_priv[λ,μ] -= D[ν,σ] * eri end
 	        if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
-          if ν != λ F_priv[λ,ν] -= D[max(μ,σ),min(μ,σ)] * eri end
-	        if ν != σ F_priv[σ,ν] -= D[max(μ,λ),min(μ,λ)] * eri end
+          if ν != λ F_priv[λ,ν] -= D[μ,σ] * eri end
+	        if ν != σ F_priv[σ,ν] -= D[μ,λ] * eri end
         end
       end
     end
