@@ -481,8 +481,11 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
     unlock(mutex)
   end
 
-  for iorb in 1:basis.norb, jorb in 1:basis.norb
-    if iorb != jorb F[iorb,jorb] /= 2.0 end
+  for iorb in 1:basis.norb, jorb in 1:iorb
+    if iorb != jorb 
+      F[iorb,jorb] /= 2.0 
+      F[jorb,iorb] = F[iorb,jorb] 
+    end
   end
 
   return F
@@ -658,9 +661,9 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
           λ = λλ
           σ = σσ
           
-        
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-          λ,σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
+          λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
+          
           do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
@@ -682,15 +685,8 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 	        F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
           F_priv[μ,λ] -= D[ν,σ] * eri
 	        F_priv[μ,σ] -= D[ν,λ] * eri
-          F_priv[ν,λ] -= D[μ,σ] * eri
-          F_priv[ν,σ] -= D[μ,λ] * eri
-
-          if λ != σ F_priv[σ,λ] += 4.0 * D[μ,ν] * eri end
-	        if μ != ν F_priv[ν,μ] += 4.0 * D[λ,σ] * eri end
-          if μ != λ F_priv[λ,μ] -= D[ν,σ] * eri end
-	        if μ != σ F_priv[σ,μ] -= D[ν,λ] * eri end
-          if ν != λ F_priv[λ,ν] -= D[μ,σ] * eri end
-	        if ν != σ F_priv[σ,ν] -= D[μ,λ] * eri end
+          F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
+          F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
         end
       end
     end
