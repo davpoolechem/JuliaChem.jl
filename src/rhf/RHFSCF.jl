@@ -659,11 +659,15 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
               if do_continue_print println("DO CONTINUE - SCREENED") end
             end
             continue
+          elseif μμ < νν 
+            continue 
+          elseif λλ < σσ 
+            continue 
           end
 
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-          
+         
           do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
