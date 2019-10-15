@@ -641,8 +641,14 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
         nσ = quartet.ket.sh_b.nbas
       end
 
-      for μμ in pμ:pμ+(nμ-1), νν in pν:pν+(nν-1)
-        for λλ in pλ:pλ+(nλ-1), σσ in pσ:pσ+(nσ-1)
+      
+      for μsize in 0:(nμ-1), νsize in 0:min((nν-1),μsize)
+        for λsize in 0:(nλ-1), σsize in 0:min((nσ-1),λsize) 
+          μμ = μsize + pμ
+          νν = νsize + pν
+          λλ = λsize + pλ
+          σσ = σsize + pσ
+        
           if debug
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
@@ -655,12 +661,6 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
             continue
           end
 
-          do_continue = false
-          μ = μμ
-          ν = νν
-          λ = λλ
-          σ = σσ
-          
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
           

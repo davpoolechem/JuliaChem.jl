@@ -26,6 +26,18 @@ int iold, jold;
 int nshells, ishell, ishell_base;
 int nshell_simint;
 
+//--------------------------------//
+//--temporary decompose function--//
+//--------------------------------//
+long long int decompose(long long int input) {
+  long long int test1 = 1+8*input;
+  double d_test1 = (double)test1;
+  double test2 = sqrt(d_test1);
+  double test3 = -1.0 + test2;
+  double ret = ceil(test3/2.0);
+  return (long long int)ret;
+}
+
 //---------------------//
 //--initialize SIMINT--//
 //---------------------//

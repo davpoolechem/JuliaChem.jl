@@ -22689,13 +22689,13 @@
   },
   "keywords": {
     "scf":{
-      "niter":100,
+      "niter":1,
       "ndiis":8,
       "dele":1E-8,
       "rmsd":1E-6,
       "prec":"Float64",
       "direct":true,
-      "debug":false
+      "debug":true
     }
   }
 }

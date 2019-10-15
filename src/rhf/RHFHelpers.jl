@@ -250,8 +250,10 @@ end
   return (a*(a-1)) >> 1
 end
 
-@noinline function decompose(input)
+@inline function decompose(input)
   return trunc(Integer,cld((-1.0+√(1+8*input)),2.0))
+  #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
+  #  Int64, (Int64,), input)
 end
 
 function read_in_enuc()
