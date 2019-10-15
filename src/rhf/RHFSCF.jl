@@ -460,7 +460,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   mutex = Base.Threads.Mutex()
   thread_index_counter = Threads.Atomic{Int64}(nindices)
 
-  for thread in 1:Threads.nthreads()
+  Threads.@threads for thread in 1:Threads.nthreads()
     F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
@@ -643,31 +643,32 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 
       
       for μsize in 0:(nμ-1), νsize in 0:min((nν-1),μsize)
+        μμ = μsize + pμ
+        νν = νsize + pν
+        if μμ < νν continue end
+
+        μ, ν = μμ, νν
+        
         for λsize in 0:(nλ-1), σsize in 0:min((nσ-1),λsize) 
-          μμ = μsize + pμ
-          νν = νsize + pν
           λλ = λsize + pλ
           σσ = σsize + pσ
+          if λλ < σσ continue end
+          
+          λ, σ = λλ, σσ
         
           if debug
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
 
-          μνλσ += 1
+          μνλσ = σsize + (nσ-1)*λsize +(nσ-1)*(nλ-1)*νsize + 
+            (nσ-1)*(nλ-1)*(nν-1)*μsize 
           if abs(eri_batch[μνλσ]) <= 1E-10
             if debug
               if do_continue_print println("DO CONTINUE - SCREENED") end
             end
             continue
-          elseif μμ < νν 
-            continue 
-          elseif λλ < σσ 
-            continue 
           end
 
-          μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-          λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-         
           do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
