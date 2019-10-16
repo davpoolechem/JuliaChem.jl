@@ -644,16 +644,10 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
         μμ = μsize + pμ
         νν = νsize + pν
            
-        do_continue = sort_bra(μμ, νν, 
+        do_continue_bra = sort_bra(μμ, νν, 
           ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
+        if do_continue_bra continue end
 
-        if do_continue
-          if debug
-            if do_continue_print println("DO CONTINUE") end
-          end
-          continue
-        end
- 
         for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
           λλ = λsize + pλ
           σσ = σsize + pσ
@@ -665,37 +659,20 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
           μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + 
             nσ*nλ*nν*μsize 
 
-          if abs(eri_batch[μνλσ]) <= 1E-10
-            if debug
-              if do_continue_print println("DO CONTINUE - SCREENED") end
-            end
-            continue
-          end
-
+          do_continue_screen = abs(eri_batch[μνλσ]) <= 1E-10
+          
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
            
-          do_continue = sort_ket(μμ, νν, λλ, σσ,
+          do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
 
-          if do_continue
-            if debug
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          end
-
-          do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
+          do_continue_braket, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
-          if do_continue
-            if debug
-              if do_continue_print println("DO CONTINUE") end
-            end
-            continue
-          end
-
-	        eri = eri_batch[μνλσ]
+          do_continue = do_continue_ket || 
+            do_continue_braket || do_continue_screen
+	        eri = !do_continue ? eri_batch[μνλσ] : 0.0
 
           if debug println("$μ, $ν, $λ, $σ, $eri") end
 	        eri *= (μ == ν) ? 0.5 : 1.0
