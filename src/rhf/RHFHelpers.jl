@@ -6,21 +6,9 @@ using MATH
 using JLD
 
 function sort_bra(μμ, νν, ish, jsh, ksh, lsh,
-  nμ, nν, nλ, nσ)
+  nμ, nν, nλ, nσ, two_same, three_same)
 
   do_continue = false
-
-  two_same = ish == jsh
-  two_same = two_same || (ish == ksh)
-  two_same = two_same || (ish == lsh)
-  two_same = two_same || (jsh == ksh)
-  two_same = two_same || (jsh == lsh)
-  two_same = two_same || (ksh == lsh)
-
-  three_same = ish == jsh && jsh == ksh
-  three_same = three_same || (ish == jsh && jsh == lsh)
-  three_same = three_same || (ish == ksh && ksh == lsh)
-  three_same = three_same || (jsh == ksh && ksh == lsh)
 
   condition3 = two_same && !(ish == ksh && jsh == lsh)
   condition3 = condition3 &&
@@ -39,21 +27,9 @@ function sort_bra(μμ, νν, ish, jsh, ksh, lsh,
 end
 
 function sort_ket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh,
-  nμ, nν, nλ, nσ)
+  nμ, nν, nλ, nσ, two_same, three_same)
 
   do_continue = false
-
-  two_same = ish == jsh
-  two_same = two_same || (ish == ksh)
-  two_same = two_same || (ish == lsh)
-  two_same = two_same || (jsh == ksh)
-  two_same = two_same || (jsh == lsh)
-  two_same = two_same || (ksh == lsh)
-
-  three_same = ish == jsh && jsh == ksh
-  three_same = three_same || (ish == jsh && jsh == lsh)
-  three_same = three_same || (ish == ksh && ksh == lsh)
-  three_same = three_same || (jsh == ksh && ksh == lsh)
 
   condition1 = μμ == λλ && νν == σσ
   condition1 = condition1 || (μμ == νν && λλ == σσ)

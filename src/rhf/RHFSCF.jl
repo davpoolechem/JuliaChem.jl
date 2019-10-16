@@ -596,6 +596,18 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 
   norb = size(D)[1]
 
+  two_same = ish == jsh
+  two_same = two_same || (ish == ksh)
+  two_same = two_same || (ish == lsh)
+  two_same = two_same || (jsh == ksh)
+  two_same = two_same || (jsh == lsh)
+  two_same = two_same || (ksh == lsh)
+
+  three_same = ish == jsh && jsh == ksh
+  three_same = three_same || (ish == jsh && jsh == lsh)
+  three_same = three_same || (ish == ksh && ksh == lsh)
+  three_same = three_same || (jsh == ksh && ksh == lsh)
+
   spμ = quartet.bra.sh_a.sp
   spν = quartet.bra.sh_b.sp
   spλ = quartet.ket.sh_a.sp
@@ -644,7 +656,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
         νν = νsize + pν
            
         do_continue = sort_bra(μμ, νν, 
-          ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
+          ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
 
         if do_continue
           if debug
@@ -675,7 +687,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
           λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
            
           do_continue = sort_ket(μμ, νν, λλ, σσ,
-            ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
+            ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
 
           if do_continue
             if debug
