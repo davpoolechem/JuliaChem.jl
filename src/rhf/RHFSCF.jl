@@ -91,7 +91,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     S_eval[i,i] = S_eval_diag[i]
   end
 
-  ortho = Matrix{Float64}(undef, basis.norb, basis.norb)
+  ortho = similar(H) 
   @views ortho[:,:] = S_evec[:,:]*
     (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
 
@@ -112,11 +112,11 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #== build the initial matrices ==#
   F = H
   F_eval = Vector{Float64}(undef,basis.norb)
-  F_evec = Matrix{Float64}(undef,basis.norb,basis.norb)
-  F_mo = Matrix{Float64}(undef,basis.norb,basis.norb)
+  F_evec = similar(F) 
+  F_mo = similar(F) 
 
-  D = Matrix{Float64}(undef,basis.norb,basis.norb)
-  C = Matrix{Float64}(undef,basis.norb,basis.norb)
+  D = similar(F) 
+  C = similar(F) 
 
   if MPI.Comm_rank(comm) == 0
     println("----------------------------------------          ")
@@ -210,34 +210,28 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   rmsd = scf_flags["rmsd"]
 
   #== build DIIS arrays ==#
-  F_array = fill(Matrix{Float64}(undef,basis.norb,basis.norb),
-    ndiis)
+  F_array = fill(similar(F), ndiis)
 
-  e = Matrix{Float64}(undef,basis.norb,basis.norb)
-  e_array = fill(
-    Matrix{Float64}(undef,basis.norb,basis.norb), ndiis)
-  e_array_old = fill(
-    Matrix{Float64}(undef,basis.norb,basis.norb), ndiis)
-  F_array_old = fill(
-    Matrix{Float64}(undef,basis.norb,basis.norb), ndiis)
+  e = similar(F) 
+  e_array = fill(similar(F), ndiis)
+  e_array_old = fill(similar(F), ndiis)
+  F_array_old = fill(similar(F), ndiis)
 
   #== build arrays needed for post-fock build iteration calculations ==#
-  F_temp = Matrix{Float64}(undef,basis.norb,basis.norb)
-  D_old = Matrix{Float64}(undef,basis.norb,basis.norb)
-  ΔD = Matrix{Float64}(undef,basis.norb,basis.norb)
+  F_temp = similar(F) 
+  D_old = similar(F) 
+  ΔD = similar(F) 
 
   #== build arrays needed for dynamic damping ==#
   damp_values = [ 0.25, 0.75 ]
-  D_damp = [ Matrix{Float64}(undef,basis.norb,basis.norb)
-    for i in 1:2 ]
+  D_damp = [ similar(F) for i in 1:2 ]
   D_damp_rms = [ zero(Float64), zero(Float64) ]
 
   #== build variables needed for eri batching ==#
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
 
-  quartet_batch_num_old = fld(nindices,
-    QUARTET_BATCH_SIZE) + 1
+  quartet_batch_num_old = trunc(Integer,nindices/QUARTET_BATCH_SIZE) + 1
 
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
@@ -454,8 +448,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   ksh_old = 0
   lsh_old = 0
 
-  quartet_batch_num_old = fld(nindices,
-    QUARTET_BATCH_SIZE) + 1
+  quartet_batch_num_old = trunc(Integer,nindices/QUARTET_BATCH_SIZE) + 1
 
   mutex = Base.Threads.Mutex()
   thread_index_counter = Threads.Atomic{Int64}(nindices)
@@ -583,7 +576,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64; debug)
 
-  norb = size(D)[1]
+  norb = size(D,1)
 
   two_same = ish == jsh
   two_same = two_same || (ish == ksh)
