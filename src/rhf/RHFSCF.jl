@@ -640,11 +640,20 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
       end
 
       for μsize in 0:(nμ-1), νsize in 0:(nν-1)
+        μμ = μsize + pμ
+        νν = νsize + pν
+           
+        do_continue = sort_bra(μμ, νν, 
+          ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
+
+        if do_continue
+          if debug
+            if do_continue_print println("DO CONTINUE") end
+          end
+          continue
+        end
+ 
         for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
-      #for μsize in 0:(nμ-1), νsize in 0:min((nν-1),μsize) 
-      #  for λsize in 0:(nλ-1), σsize in 0:min((nσ-1),λsize) 
-          μμ = μsize + pμ
-          νν = νsize + pν
           λλ = λsize + pλ
           σσ = σsize + pσ
         
@@ -652,7 +661,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
 
-          μνλσ = 1 + σsize + nσ*λsize +nσ*nλ*νsize + 
+          μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + 
             nσ*nλ*nν*μsize 
 
           if abs(eri_batch[μνλσ]) <= 1E-10
@@ -703,8 +712,6 @@ Perform single SCF iteration.
 
 Arguments
 ======
-F = Current iteration's Fock Matrix
-
 D = Current iteration's Density Matrix
 
 H = One-electron Hamiltonian Matrix
