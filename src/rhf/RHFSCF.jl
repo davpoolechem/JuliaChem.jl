@@ -648,8 +648,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
           ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
         if do_continue_bra continue end
 
-        for λsize in 0:(nλ-1) 
-        @simd for σsize in 0:(nσ-1)
+        for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
           λλ = λsize + pλ
           σσ = σsize + pσ
           
@@ -686,7 +685,6 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 	        F_priv[μ,σ] -= D[ν,λ] * eri
           F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
           F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
-        end
         end
       end
     end
@@ -770,7 +768,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #== compute new SCF energy ==#
   EHF1 = @∑ D F_μν
   EHF2 = @∑ D H
-  E_elec = (EHF1 + EHF2)/2
+  E_elec = (EHF1 + EHF2)/2.0
 
   if debug && MPI.Comm_rank(comm) == 0
     #println("New energy:")
