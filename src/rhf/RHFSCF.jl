@@ -515,14 +515,6 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     ksh = decompose(ket_pair)
     lsh = ket_pair - triangular_index(ksh)
 
-    ijsh = triangular_index(ish,jsh)
-    klsh = triangular_index(ksh,lsh)
-
-    if klsh > ijsh 
-      println("test")
-      ish,jsh,ksh,lsh = ksh,lsh,ish,jsh 
-    end
-
     bra.sh_a = basis[ish]
     bra.sh_b = basis[jsh]
 
@@ -531,10 +523,6 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     quartet.bra = bra
     quartet.ket = ket
-
-    qnum_ij = triangular_index(ish, jsh)
-    qnum_kl = triangular_index(ksh, lsh)
-    quartet_num = triangular_index(qnum_ij, (qnum_kl - 1))
 
     if debug
       if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
@@ -577,10 +565,8 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
     #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
 
-    #if maximum(eri_quartet_batch_abs[1:eqb_size]) > 1E-10
-      dirfck(F_priv, D, eri_quartet_batch, quartet,
-        ish, jsh, ksh, lsh; debug=debug)
-    #end
+    dirfck(F_priv, D, eri_quartet_batch, quartet,
+      ish, jsh, ksh, lsh; debug=debug)
   end
   if debug println("END TWO-ELECTRON INTEGRALS") end
 end
