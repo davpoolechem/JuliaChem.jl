@@ -742,13 +742,13 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   end
 
   #== build new density matrix ==#
-  nocc = div(basis.nels,2)
+  nocc = basis.nels >> 1
   norb = basis.norb
 
   for i in 1:basis.norb, j in 1:basis.norb
     @views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
     #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
-    D[i,j] *= 2
+    D[i,j] *= 2.0
   end
 
   if debug && MPI.Comm_rank(comm) == 0
