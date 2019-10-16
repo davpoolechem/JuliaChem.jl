@@ -5,25 +5,102 @@ using Base.Threads
 using MATH
 using JLD
 
+function sort_bra(μμ, νν, ish, jsh, ksh, lsh,
+  nμ, nν, nλ, nσ, two_same, three_same)
+
+  do_continue = false
+
+  condition3 = two_same && !(ish == ksh && jsh == lsh)
+  condition3 = condition3 &&
+	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+
+  condition6 = ish == jsh
+  condition6 = condition6 &&
+	nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
+
+  if (μμ < νν) && condition3
+	  do_continue = true
+  elseif μμ < νν && condition6
+	  do_continue = true
+  end
+  return do_continue
+end
+
+function sort_ket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh,
+  nμ, nν, nλ, nσ, two_same, three_same)
+
+  do_continue = false
+
+  condition1 = μμ == λλ && νν == σσ
+  condition1 = condition1 || (μμ == νν && λλ == σσ)
+  condition1 = condition1 || (μμ == σσ && λλ == νν)
+  condition1 = condition1 &&
+	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+
+  condition3 = two_same && !(ish == ksh && jsh == lsh)
+  condition3 = condition3 &&
+	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+
+  condition5 = ish == ksh && jsh == lsh
+  condition5 = condition5 &&
+	nμ > 1 && nν == 1 && nλ > 1 && nσ == 1
+
+  condition7 = ksh == lsh
+  condition7 = condition7 &&
+	(nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
+
+  if μμ < νν && condition1
+	  do_continue = true
+  end
+
+  if λλ < σσ && condition1
+	  do_continue = true
+  end
+
+  if (λλ < σσ) && condition3
+	  do_continue = true
+  elseif μμ < λλ && condition5
+	  do_continue = true
+  elseif λλ < σσ && condition7
+	  do_continue = true
+  end
+  return do_continue
+end
+
 function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, ksh, lsh,
   nμ, nν, nλ, nσ)
 
   do_continue = false
   μ,ν,λ,σ = t_μ, t_ν, t_λ, t_σ
 
-  condition5 = ish == ksh && jsh == lsh
-  condition5 = condition5 &&
-	nμ > 1 && nν == 1 && nλ > 1 && nσ == 1
+  μν = triangular_index(μμ,νν)
+  λσ = triangular_index(λλ,σσ)
 
-  if μμ < λλ && condition5
-	  do_continue = true
-  elseif μν < λσ
+  if μν < λσ
+	  two_shell = nμ == nν
+	  two_shell = two_shell || (nμ == nλ)
+	  two_shell = two_shell || (nμ == nσ)
+    two_shell = two_shell || (nν == nλ)
+    two_shell = two_shell || (nν == nσ)
+    two_shell = two_shell || (nλ == nσ)
+
+    three_shell = nμ == nν && nν == nλ
+    three_shell = three_shell || (nμ == nν && nν == nσ)
+    three_shell = three_shell || (nμ == nλ && nλ == nσ)
+    three_shell = three_shell || (nν == nλ && nλ == nσ)
+
     four_shell = nμ == nν
     four_shell = four_shell && (nν == nλ)
     four_shell = four_shell && (nλ == nσ)
 
-    if four_shell && ish == ksh && jsh == lsh
-      do_continue = true
+    if four_shell
+      if ish == ksh && jsh == lsh
+        do_continue = true
+      end
+    elseif three_shell
+      if μμ < νν && λλ < σσ
+        do_continue = true
+      end
     end
 	  if !do_continue λ, σ, μ, ν = t_μ, t_ν, t_λ, t_σ end
   end

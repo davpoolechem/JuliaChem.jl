@@ -596,12 +596,22 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 
   norb = size(D)[1]
 
+  two_same = ish == jsh
+  two_same = two_same || (ish == ksh)
+  two_same = two_same || (ish == lsh)
+  two_same = two_same || (jsh == ksh)
+  two_same = two_same || (jsh == lsh)
+  two_same = two_same || (ksh == lsh)
+
+  three_same = ish == jsh && jsh == ksh
+  three_same = three_same || (ish == jsh && jsh == lsh)
+  three_same = three_same || (ish == ksh && ksh == lsh)
+  three_same = three_same || (jsh == ksh && ksh == lsh)
+
   spμ = quartet.bra.sh_a.sp
   spν = quartet.bra.sh_b.sp
   spλ = quartet.ket.sh_a.sp
   spσ = quartet.ket.sh_b.sp
-
-  μνλσ = 0
 
   for spi in 0:spμ, spj in 0:spν
     nμ = 0
@@ -641,30 +651,47 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
         nσ = quartet.ket.sh_b.nbas
       end
 
-      
-      for μsize in 0:(nμ-1), νsize in 0:min((nν-1),μsize)
+      for μsize in 0:(nμ-1), νsize in 0:(nν-1)
         μμ = μsize + pμ
         νν = νsize + pν
-        if μμ < νν continue end
+           
+        do_continue = sort_bra(μμ, νν, 
+          ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
 
-        μ, ν = μμ, νν
-        
-        for λsize in 0:(nλ-1), σsize in 0:min((nσ-1),λsize) 
+        if do_continue
+          if debug
+            if do_continue_print println("DO CONTINUE") end
+          end
+          continue
+        end
+ 
+        for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
           λλ = λsize + pλ
           σσ = σsize + pσ
-          if λλ < σσ continue end
           
-          λ, σ = λλ, σσ
-        
           if debug
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
 
-          μνλσ = σsize + (nσ-1)*λsize +(nσ-1)*(nλ-1)*νsize + 
-            (nσ-1)*(nλ-1)*(nν-1)*μsize 
+          μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + 
+            nσ*nλ*nν*μsize 
+
           if abs(eri_batch[μνλσ]) <= 1E-10
             if debug
               if do_continue_print println("DO CONTINUE - SCREENED") end
+            end
+            continue
+          end
+
+          μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
+          λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
+           
+          do_continue = sort_ket(μμ, νν, λλ, σσ,
+            ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
+
+          if do_continue
+            if debug
+              if do_continue_print println("DO CONTINUE") end
             end
             continue
           end
@@ -707,8 +734,6 @@ Perform single SCF iteration.
 
 Arguments
 ======
-F = Current iteration's Fock Matrix
-
 D = Current iteration's Density Matrix
 
 H = One-electron Hamiltonian Matrix
