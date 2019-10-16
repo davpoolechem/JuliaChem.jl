@@ -673,7 +673,17 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-          
+           
+          do_continue = sort_ket(μμ, νν, λλ, σσ,
+            ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
+
+          if do_continue
+            if debug
+              if do_continue_print println("DO CONTINUE") end
+            end
+            continue
+          end
+
           do_continue, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 

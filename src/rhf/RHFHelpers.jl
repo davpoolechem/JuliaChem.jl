@@ -38,11 +38,10 @@ function sort_bra(μμ, νν, ish, jsh, ksh, lsh,
   return do_continue
 end
 
-function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, ksh, lsh,
+function sort_ket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh,
   nμ, nν, nλ, nσ)
 
   do_continue = false
-  μ,ν,λ,σ = t_μ, t_ν, t_λ, t_σ
 
   two_same = ish == jsh
   two_same = two_same || (ish == ksh)
@@ -77,12 +76,10 @@ function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, k
   if μμ < νν && condition1
 	  do_continue = true
   end
-  μν = triangular_index(μμ,νν)
 
   if λλ < σσ && condition1
 	  do_continue = true
   end
-  λσ = triangular_index(λλ,σσ)
 
   if (λλ < σσ) && condition3
 	  do_continue = true
@@ -90,7 +87,20 @@ function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, k
 	  do_continue = true
   elseif λλ < σσ && condition7
 	  do_continue = true
-  elseif μν < λσ
+  end
+  return do_continue
+end
+
+function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, ksh, lsh,
+  nμ, nν, nλ, nσ)
+
+  do_continue = false
+  μ,ν,λ,σ = t_μ, t_ν, t_λ, t_σ
+
+  μν = triangular_index(μμ,νν)
+  λσ = triangular_index(λλ,σσ)
+
+  if μν < λσ
 	  two_shell = nμ == nν
 	  two_shell = two_shell || (nμ == nλ)
 	  two_shell = two_shell || (nμ == nσ)
@@ -115,7 +125,6 @@ function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, k
       if μμ < νν && λλ < σσ
         do_continue = true
       end
-    #elseif two_shell
     end
 	if !do_continue λ, σ, μ, ν = t_μ, t_ν, t_λ, t_σ end
   end
