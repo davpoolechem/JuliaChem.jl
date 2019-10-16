@@ -648,7 +648,8 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
           ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
         if do_continue_bra continue end
 
-        for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
+        for λsize in 0:(nλ-1) 
+        @simd for σsize in 0:(nσ-1)
           λλ = λsize + pλ
           σσ = σsize + pσ
           
@@ -685,6 +686,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 	        F_priv[μ,σ] -= D[ν,λ] * eri
           F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
           F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
+        end
         end
       end
     end
