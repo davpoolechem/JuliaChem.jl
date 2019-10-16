@@ -460,7 +460,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   mutex = Base.Threads.Mutex()
   thread_index_counter = Threads.Atomic{Int64}(nindices)
 
-  Threads.@threads for thread in 1:Threads.nthreads()
+  for thread in 1:Threads.nthreads()
     F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
@@ -518,7 +518,10 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     ijsh = triangular_index(ish,jsh)
     klsh = triangular_index(ksh,lsh)
 
-    if klsh > ijsh ish,jsh,ksh,lsh = ksh,lsh,ish,jsh end
+    if klsh > ijsh 
+      println("test")
+      ish,jsh,ksh,lsh = ksh,lsh,ish,jsh 
+    end
 
     bra.sh_a = basis[ish]
     bra.sh_b = basis[jsh]
