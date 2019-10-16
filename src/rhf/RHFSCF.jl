@@ -601,8 +601,6 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   spλ = quartet.ket.sh_a.sp
   spσ = quartet.ket.sh_b.sp
 
-  μνλσ = 0
-
   for spi in 0:spμ, spj in 0:spν
     nμ = 0
     pμ = quartet.bra.sh_a.pos
@@ -641,9 +639,10 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
         nσ = quartet.ket.sh_b.nbas
       end
 
-      
-      for μsize in 0:(nμ-1), νsize in 0:min((nν-1),μsize)
-        for λsize in 0:(nλ-1), σsize in 0:min((nσ-1),λsize) 
+      for μsize in 0:(nμ-1), νsize in 0:(nν-1)
+        for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
+      #for μsize in 0:(nμ-1), νsize in 0:min((nν-1),μsize) 
+      #  for λsize in 0:(nλ-1), σsize in 0:min((nσ-1),λsize) 
           μμ = μsize + pμ
           νν = νsize + pν
           λλ = λsize + pλ
@@ -653,7 +652,9 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
 
-          μνλσ += 1
+          μνλσ = 1 + σsize + nσ*λsize +nσ*nλ*νsize + 
+            nσ*nλ*nν*μsize 
+
           if abs(eri_batch[μνλσ]) <= 1E-10
             if debug
               if do_continue_print println("DO CONTINUE - SCREENED") end
