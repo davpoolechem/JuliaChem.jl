@@ -91,7 +91,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     S_eval[i,i] = S_eval_diag[i]
   end
 
-  ortho = similar(H) 
+  ortho = similar(H)
   @views ortho[:,:] = S_evec[:,:]*
     (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
 
@@ -112,11 +112,11 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #== build the initial matrices ==#
   F = H
   F_eval = Vector{Float64}(undef,basis.norb)
-  F_evec = similar(F) 
-  F_mo = similar(F) 
+  F_evec = similar(F)
+  F_mo = similar(F)
 
-  D = similar(F) 
-  C = similar(F) 
+  D = similar(F)
+  C = similar(F)
 
   if MPI.Comm_rank(comm) == 0
     println("----------------------------------------          ")
@@ -212,15 +212,15 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
 
-  e = similar(F) 
+  e = similar(F)
   e_array = fill(similar(F), ndiis)
   e_array_old = fill(similar(F), ndiis)
   F_array_old = fill(similar(F), ndiis)
 
   #== build arrays needed for post-fock build iteration calculations ==#
-  F_temp = similar(F) 
-  D_old = similar(F) 
-  ΔD = similar(F) 
+  F_temp = similar(F)
+  D_old = similar(F)
+  ΔD = similar(F)
 
   #== build arrays needed for dynamic damping ==#
   damp_values = [ 0.25, 0.75 ]
@@ -475,9 +475,9 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   end
 
   for iorb in 1:basis.norb, jorb in 1:iorb
-    if iorb != jorb 
-      F[iorb,jorb] /= 2.0 
-      F[jorb,iorb] = F[iorb,jorb] 
+    if iorb != jorb
+      F[iorb,jorb] /= 2.0
+      F[jorb,iorb] = F[iorb,jorb]
     end
   end
 
@@ -636,34 +636,34 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
       for μsize in 0:(nμ-1), νsize in 0:(nν-1)
         μμ = μsize + pμ
         νν = νsize + pν
-           
-        do_continue_bra = sort_bra(μμ, νν, 
+
+        do_continue_bra = sort_bra(μμ, νν,
           ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
         if do_continue_bra continue end
 
         for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
           λλ = λsize + pλ
           σσ = σsize + pσ
-          
+
           if debug
             if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           end
 
-          μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + 
-            nσ*nλ*nν*μsize 
+          μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize +
+            nσ*nλ*nν*μsize
 
           do_continue_screen = abs(eri_batch[μνλσ]) <= 1E-10
-          
+
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-           
+
           do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
 
           do_continue_braket, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
-          do_continue = do_continue_ket || 
+          do_continue = do_continue_ket ||
             do_continue_braket || do_continue_screen
 	        eri = !do_continue ? eri_batch[μνλσ] : 0.0
 
@@ -672,12 +672,19 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 	        eri *= (λ == σ) ? 0.5 : 1.0
 	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-	        F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-	        F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
-          F_priv[μ,λ] -= D[ν,σ] * eri
-	        F_priv[μ,σ] -= D[ν,λ] * eri
-          F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
-          F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
+          λσ = λ + norb*(σ-1)
+          μν = μ + norb*(ν-1)
+          μλ = μ + norb*(λ-1)
+          μσ = μ + norb*(σ-1)
+          νλ = max(ν,λ) + norb*(min(ν,λ)-1)
+          νσ = max(ν,σ) + norb*(min(ν,σ)-1)
+
+	        F_priv[λσ] += 4.0 * D[μν] * eri
+	        F_priv[μν] += 4.0 * D[λσ] * eri
+          F_priv[μλ] -= D[νσ] * eri
+	        F_priv[μσ] -= D[νλ] * eri
+          F_priv[νλ] -= D[μσ] * eri
+          F_priv[νσ] -= D[μλ] * eri
         end
       end
     end
