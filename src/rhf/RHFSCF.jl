@@ -672,19 +672,19 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 	        eri *= (λ == σ) ? 0.5 : 1.0
 	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-          λσ = λ + norb*(σ-1)
-          μν = μ + norb*(ν-1)
-          μλ = μ + norb*(λ-1)
-          μσ = μ + norb*(σ-1)
-          νλ = max(ν,λ) + norb*(min(ν,λ)-1)
-          νσ = max(ν,σ) + norb*(min(ν,σ)-1)
+          #λσ = λ + norb*(σ-1)
+          #μν = μ + norb*(ν-1)
+          #μλ = μ + norb*(λ-1)
+          #μσ = μ + norb*(σ-1)
+          #νλ = max(ν,λ) + norb*(min(ν,λ)-1)
+          #νσ = max(ν,σ) + norb*(min(ν,σ)-1)
 
-	        F_priv[λσ] += 4.0 * D[μν] * eri
-	        F_priv[μν] += 4.0 * D[λσ] * eri
-          F_priv[μλ] -= D[νσ] * eri
-	        F_priv[μσ] -= D[νλ] * eri
-          F_priv[νλ] -= D[μσ] * eri
-          F_priv[νσ] -= D[μλ] * eri
+	        F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+	        F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+          F_priv[μ,λ] -= D[ν,σ] * eri
+	        F_priv[μ,σ] -= D[ν,λ] * eri
+          F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
+          F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
         end
       end
     end
