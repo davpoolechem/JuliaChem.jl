@@ -450,7 +450,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 
   quartet_batch_num_old = trunc(Integer,nindices/QUARTET_BATCH_SIZE) + 1
 
-  mutex = Base.Threads.Mutex()
+  mutex = Base.Threads.ReentrantLock()
   thread_index_counter = Threads.Atomic{Int64}(nindices)
 
   for thread in 1:Threads.nthreads()
@@ -485,7 +485,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 end
 
 function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
-  H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.Mutex,
+  H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.ReentrantLock,
   thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
   eri_quartet_batch::Vector{Float64}, eri_quartet_batch_abs, bra::ShPair , ket::ShPair,
   quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
@@ -653,6 +653,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
             nσ*nλ*nν*μsize
 
           do_continue_screen = abs(eri_batch[μνλσ]) <= 1E-10
+          if do_continue_screen continue end
 
           μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
           λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
@@ -664,8 +665,11 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
 
           do_continue = do_continue_ket ||
-            do_continue_braket || do_continue_screen
-	        eri = !do_continue ? eri_batch[μνλσ] : 0.0
+            do_continue_braket 
+
+          if do_continue continue end
+  
+	        eri = eri_batch[μνλσ] 
 
           if debug println("$μ, $ν, $λ, $σ, $eri") end
 	        eri *= (μ == ν) ? 0.5 : 1.0

@@ -355,7 +355,7 @@ function twoei_threaded(F::Array{Float64,2}, D::Array{Float64,2}, tei::Array{Flo
 	norb::Int64 = FLAGS.BASIS.NORB
 	ioff::Array{Int64,1} = map((x) -> x*(x+1)/2, collect(1:norb*(norb+1)))
 	F = deepcopy(H)
-	mutex = Base.Threads.Mutex()
+	mutex = Base.Threads.ReentrantLock()
 
 	Threads.@threads for μν_idx::Int64 in 1:ioff[norb]
 		μ::Int64 = ceil(((-1+sqrt(1+8*μν_idx))/2))

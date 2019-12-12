@@ -52,7 +52,8 @@ function script(input_file)
 
       JuliaChem.reset()
       
-      for index in 1:10
+      #for index in 1:10
+      for index in 1:1
         molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
         basis = JuliaChem.JCBasis.run(molecule, model)
 
