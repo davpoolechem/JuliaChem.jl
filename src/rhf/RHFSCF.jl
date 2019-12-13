@@ -660,14 +660,11 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 
           do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
+          if do_continue_ket continue end
 
           do_continue_braket, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
             ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
-
-          do_continue = do_continue_ket ||
-            do_continue_braket 
-
-          if do_continue continue end
+          if do_continue_braket continue end
   
 	        eri = eri_batch[μνλσ] 
 
