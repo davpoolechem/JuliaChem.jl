@@ -1,12 +1,12 @@
-using Documenter, JCInput, JCMolecule, JCRHF, JCProperties, JCStructs
+using JuliaChem
+
+using Documenter, JuliaChem.JCInput, JuliaChem.JCBasis, JuliaChem.JCRHF 
 
 makedocs(
     authors="David Poole",
     sitename="JuliChem Documentation",
     modules = [JCInput,
-               JCMolecule,
-               JCRHF,
-               JCProperties,
-               JCStructs],
+               JCBasis,
+               JCRHF],
     #format = LaTeX()
 )
