@@ -43,11 +43,14 @@ follows:
 2. Define the environmental variable SIMINT as the directory of your
 SIMINT installation.
 
-3. Go to the deps/ folder (in the ~/.julia/packages/JuliaChem/XXXXX directory) 
-and run "julia build.jl" 
+3. Type in the commands into Julia:
+
+3a. using Pkg
+
+3b. Pkg.build("JuliaChem")
 
 4. Profit! If done correctly, this should compile correctly and lead to a
-libjeri shared library in the deps folder. This library contains the
+libjeri.so shared library in the deps folder. This library contains the
 interface functions between JuliaChem and SIMINT.
 
 5. Finally, define an environmental variable named JERIPATH containing the 
