@@ -33,7 +33,7 @@ input_info, basis = Input.run(args)
 function run(args)
   comm=MPI.COMM_WORLD
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                READING INPUT DATA FILE                         ")
@@ -42,29 +42,29 @@ function run(args)
   end
 
   #== output parallelization information ==#
-  directory::String = pwd()
+  directory = pwd()
   #println("Input file: ", directory*"/"*input_file)
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0
     println(" ")
     println("Number of worker processes: ", MPI.Comm_size(comm))
     println("Number of threads per process: ", Threads.nthreads())
     println("Number of threads in total: ",
-      MPI.Comm_size(comm)*Threads.nthreads())
+    MPI.Comm_size(comm)*Threads.nthreads())
   end
 
   #== read in input file ==#
-  input_file::IOStream = open(args)
-    input_string::String = read(input_file,String)
+  input_file = open(args)
+    input_string = read(input_file,String)
   close(input_file)
 
   #== initialize variables ==#
-  molecule::Dict{String,Any} = Dict([])
-  driver::String = ""
-  model::Dict{String,Any} = Dict([])
-  keywords::Dict{String,Any} = Dict([])
+  molecule = Dict([])
+  driver = ""
+  model = Dict([])
+  keywords = Dict([])
 
   #== do extraction ==#
-  json_parse::Dict{String,Any} = JSON.parse(input_string)
+  json_parse = JSON.parse(input_string)
 
   merge!(molecule,Dict("geometry" => json_parse["molecule"]["geometry"]))
   merge!(molecule,Dict("symbols" => json_parse["molecule"]["symbols"]))
@@ -84,14 +84,14 @@ function run(args)
   merge!(model,json_parse["model"])
   merge!(keywords,json_parse["keywords"])
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0
     println(" ")
     println("                       ========================================                 ")
     println("                                       END INPUT                                ")
     println("                       ========================================                 ")
   end
 
-  return (molecule, driver, model, keywords)
+  return molecule, driver, model, keywords
 end
 export run
 

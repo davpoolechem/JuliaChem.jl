@@ -13,6 +13,7 @@ extern struct shell {
 
   double atom_center[3];
 
+  char* class; 
   long long int am;
   long long int nbas;
   long long int nprim;

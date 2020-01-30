@@ -5,83 +5,109 @@ using Base.Threads
 using MATH
 using JLD
 
-function sort_braket(μμ::Int64, νν::Int64, λλ::Int64, σσ::Int64,
-  ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
-  ibas::Int64, jbas::Int64, kbas::Int64, lbas::Int64)
+function sort_bra(μμ, νν, ish, jsh, ksh, lsh,
+  nμ, nν, nλ, nσ, two_same, three_same)
 
-  do_continue::Bool = false
-  μ,ν,λ,σ = μμ,νν,λλ,σσ
+  do_continue = false
 
-  #print("$μμ, $νν, $λλ, $σσ => ")
+  condition3 = two_same && !(ish == ksh && jsh == lsh)
+  condition3 = condition3 &&
+	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
 
-  two_shell::Bool = ibas == jbas
-  two_shell = two_shell || (ibas == kbas)
-  two_shell = two_shell || (ibas == lbas)
-  two_shell = two_shell || (jbas == kbas)
-  two_shell = two_shell || (jbas == lbas)
-  two_shell = two_shell || (kbas == lbas)
+  condition6 = ish == jsh
+  condition6 = condition6 &&
+	nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
 
-  three_shell::Bool = ibas == jbas && jbas == kbas
-  three_shell = three_shell || (ibas == jbas && jbas == lbas)
-  three_shell = three_shell || (ibas == kbas && kbas == lbas)
-  three_shell = three_shell || (jbas == kbas && kbas == lbas)
+  if (μμ < νν) && condition3
+	  do_continue = true
+  elseif μμ < νν && condition6
+	  do_continue = true
+  end
+  return do_continue
+end
 
-  four_shell::Bool = ibas == jbas
-  four_shell = four_shell && (jbas == kbas)
-  four_shell = four_shell && (kbas == lbas)
+function sort_ket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh,
+  nμ, nν, nλ, nσ, two_same, three_same)
 
-  if four_shell
-    three_same::Bool = ish == jsh && jsh == ksh
-    three_same = three_same || (ish == jsh && jsh == lsh)
-    three_same = three_same || (ish == ksh && ksh == lsh)
-    three_same = three_same || (jsh == ksh && ksh == lsh)
+  do_continue = false
 
-    four_same::Bool = ish == jsh
-    four_same = four_same && jsh == ksh
-    four_same = four_same && ksh == lsh
+  condition1 = μμ == λλ && νν == σσ
+  condition1 = condition1 || (μμ == νν && λλ == σσ)
+  condition1 = condition1 || (μμ == σσ && λλ == νν)
+  condition1 = condition1 &&
+	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
 
-    if four_same
-      #print("\n")
-      do_continue = true
-    elseif three_same
-      if (μμ != λλ && νν != σσ)
-        μ,ν,λ,σ = λλ,σσ,μμ,νν
-      else
-        #print("\n")
-        do_continue = true
-      end
-    else
-      #print("\n")
-      do_continue = true
-    end
-  elseif three_shell
-    if (μμ != λλ && νν != σσ)
-      μ,ν,λ,σ = λλ,σσ,μμ,νν
-    else
-      #print("\n")
-      do_continue = true
-    end
-  elseif two_shell
-    if (ish == ksh && jsh == lsh &&
-      μμ != νν && μμ != λλ && μμ != σσ &&
-      νν != λλ && νν != σσ &&
-      λλ != σσ )
-      #print("\n")
-      do_continue = true
-    elseif (μμ == νν && λλ == σσ)
-      #print("\n")
-      do_continue = true
-    elseif (μμ != λλ && νν != σσ)
-      μ,ν,λ,σ = λλ,σσ,μμ,νν
-    else
-      #print("\n")
-      do_continue = true
-    end
+  condition3 = two_same && !(ish == ksh && jsh == lsh)
+  condition3 = condition3 &&
+	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+
+  condition5 = ish == ksh && jsh == lsh
+  condition5 = condition5 &&
+	nμ > 1 && nν == 1 && nλ > 1 && nσ == 1
+
+  condition7 = ksh == lsh
+  condition7 = condition7 &&
+	(nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
+
+  if μμ < νν && condition1
+	  do_continue = true
   end
 
+  if λλ < σσ && condition1
+	  do_continue = true
+  end
+
+  if (λλ < σσ) && condition3
+	  do_continue = true
+  elseif μμ < λλ && condition5
+	  do_continue = true
+  elseif λλ < σσ && condition7
+	  do_continue = true
+  end
+  return do_continue
+end
+
+function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, ksh, lsh,
+  nμ, nν, nλ, nσ)
+
+  do_continue = false
+  μ,ν,λ,σ = t_μ, t_ν, t_λ, t_σ
+
+  μν = triangular_index(μμ,νν)
+  λσ = triangular_index(λλ,σσ)
+
+  if μν < λσ
+	  two_shell = nμ == nν
+	  two_shell = two_shell || (nμ == nλ)
+	  two_shell = two_shell || (nμ == nσ)
+    two_shell = two_shell || (nν == nλ)
+    two_shell = two_shell || (nν == nσ)
+    two_shell = two_shell || (nλ == nσ)
+
+    three_shell = nμ == nν && nν == nλ
+    three_shell = three_shell || (nμ == nν && nν == nσ)
+    three_shell = three_shell || (nμ == nλ && nλ == nσ)
+    three_shell = three_shell || (nν == nλ && nλ == nσ)
+
+    four_shell = nμ == nν
+    four_shell = four_shell && (nν == nλ)
+    four_shell = four_shell && (nλ == nσ)
+
+    if four_shell
+      if ish == ksh && jsh == lsh
+        do_continue = true
+      end
+    elseif three_shell
+      if μμ < νν && λλ < σσ
+        do_continue = true
+      end
+    end
+	  if !do_continue λ, σ, μ, ν = t_μ, t_ν, t_λ, t_σ end
+  end
   return do_continue, μ, ν, λ, σ
 end
 
+#=
 function set_up_eri_database(basis::BasisStructs.Basis)
   jldopen("tei_batch.jld", "w") do file
     #== write quartet eri lists to database ==#
@@ -195,65 +221,7 @@ function set_up_eri_database(basis::BasisStructs.Basis)
 	    eri_array_sizes)
   end
 end
-
-function read_in_enuc()
-	enuc::Float64 = input_enuc()
-
-	return enuc
-end
-#=
-"""
-		get_oei_matrix(oei::Array{Float64,2})
-Summary
-======
-Extract one-electron integrals from data file object. Kinetic energy integrals,
-overlap integrals, and nuclear attraction integrals can all be extracted.
-
-Arguments
-======
-oei = array of one-electron integrals to extract
-"""
 =#
-function read_in_oei(oei::Vector{T}, nbf::Int64) where {T}
-	nbf2::Int64 = nbf*(nbf+1)/2
-
-    ioff::Vector{Int64} = map((x) -> x*(x-1)/2, collect(1:nbf*(nbf+1)))
-
-	oei_matrix::Matrix{T} = Matrix{T}(undef,(nbf,nbf))
-	Threads.@threads for index::Int64 in 1:nbf2
-        i::Int64 = ceil(((-1+sqrt(1+8*index))/2))
-        j::Int64 = index - ioff[i]
-
-        eri = oei[index]
-		oei_matrix[i,j] = oei[index]
-		oei_matrix[j,i] = oei_matrix[i,j]
-	end
-
-	return oei_matrix
-end
-
-function DIIS(e_array::Vector{Matrix{T}},
-  F_array::Vector{Matrix{T}}, B_dim::Int64) where {T<:AbstractFloat}
-
-  B::Matrix{T} = Matrix{T}(undef,B_dim+1,B_dim+1)
-  for i::Int64 in 1:B_dim, j::Int64 in 1:B_dim
-    B[i,j] = @∑ e_array[i] e_array[j]
-
-	  B[i,B_dim+1] = -1
-	  B[B_dim+1,i] = -1
-	  B[B_dim+1,B_dim+1] =  0
-  end
-  DIIS_coeff::Vector{T} = [ fill(0.0,B_dim)..., -1.0 ]
-
-  DIIS_coeff[:,:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
-
-  F_DIIS::Matrix{T} = zeros(size(F_array[1],1),size(F_array[1],2))
-  for index::Int64 in 1:B_dim
-    F_DIIS[:,:] .+= DIIS_coeff[index]*F_array[index]
-  end
-
-  return F_DIIS
-end
 
 #=
 """
@@ -269,14 +237,73 @@ a = row index
 b = column index
 """
 =#
-@inline function index(a::Int64,b::Int64)
-  index::Int64 = (a*(a-1)) >> 1 #bitwise divide by 2
+@inline function triangular_index(a::Integer,b::Integer)
+	if a < b a, b = b, a end
+  index = (a*(a-1)) >> 1 #bitwise divide by 2
   index += b
   return index
 end
 
-function get_new_index(input::Int64)
-  return trunc(Int64,cld((-1.0+sqrt(1+8*input)),2.0))
+@inline function triangular_index(a::Integer)
+  return (a*(a-1)) >> 1
+end
+
+@inline function decompose(input)
+  return trunc(Integer,cld((-1.0+√(1+8*input)),2.0))
+  #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
+  #  Int64, (Int64,), input)
+end
+
+function read_in_enuc()
+	return input_enuc()
+end
+#=
+"""
+		get_oei_matrix(oei::Array{Float64,2})
+Summary
+======
+Extract one-electron integrals from data file object. Kinetic energy integrals,
+overlap integrals, and nuclear attraction integrals can all be extracted.
+
+Arguments
+======
+oei = array of one-electron integrals to extract
+"""
+=#
+function read_in_oei(oei, nbf::Integer)
+	nbf2 = (nbf*(nbf+1)) >> 1
+
+	oei_matrix = Matrix{Float64}(undef,(nbf,nbf))
+	for ibf in 1:nbf2
+    i = decompose(ibf)
+    j = ibf - triangular_index(i)
+
+		oei_matrix[i,j] = float(oei[ibf])
+		oei_matrix[j,i] = oei_matrix[i,j]
+	end
+
+	return oei_matrix
+end
+
+function DIIS(e_array, F_array, B_dim)
+  B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
+  for i in 1:B_dim, j in 1:B_dim
+    B[i,j] = @∑ e_array[i] e_array[j]
+
+	  B[i,B_dim+1] = -1
+	  B[B_dim+1,i] = -1
+	  B[B_dim+1,B_dim+1] =  0
+  end
+  DIIS_coeff = [ fill(0.0,B_dim)..., -1.0 ]
+
+  DIIS_coeff[:,:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
+
+  F_DIIS = zeros(size(F_array[1],1),size(F_array[1],2))
+  for index in 1:B_dim
+    F_DIIS[:,:] .+= DIIS_coeff[index]*F_array[index]
+  end
+
+  return F_DIIS
 end
 
 macro eri_quartet_batch_size(max_am)

@@ -19,23 +19,23 @@ enable_language(C)
 ###################
 #= general flags =#
 ###################
-set(OPT "-Ofast -funroll-loops -m64 -msse3")
+set(OPT "-Ofast -funroll-loops") 
 if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
   set(OPT " -g -O0")
 endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
 
-set(CMAKE_C_FLAGS "${OPT} -fPIC -std=gnu99")
+set(CMAKE_C_FLAGS "${OPT} -std=c99")
 
-set(SIMINT_PATH /home/david/Local/Documents/Programs/simint-install)
-#set(SIMINT_PATH /export/home/david/programs/install/simint)
+#set(SIMINT_PATH /home/david/Local/Documents/Programs/simint-install)
+set(SIMINT_PATH /export/home/david/programs/install/simint)
 
 #################################
 #= set up actual build process =#
 #################################
 include_directories(${SIMINT_PATH}/include)
 link_directories(${SIMINT_PATH}/lib64)
-add_library(simint SHARED simint.c)
-target_link_libraries(simint ${SIMINT_PATH}/lib64/libsimint.a m)
+add_library(jeri SHARED simint.c)
+target_link_libraries(jeri ${SIMINT_PATH}/lib64/libsimint.a)
 
-install(TARGETS simint DESTINATION /home/david/Server/Documents/Programming/julia/JuliaChem.jl/src/eri)
-#install(TARGETS simint DESTINATION /export/home/david/projects/Julia/JuliaChem.jl/src/eri)
+#install(TARGETS simint DESTINATION /home/david/Server/Documents/Programming/julia/JuliaChem.jl/src/eri)
+install(TARGETS jeri DESTINATION /export/home/david/projects/Julia/JuliaChem.jl/src/eri)
