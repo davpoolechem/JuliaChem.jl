@@ -38,7 +38,8 @@ The next step is building the interface to SIMINT,
 currently called Julia Electron Repulsion Integrals (JERI). This is done as 
 follows:
 
-1. Install SIMINT.
+1. Install SIMINT. Note that SIMINT must be compiled with the 
+-DCMAKE_C_FLAGS=-fPIC flag as one of the flag options.
 
 2. Define the environmental variable SIMINT as the directory of your
 SIMINT installation.
