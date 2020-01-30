@@ -4,7 +4,7 @@ import JCModules
 
 Base.include(@__MODULE__, "basis/JCBasis.jl")
 
-Base.include(@__MODULE__, "eri/simint.jl")
+Base.include(@__MODULE__, "../deps/src/simint.jl")
 
 Base.include(@__MODULE__, "io/JCInput.jl")
 
