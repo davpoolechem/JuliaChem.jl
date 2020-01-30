@@ -20,9 +20,18 @@ and MATH.jl. These must also be downloaded.
 
 ## Building JuliaChem
 
-The first step to building JuliaChem is to download it and its unregistered
-dependencies. To do this, you can download them from GitHub using the following 
-Julia commands:
+The first step to building JuliaChem is setting up SIMINT. This is needed to
+form the JuliaChem/SIMINT interface, currently called Julia Electron Repulsion 
+Integrals (JERI). This is done as follows:
+
+1. Download and install SIMINT. Note that SIMINT must be compiled with the 
+-DCMAKE_C_FLAGS=-fPIC flag as one of the flag options.
+
+2. Define the environmental variable SIMINT as the directory of your
+SIMINT installation.
+
+Then, the other GitHub dependencies for JuliaChem must be downloaded.
+This can be done with the following Julia commands:
 
 1. using Pkg
 
@@ -30,36 +39,13 @@ Julia commands:
 
 3. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JCModules.jl.git")) 
 
+Finally, JuliaChem itself can be downloaded and installed:
+
 4. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
 
-This will download the JuliaChem package to your computer.
-
-The next step is building the interface to SIMINT,
-currently called Julia Electron Repulsion Integrals (JERI). This is done as 
-follows:
-
-1. Install SIMINT. Note that SIMINT must be compiled with the 
--DCMAKE_C_FLAGS=-fPIC flag as one of the flag options.
-
-2. Define the environmental variable SIMINT as the directory of your
-SIMINT installation.
-
-3. Type in the commands into Julia:
-
-3a. using Pkg
-
-3b. Pkg.build("JuliaChem")
-
-4. Profit! If done correctly, this should compile correctly and lead to a
-libjeri.so shared library in the deps folder. This library contains the
-interface functions between JuliaChem and SIMINT.
-
-5. Finally, define an environmental variable named JERIPATH containing the 
-directory to libjeri.so, and add JERIPATH to your LD_LIBRARY_PATH environment
-variable. 
-
-Now, you can use JuliaChem in any script you wish simply by importing the 
-JuliaChem module:
+This will download the JuliaChem package to your computer and build JERI.
+If all goes well, this should be all that is needed. Now, you can use 
+JuliaChem in any script you wish simply by importing the JuliaChem module:
 
 using JuliaChem
 
