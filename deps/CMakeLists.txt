@@ -26,16 +26,22 @@ endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
 
 set(CMAKE_C_FLAGS "${OPT} -std=c99")
 
-#set(SIMINT_PATH /home/david/Local/Documents/Programs/simint-install)
-set(SIMINT_PATH /export/home/david/programs/install/simint)
+if(NOT DEFINED SIMINT_PATH)
+  set(SIMINT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/usr)
+endif()
 
 #################################
 #= set up actual build process =#
 #################################
 include_directories(${SIMINT_PATH}/include)
 link_directories(${SIMINT_PATH}/lib64)
-add_library(jeri SHARED simint.c)
+add_library(jeri SHARED src/simint.c)
 target_link_libraries(jeri ${SIMINT_PATH}/lib64/libsimint.a)
 
-#install(TARGETS simint DESTINATION /home/david/Server/Documents/Programming/julia/JuliaChem.jl/src/eri)
-install(TARGETS jeri DESTINATION /export/home/david/projects/Julia/JuliaChem.jl/src/eri)
+install(TARGETS jeri DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}) 
+
+##################
+#= set up tests =#
+##################
+enable_testing()
+add_test(NAME mytest COMMAND julia ${CMAKE_CURRENT_SOURCE_DIR}/../src/test.jl)
