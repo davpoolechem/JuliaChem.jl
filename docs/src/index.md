@@ -15,16 +15,24 @@ integral calculations. This requires installation of both SIMINT itself; and
 the CMake software package, which is used to build the interface between 
 JuliaChem and SIMINT.
 
+Finally, JuliaChem has dependencies on two unregistered packages - JCModules.jl
+and MATH.jl. These must also be downloaded.
+
 ## Building JuliaChem
 
-The first step to building JuliaChem is to download it. To do this, you
-can download it from GitHub using the following Julia commands:
+The first step to building JuliaChem is to download it and its unregistered
+dependencies. To do this, you can download them from GitHub using the following 
+Julia commands:
 
-1. import Pkg
+1. using Pkg
 
-2. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
+2. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/MATH.jl.git"))
 
-This is download the JuliaChem package to your computer.
+3. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JCModules.jl.git")) 
+
+4. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
+
+This will download the JuliaChem package to your computer.
 
 The next step is building the interface to SIMINT,
 currently called Julia Electron Repulsion Integrals (JERI). This is done as 
@@ -32,13 +40,17 @@ follows:
 
 1. Install SIMINT.
 
-2. Define the environmental variable SIMINT, which is the directory of your
+2. Define the environmental variable SIMINT as the directory of your
 SIMINT installation.
 
-3. Go to the deps/ folder and run "julia build.jl" 
+3. Type in the commands into Julia:
+
+3a. using Pkg
+
+3b. Pkg.build("JuliaChem")
 
 4. Profit! If done correctly, this should compile correctly and lead to a
-libjeri shared library in the deps folder. This library contains the
+libjeri.so shared library in the deps folder. This library contains the
 interface functions between JuliaChem and SIMINT.
 
 5. Finally, define an environmental variable named JERIPATH containing the 
