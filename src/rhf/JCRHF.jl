@@ -11,7 +11,7 @@ module JCRHF
 
 Base.include(@__MODULE__,"RHFHelpers.jl")
 Base.include(@__MODULE__,"RHFSCF.jl")
-Base.include(@__MODULE__,"../eri/simint.jl")
+Base.include(@__MODULE__,"../../deps/src/simint.jl")
 
 using MPI
 using JSON
