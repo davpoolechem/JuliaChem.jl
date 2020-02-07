@@ -7,18 +7,13 @@ codecov: false
 coveralls: false
 
 install: 
-#- ./tools/travis-install-openmpi.sh
-#- export MPIROOT=/home/travis/openmpi
-#- export LD_LIBRARY_PATH=$MPIROOT/lib:$LD_LIBRARY_PATH                          
-#- export LD_RUN_PATH=$MPIROOT/lib:$LD_RUN_PATH                                    
-#- export CPATH=$MPIROOT/include:$CPATH                                            
-#- export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
-#- export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
-#- export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
+- ./tools/travis-install-openmpi.sh
+- export MPIROOT=/home/travis/openmpi
+- export LD_LIBRARY_PATH=$MPIROOT/lib:$LD_LIBRARY_PATH                          
+- export LD_RUN_PATH=$MPIROOT/lib:$LD_RUN_PATH                                    
+- export CPATH=$MPIROOT/include:$CPATH                                            
+- export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
+- export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
+- export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
 - ./tools/travis-install-simint.sh
 - export SIMINT=/home/travis/simint-install 
-
-#script:
-#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/MATH.jl.git\"))"         
-#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JCModules.jl.git\"))"
-#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JuliaChem.jl\"))"       

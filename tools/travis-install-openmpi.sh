@@ -1,13 +1,13 @@
 #/bin/bash
 
 #== download openmpi ==#
-cd /home/travis 
-wget https://download.open-mpi.org/release/open-mpi/v3.0/openmpi-3.0.5.tar.gz
-tar -xzvf openmpi-3.0.5.tar.gz
+cd /home/travis
+wget https://download.open-mpi.org/release/open-mpi/v2.1/openmpi-2.1.6.tar.gz
+tar -xzvf openmpi-2.1.6.tar.gz
 
 #== build openmpi ==# 
-cd openmpi-3.0.5
+cd openmpi-2.1.6
 ./configure --prefix=/home/travis/openmpi
-make
-make install
+make -j4
+make -j4 install
 
