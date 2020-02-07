@@ -6,6 +6,5 @@ codecov: true
 coveralls: true
 
 install: 
-  ./tools/install_simint.sh
-  #./tools/install_mpi.sh
-  export SIMINT=/home/travis/simint-install 
+- ./tools/install_simint.sh
+- export SIMINT=/home/travis/simint-install 
