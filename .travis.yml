@@ -5,4 +5,7 @@ julia:
 codecov: true
 coveralls: true
 
-install: ./tools/install_simint.sh
+install: 
+  ./tools/install_simint.sh
+  #./tools/install_mpi.sh
+  export SIMINT=/home/travis/simint-install 
