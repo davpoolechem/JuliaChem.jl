@@ -18,7 +18,7 @@ install:
 - ./tools/travis-install-simint.sh
 - export SIMINT=/home/travis/simint-install 
 
-script:
-- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/MATH.jl.git\"))"         
-- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JCModules.jl.git\"))"
-- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JuliaChem.jl\"))"       
+#script:
+#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/MATH.jl.git\"))"         
+#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JCModules.jl.git\"))"
+#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JuliaChem.jl\"))"       
