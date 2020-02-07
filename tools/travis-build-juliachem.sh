@@ -3,4 +3,4 @@
 cd ./deps
 julia build.jl
 cd ../
-julia tools/travis-build-juliachem.jl
+julia ./tools/travis-build-juliachem.jl
