@@ -16,4 +16,7 @@ install:
 - export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
 - export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
 - ./tools/travis-install-simint.sh
-- export SIMINT=/home/travis/simint-install 
+- export SIMINT=/home/travis/simint-install
+
+script:
+- julia -E "using Pkg; Pkg.add(\"MPI\")" 
