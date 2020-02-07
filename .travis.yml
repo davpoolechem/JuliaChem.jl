@@ -18,5 +18,5 @@ install:
 - ./tools/travis-install-simint.sh
 - export SIMINT=/home/travis/simint-install 
 
-build:
+script:
 - ./tools/travis-build-juliachem.sh
