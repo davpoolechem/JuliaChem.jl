@@ -5,4 +5,4 @@ julia:
 codecov: true
 coveralls: true
 
-install: ./tools/download_simint.sh
+install: ./tools/install_simint.sh
