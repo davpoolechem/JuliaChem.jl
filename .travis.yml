@@ -2,9 +2,11 @@ language: julia
 julia:
   - nightly
   - 1.3.1
-codecov: true
-coveralls: true
+  - 1.0.5
+codecov: false 
+coveralls: false
 
 install: 
+- ./tools/install_openmpi.sh
 - ./tools/install_simint.sh
 - export SIMINT=/home/travis/simint-install 
