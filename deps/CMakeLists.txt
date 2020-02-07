@@ -34,7 +34,15 @@ endif()
 #= set up actual build process =#
 #################################
 include_directories(${SIMINT_PATH}/include)
-link_directories(${SIMINT_PATH}/lib64)
+
+if(DEFINED ${SIMINT_PATH}/lib64)
+  set(SIMINT_LIB_PATH ${SIMINT_PATH}/lib64)
+else()
+  set(SIMINT_LIB_PATH ${SIMINT_PATH}/lib)
+endif()
+
+link_directories(${SIMINT_LIB_PATH})
+
 add_library(jeri SHARED src/simint.c)
 target_link_libraries(jeri ${SIMINT_PATH}/lib64/libsimint.a)
 
