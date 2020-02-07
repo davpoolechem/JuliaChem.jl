@@ -7,7 +7,7 @@ tar -xzvf openmpi-3.0.5.tar.gz
 
 #== build openmpi ==# 
 cd openmpi-3.0.5
-./configure 
+./configure --prefix=/home/travis/openmpi
 make
 make install
 
