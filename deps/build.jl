@@ -120,11 +120,12 @@ function write_simint_jl(directory)
 end
 
 function build()
+  directory = @__DIR__
   SIMINT = ENV["SIMINT"] 
-  run(`cmake -DSIMINT_PATH=$SIMINT .`)
+  run(`cmake -DSIMINT_PATH=$SIMINT $directory`)
   run(`make`)  
 
-  write_simint_jl(pwd())
+  write_simint_jl(directory)
 end
 
 build()
