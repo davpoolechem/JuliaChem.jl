@@ -590,104 +590,71 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   three_same = three_same || (ish == ksh && ksh == lsh)
   three_same = three_same || (jsh == ksh && ksh == lsh)
 
-  spμ = quartet.bra.sh_a.sp
-  spν = quartet.bra.sh_b.sp
-  spλ = quartet.ket.sh_a.sp
-  spσ = quartet.ket.sh_b.sp
+  pμ = quartet.bra.sh_a.pos
+  nμ = quartet.bra.sh_a.nbas
 
-  for spi in 0:spμ, spj in 0:spν
-    nμ = 0
-    pμ = quartet.bra.sh_a.pos
-    if spμ == 1
-      nμ = spi == 1 ? 3 : 1
-      pμ += spi == 1 ? 1 : 0
-    else
-      nμ = quartet.bra.sh_a.nbas
-    end
-
-    nν = 0
-    pν = quartet.bra.sh_b.pos
-    if spν == 1
-      nν = spj == 1 ? 3 : 1
-      pν += spj == 1 ? 1 : 0
-    else
-      nν = quartet.bra.sh_b.nbas
-    end
-
-    for spk in 0:spλ, spl in 0:spσ
-      nλ = 0
-      pλ = quartet.ket.sh_a.pos
-      if spλ == 1
-        nλ = spk == 1 ? 3 : 1
-        pλ += spk == 1 ? 1 : 0
-      else
-        nλ = quartet.ket.sh_a.nbas
-      end
-
-      nσ = 0
-      pσ = quartet.ket.sh_b.pos
-      if spσ == 1
-        nσ = spl == 1 ? 3 : 1
-        pσ += spl == 1 ? 1 : 0
-      else
-        nσ = quartet.ket.sh_b.nbas
-      end
-
-      for μsize in 0:(nμ-1), νsize in 0:(nν-1)
-        μμ = μsize + pμ
-        νν = νsize + pν
-
-        do_continue_bra = sort_bra(μμ, νν,
-          ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
-        if do_continue_bra continue end
-
-        for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
-          λλ = λsize + pλ
-          σσ = σsize + pσ
-
-          if debug
-            if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
-          end
-
-          μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize +
-            nσ*nλ*nν*μsize
-
-          do_continue_screen = abs(eri_batch[μνλσ]) <= 1E-10
-          if do_continue_screen continue end
-
-          μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-          λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-
-          do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
-            ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
-          if do_continue_ket continue end
-
-          do_continue_braket, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
-            ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
-          if do_continue_braket continue end
+  pν = quartet.bra.sh_b.pos
+  nν = quartet.bra.sh_b.nbas
   
-	        eri = eri_batch[μνλσ] 
+  pλ = quartet.ket.sh_a.pos
+  nλ = quartet.ket.sh_a.nbas
+  
+  pσ = quartet.ket.sh_b.pos
+  nσ = quartet.ket.sh_b.nbas
 
-          if debug println("$μ, $ν, $λ, $σ, $eri") end
-	        eri *= (μ == ν) ? 0.5 : 1.0
-	        eri *= (λ == σ) ? 0.5 : 1.0
-	        eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+  for μsize in 0:(nμ-1), νsize in 0:(nν-1)
+    μμ = μsize + pμ
+    νν = νsize + pν
 
-          #λσ = λ + norb*(σ-1)
-          #μν = μ + norb*(ν-1)
-          #μλ = μ + norb*(λ-1)
-          #μσ = μ + norb*(σ-1)
-          #νλ = max(ν,λ) + norb*(min(ν,λ)-1)
-          #νσ = max(ν,σ) + norb*(min(ν,σ)-1)
+    do_continue_bra = sort_bra(μμ, νν,
+      ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
+    if do_continue_bra continue end
 
-	        F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-	        F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
-          F_priv[μ,λ] -= D[ν,σ] * eri
-	        F_priv[μ,σ] -= D[ν,λ] * eri
-          F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
-          F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
-        end
+    for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
+      λλ = λsize + pλ
+      σσ = σsize + pσ
+
+      if debug
+        if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
       end
+
+      μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize +
+        nσ*nλ*nν*μsize
+
+      do_continue_screen = abs(eri_batch[μνλσ]) < 1E-10
+      if do_continue_screen continue end
+
+      μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
+      λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
+
+      do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
+        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
+      if do_continue_ket continue end
+
+      do_continue_braket, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
+        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
+      if do_continue_braket continue end
+
+      eri = eri_batch[μνλσ] 
+
+      if debug println("$μ, $ν, $λ, $σ, $eri") end
+      eri *= (μ == ν) ? 0.5 : 1.0
+      eri *= (λ == σ) ? 0.5 : 1.0
+      eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+
+      #λσ = λ + norb*(σ-1)
+      #μν = μ + norb*(ν-1)
+      #μλ = μ + norb*(λ-1)
+      #μσ = μ + norb*(σ-1)
+      #νλ = max(ν,λ) + norb*(min(ν,λ)-1)
+      #νσ = max(ν,σ) + norb*(min(ν,σ)-1)
+
+      F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+      F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+      F_priv[μ,λ] -= D[ν,σ] * eri
+      F_priv[μ,σ] -= D[ν,λ] * eri
+      F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
+      F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
     end
   end
 end
