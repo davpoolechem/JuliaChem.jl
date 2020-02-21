@@ -574,7 +574,7 @@ end
 
 function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
-  ksh::Int64, lsh::Int64; debug)
+  ksh::Int64, lsh::Int64)
 
   norb = size(D,1)
 
@@ -614,9 +614,9 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
       λλ = λsize + pλ
       σσ = σsize + pσ
 
-      if debug
-        if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
-      end
+      #if debug
+      #  if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
+      #end
 
       μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize +
         nσ*nλ*nν*μsize
@@ -637,7 +637,7 @@ function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
 
       eri = eri_batch[μνλσ] 
 
-      if debug println("$μ, $ν, $λ, $σ, $eri") end
+      #if debug println("$μ, $ν, $λ, $σ, $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
@@ -678,7 +678,7 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
-  basis::BasisStructs.Basis, iter; debug)
+  basis::BasisStructs.Basis, iter::Int)
 
   comm=MPI.COMM_WORLD
 
@@ -719,7 +719,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
     D[i,j] *= 2.0
   end
 
-  if debug && MPI.Comm_rank(comm) == 0
+  #if debug && MPI.Comm_rank(comm) == 0
   #  println("New density matrix:")
   #  for shell_group in 0:cld(size(D)[1],5)
   #    ending = min((5*shell_group + 5), size(D)[2])
@@ -729,23 +729,23 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #      formatter = ft_printf("%5.6f", collect(2:1:6)),
   #      highlighters = Highlighter((data,i,j)-> (i < j), crayon"black"))
   #  end
-    h5write("debug.h5","SCF/$iter/D", D)
+  #  h5write("debug.h5","SCF/$iter/D", D)
   #  println("")
-  end
+  #end
 
   #== compute new SCF energy ==#
   EHF1 = @∑ D F_μν
   EHF2 = @∑ D H
   E_elec = (EHF1 + EHF2)/2.0
 
-  if debug && MPI.Comm_rank(comm) == 0
+  #if debug && MPI.Comm_rank(comm) == 0
     #println("New energy:")
     #println("$EHF1, $EHF2")
-    h5write("debug.h5","SCF/$iter/E/EHF1", EHF1)
-    h5write("debug.h5","SCF/$iter/E/EHF2", EHF2)
-    h5write("debug.h5","SCF/$iter/E/EHF", E_elec)
+    #h5write("debug.h5","SCF/$iter/E/EHF1", EHF1)
+    #h5write("debug.h5","SCF/$iter/E/EHF2", EHF2)
+    #h5write("debug.h5","SCF/$iter/E/EHF", E_elec)
     #println("")
-  end
+  #end
 
   return E_elec
 end

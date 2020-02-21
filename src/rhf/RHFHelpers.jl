@@ -5,8 +5,8 @@ using Base.Threads
 using MATH
 using JLD
 
-function sort_bra(μμ, νν, ish, jsh, ksh, lsh,
-  nμ, nν, nλ, nσ, two_same, three_same)
+function sort_bra(μμ::Int, νν::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int,
+  nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, three_same::Bool)
 
   do_continue = false
 
@@ -26,8 +26,9 @@ function sort_bra(μμ, νν, ish, jsh, ksh, lsh,
   return do_continue
 end
 
-function sort_ket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh,
-  nμ, nν, nλ, nσ, two_same, three_same)
+function sort_ket(μμ::Int, νν::Int, λλ::Int, σσ::Int, ish::Int, jsh::Int, 
+  ksh::Int, lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, 
+  three_same::Bool)
 
   do_continue = false
 
@@ -67,8 +68,9 @@ function sort_ket(μμ, νν, λλ, σσ, ish, jsh, ksh, lsh,
   return do_continue
 end
 
-function sort_braket(μμ, t_μ, νν, t_ν, λλ, t_λ, σσ, t_σ, ish, jsh, ksh, lsh,
-  nμ, nν, nλ, nσ)
+function sort_braket(μμ::Int, t_μ::Int, νν::Int, t_ν::Int, λλ::Int, t_λ::Int, 
+  σσ::Int, t_σ::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int, nμ::Int, nν::Int, 
+  nλ::Int, nσ::Int)
 
   do_continue = false
   μ,ν,λ,σ = t_μ, t_ν, t_λ, t_σ
@@ -248,7 +250,7 @@ end
   return (a*(a-1)) >> 1
 end
 
-@inline function decompose(input)
+@inline function decompose(input::Int)
   return ceil(Int,(-1.0+√(1+8*input))/2.0)
   #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
   #  Int64, (Int64,), input)
@@ -270,7 +272,7 @@ Arguments
 oei = array of one-electron integrals to extract
 """
 =#
-function read_in_oei(oei, nbf::Integer)
+function read_in_oei(oei::Vector{T}, nbf::Int) where T
 	nbf2 = (nbf*(nbf+1)) >> 1
 
 	oei_matrix = Matrix{Float64}(undef,(nbf,nbf))
@@ -285,7 +287,9 @@ function read_in_oei(oei, nbf::Integer)
 	return oei_matrix
 end
 
-function DIIS(e_array, F_array, B_dim)
+function DIIS(e_array::Vector{Matrix{Float64}}, 
+  F_array::Vector{Matrix{Float64}}, B_dim::Int64)
+  
   B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
   for i in 1:B_dim, j in 1:B_dim
     B[i,j] = @∑ e_array[i] e_array[j]
@@ -294,9 +298,9 @@ function DIIS(e_array, F_array, B_dim)
 	  B[B_dim+1,i] = -1
 	  B[B_dim+1,B_dim+1] =  0
   end
-  DIIS_coeff = [ fill(0.0,B_dim)..., -1.0 ]
+  DIIS_coeff::Vector{Float64} = [ fill(0.0,B_dim)..., -1.0 ]
 
-  DIIS_coeff[:,:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
+  DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
 
   F_DIIS = zeros(size(F_array[1],1),size(F_array[1],2))
   for index in 1:B_dim
