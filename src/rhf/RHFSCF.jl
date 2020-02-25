@@ -43,13 +43,13 @@ function rhf_kernel(basis::BasisStructs.Basis,
   calculation_status = Dict([])
 
   #== read in some variables from scf input ==#
-  debug = scf_flags["debug"]
+  debug::Bool = scf_flags["debug"]
   debug_output = debug ? h5open("debug.h5","w") : nothing
 
-  niter = scf_flags["niter"]
+  niter::Int = scf_flags["niter"]
 
   #== read variables from input if needed ==#
-  E_nuc = molecule["enuc"]
+  E_nuc::Float64 = molecule["enuc"]
 
   S = read_in_oei(molecule["ovr"], basis.norb)
   H = read_in_oei(molecule["hcore"], basis.norb)
@@ -127,8 +127,8 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec = 0.0
-  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis, 0;
-    debug=debug)
+  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis, 0,
+    debug)
   F = deepcopy(F_mo)
   #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1),
   #  1:size(F,2)))
@@ -205,9 +205,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   scf_flags; debug, niter)
 
   #== read in some more variables from scf flags input ==#
-  ndiis = scf_flags["ndiis"]
-  dele = scf_flags["dele"]
-  rmsd = scf_flags["rmsd"]
+  ndiis::Int = scf_flags["ndiis"]
+  dele::Float64 = scf_flags["dele"]
+  rmsd::Float64 = scf_flags["rmsd"]
 
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
@@ -375,7 +375,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     copyto!(D_old, indices_tocopy, D, indices_tocopy)
 
     E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
-      ortho, basis, iter; debug=debug)
+      ortho, basis, iter, debug)
 
     #F = deepcopy(F_mo)
     indices_tocopy = CartesianIndices((1:size(F_mo,1),
@@ -559,7 +559,7 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
 
     dirfck(F_priv, D, eri_quartet_batch, quartet,
-      ish, jsh, ksh, lsh; debug=debug)
+      ish, jsh, ksh, lsh, debug)
   end
   if debug println("END TWO-ELECTRON INTEGRALS") end
 end
@@ -574,7 +574,7 @@ end
 
 function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
-  ksh::Int64, lsh::Int64)
+  ksh::Int64, lsh::Int64, debug::Bool)
 
   norb = size(D,1)
 
@@ -678,7 +678,7 @@ ortho = Symmetric Orthogonalization Matrix
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
-  basis::BasisStructs.Basis, iter::Int)
+  basis::BasisStructs.Basis, iter::Int, debug::Bool)
 
   comm=MPI.COMM_WORLD
 
