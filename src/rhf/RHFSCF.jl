@@ -1,6 +1,7 @@
 using MATH
 using JCModules.Globals
 
+using InteractiveUtils
 using MPI
 #using Base.Threads
 #using Distributed
@@ -315,7 +316,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build fock matrix ==#
-    F_temp .= twoei(F, D, H, basis; debug=debug)
+    @time F_temp .= twoei(F, D, H, basis; debug=debug)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -440,7 +441,7 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
+@inline function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   basis::BasisStructs.Basis; debug)
 
   fill!(F,zero(Float64))
@@ -464,13 +465,12 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
     max_shell_am = MAX_SHELL_AM
     eri_quartet_batch = Vector{Float64}(undef,1296)
 
-    bra = ShPair(basis.shells[1], basis.shells[1])
-    ket = ShPair(basis.shells[1], basis.shells[1])
-    quartet = ShQuartet(bra,ket)
+    quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
+      ShPair(basis.shells[1], basis.shells[1]))
 
     twoei_thread_kernel(F, D,
       H, basis, thread_index_counter, eri_quartet_batch,
-      bra, ket, quartet, nindices,
+      quartet, nindices,
       quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
 
     #lock(mutex)
@@ -491,7 +491,7 @@ end
 function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   thread_index_counter::Int64, 
-  eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
+  eri_quartet_batch::Vector{Float64}, 
   quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
@@ -514,14 +514,10 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     ksh = decompose(ket_pair)
     lsh = ket_pair - triangular_index(ksh)
 
-    bra.sh_a = basis[ish]
-    bra.sh_b = basis[jsh]
-
-    ket.sh_a = basis[ksh]
-    ket.sh_b = basis[lsh]
-
-    quartet.bra = bra
-    quartet.ket = ket
+    quartet.bra.sh_a = basis[ish]
+    quartet.bra.sh_b = basis[jsh]
+    quartet.ket.sh_a = basis[ksh]
+    quartet.ket.sh_b = basis[lsh]
 
     if debug
       if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
@@ -564,7 +560,7 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
     #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
 
-    dirfck(F, D, eri_quartet_batch, quartet,
+    @code_warntype dirfck(F, D, eri_quartet_batch, quartet,
       ish, jsh, ksh, lsh, debug)
   end
   if debug println("END TWO-ELECTRON INTEGRALS") end
@@ -608,7 +604,12 @@ end
   pσ = quartet.ket.sh_b.pos
   nσ = quartet.ket.sh_b.nbas
 
-  for μsize in 0:(nμ-1), νsize in 0:(nν-1)
+  uiter = 0:(nμ-1)
+  viter = 0:(nν-1)
+  hiter = 0:(nλ-1)
+  oiter = 0:(nσ-1)
+
+  for μsize::Int64 in uiter, νsize::Int64 in viter
     μμ = μsize + pμ
     νν = νsize + pν
 
@@ -616,7 +617,7 @@ end
       ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
     if do_continue_bra continue end
 
-    for λsize in 0:(nλ-1), σsize in 0:(nσ-1)
+    for λsize::Int64 in hiter, σsize::Int64 in oiter
       λλ = λsize + pλ
       σσ = σsize + pσ
 
