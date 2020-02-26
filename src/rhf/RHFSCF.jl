@@ -92,8 +92,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   ortho = similar(H)
-  @views ortho[:,:] = S_evec[:,:]*
-    (LinearAlgebra.Diagonal(S_eval)^-0.5)[:,:]*transpose(S_evec)[:,:]
+  ortho .= S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
 
   if debug && MPI.Comm_rank(comm) == 0
   #  println("Ortho matrix:")
@@ -312,9 +311,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build fock matrix ==#
-    F_temp[:,:] = twoei(F, D, H, basis; debug=debug)
+    F_temp .= twoei(F, D, H, basis; debug=debug)
 
-    F[:,:] = MPI.Allreduce(F_temp[:,:],MPI.SUM,comm)
+    F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
@@ -331,7 +330,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #  println("")
     end
 
-    F[:,:] .+= H[:,:]
+    F .+= H
 
     if debug && MPI.Comm_rank(comm) == 0
     #  println("Total Fock matrix:")
@@ -349,39 +348,40 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== do DIIS ==#
     if ndiis > 0
-      e[:,:] = F[:,:]*D[:,:]*S[:,:] .- S[:,:]*D[:,:]*F[:,:]
+      e .= F*D*S .- S*D*F
 
-      e_array_old[:] = e_array[1:ndiis]
-      e_array[:] = [deepcopy(e), e_array_old[1:ndiis-1]...]
+      e_array_old .= e_array[1:ndiis]
+      e_array .= [deepcopy(e), e_array_old[1:ndiis-1]...]
 
-      F_array_old[:] = F_array[1:ndiis]
-      F_array[:] = [deepcopy(F), F_array[1:ndiis-1]...]
+      F_array_old .= F_array[1:ndiis]
+      F_array .= [deepcopy(F), F_array[1:ndiis-1]...]
 
       if iter > 1
         B_dim += 1
         B_dim = min(B_dim,ndiis)
         try
-          F[:,:] = DIIS(e_array, F_array, B_dim)
+          F .= DIIS(e_array, F_array, B_dim)
         catch
           B_dim = 2
-          F[:,:] = DIIS(e_array, F_array, B_dim)
+          F .= DIIS(e_array, F_array, B_dim)
         end
       end
     end
 
     #== obtain new F,D,C matrices ==#
-    indices_tocopy = CartesianIndices((1:size(D,1),
-      1:size(D,2)))
-    copyto!(D_old, indices_tocopy, D, indices_tocopy)
+    #indices_tocopy = CartesianIndices((1:size(D,1),
+    #  1:size(D,2)))
+    #copyto!(D_old, indices_tocopy, D, indices_tocopy)
+    D_old .= D
 
     E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
       ortho, basis, iter, debug)
 
-    #F = deepcopy(F_mo)
-    indices_tocopy = CartesianIndices((1:size(F_mo,1),
-      1:size(F_mo,2)))
-    copyto!(F, indices_tocopy, F_mo, indices_tocopy)
-
+    F .= F_mo
+    #indices_tocopy = CartesianIndices((1:size(F_mo,1),
+    #  1:size(F_mo,2)))
+    #copyto!(F, indices_tocopy, F_mo, indices_tocopy)
+  
     #== dynamic damping of density matrix ==#
     #D_damp[:] = map(x -> x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:],
     #  damp_values)
@@ -392,7 +392,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #D[:,:] = x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:]
 
     #== check for convergence ==#
-    @views ΔD[:,:] = D[:,:] .- D_old[:,:]
+    ΔD .= D .- D_old
     D_rms = √(@∑ ΔD ΔD)
 
     E = E_elec+E_nuc
@@ -470,7 +470,7 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
       quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
 
     lock(mutex)
-    F[:,:] .+= F_priv[:,:]
+    F .+= F_priv
     unlock(mutex)
   end
 
@@ -683,17 +683,17 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   comm=MPI.COMM_WORLD
 
   #== obtain new orbital coefficients ==#
-  @views F_mo[:,:] = transpose(ortho)[:,:]*F_μν[:,:]*ortho[:,:]
+  F_mo .= transpose(ortho)*F_μν*ortho
 
-  F_eval[:] = eigvals(LinearAlgebra.Hermitian(F_mo))
+  F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
 
-  @views F_evec[:,:] = eigvecs(LinearAlgebra.Hermitian(F_mo))[:,:]
-  @views F_evec[:,:] = F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+  F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
+  F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   #copyto!(F_evec, CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))),
   #  F_evec[:,sortperm(F_eval)], CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))))
 
-  @views C[:,:] = ortho[:,:]*F_evec[:,:]
+  C .= ortho*F_evec
 
   if debug && MPI.Comm_rank(comm) == 0
   #  println("New orbitals:")
