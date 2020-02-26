@@ -2,7 +2,7 @@ using MATH
 using JCModules.Globals
 
 using MPI
-using Base.Threads
+#using Base.Threads
 #using Distributed
 using LinearAlgebra
 #using JLD
@@ -416,7 +416,6 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
 
     #== if not converged, replace old D and E values for next iteration ==#
-    #D_old = deepcopy(D)
     E_old = E
   end
 
@@ -454,31 +453,30 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   ksh_old = 0
   lsh_old = 0
 
-  quartet_batch_num_old = trunc(Integer,nindices/QUARTET_BATCH_SIZE) + 1
+  quartet_batch_num_old = ceil(Int64,nindices/QUARTET_BATCH_SIZE)
 
-  mutex = Base.Threads.ReentrantLock()
-  thread_index_counter = Threads.Atomic{Int64}(nindices)
+  #mutex = Base.Threads.ReentrantLock()
+  thread_index_counter = nindices
 
-  for thread in 1:Threads.nthreads()
-    F_priv = zeros(basis.norb,basis.norb)
+  #for thread in 1:Threads.nthreads()
+  #  F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
     eri_quartet_batch = Vector{Float64}(undef,1296)
-    eri_quartet_batch_abs = Vector{Float64}(undef,1296)
 
     bra = ShPair(basis.shells[1], basis.shells[1])
     ket = ShPair(basis.shells[1], basis.shells[1])
     quartet = ShQuartet(bra,ket)
 
     twoei_thread_kernel(F, D,
-      H, basis, mutex, thread_index_counter, F_priv, eri_quartet_batch,
-      eri_quartet_batch_abs, bra, ket, quartet, nindices,
+      H, basis, thread_index_counter, eri_quartet_batch,
+      bra, ket, quartet, nindices,
       quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
 
-    lock(mutex)
-    F .+= F_priv
-    unlock(mutex)
-  end
+    #lock(mutex)
+    #F .+= F_priv
+    #unlock(mutex)
+  #end
 
   for iorb in 1:basis.norb, jorb in 1:iorb
     if iorb != jorb
@@ -491,9 +489,9 @@ function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
 end
 
 function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
-  H::Matrix{Float64}, basis::BasisStructs.Basis, mutex::Base.Threads.ReentrantLock,
-  thread_index_counter::Threads.Atomic{Int64}, F_priv::Matrix{Float64},
-  eri_quartet_batch::Vector{Float64}, eri_quartet_batch_abs, bra::ShPair , ket::ShPair,
+  H::Matrix{Float64}, basis::BasisStructs.Basis, 
+  thread_index_counter::Int64, 
+  eri_quartet_batch::Vector{Float64}, bra::ShPair , ket::ShPair,
   quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
@@ -501,7 +499,9 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
   if debug println("START TWO-ELECTRON INTEGRALS") end
   while true
-    ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
+    #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
+    ijkl_index = thread_index_counter
+    thread_index_counter -= 1
     if ijkl_index < 1 break end
 
     if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
@@ -564,7 +564,7 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
     #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
 
-    dirfck(F_priv, D, eri_quartet_batch, quartet,
+    dirfck(F, D, eri_quartet_batch, quartet,
       ish, jsh, ksh, lsh, debug)
   end
   if debug println("END TWO-ELECTRON INTEGRALS") end
@@ -578,7 +578,7 @@ end
 end
 
 
-function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
+@inline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64, debug::Bool)
 
