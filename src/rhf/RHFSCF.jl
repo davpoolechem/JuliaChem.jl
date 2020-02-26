@@ -212,8 +212,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   F_array = fill(similar(F), ndiis)
 
   e = similar(F)
+  test_e = [ similar(F) ]
   e_array = fill(similar(F), ndiis)
   e_array_old = fill(similar(F), ndiis)
+  
+  test_F = [ similar(F) ]
   F_array_old = fill(similar(F), ndiis)
 
   #== build arrays needed for post-fock build iteration calculations ==#
@@ -252,8 +255,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, scf_converged, quartet_batch_num_old; debug=debug,
-    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd)
+    D_damp_rms, scf_converged, quartet_batch_num_old, test_e, test_F; 
+    debug=debug, niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd)
 
   #== we are done! ==#
   if debug
@@ -277,8 +280,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
   D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
-  scf_converged::Bool, quartet_batch_num_old::Int64; debug, niter,
-  ndiis, dele, rmsd)
+  scf_converged::Bool, quartet_batch_num_old::Int64, 
+  test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}}; debug, 
+  niter, ndiis, dele, rmsd)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -350,20 +354,22 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     if ndiis > 0
       e .= F*D*S .- S*D*F
 
-      e_array_old .= e_array[1:ndiis]
-      e_array .= [deepcopy(e), e_array_old[1:ndiis-1]...]
+      @views e_array_old .= e_array[1:ndiis]
+      test_e[1] = deepcopy(e)
+      @views e_array .= vcat(test_e, e_array_old[1:ndiis-1])
 
-      F_array_old .= F_array[1:ndiis]
-      F_array .= [deepcopy(F), F_array[1:ndiis-1]...]
+      @views F_array_old .= F_array[1:ndiis]
+      test_F[1] = deepcopy(F)
+      @views F_array .= vcat(test_F, F_array_old[1:ndiis-1])
 
       if iter > 1
         B_dim += 1
         B_dim = min(B_dim,ndiis)
         try
-          F .= DIIS(e_array, F_array, B_dim)
+          DIIS(F, e_array, F_array, B_dim)
         catch
           B_dim = 2
-          F .= DIIS(e_array, F_array, B_dim)
+          DIIS(F, e_array, F_array, B_dim)
         end
       end
     end

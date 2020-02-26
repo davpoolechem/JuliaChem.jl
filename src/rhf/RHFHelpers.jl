@@ -287,7 +287,7 @@ function read_in_oei(oei::Vector{T}, nbf::Int) where T
 	return oei_matrix
 end
 
-function DIIS(e_array::Vector{Matrix{Float64}}, 
+function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}}, 
   F_array::Vector{Matrix{Float64}}, B_dim::Int64)
   
   B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
@@ -298,16 +298,15 @@ function DIIS(e_array::Vector{Matrix{Float64}},
 	  B[B_dim+1,i] = -1
 	  B[B_dim+1,B_dim+1] =  0
   end
-  DIIS_coeff::Vector{Float64} = [ fill(0.0,B_dim)..., -1.0 ]
+  #DIIS_coeff::Vector{Float64} = [ fill(0.0,B_dim)..., -1.0 ]
+  DIIS_coeff::Vector{Float64} = vcat(zeros(B_dim), [-1.0])
 
   DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
-
-  F_DIIS = zeros(size(F_array[1],1),size(F_array[1],2))
+  
+  fill!(F, zero(Float64))
   for index in 1:B_dim
-    F_DIIS[:,:] .+= DIIS_coeff[index]*F_array[index]
+    F .+= DIIS_coeff[index]*F_array[index]
   end
-
-  return F_DIIS
 end
 
 macro eri_quartet_batch_size(max_am)
