@@ -316,7 +316,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build fock matrix ==#
-    @time F_temp .= twoei(F, D, H, basis; debug=debug)
+    F_temp .= twoei(F, D, H, basis; debug=debug)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -498,13 +498,14 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   comm=MPI.COMM_WORLD
 
   if debug println("START TWO-ELECTRON INTEGRALS") end
-  while true
+  for ijkl_index in nindices:-1:1
+  #while true
     #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
-    ijkl_index = thread_index_counter
-    thread_index_counter -= 1
-    if ijkl_index < 1 break end
+    #ijkl_index = thread_index_counter
+    #thread_index_counter -= 1
+    #if ijkl_index < 1 break end
 
-    if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
+    #if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
     bra_pair = decompose(ijkl_index)
     ket_pair = ijkl_index - triangular_index(bra_pair)
 
@@ -519,9 +520,9 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     quartet.ket.sh_a = basis[ksh]
     quartet.ket.sh_b = basis[lsh]
 
-    if debug
-      if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
-    end
+    #if debug
+    #  if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
+    #end
 
    # quartet_batch_num::Int64 = fld(quartet_num,
    #   QUARTET_BATCH_SIZE) + 1
@@ -560,7 +561,7 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
     #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
 
-    @code_warntype dirfck(F, D, eri_quartet_batch, quartet,
+    dirfck(F, D, eri_quartet_batch, quartet,
       ish, jsh, ksh, lsh, debug)
   end
   if debug println("END TWO-ELECTRON INTEGRALS") end
@@ -604,12 +605,10 @@ end
   pσ = quartet.ket.sh_b.pos
   nσ = quartet.ket.sh_b.nbas
 
-  uiter = 0:(nμ-1)
-  viter = 0:(nν-1)
   hiter = 0:(nλ-1)
   oiter = 0:(nσ-1)
 
-  for μsize::Int64 in uiter, νsize::Int64 in viter
+  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
     μμ = μsize + pμ
     νν = νsize + pν
 
@@ -617,7 +616,7 @@ end
       ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
     if do_continue_bra continue end
 
-    for λsize::Int64 in hiter, σsize::Int64 in oiter
+    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
       λλ = λsize + pλ
       σσ = σsize + pσ
 
