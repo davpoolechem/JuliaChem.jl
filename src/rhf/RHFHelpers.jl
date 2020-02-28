@@ -305,7 +305,7 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   
   fill!(F, zero(Float64))
   for index in 1:B_dim
-    F .+= DIIS_coeff[index]*F_array[index]
+    F .+= DIIS_coeff[index] .* F_array[index]
   end
 end
 

@@ -92,8 +92,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
     S_eval[i,i] = S_eval_diag[i]
   end
 
-  ortho = similar(H)
-  ortho .= S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
+  ortho = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
 
   if debug && MPI.Comm_rank(comm) == 0
   #  println("Ortho matrix:")
@@ -356,12 +355,12 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       e .= F*D*S .- S*D*F
 
       @views e_array_old .= e_array[1:ndiis]
-      test_e[1] = deepcopy(e)
-      @views e_array .= vcat(test_e, e_array_old[1:ndiis-1])
+      test_e[1] .= e
+      @views e_array .= vcat(deepcopy(test_e), e_array_old[1:ndiis-1])
 
       @views F_array_old .= F_array[1:ndiis]
-      test_F[1] = deepcopy(F)
-      @views F_array .= vcat(test_F, F_array_old[1:ndiis-1])
+      test_F[1] .= F
+      @views F_array .= vcat(deepcopy(test_F), F_array_old[1:ndiis-1])
 
       if iter > 1
         B_dim += 1
@@ -374,7 +373,6 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
         end
       end
     end
-
     #== obtain new F,D,C matrices ==#
     #indices_tocopy = CartesianIndices((1:size(D,1),
     #  1:size(D,2)))
@@ -687,14 +685,15 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   basis::BasisStructs.Basis, iter::Int, debug::Bool)
 
   comm=MPI.COMM_WORLD
-
+  
   #== obtain new orbital coefficients ==#
-  F_mo .= transpose(ortho)*F_μν*ortho
-
+  F_mo .= transpose(LinearAlgebra.Hermitian(ortho))
+  F_mo *= F_μν*ortho
+  
   F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
 
   F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
-  F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+  @views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   #copyto!(F_evec, CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))),
   #  F_evec[:,sortperm(F_eval)], CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))))
@@ -718,13 +717,13 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #== build new density matrix ==#
   nocc = basis.nels >> 1
   norb = basis.norb
-
+  
   for i in 1:basis.norb, j in 1:basis.norb
     @views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
     #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
-    D[i,j] *= 2.0
   end
-
+  D .*= 2.0
+  
   #if debug && MPI.Comm_rank(comm) == 0
   #  println("New density matrix:")
   #  for shell_group in 0:cld(size(D)[1],5)
