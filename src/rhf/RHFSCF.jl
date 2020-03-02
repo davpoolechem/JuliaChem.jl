@@ -93,6 +93,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   ortho = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
+  ortho_trans = similar(ortho)
 
   if debug && MPI.Comm_rank(comm) == 0
   #  println("Ortho matrix:")
@@ -113,6 +114,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   F_eval = Vector{Float64}(undef,basis.norb)
   F_evec = similar(F)
   F_mo = similar(F)
+  F_part = similar(F)
 
   D = similar(F)
   C = similar(F)
@@ -126,9 +128,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   end
 
   E_elec = 0.0
-  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, ortho, basis, 0,
-    debug)
+  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
+    ortho_trans, basis, 0, debug)
   F = deepcopy(F_mo)
+  #F .= F_mo
   #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1),
   #  1:size(F,2)))
   #copyto!(F, indices_tocopy, F_mo, indices_tocopy)
@@ -143,9 +146,9 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, F_eval,
-    F_evec, F_mo, E_nuc, E_elec, E_old, basis, scf_flags; debug=debug,
-    niter=niter)
+  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans, S, 
+    F_eval, F_evec, F_mo, F_part, E_nuc, E_elec, E_old, basis, scf_flags; 
+    debug=debug, niter=niter)
 
   if !converged
     if MPI.Comm_rank(comm) == 0
@@ -198,8 +201,9 @@ function rhf_kernel(basis::BasisStructs.Basis,
 end
 
 function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
-  E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, S::Matrix{Float64},
-  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
+  E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, 
+  ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
+  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64},
   E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
   scf_flags; debug, niter)
 
@@ -219,6 +223,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   test_F = [ similar(F) ]
   F_array_old = fill(similar(F), ndiis)
 
+  FD = similar(F)
+  FDS = similar(F)
+  SD = similar(F)
+  SDF = similar(F)
+  
   #== build arrays needed for post-fock build iteration calculations ==#
   F_temp = similar(F)
   D_old = similar(F)
@@ -233,7 +242,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
 
-  quartet_batch_num_old = trunc(Integer,nindices/QUARTET_BATCH_SIZE) + 1
+  quartet_batch_num_old = floor(Int,nindices/QUARTET_BATCH_SIZE) + 1
 
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
@@ -252,11 +261,12 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== execute convergence procedure ==#
   scf_converged = true
 
-  E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
+  E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
-    F_array_old, F_temp, F_eval, F_evec, F_mo, D_old, ΔD, damp_values, D_damp,
-    D_damp_rms, scf_converged, quartet_batch_num_old, test_e, test_F; 
-    debug=debug, niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd)
+    F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, D_old, ΔD, damp_values, 
+    D_damp, D_damp_rms, scf_converged, quartet_batch_num_old, test_e, test_F,
+    FD, FDS, SD, SDF; debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
+    rmsd=rmsd)
 
   #== we are done! ==#
   if debug
@@ -272,17 +282,19 @@ end
 
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
-  S::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64,
-  basis::BasisStructs.Basis,
+  ortho_trans::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
+  E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
   F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
-  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64},
+  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, 
+  F_part::Matrix{Float64}, 
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
   D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
   scf_converged::Bool, quartet_batch_num_old::Int64, 
-  test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}}; debug, 
-  niter, ndiis, dele, rmsd)
+  test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
+  FD::Matrix{Float64}, FDS::Matrix{Float64}, SD::Matrix{Float64},
+  SDF::Matrix{Float64}; debug, niter, ndiis, dele, rmsd)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -352,7 +364,13 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== do DIIS ==#
     if ndiis > 0
-      e .= F*D*S .- S*D*F
+      mul!(FD, F, D)
+      mul!(FDS, FD, S)
+
+      mul!(SD, S, D)
+      mul!(SDF, SD, F)
+
+      e .= FDS .- SDF
 
       @views e_array_old .= e_array[1:ndiis]
       test_e[1] .= e
@@ -379,8 +397,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #copyto!(D_old, indices_tocopy, D, indices_tocopy)
     D_old .= D
 
-    E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo,
-      ortho, basis, iter, debug)
+    E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part,
+      ortho, ortho_trans, basis, iter, debug)
 
     F .= F_mo
     #indices_tocopy = CartesianIndices((1:size(F_mo,1),
@@ -461,16 +479,15 @@ H = One-electron Hamiltonian Matrix
   #  F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
-    eri_quartet_batch = Vector{Float64}(undef,1296)
+    eri_quartet_batch = Vector{Float64}(undef,81)
 
     quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
-
+    
     twoei_thread_kernel(F, D,
       H, basis, thread_index_counter, eri_quartet_batch,
       quartet, nindices,
       quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
-
     #lock(mutex)
     #F .+= F_priv
     #unlock(mutex)
@@ -681,25 +698,25 @@ ortho = Symmetric Orthogonalization Matrix
 =#
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
-  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, ortho::Matrix{Float64},
+  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64}, 
+  ortho::Matrix{Float64}, ortho_trans::Matrix{Float64},
   basis::BasisStructs.Basis, iter::Int, debug::Bool)
 
   comm=MPI.COMM_WORLD
-  
+ 
   #== obtain new orbital coefficients ==#
-  F_mo .= transpose(LinearAlgebra.Hermitian(ortho))
-  F_mo *= F_μν*ortho
-  
+  ortho_trans .= transpose(LinearAlgebra.Hermitian(ortho))
+  mul!(F_part, ortho_trans, F_μν)
+  mul!(F_mo, F_part, ortho)
+ 
   F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
 
   F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
   @views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-  #copyto!(F_evec, CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))),
-  #  F_evec[:,sortperm(F_eval)], CartesianIndices((1:size(F_evec,1), 1:size(F_evec,2))))
-
-  C .= ortho*F_evec
-
+  #C .= ortho*F_evec
+  mul!(C, ortho, F_evec)
+  
   if debug && MPI.Comm_rank(comm) == 0
   #  println("New orbitals:")
   #  for shell_group in 0:cld(size(C)[1],5)
@@ -717,9 +734,13 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #== build new density matrix ==#
   nocc = basis.nels >> 1
   norb = basis.norb
-  
+
+  fill!(D, 0.0)
   for i in 1:basis.norb, j in 1:basis.norb
-    @views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
+    #@views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
+    for iocc in 1:nocc
+      D[i,j] += C[i, iocc] * C[j, iocc]
+    end
     #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
   end
   D .*= 2.0
@@ -737,12 +758,12 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #  h5write("debug.h5","SCF/$iter/D", D)
   #  println("")
   #end
-
+  
   #== compute new SCF energy ==#
   EHF1 = @∑ D F_μν
   EHF2 = @∑ D H
   E_elec = (EHF1 + EHF2)/2.0
-
+  
   #if debug && MPI.Comm_rank(comm) == 0
     #println("New energy:")
     #println("$EHF1, $EHF2")
