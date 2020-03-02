@@ -301,7 +301,8 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   #DIIS_coeff::Vector{Float64} = [ fill(0.0,B_dim)..., -1.0 ]
   DIIS_coeff::Vector{Float64} = vcat(zeros(B_dim), [-1.0])
 
-  DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
+  #DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
+  DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.sysv!('U', B, DIIS_coeff)
   
   fill!(F, zero(Float64))
   for index in 1:B_dim

@@ -14,7 +14,7 @@ const do_continue_print = false
 
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
-  scf_flags)
+  scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
 
   return rhf_kernel(basis,molecule,scf_flags)
 end
@@ -38,7 +38,8 @@ read_in = file required to read in from input file
 type = Precision of variables in calculation
 """
 function rhf_kernel(basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}}, scf_flags)
+  molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
+  scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
@@ -91,9 +92,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   for i in 1:basis.norb
     S_eval[i,i] = S_eval_diag[i]
   end
-
+  
   ortho = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
-  ortho_trans = similar(ortho)
+  
+  ortho_trans = transpose(LinearAlgebra.Hermitian(ortho))
 
   if debug && MPI.Comm_rank(comm) == 0
   #  println("Ortho matrix:")
@@ -129,7 +131,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
 
   E_elec = 0.0
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
-    ortho_trans, basis, 0, debug)
+    ortho_trans.data, basis, 0, debug)
   F = deepcopy(F_mo)
   #F .= F_mo
   #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1),
@@ -146,7 +148,7 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans, S, 
+  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
     F_eval, F_evec, F_mo, F_part, E_nuc, E_elec, E_old, basis, scf_flags; 
     debug=debug, niter=niter)
 
@@ -364,11 +366,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== do DIIS ==#
     if ndiis > 0
-      mul!(FD, F, D)
-      mul!(FDS, FD, S)
+      BLAS.symm!('L', 'U', 1.0, F, D, 0.0, FD)
+      BLAS.gemm!('N', 'N', 1.0, FD, S, 0.0, FDS)
 
-      mul!(SD, S, D)
-      mul!(SDF, SD, F)
+      BLAS.symm!('L', 'U', 1.0, S, D, 0.0, SD)
+      BLAS.gemm!('N', 'N', 1.0, SD, F, 0.0, SDF)
 
       e .= FDS .- SDF
 
@@ -620,17 +622,18 @@ end
   pσ = quartet.ket.sh_b.pos
   nσ = quartet.ket.sh_b.nbas
 
-  hiter = 0:(nλ-1)
-  oiter = 0:(nσ-1)
-
+  μνλσ = 0
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
     μμ = μsize + pμ
     νν = νsize + pν
 
     do_continue_bra = sort_bra(μμ, νν,
       ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
-    if do_continue_bra continue end
+    if do_continue_bra 
+      continue 
+    end
 
+    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
     for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
       λλ = λsize + pλ
       σσ = σsize + pσ
@@ -639,27 +642,33 @@ end
       #  if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
       #end
 
-      μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize +
-        nσ*nλ*nν*μsize
-
-      do_continue_screen = abs(eri_batch[μνλσ]) < 1E-10
-      if do_continue_screen continue end
+      #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
+      μνλσ += 1 
+  
+      eri = eri_batch[μνλσ] 
+      
+      do_continue_screen = abs(eri) < 1E-10
+      if do_continue_screen 
+        continue 
+      end
 
       μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
       λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
 
       do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
         ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
-      if do_continue_ket continue end
+      if do_continue_ket 
+        continue 
+      end
 
       do_continue_braket, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
         ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
-      if do_continue_braket continue end
-
-      eri = eri_batch[μνλσ] 
+      if do_continue_braket 
+        continue 
+      end
 
       #if debug println("$μ, $ν, $λ, $σ, $eri") end
-      eri *= (μ == ν) ? 0.5 : 1.0
+      eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
@@ -705,17 +714,16 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   comm=MPI.COMM_WORLD
  
   #== obtain new orbital coefficients ==#
-  ortho_trans .= transpose(LinearAlgebra.Hermitian(ortho))
-  mul!(F_part, ortho_trans, F_μν)
-  mul!(F_mo, F_part, ortho)
- 
+  BLAS.symm!('L', 'U', 1.0, ortho_trans, F_μν, 0.0, F_part)
+  BLAS.gemm!('N', 'N', 1.0, F_part, ortho, 0.0, F_mo)
+  
   F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
 
   F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
   @views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   #C .= ortho*F_evec
-  mul!(C, ortho, F_evec)
+  BLAS.symm!('L', 'U', 1.0, ortho, F_evec, 0.0, C)
   
   if debug && MPI.Comm_rank(comm) == 0
   #  println("New orbitals:")
@@ -744,7 +752,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
     #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
   end
   D .*= 2.0
-  
+ 
   #if debug && MPI.Comm_rank(comm) == 0
   #  println("New density matrix:")
   #  for shell_group in 0:cld(size(D)[1],5)
