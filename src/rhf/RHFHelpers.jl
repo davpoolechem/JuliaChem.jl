@@ -49,15 +49,13 @@ end
   return do_continue
 end
 
-@inline function sort_braket(μμ::Int, t_μ::Int, νν::Int, t_ν::Int, λλ::Int, t_λ::Int, 
-  σσ::Int, t_σ::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int, nμ::Int, nν::Int, 
-  nλ::Int, nσ::Int)
+@inline function sort_braket(μ::Int, ν::Int, λ::Int, σ::Int, ish::Int, 
+  jsh::Int, ksh::Int, lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int)
 
   do_continue = false
-  μ,ν,λ,σ = t_μ, t_ν, t_λ, t_σ
 
-  μν = triangular_index(μμ,νν)
-  λσ = triangular_index(λλ,σσ)
+  μν = triangular_index(μ,ν)
+  λσ = triangular_index(λ,σ)
 
   if μν < λσ
     three_shell = (nμ == nν && nν == nλ) || (nμ == nν && nν == nσ) || 
@@ -67,11 +65,12 @@ end
 
     if four_shell && ish == ksh && jsh == lsh
       do_continue = true
-    elseif three_shell && μμ < νν && λλ < σσ
+    elseif three_shell && μ < ν && λ < σ
       do_continue = true
+    else
+	    λ, σ, μ, ν = μ, ν, λ, σ 
     end
-	  
-    if !do_continue λ, σ, μ, ν = t_μ, t_ν, t_λ, t_σ end
+    #if !do_continue λ, σ, μ, ν = μ, ν, λ, σ end
   end
   return do_continue, μ, ν, λ, σ
 end
@@ -207,7 +206,6 @@ b = column index
 """
 =#
 @inline function triangular_index(a::Int,b::Int)
-	if a < b a, b = b, a end
   index = (a*(a-1)) >> 1 #bitwise divide by 2
   index += b
   return index

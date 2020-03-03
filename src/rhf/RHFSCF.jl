@@ -329,9 +329,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build fock matrix ==#
-    @time begin
-      F_temp .= twoei(F, D, H, basis; debug=debug)
-    end
+    F_temp .= twoei(F, D, H, basis; debug=debug)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -643,7 +641,7 @@ end
   
       eri = eri_batch[μνλσ] 
       
-      do_continue_screen = abs(eri) < 1E-10
+      do_continue_screen = abs(eri) < 1.0E-10
       if do_continue_screen 
         continue 
       end
@@ -657,8 +655,8 @@ end
         continue 
       end
 
-      do_continue_braket, μ, ν, λ, σ = sort_braket(μμ, μ, νν, ν, λλ, λ, σσ, σ,
-        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ)
+      do_continue_braket, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh, ksh, 
+        lsh, nμ, nν, nλ, nσ)
       if do_continue_braket 
         continue 
       end
