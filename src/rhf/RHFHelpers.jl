@@ -10,13 +10,10 @@ using JLD
 
   do_continue = false
 
-  condition3 = two_same && !(ish == ksh && jsh == lsh)
-  condition3 = condition3 &&
-	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+  condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
+    nλ > 1 && nσ > 1
 
-  condition6 = ish == jsh
-  condition6 = condition6 &&
-	nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
+  condition6 = ish == jsh && nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
 
   if μμ < νν && (condition3 || condition6)
 	  do_continue = true
@@ -30,23 +27,16 @@ end
 
   do_continue = false
 
-  condition1 = μμ == λλ && νν == σσ
-  condition1 = condition1 || (μμ == νν && λλ == σσ)
-  condition1 = condition1 || (μμ == σσ && λλ == νν)
-  condition1 = condition1 &&
-	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+  condition1 = ((μμ == λλ && νν == σσ) || (μμ == νν && λλ == σσ) || 
+    (μμ == σσ && λλ == νν)) && nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
 
-  condition3 = two_same && !(ish == ksh && jsh == lsh)
-  condition3 = condition3 &&
-	nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+  condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
+    nλ > 1 && nσ > 1
 
-  condition5 = ish == ksh && jsh == lsh
-  condition5 = condition5 &&
-	nμ > 1 && nν == 1 && nλ > 1 && nσ == 1
+  condition5 = ish == ksh && jsh == lsh && nμ > 1 && nν == 1 && nλ > 1 && 
+    nσ == 1
 
-  condition7 = ksh == lsh
-  condition7 = condition7 &&
-	(nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
+  condition7 = ksh == lsh && (nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
 
   if μμ < νν && condition1
 	  do_continue = true
@@ -70,21 +60,10 @@ end
   λσ = triangular_index(λλ,σσ)
 
   if μν < λσ
-	  two_shell = nμ == nν
-	  two_shell = two_shell || (nμ == nλ)
-	  two_shell = two_shell || (nμ == nσ)
-    two_shell = two_shell || (nν == nλ)
-    two_shell = two_shell || (nν == nσ)
-    two_shell = two_shell || (nλ == nσ)
+    three_shell = (nμ == nν && nν == nλ) || (nμ == nν && nν == nσ) || 
+      (nμ == nλ && nλ == nσ) || (nν == nλ && nλ == nσ)
 
-    three_shell = nμ == nν && nν == nλ
-    three_shell = three_shell || (nμ == nν && nν == nσ)
-    three_shell = three_shell || (nμ == nλ && nλ == nσ)
-    three_shell = three_shell || (nν == nλ && nλ == nσ)
-
-    four_shell = nμ == nν
-    four_shell = four_shell && (nν == nλ)
-    four_shell = four_shell && (nλ == nσ)
+    four_shell = nμ == nν && nν == nλ && nλ == nσ
 
     if four_shell && ish == ksh && jsh == lsh
       do_continue = true

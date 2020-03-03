@@ -329,7 +329,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build fock matrix ==#
-    F_temp .= twoei(F, D, H, basis; debug=debug)
+    @time begin
+      F_temp .= twoei(F, D, H, basis; debug=debug)
+    end
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -598,17 +600,11 @@ end
 
   norb = size(D,1)
 
-  two_same = ish == jsh
-  two_same = two_same || (ish == ksh)
-  two_same = two_same || (ish == lsh)
-  two_same = two_same || (jsh == ksh)
-  two_same = two_same || (jsh == lsh)
-  two_same = two_same || (ksh == lsh)
+  two_same = (ish == jsh) || (ish == ksh) || (ish == lsh) || (jsh == ksh) || 
+    (jsh == lsh) || (ksh == lsh)
 
-  three_same = ish == jsh && jsh == ksh
-  three_same = three_same || (ish == jsh && jsh == lsh)
-  three_same = three_same || (ish == ksh && ksh == lsh)
-  three_same = three_same || (jsh == ksh && ksh == lsh)
+  three_same = (ish == jsh && jsh == ksh) || (ish == jsh && jsh == lsh) || 
+    (ish == ksh && ksh == lsh) || (jsh == ksh && ksh == lsh)
 
   pμ = quartet.bra.sh_a.pos
   nμ = quartet.bra.sh_a.nbas
