@@ -5,7 +5,7 @@ using Base.Threads
 using MATH
 using JLD
 
-function sort_bra(μμ::Int, νν::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int,
+@inline function sort_bra(μμ::Int, νν::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int,
   nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, three_same::Bool)
 
   do_continue = false
@@ -18,15 +18,13 @@ function sort_bra(μμ::Int, νν::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int,
   condition6 = condition6 &&
 	nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
 
-  if (μμ < νν) && condition3
-	  do_continue = true
-  elseif μμ < νν && condition6
+  if μμ < νν && (condition3 || condition6)
 	  do_continue = true
   end
   return do_continue
 end
 
-function sort_ket(μμ::Int, νν::Int, λλ::Int, σσ::Int, ish::Int, jsh::Int, 
+@inline function sort_ket(μμ::Int, νν::Int, λλ::Int, σσ::Int, ish::Int, jsh::Int, 
   ksh::Int, lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, 
   three_same::Bool)
 
@@ -52,23 +50,16 @@ function sort_ket(μμ::Int, νν::Int, λλ::Int, σσ::Int, ish::Int, jsh::Int
 
   if μμ < νν && condition1
 	  do_continue = true
-  end
-
-  if λλ < σσ && condition1
-	  do_continue = true
-  end
-
-  if (λλ < σσ) && condition3
-	  do_continue = true
   elseif μμ < λλ && condition5
 	  do_continue = true
-  elseif λλ < σσ && condition7
+  elseif λλ < σσ && (condition1 || condition3 || condition7)
 	  do_continue = true
   end
+
   return do_continue
 end
 
-function sort_braket(μμ::Int, t_μ::Int, νν::Int, t_ν::Int, λλ::Int, t_λ::Int, 
+@inline function sort_braket(μμ::Int, t_μ::Int, νν::Int, t_ν::Int, λλ::Int, t_λ::Int, 
   σσ::Int, t_σ::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int, nμ::Int, nν::Int, 
   nλ::Int, nσ::Int)
 
@@ -95,16 +86,13 @@ function sort_braket(μμ::Int, t_μ::Int, νν::Int, t_ν::Int, λλ::Int, t_λ
     four_shell = four_shell && (nν == nλ)
     four_shell = four_shell && (nλ == nσ)
 
-    if four_shell
-      if ish == ksh && jsh == lsh
-        do_continue = true
-      end
-    elseif three_shell
-      if μμ < νν && λλ < σσ
-        do_continue = true
-      end
+    if four_shell && ish == ksh && jsh == lsh
+      do_continue = true
+    elseif three_shell && μμ < νν && λλ < σσ
+      do_continue = true
     end
-	  if !do_continue λ, σ, μ, ν = t_μ, t_ν, t_λ, t_σ end
+	  
+    if !do_continue λ, σ, μ, ν = t_μ, t_ν, t_λ, t_σ end
   end
   return do_continue, μ, ν, λ, σ
 end
