@@ -1,7 +1,7 @@
 using MATH
 using JCModules.Globals
 
-using InteractiveUtils
+#using InteractiveUtils
 using MPI
 #using Base.Threads
 #using Distributed
@@ -207,7 +207,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64},
   E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
-  scf_flags; debug, niter)
+  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; debug, niter)
 
   #== read in some more variables from scf flags input ==#
   ndiis::Int = scf_flags["ndiis"]
