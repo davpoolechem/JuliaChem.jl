@@ -21,5 +21,6 @@ install:
 #- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/MATH.jl\"))"
 
 script:
+- julia -E "using Pkg; Pkg.instantiate()"
 - julia -E "using Pkg; Pkg.add(\"MPI\")" 
 - julia -E "using JuliaChem"
