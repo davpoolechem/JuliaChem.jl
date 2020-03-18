@@ -522,7 +522,7 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #thread_index_counter -= 1
     #if ijkl_index < 1 break end
 
-    #if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
+    if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
     bra_pair = decompose(ijkl_index)
     ket_pair = ijkl_index - triangular_index(bra_pair)
 
