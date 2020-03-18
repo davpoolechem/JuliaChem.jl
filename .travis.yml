@@ -11,7 +11,7 @@ install:
 - export MPIROOT=/home/travis/openmpi
 - export LD_LIBRARY_PATH=$MPIROOT/lib:$LD_LIBRARY_PATH                          
 - export LD_RUN_PATH=$MPIROOT/lib:$LD_RUN_PATH                                    
-- export PATH=$MPIROOT/bin:$CPATH                                            
+- export PATH=$MPIROOT/bin:$PATH                                            
 - export CPATH=$MPIROOT/include:$CPATH                                            
 - export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
 - export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
