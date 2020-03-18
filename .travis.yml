@@ -11,6 +11,7 @@ install:
 - export MPIROOT=/home/travis/openmpi
 - export LD_LIBRARY_PATH=$MPIROOT/lib:$LD_LIBRARY_PATH                          
 - export LD_RUN_PATH=$MPIROOT/lib:$LD_RUN_PATH                                    
+- export PATH=$MPIROOT/bin:$CPATH                                            
 - export CPATH=$MPIROOT/include:$CPATH                                            
 - export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
 - export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
@@ -22,5 +23,4 @@ install:
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
-- julia -E "using Pkg; Pkg.build(\"MPI\")" 
 - julia -E "using JuliaChem"
