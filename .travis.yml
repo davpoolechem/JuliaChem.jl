@@ -19,5 +19,6 @@ install:
 - export SIMINT=/home/travis/simint-install
 
 script:
+- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JCModules.jl\"))"
 - julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/MATH.jl\"))"
 - julia -E "using Pkg; Pkg.add(\"MPI\")" 
