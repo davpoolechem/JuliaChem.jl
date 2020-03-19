@@ -9,14 +9,14 @@ inputs .= directory .* inputs
 
 #== run S22 tests ==#
 Test.@testset "S22 accuracy test" begin
-  scf = minimal_rhf(inputs[1])
-  Test.@test scf[4] ≈ -112.0363811936 
+#  scf = minimal_rhf(inputs[1])
+#  Test.@test scf[4] ≈ -112.0363811936 
 
 #  scf = minimal_rhf(inputs[2])
 #  Test.@test scf[4] ≈ -151.5637222519 
 
-#  scf = minimal_rhf(inputs[3])
-#  Test.@test scf[4] ≈ -376.3871095400
+  scf = minimal_rhf(inputs[3])
+  Test.@test scf[4] ≈ -376.3871095400
 
 #  scf = minimal_rhf(inputs[4])
 #  Test.@test scf[4] ≈ -336.8722288570 
@@ -27,11 +27,11 @@ Test.@testset "S22 accuracy test" begin
 #  scf = minimal_rhf(inputs[6])
 #  Test.@test scf[4] ≈ -621.5325650057
 
-  scf = minimal_rhf(inputs[7])
-  Test.@test scf[4] ≈ -913.3428352684
+#  scf = minimal_rhf(inputs[7])
+#  Test.@test scf[4] ≈ -913.3428352684
 
-  scf = minimal_rhf(inputs[8])
-  Test.@test scf[4] ≈ -80.1635874796
+#  scf = minimal_rhf(inputs[8])
+#  Test.@test scf[4] ≈ -80.1635874796
 
 #  scf = minimal_rhf(inputs[9])
 #  Test.@test scf[4] ≈ -155.6363922320
@@ -51,11 +51,11 @@ Test.@testset "S22 accuracy test" begin
 #  scf = minimal_rhf(inputs[14])
 #  Test.@test scf[4] ≈ -590.5292651211
 
-  scf = minimal_rhf(inputs[15])
-  Test.@test scf[4] ≈ -913.3126739534
+#  scf = minimal_rhf(inputs[15])
+#  Test.@test scf[4] ≈ -913.3126739534
 
-  scf = minimal_rhf(inputs[16])
-  Test.@test scf[4] ≈ -154.4360760563
+#  scf = minimal_rhf(inputs[16])
+#  Test.@test scf[4] ≈ -154.4360760563
 
 #  scf = minimal_rhf(inputs[17])
 #  Test.@test scf[4] ≈ -305.8480434104
@@ -69,8 +69,8 @@ Test.@testset "S22 accuracy test" begin
 #  scf = minimal_rhf(inputs[20])
 #  Test.@test scf[4] ≈ -460.1400279398
 
-  scf = minimal_rhf(inputs[21])
-  Test.@test scf[4] ≈ -590.5383556631
+#  scf = minimal_rhf(inputs[21])
+#  Test.@test scf[4] ≈ -590.5383556631
 
 #  scf = minimal_rhf(inputs[22])
 #  Test.@test scf[4] ≈ -609.3928162070
