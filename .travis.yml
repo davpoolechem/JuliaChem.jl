@@ -25,4 +25,4 @@ script:
 - julia --code-coverage test/runtest.jl
 
 after_success:
-- julia -e 'cd(Pkg.dir("MyPkg")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+- julia -e 'using Pkg; cd(Pkg.dir("JuliaChem")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
