@@ -3,8 +3,8 @@ julia:
   - nightly
   - 1.3.1
   - 1.0.5
-codecov: false 
-coveralls: false
+codecov: true 
+coveralls: true 
 
 install: 
 - ./tools/travis-install-openmpi.sh
@@ -18,10 +18,11 @@ install:
 - export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
 - ./tools/travis-install-simint.sh
 - export SIMINT=/home/travis/simint-install
-#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/JCModules.jl\"))"
-#- julia -E "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/davpoolechem/MATH.jl\"))"
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
 - cd deps && julia build.jl && cd ../
-- julia test/runtest.jl
+- julia --code-coverage test/runtest.jl
+
+after_success:
+- julia -e 'cd(Pkg.dir("MyPkg")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
