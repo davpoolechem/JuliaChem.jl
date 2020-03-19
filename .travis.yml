@@ -24,4 +24,4 @@ install:
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
 - cd deps && julia build.jl && cd ../
-- julia -E "using JuliaChem"
+- julia test/runtest.jl
