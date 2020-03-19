@@ -12,6 +12,24 @@ using PrettyTables
 
 const do_continue_print = false
 
+"""
+	 rhf_energy(basis::BasisStructs.Basis, 
+    molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
+    scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
+    
+Summary
+======
+Wrapper for the core RHF SCF computation function.
+
+Arguments
+======
+basis = Generated basis set
+
+molecule = information about the molecule, including molecular coordinates
+  and atoms 
+
+scf_flags = information controllic specifics of the SCF cycles 
+"""
 function rhf_energy(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
@@ -21,21 +39,22 @@ end
 
 
 """
-	 rhf_kernel(FLAGS::RHF_Flags, basis::Basis, read_in::Dict{String,Any},
-       type::T)
+	 rhf_kernel(basis::BasisStructs.Basis, 
+    molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
+    scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
+    
 Summary
 ======
 Perform the core RHF SCF algorithm.
 
 Arguments
 ======
-FLAGS = Input flags
-
 basis = Generated basis set
 
-read_in = file required to read in from input file
+molecule = information about the molecule, including molecular coordinates
+  and atoms 
 
-type = Precision of variables in calculation
+scf_flags = information controllic specifics of the SCF cycles 
 """
 function rhf_kernel(basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
@@ -202,6 +221,58 @@ function rhf_kernel(basis::BasisStructs.Basis,
   return F, D, C, E, calculation_status
 end
 
+"""
+	scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
+    E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, 
+    ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
+    F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64},
+    E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
+    scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; debug, niter)
+
+Summary
+======
+Performs setup of memory for executions of SCF cycles.
+
+Arguments
+======
+F = Fock matrix in the atomic orbital basis
+
+D = Density matrix
+
+C = Molecular Orbital Coefficiencts 
+
+E = Energy of the system 
+
+H = One-electron Hamiltonian matrix 
+
+ortho = Orthogonalization matrix 
+
+ortho_trans = Transpose of orthogonalization matrix 
+
+S = Overlap matrix
+
+F_eval = Eigenvalues of Fock matrix
+
+F_evec = Eigenvectors of Fock matrix
+
+F_mo = Fock matrix transformed to the molecular orbital basis
+
+F_part = Value of ortho_trans*F; intermediate in construction of F_mo 
+
+E_nuc = Nuclear component of system energy
+
+E_elec = Electronic component of system energy
+
+E_old = Energy of previous iteration
+
+basis = Basis set for calculation
+
+scf_flags = information controllic specifics of the SCF cycles 
+
+debug = keyword argument controlling if debug output is made
+
+niter = keyword argument dictating maximum number of SCF iterations
+"""
 function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, 
   ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
@@ -282,6 +353,79 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   return F, D, C, E, scf_converged
 end
 
+"""
+
+scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
+  C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
+  ortho_trans::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
+  E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
+  F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
+  e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
+  F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
+  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, 
+  F_part::Matrix{Float64}, 
+  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
+  D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
+  scf_converged::Bool, quartet_batch_num_old::Int64, 
+  test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
+  FD::Matrix{Float64}, FDS::Matrix{Float64}, SD::Matrix{Float64},
+  SDF::Matrix{Float64}; debug, niter, ndiis, dele, rmsd)
+
+ 
+Summary
+======
+Executes all SCF cycles.
+
+Arguments
+======
+F = Fock matrix in the atomic orbital basis
+
+D = Density matrix
+
+C = Molecular Orbital Coefficiencts 
+
+E = Energy of the system 
+
+H = One-electron Hamiltonian matrix 
+
+ortho = Orthogonalization matrix 
+
+ortho_trans = Transpose of orthogonalization matrix 
+
+S = Overlap matrix
+
+basis = Basis set for calculation
+
+F_array = Current array of Fock matrices calculated during previous iterations
+
+e = Error vector of current iteration
+
+e_array = Current array of error vectors calculated during previous iterations
+
+e_array_old = Old array of error vectors calculated during previous iterations
+
+F_array_old = Old array of Fock matrices calculated during previous iterations
+
+F_temp = Array used to store process-local Fock build results 
+
+F_eval = Eigenvalues of Fock matrix
+
+F_evec = Eigenvectors of Fock matrix
+
+F_mo = Fock matrix transformed to the molecular orbital basis
+
+F_part = Value of ortho_trans*F; intermediate in construction of F_mo 
+
+E_nuc = Nuclear component of system energy
+
+E_elec = Electronic component of system energy
+
+E_old = Energy of previous iteration
+
+debug = keyword argument controlling if debug output is made
+
+niter = keyword argument dictating maximum number of SCF iterations
+"""
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
   ortho_trans::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
