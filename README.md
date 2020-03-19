@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/davpoolechem/JuliaChem.jl.svg?branch=development)](https://travis-ci.org/davpoolechem/JuliaChem.jl)
+
 # Welcome to JuliaChem!
 JuliaChem is an electronic structure theory program written in Julia, designed to combine
 Julia's dynamic and interactive nature with its high-performance capabilities to offer users the best of both worlds for quantum chemistry computations.
