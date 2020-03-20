@@ -22,7 +22,7 @@ install:
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
 - cd deps && julia build.jl && cd ../
-- julia --code-coverage test/runtest.jl
+- julia --code-coverage test/runtests-travis.jl
 
 after_success:
 - julia -e 'using Pkg; cd(Pkg.dir("JuliaChem")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

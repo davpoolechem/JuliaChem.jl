@@ -1,3 +1,4 @@
+import Pkg; Pkg.add("Test")
 import Test
 
 include("../example_scripts/minimal-rhf-repl.jl")
