@@ -4,6 +4,7 @@
 import JuliaChem
 import Statistics
 import HypothesisTests 
+import MPI
 
 #================================#
 #== JuliaChem execution script ==#
@@ -68,17 +69,20 @@ function script(input_file)
   end
   scf_jit = scf_time1 - Statistics.mean(timeof)
   
-  #== output relevant information ==# 
-  println("Input JIT: ", input_jit)
-  println("Basis JIT: ", basis_jit)
-  println("SCF JIT: ", scf_jit)
-  println("Total JIT: ", input_jit + basis_jit + scf_jit)
-  println("")
+  MPI.Barrier(MPI.COMM_WORLD)
+  if (MPI.Comm_rank(MPI.COMM_WORLD) == 0)  
+    #== output relevant information ==# 
+    println("Input JIT: ", input_jit)
+    println("Basis JIT: ", basis_jit)
+    println("SCF JIT: ", scf_jit)
+    println("Total JIT: ", input_jit + basis_jit + scf_jit)
+    println("")
   
-  #== perform t-test to compare to GAMESS ==#
-  p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)
-  println(p)
-
+    #== perform t-test to compare to GAMESS ==#
+    p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)
+    println(p)
+  end
+  MPI.Barrier(MPI.COMM_WORLD)
   #== finalize JuliaChem runtime ==#
   JuliaChem.finalize()
 end

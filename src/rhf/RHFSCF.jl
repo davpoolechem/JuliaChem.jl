@@ -462,38 +462,111 @@ H = One-electron Hamiltonian Matrix
 @inline function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   basis::BasisStructs.Basis; debug)
 
+  comm = MPI.COMM_WORLD
+  
   fill!(F,zero(Float64))
 
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
+  
+  #== simply do calculation for single-rank runs ==#
+  if MPI.Comm_size(comm) == 1
+    ish_old = 0
+    jsh_old = 0
+    ksh_old = 0
+    lsh_old = 0
 
-  ish_old = 0
-  jsh_old = 0
-  ksh_old = 0
-  lsh_old = 0
+    quartet_batch_num_old = ceil(Int64,nindices/QUARTET_BATCH_SIZE)
 
-  quartet_batch_num_old = ceil(Int64,nindices/QUARTET_BATCH_SIZE)
-
-  #mutex = Base.Threads.ReentrantLock()
-  thread_index_counter = nindices
-
-  #for thread in 1:Threads.nthreads()
-  #  F_priv = zeros(basis.norb,basis.norb)
+    #mutex = Base.Threads.ReentrantLock()
+    thread_index_counter = nindices
+ 
+    #for thread in 1:Threads.nthreads()
+    #  F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
     eri_quartet_batch = Vector{Float64}(undef,81)
 
     quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
-    
-    twoei_thread_kernel(F, D,
-      H, basis, thread_index_counter, eri_quartet_batch,
-      quartet, nindices,
-      quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
+   
+    for ijkl_index in nindices:-1:1
+      twoei_thread_kernel(F, D,
+        H, basis, thread_index_counter, eri_quartet_batch,
+        quartet, ijkl_index,
+        quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
     #lock(mutex)
     #F .+= F_priv
     #unlock(mutex)
-  #end
+    end
+  #== otherwise use dynamic task distribution with a master/slave model==#
+  else
+    #== master rank ==#
+    if MPI.Comm_rank(comm) == 0 
+      #== hand out quartets to slaves... ==#
+      for task in nindices:-1:1
+        task_rank = (task%(MPI.Comm_size(comm)-1))+1                              
+        sreq = MPI.Send([ task ], task_rank, task, comm)  
+      end
+
+      #== ...and hand out ending signals once done ==#
+      for task in 1:(MPI.Comm_size(comm)-1)                            
+        task_rank = (task%(MPI.Comm_size(comm)-1))+1                              
+        sreq = MPI.Send([ -1 ], task_rank, task, comm)                           
+      end      
+    #== slave ranks perform actual computations on quartets ==#
+    else
+      #== intial setup ==#
+      recv_mesg = [ 0 ]
+
+      ish_old = 0
+      jsh_old = 0
+      ksh_old = 0
+      lsh_old = 0
+
+      quartet_batch_num_old = ceil(Int64,nindices/QUARTET_BATCH_SIZE)
+
+      #mutex = Base.Threads.ReentrantLock()
+      thread_index_counter = nindices
+ 
+      #for thread in 1:Threads.nthreads()
+      #  F_priv = zeros(basis.norb,basis.norb)
+
+      max_shell_am = MAX_SHELL_AM
+      eri_quartet_batch = Vector{Float64}(undef,81)
+
+      quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
+        ShPair(basis.shells[1], basis.shells[1]))
+ 
+      #== do computations ==# 
+      while true
+        #== get shell quartet ==#
+        rreq = MPI.Irecv!(recv_mesg, 0, MPI.MPI_ANY_TAG, comm)
+        MPI.Wait!(rreq)
+
+        ijkl_index = recv_mesg[1]
+      
+        #for rank in 1:MPI.Comm_size(comm)
+        #  if MPI.Comm_rank(comm) == rank
+        #    println("IJKL_INDEX: ", ijkl_index)
+        #  end
+        #end
+        if ijkl_index == -1 
+          break
+        else    
+          twoei_thread_kernel(F, D,
+            H, basis, thread_index_counter, eri_quartet_batch,
+            quartet, ijkl_index,
+            quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; 
+            debug=debug)
+      #lock(mutex)
+      #F .+= F_priv
+      #unlock(mutex)
+        end
+      end
+    end
+    MPI.Barrier(comm)
+  end
 
   for iorb in 1:basis.norb, jorb in 1:iorb
     if iorb != jorb
@@ -505,82 +578,82 @@ H = One-electron Hamiltonian Matrix
   return F
 end
 
-function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
+@inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   thread_index_counter::Int64, 
   eri_quartet_batch::Vector{Float64}, 
-  quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
+  quartet::ShQuartet, ijkl_index::Int64, quartet_batch_num_old::Int64,
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
 
   if debug println("START TWO-ELECTRON INTEGRALS") end
-  for ijkl_index in nindices:-1:1
+  #for ijkl_index in nindices:-1:1
   #while true
-    #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
-    #ijkl_index = thread_index_counter
-    #thread_index_counter -= 1
-    #if ijkl_index < 1 break end
+  #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
+  #ijkl_index = thread_index_counter
+  #thread_index_counter -= 1
+  #if ijkl_index < 1 break end
 
-    if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
-    bra_pair = decompose(ijkl_index)
-    ket_pair = ijkl_index - triangular_index(bra_pair)
+  #if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
+  bra_pair = decompose(ijkl_index)
+  ket_pair = ijkl_index - triangular_index(bra_pair)
 
-    ish = decompose(bra_pair)
-    jsh = bra_pair - triangular_index(ish)
+  ish = decompose(bra_pair)
+  jsh = bra_pair - triangular_index(ish)
 
-    ksh = decompose(ket_pair)
-    lsh = ket_pair - triangular_index(ksh)
+  ksh = decompose(ket_pair)
+  lsh = ket_pair - triangular_index(ksh)
 
-    quartet.bra.sh_a = basis[ish]
-    quartet.bra.sh_b = basis[jsh]
-    quartet.ket.sh_a = basis[ksh]
-    quartet.ket.sh_b = basis[lsh]
+  quartet.bra.sh_a = basis[ish]
+  quartet.bra.sh_b = basis[jsh]
+  quartet.ket.sh_a = basis[ksh]
+  quartet.ket.sh_b = basis[lsh]
 
-    #if debug
-    #  if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
-    #end
+  #if debug
+  #  if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
+  #end
 
-   # quartet_batch_num::Int64 = fld(quartet_num,
-   #   QUARTET_BATCH_SIZE) + 1
+ # quartet_batch_num::Int64 = fld(quartet_num,
+ #   QUARTET_BATCH_SIZE) + 1
 
-    #if quartet_batch_num != quartet_batch_num_old
-    #  if length(eri_starts) != QUARTET_BATCH_SIZE && length(eri_sizes) != QUARTET_BATCH_SIZE
-    #    resize!(eri_sizes,QUARTET_BATCH_SIZE)
-    #    resize!(eri_starts,QUARTET_BATCH_SIZE)
-    #  end
+  #if quartet_batch_num != quartet_batch_num_old
+  #  if length(eri_starts) != QUARTET_BATCH_SIZE && length(eri_sizes) != QUARTET_BATCH_SIZE
+  #    resize!(eri_sizes,QUARTET_BATCH_SIZE)
+  #    resize!(eri_starts,QUARTET_BATCH_SIZE)
+  #  end
 
-    #  eri_sizes[:] = load("tei_batch.jld",
-    #    "Sizes/$quartet_batch_num")
+  #  eri_sizes[:] = load("tei_batch.jld",
+  #    "Sizes/$quartet_batch_num")
 
-      #@views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(QUARTET_BATCH_SIZE-1)]... ]
-      #eri_starts[:] = load("tei_batch.jld","Starts/$quartet_batch_num")
-      #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
+    #@views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(QUARTET_BATCH_SIZE-1)]... ]
+    #eri_starts[:] = load("tei_batch.jld","Starts/$quartet_batch_num")
+    #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
 
-    #  resize!(eri_batch,sum(eri_sizes))
-    #  eri_batch[:] = load("tei_batch.jld","Integrals/$quartet_batch_num")
+  #  resize!(eri_batch,sum(eri_sizes))
+  #  eri_batch[:] = load("tei_batch.jld","Integrals/$quartet_batch_num")
 
-    #  quartet_batch_num_old = quartet_batch_num
-    #end
+  #  quartet_batch_num_old = quartet_batch_num
+  #end
 
-    #quartet_num_in_batch::Int64 = quartet_num - QUARTET_BATCH_SIZE*
-    #  (quartet_batch_num-1) + 1
+  #quartet_num_in_batch::Int64 = quartet_num - QUARTET_BATCH_SIZE*
+  #  (quartet_batch_num-1) + 1
 
-    #starting::Int64 = eri_starts[quartet_num_in_batch]
-    #ending::Int64 = starting + eri_sizes[quartet_num_in_batch] - 1
-    #batch_ending_final::Int64 = ending - starting + 1
+  #starting::Int64 = eri_starts[quartet_num_in_batch]
+  #ending::Int64 = starting + eri_sizes[quartet_num_in_batch] - 1
+  #batch_ending_final::Int64 = ending - starting + 1
 
-    #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
-    #eri_quartet_batch = @view eri_batch[starting:ending]
+  #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
+  #eri_quartet_batch = @view eri_batch[starting:ending]
 
-    shellquart(ish, jsh, ksh, lsh, eri_quartet_batch)
+  shellquart(ish, jsh, ksh, lsh, eri_quartet_batch)
 
-    #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
-    #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
+  #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
+  #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
 
-    dirfck(F, D, eri_quartet_batch, quartet,
-      ish, jsh, ksh, lsh, debug)
-  end
+  dirfck(F, D, eri_quartet_batch, quartet,
+    ish, jsh, ksh, lsh, debug)
+  
   if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 

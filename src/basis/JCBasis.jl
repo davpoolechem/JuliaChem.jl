@@ -61,9 +61,11 @@ function run(molecule, model)
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
-  println("----------------------------------------          ")
-  println("        Basis Set Information...                  ")
-  println("----------------------------------------          ")
+  if (MPI.Comm_rank(comm) == 0)
+    println("----------------------------------------          ")
+    println("        Basis Set Information...                  ")
+    println("----------------------------------------          ")
+  end
 
   #== create basis set ==#
   h5open(joinpath(@__DIR__, "../../records/bsed.h5"),"r") do bsed
@@ -82,7 +84,8 @@ function run(molecule, model)
         bsed["$symbol/$basis"])
 
       #== process basis set values into shell objects ==#
-      println("ATOM $symbol:")
+      if (MPI.Comm_rank(comm) == 0) println("ATOM $symbol:") end
+      
       for shell_num::Int64 in 1:length(shells)
         new_shell_dict::Dict{String,Any} = shells["$shell_num"]
 
@@ -90,12 +93,15 @@ function run(molecule, model)
         new_shell_exp::Vector{Float64} = new_shell_dict["Exponents"]
         new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
   
-        println("Shell #$shell_num:")
-        pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, new_shell_coeff), 
-          vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-          formatter = ft_printf("%5.6f", [2,3]) ) 
-        println("")
-        
+        if (MPI.Comm_rank(comm) == 0) 
+          println("Shell #$shell_num:") 
+          pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
+            new_shell_coeff), 
+            vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
+            formatter = ft_printf("%5.6f", [2,3]) )
+          println("")
+        end 
+
         new_shell_nprim::Int64 = size(new_shell_exp)[1]
         new_shell_coeff_array::Vector{Float64} = reshape(new_shell_coeff,
           (length(new_shell_coeff),))       
@@ -106,9 +112,10 @@ function run(molecule, model)
 
         basis_set.norb += new_shell.nbas
       end
-      println(" ")
-      println(" ")
-
+      if (MPI.Comm_rank(comm) == 0)
+        println(" ")
+        println(" ")
+      end
     end
   end
 
