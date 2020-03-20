@@ -19,7 +19,7 @@ install:
 - ./tools/travis-install-simint.sh
 - export SIMINT=/home/travis/simint-install
 - export CC=gcc
-- export CC=g++
+- export CXX=g++
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
