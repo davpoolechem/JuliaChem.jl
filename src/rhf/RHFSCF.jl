@@ -505,7 +505,7 @@ H = One-electron Hamiltonian Matrix
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
       #== send out initial tasks to slaves ==#
-      task = nindices
+      task = [ nindices ]
       initial_task = 1
   
       recv_mesg = [ 0 ]
@@ -513,23 +513,23 @@ H = One-electron Hamiltonian Matrix
       #println("Start sending out initial tasks") 
       while initial_task < MPI.Comm_size(comm)
         #println("Sending task $task to rank $initial_task")
-        sreq = MPI.Send([ task ], initial_task, 1, comm)
+        sreq = MPI.Send(task, initial_task, 1, comm)
         #println("Task $task sent to rank $initial_task") 
         
-        task -= 1
+        task[1] -= 1
         initial_task += 1    
       end
       #println("Done sending out intiial tasks") 
 
       #== hand out quartets to slaves dynamically ==#
       #println("Start sending out rest of tasks") 
-      while task > 0 
+      while task[1] > 0 
         status = MPI.Probe(MPI.MPI_ANY_SOURCE, 1, comm) 
         rreq = MPI.Recv!(recv_mesg, status.source, 1, comm)  
         #println("Sending task $task to rank ", status.source)
-        sreq = MPI.Send([ task ], status.source, 1, comm)  
+        sreq = MPI.Send(task, status.source, 1, comm)  
         #println("Task $task sent to rank ", status.source)
-        task -= 1
+        task[1] -= 1
       end
       #println("Done sending out rest of tasks") 
      
@@ -545,6 +545,7 @@ H = One-electron Hamiltonian Matrix
     else
       #== intial setup ==#
       recv_mesg = [ 0 ]
+      send_mesg = [ 0 ]
 
       ish_old = 0
       jsh_old = 0
@@ -588,7 +589,8 @@ H = One-electron Hamiltonian Matrix
           quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; 
           debug=debug)
 
-        MPI.Send([ MPI.Comm_rank(comm) ], 0, 1, comm)
+        send_mesg[1] = MPI.Comm_rank(comm)
+        MPI.Send(send_mesg, 0, 1, comm)
       #lock(mutex)
       #F .+= F_priv
       #unlock(mutex)
