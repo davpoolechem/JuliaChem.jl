@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.com/davpoolechem/JuliaChem.jl.svg?branch=development)](https://travis-ci.com/davpoolechem/JuliaChem.jl) 
-
-[![codecov](https://codecov.io/gh/davpoolechem/JuliaChem.jl/branch/development/graph/badge.svg)](https://codecov.io/gh/davpoolechem/JuliaChem.jl)
+[![Build Status](https://travis-ci.com/davpoolechem/JuliaChem.jl.svg?branch=development)](https://travis-ci.com/davpoolechem/JuliaChem.jl) [![codecov](https://codecov.io/gh/davpoolechem/JuliaChem.jl/branch/development/graph/badge.svg)](https://codecov.io/gh/davpoolechem/JuliaChem.jl)
 
 # Welcome to JuliaChem!
 JuliaChem is an electronic structure theory program written in Julia, designed to combine
