@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-#SBATCH --job-name=juliachem_runtest
-#SBATCH --output=juliachem_runtest.log
-#SBATCH --error=juliachem_runtest.err
+#SBATCH --job-name=juliachem-runtest
+#SBATCH --output=juliachem-runtest.log
+#SBATCH --error=juliachem-runtest.err
 #
 #SBATCH --partition=haswell
 #
@@ -12,4 +12,4 @@
 #
 export JULIA_NUM_THREADS=1
 #
-mpirun -np 1 julia --check-bounds=no --math-mode=fast --optimize=3 --inline=yes --compiled-modules=yes runtest.jl 
+mpirun -np 1 julia --check-bounds=no --math-mode=fast --optimize=3 --inline=yes --compiled-modules=yes -E 'using Pkg; using JuliaChem; Pkg.test("JuliaChem")'
