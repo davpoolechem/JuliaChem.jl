@@ -2,6 +2,7 @@
 #== put needed modules here ==#
 #=============================#
 import JuliaChem
+import InteractiveUtils
 
 #================================#
 #== JuliaChem execution script ==#
@@ -11,7 +12,7 @@ function minimal_rhf(input_file)
   molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
 
   #== generate basis set ==#
-  basis = JuliaChem.JCBasis.run(molecule, model)
+  InteractiveUtils.@code_warntype JuliaChem.JCBasis.run(molecule, model)
 
   #== perform scf calculation ==#
   if (driver == "energy")

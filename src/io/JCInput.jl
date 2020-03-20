@@ -30,7 +30,7 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(args)
+function run(args::String)
   comm=MPI.COMM_WORLD
 
   if MPI.Comm_rank(comm) == 0
@@ -58,10 +58,10 @@ function run(args)
   close(input_file)
 
   #== initialize variables ==#
-  molecule = Dict([])
-  driver = ""
-  model = Dict([])
-  keywords = Dict([])
+  molecule = Dict{String, Any}([])
+  driver::String = ""
+  model = Dict{String,Any}([])
+  keywords = Dict{String,Any}([])
 
   #== do extraction ==#
   json_parse = JSON.parse(input_string)

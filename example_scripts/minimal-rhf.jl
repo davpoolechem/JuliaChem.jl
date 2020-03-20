@@ -2,6 +2,7 @@
 #== put needed modules here ==#
 #=============================#
 import JuliaChem
+import InteractiveUtils
 
 #================================#
 #== JuliaChem execution script ==#

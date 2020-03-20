@@ -34,7 +34,9 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(basis, molecule, keywords)
+function run(basis::BasisStructs.Basis, 
+  molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
+  keywords::Union{Dict{String,Any},Dict{Any,Any}})
   comm=MPI.COMM_WORLD
 
   if MPI.Comm_rank(comm) == 0
@@ -46,7 +48,7 @@ function run(basis, molecule, keywords)
   end
 
   #== initialize scf flags ==#
-  scf_flags = keywords["scf"]
+  scf_flags::Union{Dict{String,Any},Dict{Any,Any}} = keywords["scf"]
 
   #== set up eris ==#
   #if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
