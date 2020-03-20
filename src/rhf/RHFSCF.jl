@@ -45,7 +45,7 @@ end
     
 Summary
 ======
-Perform the core RHF SCF algorithm.
+Execute the core RHF SCF algorithm.
 
 Arguments
 ======
@@ -380,7 +380,7 @@ Arguments
 ======
 F = Fock matrix in the atomic orbital basis
 
-D = Density matrix
+D = Density matrix of current iteration
 
 C = Molecular Orbital Coefficiencts 
 
@@ -393,6 +393,12 @@ ortho = Orthogonalization matrix
 ortho_trans = Transpose of orthogonalization matrix 
 
 S = Overlap matrix
+
+E_nuc = Nuclear component of system energy
+
+E_elec = Electronic component of system energy
+
+E_old = Energy of previous iteration
 
 basis = Basis set for calculation
 
@@ -416,15 +422,42 @@ F_mo = Fock matrix transformed to the molecular orbital basis
 
 F_part = Value of ortho_trans*F; intermediate in construction of F_mo 
 
-E_nuc = Nuclear component of system energy
+D_old = Density matrix of previous iteration
 
-E_elec = Electronic component of system energy
+ΔD = Difference density matrix between D and D_old
 
-E_old = Energy of previous iteration
+damp_values = currently unused 
+  
+D_damp = currently unused
+
+D_damp_rms = currently unused
+  
+scf_converged = whether or not current scf cycles are converged
+
+quartet_batch_num_old = number of batches of quartets
+  
+test_e = intermediate array used to construct e_array
+
+test_F = intermediate array used to construct F_array
+  
+FD = Product of F and D matrices; intermediate used for DIIS calculations 
+
+FDS = Product of FD and S matrices; intermediate used for DIIS calculations 
+
+SD = Product of S and D matrices; intermediate used for DIIS calculations 
+
+SDF = Product of SD and F matrices; intermediate used for DIIS calculations 
 
 debug = keyword argument controlling if debug output is made
 
 niter = keyword argument dictating maximum number of SCF iterations
+ 
+ndiis = keyword argument controlling dimension of DIIS space
+
+dele = keyword argument controlling energy convergence threshold
+
+rmsd = keyword argument controlling density matrix convergence threshold
+
 """
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
@@ -584,12 +617,16 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
   return E
 end
-#=
+
 """
-	 twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+
+twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
+  basis::BasisStructs.Basis; debug)
+
+
 Summary
 ======
-Perform Fock build step.
+Constructs process-local skeleton Fock matrix.
 
 Arguments
 ======
@@ -597,12 +634,12 @@ F = Current iteration's Fock Matrix
 
 D = Current iteration's Density Matrix
 
-tei = Two-electron integral array
-
 H = One-electron Hamiltonian Matrix
-"""
-=#
 
+basis = Basis set for calculation
+
+debug = keyword argument controlling if debug output is made
+"""
 @inline function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
   basis::BasisStructs.Basis; debug)
 
@@ -649,6 +686,52 @@ H = One-electron Hamiltonian Matrix
   return F
 end
 
+"""
+
+twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
+  H::Matrix{Float64}, basis::BasisStructs.Basis, 
+  thread_index_counter::Int64, 
+  eri_quartet_batch::Vector{Float64}, 
+  quartet::ShQuartet, nindices::Int64, quartet_batch_num_old::Int64,
+  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
+
+Summary
+======
+Constructs thread-local skeleton Fock matrix within a process. Multithreading
+support does not yet exist in JuliaChem; however, this is planned on being
+added in future releases.
+
+Arguments
+======
+F = Current iteration's Fock Matrix
+
+D = Current iteration's Density Matrix
+
+H = One-electron Hamiltonian Matrix
+
+basis = Basis set for calculation
+
+thread_index_counter = currently unused
+
+eri_quartet_batch = array containing batch of current electron repulsion 
+  integrals
+
+quartet = contains information about current shell quartet to be worked on
+
+nindices = number of shell quartets to be processed in the calculation
+
+quartet_batch_num_old = number of batches of quartets
+
+ish_old = currently unused
+
+jsh_old = currently unused
+
+ksh_old = currently unused
+
+lsh_old = currently unused
+
+debug = keyword argument controlling if debug output is made
+"""
 function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   thread_index_counter::Int64, 
@@ -728,6 +811,31 @@ function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
+"""
+
+shellquart(ish::Int64, jsh::Int64, ksh::Int64,
+  lsh::Int64, eri_quartet_batch::Vector{Float64})
+
+Summary
+======
+Constructs thread-local skeleton Fock matrix within a process. Multithreading
+support does not yet exist in JuliaChem; however, this is planned on being
+added in future releases.
+
+Arguments
+======
+ish = i shell of current shell quartet to be computed 
+
+jsh = j shell of current shell quartet to be computed 
+
+ksh = k shell of current shell quartet to be computed 
+
+lsh = l shell of current shell quartet to be computed 
+
+eri_quartet_batch = array containing batch of current electron repulsion 
+  integrals
+
+"""
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64, eri_quartet_batch::Vector{Float64})
 
@@ -735,7 +843,39 @@ end
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
 end
 
+"""
 
+dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
+  eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
+  ksh::Int64, lsh::Int64, debug::Bool)
+
+Summary
+======
+Digests electron repulsion integrals for a given shell quartet into the
+thread-local Fock matrix.
+
+Arguments
+======
+F_priv = thread-private Fock matrix
+
+D = Density matrix
+
+eri_batch = array containing batch of current electron repulsion 
+  integrals
+
+quartet = contains information about current shell quartet to be worked on
+
+ish = i shell of current shell quartet to be computed 
+
+jsh = j shell of current shell quartet to be computed 
+
+ksh = k shell of current shell quartet to be computed 
+
+lsh = l shell of current shell quartet to be computed 
+
+debug = keyword argument controlling if debug output is made
+
+"""
 @inline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64, debug::Bool)
