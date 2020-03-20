@@ -491,6 +491,7 @@ H = One-electron Hamiltonian Matrix
       ShPair(basis.shells[1], basis.shells[1]))
    
     for ijkl_index in nindices:-1:1
+      if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
       twoei_thread_kernel(F, D,
         H, basis, thread_index_counter, eri_quartet_batch,
         quartet, ijkl_index,
@@ -503,17 +504,43 @@ H = One-electron Hamiltonian Matrix
   else
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
-      #== hand out quartets to slaves... ==#
-      for task in nindices:-1:1
-        task_rank = (task%(MPI.Comm_size(comm)-1))+1                              
-        sreq = MPI.Send([ task ], task_rank, task, comm)  
+      #== send out initial tasks to slaves ==#
+      task = nindices
+      initial_task = 1
+  
+      recv_mesg = [ 0 ]
+     
+      #println("Start sending out initial tasks") 
+      while initial_task < MPI.Comm_size(comm)
+        #println("Sending task $task to rank $initial_task")
+        sreq = MPI.Send([ task ], initial_task, 1, comm)
+        #println("Task $task sent to rank $initial_task") 
+        
+        task -= 1
+        initial_task += 1    
       end
+      #println("Done sending out intiial tasks") 
 
-      #== ...and hand out ending signals once done ==#
-      for task in 1:(MPI.Comm_size(comm)-1)                            
-        task_rank = (task%(MPI.Comm_size(comm)-1))+1                              
-        sreq = MPI.Send([ -1 ], task_rank, task, comm)                           
+      #== hand out quartets to slaves dynamically ==#
+      #println("Start sending out rest of tasks") 
+      while task > 0 
+        status = MPI.Probe(MPI.MPI_ANY_SOURCE, 1, comm) 
+        rreq = MPI.Recv!(recv_mesg, status.source, 1, comm)  
+        #println("Sending task $task to rank ", status.source)
+        sreq = MPI.Send([ task ], status.source, 1, comm)  
+        #println("Task $task sent to rank ", status.source)
+        task -= 1
+      end
+      #println("Done sending out rest of tasks") 
+     
+      #== hand out ending signals once done ==#
+      #println("Start sending out enders") 
+      for rank in 1:(MPI.Comm_size(comm)-1)
+        #println("Sending ender to rank $rank")
+        sreq = MPI.Send([ -1 ], rank, 0, comm)                           
+        #println("Ender sent to rank $rank")
       end      
+      #println("Done sending out enders") 
     #== slave ranks perform actual computations on quartets ==#
     else
       #== intial setup ==#
@@ -537,32 +564,34 @@ H = One-electron Hamiltonian Matrix
 
       quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
         ShPair(basis.shells[1], basis.shells[1]))
- 
+   
       #== do computations ==# 
-      while true
+      while true 
         #== get shell quartet ==#
-        rreq = MPI.Irecv!(recv_mesg, 0, MPI.MPI_ANY_TAG, comm)
-        MPI.Wait!(rreq)
+        status = MPI.Probe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, comm)
+        #println("About to recieve task from master")
+        rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
 
         ijkl_index = recv_mesg[1]
-      
+        #println(ijkl_index)
+        if ijkl_index < 0 break end
+        #println("Recieved task $ijkl_index from master")
+ 
         #for rank in 1:MPI.Comm_size(comm)
         #  if MPI.Comm_rank(comm) == rank
         #    println("IJKL_INDEX: ", ijkl_index)
         #  end
         #end
-        if ijkl_index == -1 
-          break
-        else    
-          twoei_thread_kernel(F, D,
-            H, basis, thread_index_counter, eri_quartet_batch,
-            quartet, ijkl_index,
-            quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; 
-            debug=debug)
+        twoei_thread_kernel(F, D,
+          H, basis, thread_index_counter, eri_quartet_batch,
+          quartet, ijkl_index,
+          quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; 
+          debug=debug)
+
+        MPI.Send([ MPI.Comm_rank(comm) ], 0, 1, comm)
       #lock(mutex)
       #F .+= F_priv
       #unlock(mutex)
-        end
       end
     end
     MPI.Barrier(comm)
