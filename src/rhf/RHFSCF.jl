@@ -503,6 +503,8 @@ H = One-electron Hamiltonian Matrix
     end
   #== otherwise use dynamic task distribution with a master/slave model==#
   elseif load == "dynamic"
+    batch_size = 2500 
+
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
       #== send out initial tasks to slaves ==#
@@ -517,8 +519,8 @@ H = One-electron Hamiltonian Matrix
         sreq = MPI.Send(task, initial_task, 1, comm)
         #println("Task $task sent to rank $initial_task") 
         
-        task[1] -= 1
-        initial_task += 1    
+        task[1] -= batch_size 
+        initial_task += batch_size
       end
       #println("Done sending out intiial tasks") 
 
@@ -530,7 +532,7 @@ H = One-electron Hamiltonian Matrix
         #println("Sending task $task to rank ", status.source)
         sreq = MPI.Send(task, status.source, 1, comm)  
         #println("Task $task sent to rank ", status.source)
-        task[1] -= 1
+        task[1] -= batch_size 
       end
       #println("Done sending out rest of tasks") 
      
@@ -584,11 +586,15 @@ H = One-electron Hamiltonian Matrix
         #    println("IJKL_INDEX: ", ijkl_index)
         #  end
         #end
-        twoei_thread_kernel(F, D,
-          H, basis, thread_index_counter, eri_quartet_batch,
-          quartet, ijkl_index,
-          quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; 
-          debug=debug)
+        #println("NEW BATCH")
+        for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+          #println("IJKL: $ijkl")
+          twoei_thread_kernel(F, D,
+            H, basis, thread_index_counter, eri_quartet_batch,
+            quartet, ijkl,
+            quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; 
+            debug=debug)
+        end
 
         send_mesg[1] = MPI.Comm_rank(comm)
         MPI.Send(send_mesg, 0, 1, comm)
