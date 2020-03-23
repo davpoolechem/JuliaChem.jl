@@ -25803,7 +25803,8 @@
       "rmsd":1E-8,
       "prec":"Float64",
       "direct":true,
-      "debug":false
+      "debug":false,
+      "load":"static"
     }
   }
 }

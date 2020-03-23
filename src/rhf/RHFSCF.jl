@@ -213,6 +213,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   ndiis::Int = scf_flags["ndiis"]
   dele::Float64 = scf_flags["dele"]
   rmsd::Float64 = scf_flags["rmsd"]
+  load::String = scf_flags["load"]
 
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
@@ -268,7 +269,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, D_old, ΔD, damp_values, 
     D_damp, D_damp_rms, scf_converged, quartet_batch_num_old, test_e, test_F,
     FD, FDS, SD, SDF; debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
-    rmsd=rmsd)
+    rmsd=rmsd, load=load)
 
   #== we are done! ==#
   if debug
@@ -296,7 +297,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   scf_converged::Bool, quartet_batch_num_old::Int64, 
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SD::Matrix{Float64},
-  SDF::Matrix{Float64}; debug, niter, ndiis, dele, rmsd)
+  SDF::Matrix{Float64}; debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -329,7 +330,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build fock matrix ==#
-    F_temp .= twoei(F, D, H, basis; debug=debug)
+    F_temp .= twoei(F, D, H, basis; debug=debug, load=load)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -460,7 +461,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 @inline function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
-  basis::BasisStructs.Basis; debug)
+  basis::BasisStructs.Basis; debug, load)
 
   comm = MPI.COMM_WORLD
   
@@ -470,7 +471,7 @@ H = One-electron Hamiltonian Matrix
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
   
   #== simply do calculation for single-rank runs ==#
-  if MPI.Comm_size(comm) == 1
+  if load == "static" 
     ish_old = 0
     jsh_old = 0
     ksh_old = 0
@@ -501,7 +502,7 @@ H = One-electron Hamiltonian Matrix
     #unlock(mutex)
     end
   #== otherwise use dynamic task distribution with a master/slave model==#
-  else
+  elseif load == "dynamic"
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
       #== send out initial tasks to slaves ==#
