@@ -1,7 +1,7 @@
 ##################
 #= project info =#
 ##################
-project(SIMINT.JL)
+project(JERI)
 
 ######################
 #= debug vs release =#
@@ -35,7 +35,7 @@ endif()
 #################################
 include_directories(${SIMINT_PATH}/include)
 
-if(DEFINED ${SIMINT_PATH}/lib64)
+if(EXISTS ${SIMINT_PATH}/lib64/libsimint.a)
   set(SIMINT_LIB_PATH ${SIMINT_PATH}/lib64)
 else()
   set(SIMINT_LIB_PATH ${SIMINT_PATH}/lib)
@@ -47,9 +47,3 @@ add_library(jeri SHARED src/simint.c)
 target_link_libraries(jeri ${SIMINT_LIB_PATH}/libsimint.a)
 
 install(TARGETS jeri DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}) 
-
-##################
-#= set up tests =#
-##################
-enable_testing()
-add_test(NAME mytest COMMAND julia ${CMAKE_CURRENT_SOURCE_DIR}/../src/test.jl)

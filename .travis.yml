@@ -18,6 +18,8 @@ install:
 - export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
 - ./tools/travis-install-simint.sh
 - export SIMINT=/home/travis/simint-install
+- export CC=gcc
+- export CXX=g++
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
