@@ -501,7 +501,7 @@ H = One-electron Hamiltonian Matrix
     #F .+= F_priv
     #unlock(mutex)
     end
-  #== otherwise use dynamic task distribution with a master/slave model==#
+  #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
     batch_size = 2500 
 
@@ -520,7 +520,7 @@ H = One-electron Hamiltonian Matrix
         #println("Task $task sent to rank $initial_task") 
         
         task[1] -= batch_size 
-        initial_task += batch_size
+        initial_task += 1 
       end
       #println("Done sending out intiial tasks") 
 
@@ -545,7 +545,7 @@ H = One-electron Hamiltonian Matrix
       end      
       #println("Done sending out enders") 
     #== slave ranks perform actual computations on quartets ==#
-    else
+    elseif MPI.Comm_rank(comm) > 0
       #== intial setup ==#
       recv_mesg = [ 0 ]
       send_mesg = [ 0 ]
@@ -572,7 +572,7 @@ H = One-electron Hamiltonian Matrix
       #== do computations ==# 
       while true 
         #== get shell quartet ==#
-        status = MPI.Probe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, comm)
+        status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
         #println("About to recieve task from master")
         rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
 
