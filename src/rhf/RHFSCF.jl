@@ -61,9 +61,9 @@ function rhf_kernel(basis::BasisStructs.Basis,
   
   T = zeros(Float64, (basis.norb, basis.norb))
   compute_ke(T, basis)
-  
-  #V = zeros(Float64, (basis.norb, basis.norb))
-  #compute_nah(V, basis)
+ 
+  V = zeros(Float64, (basis.norb, basis.norb))
+  compute_nah(V, basis)
 
   H = read_in_oei(molecule["hcore"], basis.norb)
   #H = T .+ V
