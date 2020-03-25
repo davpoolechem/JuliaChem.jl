@@ -22,4 +22,6 @@ function minimal_rhf(input_file)
 
   #== reset JuliaChem runtime ==#
   JuliaChem.reset()
+
+  return scf
 end
