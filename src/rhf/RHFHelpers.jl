@@ -224,6 +224,36 @@ end
 function read_in_enuc()
 	return input_enuc()
 end
+
+function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
+  for ash in 1:length(basis.shells), bsh in 1:ash
+    abas = basis.shells[ash].nbas
+    bbas = basis.shells[bsh].nbas
+    
+    apos = basis.shells[ash].pos
+    bpos = basis.shells[bsh].pos
+       
+    S_block = zeros(abas*bbas)
+    SIMINT.compute_overlap(ash, bsh, S_block)
+    
+    idx = 1
+    for ibas in 0:abas-1, jbas in 0:bbas-1
+      iorb = apos + ibas
+      jorb = bpos + jbas
+      
+      S[max(iorb,jorb),min(iorb,jorb)] = S_block[idx]
+      
+      idx += 1 
+    end
+  end
+  
+  for iorb in 1:basis.norb, jorb in 1:iorb
+    if iorb != jorb
+      S[min(iorb,jorb),max(iorb,jorb)] = S[max(iorb,jorb),min(iorb,jorb)]
+    end
+  end
+ 
+end
 #=
 """
 		get_oei_matrix(oei::Array{Float64,2})

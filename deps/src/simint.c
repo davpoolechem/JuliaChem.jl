@@ -231,8 +231,8 @@ void normalize_shells_c()
 //----------------------------//
 void compute_overlap_c(long long int ash, long long int bsh, double* ovr) {
   int ncomputed = 0;
-  ncomputed = simint_compute_overlap(&shells[ash], 
-    &shells[bsh], ovr);
+  ncomputed = simint_compute_overlap(&shells[ash-1], 
+    &shells[bsh-1], ovr);
 }
 
 //------------------------------//

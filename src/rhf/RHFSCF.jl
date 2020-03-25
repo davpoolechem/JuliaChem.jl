@@ -53,7 +53,10 @@ function rhf_kernel(basis::BasisStructs.Basis,
   #== read variables from input if needed ==#
   E_nuc::Float64 = molecule["enuc"]
 
-  S = read_in_oei(molecule["ovr"], basis.norb)
+  #S = read_in_oei(molecule["ovr"], basis.norb)
+  S = zeros((basis.norb, basis.norb))
+  compute_overlap(S, basis)
+  
   H = read_in_oei(molecule["hcore"], basis.norb)
 
   if debug && MPI.Comm_rank(comm) == 0

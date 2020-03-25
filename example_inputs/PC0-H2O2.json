@@ -529,7 +529,8 @@
       "rmsd":1E-6,
       "prec":"Float64",
       "direct":true,
-      "debug":true
+      "debug":false,
+      "load":"static"
     }
   }
 }
