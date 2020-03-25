@@ -65,11 +65,8 @@ function rhf_kernel(mol, basis::BasisStructs.Basis,
   V = zeros(Float64, (basis.norb, basis.norb))
   compute_nah(V, mol, basis)
 
-  H = read_in_oei(molecule["hcore"], basis.norb)
-  H2 = T .+ V
- 
-  display(H2)
-  @assert H .≈ H2
+  #H = read_in_oei(molecule["hcore"], basis.norb)
+  H = T .+ V
  
   if debug && MPI.Comm_rank(comm) == 0
     #println("Overlap matrix:")

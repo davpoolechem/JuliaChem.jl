@@ -284,7 +284,7 @@ function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
   end
 end
 
-function compute_nah(T::Matrix{Float64}, mol::MolStructs.Molecule, 
+function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule, 
   basis::BasisStructs.Basis)
   
   #== define ncenter ==#
@@ -302,16 +302,6 @@ function compute_nah(T::Matrix{Float64}, mol::MolStructs.Molecule,
     push!(z, atom.atom_center[3])  
   end
 
-  display(Z)
-  println()
-  
-  display(x)
-  println()
-  display(y)
-  println()
-  display(z)
-  println()
- 
   for ash in 1:length(basis.shells), bsh in 1:ash
     abas = basis.shells[ash].nbas
     bbas = basis.shells[bsh].nbas
