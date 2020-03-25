@@ -226,6 +226,15 @@ void normalize_shells_c()
   simint_normalize_shells(nshell_simint, shells);
 }
 
+//----------------------------//
+//-- One-electron integrals --//
+//----------------------------//
+void compute_overlap_c(long long int ash, long long int bsh, double* ovr) {
+  int ncomputed = 0;
+  ncomputed = simint_compute_overlap(&shells[ash], 
+    &shells[bsh], ovr);
+}
+
 //------------------------------//
 //--Precompute shell pair data--//
 //------------------------------//
