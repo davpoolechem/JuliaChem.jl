@@ -241,6 +241,15 @@ void compute_ke_c(long long int ash, long long int bsh, double* ke) {
     &shells[bsh-1], ke);
 }
 
+void compute_nah_c(long long int ncenter, double* Z, double* x, 
+  double* y, double* z, long long int ash, long long int bsh, double* ke) {
+
+  int ncomputed = 0;
+  ncomputed = simint_compute_potential(ncenter, Z, x, y, z, &shells[ash-1], 
+    &shells[bsh-1], ke);
+}
+
+
 //------------------------------//
 //--Precompute shell pair data--//
 //------------------------------//

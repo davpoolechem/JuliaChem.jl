@@ -9,6 +9,7 @@ Import this module into the script when you need to process an input file
 module JCBasis
 
 using JCModules.BasisStructs
+using JCModules.MolStructs
 
 using MPI
 using Base.Threads
@@ -61,6 +62,8 @@ function run(molecule, model)
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
+  mol = MolStructs.Molecule([])
+
   if (MPI.Comm_rank(comm) == 0)
     println("----------------------------------------          ")
     println("        Basis Set Information...                  ")
@@ -77,6 +80,9 @@ function run(molecule, model)
       symbol::String = symbols[atom_idx]
       atomic_number::Int64 = atomic_number_mapping[symbol]
 
+      atom = Atom(atomic_number, symbol, atom_center)
+      push!(mol.atoms, Atom(atomic_number, symbol, atom_center))
+ 
       basis_set.nels += atomic_number
 
       #== read in basis set values==#
@@ -128,7 +134,7 @@ function run(molecule, model)
     println("                       ========================================                 ")
   end
 
-  return basis_set
+  return mol, basis_set
 end
 export run
 

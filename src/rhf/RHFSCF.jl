@@ -12,11 +12,11 @@ using PrettyTables
 
 const do_continue_print = false
 
-function rhf_energy(basis::BasisStructs.Basis,
+function rhf_energy(mol, basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}},
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
 
-  return rhf_kernel(basis,molecule,scf_flags)
+  return rhf_kernel(mol, basis,molecule,scf_flags)
 end
 
 
@@ -37,7 +37,7 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(basis::BasisStructs.Basis,
+function rhf_kernel(mol, basis::BasisStructs.Basis,
   molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
 
@@ -63,11 +63,14 @@ function rhf_kernel(basis::BasisStructs.Basis,
   compute_ke(T, basis)
  
   V = zeros(Float64, (basis.norb, basis.norb))
-  compute_nah(V, basis)
+  compute_nah(V, mol, basis)
 
   H = read_in_oei(molecule["hcore"], basis.norb)
-  #H = T .+ V
-  
+  H2 = T .+ V
+ 
+  display(H2)
+  @assert H .≈ H2
+ 
   if debug && MPI.Comm_rank(comm) == 0
     #println("Overlap matrix:")
     #for shell_group in 0:cld(size(S)[1],5)
