@@ -210,7 +210,14 @@ function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
 
   if debug close(debug_output) end
 
-  return F, D, C, E, calculation_status
+  scf = Dict("Fock" => F,                                                       
+             "Density" => D,                                                    
+             "MO Coeff" => C,                                                   
+             "Energy" => E,                                                     
+             "Converged?" => converged                                      
+            )                                                                   
+                                                                                
+  return scf 
 end
 
 function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},

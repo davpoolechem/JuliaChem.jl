@@ -1,12 +1,15 @@
 import Pkg; Pkg.add("Test")
 import Test
 
-include("../example_scripts/minimal-rhf-repl.jl")
+include("../example_scripts/minimal-rhf-travis.jl")
 
 #== select input files ==#
 directory = joinpath(@__DIR__, "../example_inputs/S22/")
 inputs = readdir(directory)
 inputs .= directory .* inputs
+
+#== initialize JuliaChem ==#
+JuliaChem.initialize()
 
 #== run S22 tests ==#
 Test.@testset "S22 accuracy test" begin
