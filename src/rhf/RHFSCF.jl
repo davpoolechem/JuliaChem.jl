@@ -54,11 +54,20 @@ function rhf_kernel(basis::BasisStructs.Basis,
   E_nuc::Float64 = molecule["enuc"]
 
   #S = read_in_oei(molecule["ovr"], basis.norb)
-  S = zeros((basis.norb, basis.norb))
+  
+  #== compute one-electron integrals and Hamiltonian ==#
+  S = zeros(Float64, (basis.norb, basis.norb))
   compute_overlap(S, basis)
   
-  H = read_in_oei(molecule["hcore"], basis.norb)
+  T = zeros(Float64, (basis.norb, basis.norb))
+  compute_ke(T, basis)
+  
+  #V = zeros(Float64, (basis.norb, basis.norb))
+  #compute_nah(V, basis)
 
+  H = read_in_oei(molecule["hcore"], basis.norb)
+  #H = T .+ V
+  
   if debug && MPI.Comm_rank(comm) == 0
     #println("Overlap matrix:")
     #for shell_group in 0:cld(size(S)[1],5)

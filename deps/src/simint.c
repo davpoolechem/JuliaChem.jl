@@ -235,6 +235,12 @@ void compute_overlap_c(long long int ash, long long int bsh, double* ovr) {
     &shells[bsh-1], ovr);
 }
 
+void compute_ke_c(long long int ash, long long int bsh, double* ke) {
+  int ncomputed = 0;
+  ncomputed = simint_compute_ke(&shells[ash-1], 
+    &shells[bsh-1], ke);
+}
+
 //------------------------------//
 //--Precompute shell pair data--//
 //------------------------------//

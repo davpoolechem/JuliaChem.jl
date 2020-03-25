@@ -252,8 +252,37 @@ function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
       S[min(iorb,jorb),max(iorb,jorb)] = S[max(iorb,jorb),min(iorb,jorb)]
     end
   end
- 
 end
+
+function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
+  for ash in 1:length(basis.shells), bsh in 1:ash
+    abas = basis.shells[ash].nbas
+    bbas = basis.shells[bsh].nbas
+    
+    apos = basis.shells[ash].pos
+    bpos = basis.shells[bsh].pos
+       
+    T_block = zeros(Float64, (abas*bbas,))
+    SIMINT.compute_ke(ash, bsh, T_block)
+    
+    idx = 1
+    for ibas in 0:abas-1, jbas in 0:bbas-1
+      iorb = apos + ibas
+      jorb = bpos + jbas
+      
+      T[max(iorb,jorb),min(iorb,jorb)] = T_block[idx]
+      
+      idx += 1 
+    end
+  end
+  
+  for iorb in 1:basis.norb, jorb in 1:iorb
+    if iorb != jorb
+      T[min(iorb,jorb),max(iorb,jorb)] = T[max(iorb,jorb),min(iorb,jorb)]
+    end
+  end
+end
+
 #=
 """
 		get_oei_matrix(oei::Array{Float64,2})
