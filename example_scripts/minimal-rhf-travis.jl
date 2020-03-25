@@ -14,11 +14,7 @@ function minimal_rhf(input_file)
   mol, basis = JuliaChem.JCBasis.run(molecule, model)
 
   #== perform scf calculation ==#
-  if (driver == "energy")
-    if (model["method"] == "RHF")
-      scf = JuliaChem.JCRHF.run(mol, basis, keywords)
-    end
-  end
+  scf = JuliaChem.JCRHF.run(mol, basis, keywords)
 
   #== reset JuliaChem runtime ==#
   JuliaChem.reset()
