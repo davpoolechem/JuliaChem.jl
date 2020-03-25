@@ -34,7 +34,9 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(mol, basis, keywords)
+function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis, 
+  keywords)
+  
   comm=MPI.COMM_WORLD
 
   if MPI.Comm_rank(comm) == 0

@@ -6,23 +6,22 @@ import JuliaChem
 #================================#
 #== JuliaChem execution script ==#
 #================================#
-function minimal_rhf(input_file)
-  #== read in input file ==#
-  molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
+#== initialize JuliaChem ==#
+JuliaChem.initialize()
 
-  #== generate basis set ==#
-  basis = JuliaChem.JCBasis.run(molecule, model)
+#== read in input file ==#
+molecule, driver, model, keywords = JuliaChem.JCInput.run(ARGS[1])
 
-  #== perform scf calculation ==#
-  if (driver == "energy")
-    if (model["method"] == "RHF")
-      scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
-    end
+#== generate basis set ==#
+mol, basis = JuliaChem.JCBasis.run(molecule, model)
+
+#== perform scf calculation ==#
+if (driver == "energy")
+  if (model["method"] == "RHF")
+    scf = JuliaChem.JCRHF.run(mol, basis, keywords)
   end
-
-  #== reset JuliaChem runtime ==#
-  JuliaChem.reset()
-  return scf
 end
 
-JuliaChem.initialize()
+#== reset JuliaChem runtime ==#
+JuliaChem.reset()
+

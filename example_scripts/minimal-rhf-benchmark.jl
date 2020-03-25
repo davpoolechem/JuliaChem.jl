@@ -72,11 +72,11 @@ function script(input_file)
   MPI.Barrier(MPI.COMM_WORLD)
   if (MPI.Comm_rank(MPI.COMM_WORLD) == 0)  
     #== output relevant information ==# 
-    #println("Input JIT: ", input_jit)
-    #println("Basis JIT: ", basis_jit)
-    #println("SCF JIT: ", scf_jit)
-    #println("Total JIT: ", input_jit + basis_jit + scf_jit)
-    #println("")
+    println("Input JIT: ", input_jit)
+    println("Basis JIT: ", basis_jit)
+    println("SCF JIT: ", scf_jit)
+    println("Total JIT: ", input_jit + basis_jit + scf_jit)
+    println("")
   
     #== perform t-test to compare to GAMESS ==#
     p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)

@@ -17,12 +17,12 @@ def script(input_file):
   molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
 
   #== generate basis set ==#
-  basis = JuliaChem.JCBasis.run(molecule, model)
+  mol, basis = JuliaChem.JCBasis.run(molecule, model)
 
   #== perform scf calculation ==#
   if (driver == "energy"):
     if (model["method"] == "RHF"):
-      scf = JuliaChem.JCRHF.run(basis, molecule, keywords)
+      scf = JuliaChem.JCRHF.run(mol, basis, keywords)
 
   #== finalize JuliaChem runtime ==#
   JuliaChem.finalize() 

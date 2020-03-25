@@ -37,12 +37,12 @@ def script(input_file):
   basis_time1 = basis_time1_t2 - basis_time1_t1 
 
   basis_time2_t1 = Base.time_ns()/1e9
-  basis = JuliaChem.JCBasis.run(molecule, model)
+  mol, basis = JuliaChem.JCBasis.run(molecule, model)
   basis_time2_t2 = Base.time_ns()/1e9
   basis_time2 = basis_time2_t2 - basis_time2_t1
   
   basis_jit = basis_time1 - basis_time2
-  basis = JuliaChem.JCBasis.run(molecule, model)
+  mol, basis = JuliaChem.JCBasis.run(molecule, model)
 
   #== perform scf benchmark ==#
   timeof = [] 
@@ -50,18 +50,18 @@ def script(input_file):
   if (driver == "energy"):
     if (model["method"] == "RHF"):
       scf_time1_t1 = Base.time_ns()/1e9
-      scf = JuliaChem.JCRHF.run(basis, molecule, keywords) 
+      scf = JuliaChem.JCRHF.run(mol, basis, keywords) 
       scf_time1_t2 = Base.time_ns()/1e9
       scf_time1 = scf_time1_t2 - scf_time1_t1 
 
       JuliaChem.reset()
       
-      for index in range(1,10):
+      for index in range(1,5):
         molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
-        basis = JuliaChem.JCBasis.run(molecule, model)
+        mol, basis = JuliaChem.JCBasis.run(molecule, model)
 
         scf_timeof_t1 = Base.time_ns()/1e9
-        scf = JuliaChem.JCRHF.run(basis, molecule, keywords) #initial run
+        scf = JuliaChem.JCRHF.run(mol, basis, keywords) #initial run
         scf_timeof_t2 = Base.time_ns()/1e9
         timeof.append(scf_timeof_t2 - scf_timeof_t1) 
         
