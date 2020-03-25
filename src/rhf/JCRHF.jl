@@ -34,7 +34,7 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(mol, basis, molecule, keywords)
+function run(mol, basis, keywords)
   comm=MPI.COMM_WORLD
 
   if MPI.Comm_rank(comm) == 0
@@ -73,7 +73,7 @@ function run(mol, basis, molecule, keywords)
 
   #== actually perform scf calculation ==#
   #GC.enable(false)
-  scf = rhf_energy(mol, basis, molecule, scf_flags)
+  scf = rhf_energy(mol, basis, scf_flags)
   #GC.enable(true)
   #GC.gc()
 

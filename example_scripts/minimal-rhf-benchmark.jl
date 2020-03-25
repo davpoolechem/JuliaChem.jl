@@ -39,7 +39,7 @@ function script(input_file)
   basis_time2 = basis_time2_t2 - basis_time2_t1
   
   basis_jit = basis_time1 - basis_time2
-  basis = JuliaChem.JCBasis.run(molecule, model)
+  mol, basis = JuliaChem.JCBasis.run(molecule, model)
 
   #== perform scf benchmark ==#
   timeof = Vector{Float64}(undef,0)
@@ -47,7 +47,7 @@ function script(input_file)
   if (driver == "energy")
     if (model["method"] == "RHF")
       scf_time1_t1 = time_ns()/1e9
-      scf = JuliaChem.JCRHF.run(basis, molecule, keywords) 
+      scf = JuliaChem.JCRHF.run(mol, basis, keywords) 
       scf_time1_t2 = time_ns()/1e9
       scf_time1 = scf_time1_t2 - scf_time1_t1 
 
@@ -56,10 +56,10 @@ function script(input_file)
       for index in 1:3
       #for index in 1:1
         molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
-        basis = JuliaChem.JCBasis.run(molecule, model)
+        mol, basis = JuliaChem.JCBasis.run(molecule, model)
 
         scf_timeof_t1 = time_ns()/1e9
-        scf = JuliaChem.JCRHF.run(basis, molecule, keywords) #initial run
+        scf = JuliaChem.JCRHF.run(mol, basis, keywords) #initial run
         scf_timeof_t2 = time_ns()/1e9
         push!(timeof, scf_timeof_t2 - scf_timeof_t1) 
         

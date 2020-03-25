@@ -19,7 +19,7 @@ function script(input_file)
   #== perform scf calculation ==#
   if (driver == "energy")
     if (model["method"] == "RHF")
-      scf = JuliaChem.JCRHF.run(mol, basis, molecule, keywords)
+      scf = JuliaChem.JCRHF.run(mol, basis, keywords)
     end
   end
 

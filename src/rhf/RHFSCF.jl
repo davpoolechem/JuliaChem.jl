@@ -12,11 +12,10 @@ using PrettyTables
 
 const do_continue_print = false
 
-function rhf_energy(mol, basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}},
+function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
 
-  return rhf_kernel(mol, basis,molecule,scf_flags)
+  return rhf_kernel(mol,basis,scf_flags)
 end
 
 
@@ -37,8 +36,7 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(mol, basis::BasisStructs.Basis,
-  molecule::Union{Dict{String,Any},Dict{Any,Any}}, 
+function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
 
   comm=MPI.COMM_WORLD
