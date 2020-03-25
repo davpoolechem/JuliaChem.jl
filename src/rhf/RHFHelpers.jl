@@ -226,6 +226,26 @@ function read_in_enuc()
 	return input_enuc()
 end
 
+function compute_enuc(mol::MolStructs.Molecule)
+  E_nuc = 0.0
+  for iatom in 1:length(mol.atoms), jatom in 1:(iatom-1)
+    ix = mol.atoms[iatom].atom_center[1] 
+    jx = mol.atoms[jatom].atom_center[1] 
+
+    iy = mol.atoms[iatom].atom_center[2] 
+    jy = mol.atoms[jatom].atom_center[2] 
+
+    iz = mol.atoms[iatom].atom_center[3]
+    jz = mol.atoms[jatom].atom_center[3]
+  
+    distance = √((jx-ix)^2 + (jy-iy)^2 + (jz-iz)^2) 
+    
+    E_nuc += mol.atoms[iatom].atom_id*mol.atoms[jatom].atom_id/distance
+  end 
+  
+  return E_nuc
+end
+ 
 function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
   for ash in 1:length(basis.shells), bsh in 1:ash
     abas = basis.shells[ash].nbas

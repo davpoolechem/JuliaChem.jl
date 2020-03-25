@@ -69,7 +69,6 @@ function run(args)
   merge!(molecule,Dict("geometry" => json_parse["molecule"]["geometry"]))
   merge!(molecule,Dict("symbols" => json_parse["molecule"]["symbols"]))
   merge!(molecule,Dict("molecular_charge" => json_parse["molecule"]["molecular_charge"]))
-  merge!(molecule,Dict("enuc" => json_parse["molecule"]["enuc"]))
 
   #if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
   #  jldopen("tei_all.jld", "w") do file

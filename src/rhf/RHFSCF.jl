@@ -50,9 +50,10 @@ function rhf_kernel(mol, basis::BasisStructs.Basis,
 
   niter::Int = scf_flags["niter"]
 
-  #== read variables from input if needed ==#
-  E_nuc::Float64 = molecule["enuc"]
-
+  #== compute nuclear repulsion energy ==# 
+  #E_nuc::Float64 = molecule["enuc"]
+  E_nuc = compute_enuc(mol)
+  
   #S = read_in_oei(molecule["ovr"], basis.norb)
   
   #== compute one-electron integrals and Hamiltonian ==#

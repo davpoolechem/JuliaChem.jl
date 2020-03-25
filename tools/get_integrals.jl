@@ -79,6 +79,7 @@ function get_nuclear_energy(input_file_string::String)
 end
 
 
+#=
 #== extract hamiltonian integrals from file ==#
 function get_hamiltonian_integrals(input_file_string::String)
     #== read in input file ==#
@@ -246,7 +247,7 @@ function get_two_electron_integrals(input_file_string::String)
         end
     end
 end
-
+=#
 function create_input(input_file_string::String)
   #== read in geometry ==# 
   geometry::Array{String,1} = []
@@ -274,10 +275,10 @@ function create_input(input_file_string::String)
   push!(output_file_array,"    \"molecular_charge\":0,")
   
   nuclear_energy = get_nuclear_energy(input_file_string)
-  push!(output_file_array,"    \"enuc\":$nuclear_energy, ")
+  push!(output_file_array,"    \"enuc\":$nuclear_energy ")
 
-  push!(output_file_array, overlap...)
-  push!(output_file_array, hcore...)
+  #push!(output_file_array, overlap...)
+  #push!(output_file_array, hcore...)
 
   push!(output_file_array,"  },")
   push!(output_file_array,"  \"driver\": \"energy\",")
@@ -289,11 +290,12 @@ function create_input(input_file_string::String)
   push!(output_file_array,"    \"scf\":{")
   push!(output_file_array,"      \"niter\":100,")
   push!(output_file_array,"      \"ndiis\":8,")
-  push!(output_file_array,"      \"dele\":1E-8,")
-  push!(output_file_array,"      \"rmsd\":1E-6,")
+  push!(output_file_array,"      \"dele\":1E-10,")
+  push!(output_file_array,"      \"rmsd\":1E-8,")
   push!(output_file_array,"      \"prec\":\"Float64\",")
   push!(output_file_array,"      \"direct\":true,")
-  push!(output_file_array,"      \"debug\":false")
+  push!(output_file_array,"      \"debug\":false,")
+  push!(output_file_array,"      \"load\":static")
   push!(output_file_array,"    }")
   push!(output_file_array,"  }")
   push!(output_file_array,"}")
