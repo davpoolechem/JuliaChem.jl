@@ -98,25 +98,67 @@ function run(molecule, model)
         new_shell_am::Int64 = shell_am_mapping[new_shell_dict["Shell Type"]]
         new_shell_exp::Vector{Float64} = new_shell_dict["Exponents"]
         new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
-  
-        if (MPI.Comm_rank(comm) == 0) 
-          println("Shell #$shell_num:") 
-          pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
-            new_shell_coeff), 
-            vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-            formatter = ft_printf("%5.6f", [2,3]) )
-          println("")
-        end 
 
-        new_shell_nprim::Int64 = size(new_shell_exp)[1]
-        new_shell_coeff_array::Vector{Float64} = reshape(new_shell_coeff,
-          (length(new_shell_coeff),))       
+        display(new_shell_coeff)
 
-        new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff_array,
-          atom_center, new_shell_am, size(new_shell_exp)[1], true)
-        add_shell(basis_set,deepcopy(new_shell))
+        #== if L shell, divide up ==# 
+        if new_shell_am == -1
+          #== s component ==#
+          if (MPI.Comm_rank(comm) == 0) 
+            println("Shell #$shell_num:") 
+            pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
+              new_shell_coeff[:,1]), 
+              vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
+              formatter = ft_printf("%5.6f", [2,3]) )
+            println("")
+          end 
 
-        basis_set.norb += new_shell.nbas
+          new_shell_nprim = size(new_shell_exp)[1]
+
+          new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff[:,1],
+            atom_center, 1, size(new_shell_exp)[1], true)
+          add_shell(basis_set,deepcopy(new_shell))
+
+          basis_set.norb += 1 
+          
+          #== p component ==#
+          if (MPI.Comm_rank(comm) == 0) 
+            println("Shell #$shell_num:") 
+            pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
+              new_shell_coeff[:,2]), 
+              vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
+              formatter = ft_printf("%5.6f", [2,3]) )
+            println("")
+          end 
+
+          new_shell_nprim = size(new_shell_exp)[1]
+
+          new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff[:,2],
+            atom_center, 2, size(new_shell_exp)[1], true)
+          add_shell(basis_set,deepcopy(new_shell))
+
+          basis_set.norb += 3 
+        #== otherwise accept shell as is ==#
+        else 
+          if (MPI.Comm_rank(comm) == 0) 
+            println("Shell #$shell_num:") 
+            pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
+              new_shell_coeff), 
+              vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
+              formatter = ft_printf("%5.6f", [2,3]) )
+            println("")
+          end 
+
+          new_shell_nprim= size(new_shell_exp)[1]
+          new_shell_coeff_array = reshape(new_shell_coeff,
+            (length(new_shell_coeff),))       
+
+          new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff_array,
+            atom_center, new_shell_am, size(new_shell_exp)[1], true)
+          add_shell(basis_set,deepcopy(new_shell))
+
+          basis_set.norb += new_shell.nbas
+        end
       end
       if (MPI.Comm_rank(comm) == 0)
         println(" ")

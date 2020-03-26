@@ -6,7 +6,7 @@
     ],
     "symbols": ["H", "H"],
     "molecular_charge":0
-  }
+  },
   "driver": "energy",
   "model": {
     "method": "RHF",
