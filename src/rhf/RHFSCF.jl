@@ -455,7 +455,7 @@ H = One-electron Hamiltonian Matrix
     #  F_priv = zeros(basis.norb,basis.norb)
 
     max_shell_am = MAX_SHELL_AM
-    eri_quartet_batch = Vector{Float64}(undef,81)
+    eri_quartet_batch = Vector{Float64}(undef,1296)
 
     quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
@@ -533,7 +533,7 @@ H = One-electron Hamiltonian Matrix
       #  F_priv = zeros(basis.norb,basis.norb)
 
       max_shell_am = MAX_SHELL_AM
-      eri_quartet_batch = Vector{Float64}(undef,81)
+      eri_quartet_batch = Vector{Float64}(undef,1296)
 
       quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
         ShPair(basis.shells[1], basis.shells[1]))
