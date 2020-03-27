@@ -14,7 +14,7 @@ using JLD
   condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
     nλ > 1 && nσ > 1
 
-  condition6 = ish == jsh && nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
+  condition6 = ish == jsh && ((nμ > nλ && nν > nλ) || (nμ > nσ && nν > nσ)) 
 
   if μμ < νν && (condition3 || condition6)
 	  do_continue = true
@@ -34,10 +34,9 @@ end
   condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
     nλ > 1 && nσ > 1
 
-  condition5 = ish == ksh && jsh == lsh && nμ > 1 && nν == 1 && nλ > 1 && 
-    nσ == 1
+  condition5 = ish == ksh && jsh == lsh && nμ > nν && nλ > nσ 
 
-  condition7 = ksh == lsh && (nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
+  condition7 = ksh == lsh && ((nλ > nμ  && nσ > nμ) || (nλ > nν && nσ > nν)) 
 
   if μμ < νν && condition1
 	  do_continue = true
