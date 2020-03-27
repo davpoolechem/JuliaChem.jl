@@ -10,7 +10,7 @@ using LinearAlgebra
 using HDF5
 using PrettyTables
 
-const do_continue_print = false
+const do_continue_print = false 
 
 function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
@@ -684,6 +684,8 @@ end
   three_same = (ish == jsh && jsh == ksh) || (ish == jsh && jsh == lsh) || 
     (ish == ksh && ksh == lsh) || (jsh == ksh && ksh == lsh)
 
+  four_same = ish == jsh && jsh == ksh && ksh == lsh
+
   pμ = quartet.bra.sh_a.pos
   nμ = quartet.bra.sh_a.nbas
 
@@ -702,7 +704,7 @@ end
     νν = νsize + pν
 
     do_continue_bra = sort_bra(μμ, νν,
-      ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
+      ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
     if do_continue_bra 
       continue 
     end
@@ -712,32 +714,35 @@ end
       λλ = λsize + pλ
       σσ = σsize + pσ
 
-      #if debug
-      #  if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
-      #end
+      if debug
+        if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
+      end
 
       #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
       μνλσ += 1 
   
       eri = eri_batch[μνλσ] 
       
-      do_continue_screen = abs(eri) < 1.0E-10
-      if do_continue_screen 
-        continue 
-      end
-
-      μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-      λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
+      #do_continue_screen = abs(eri) < 1.0E-10
+      #if do_continue_screen 
+      #  if do_continue_print println("CONTINUE") end
+      #  continue 
+      #end
 
       do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
-        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same)
+        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
       if do_continue_ket 
+        if do_continue_print println("CONTINUE") end
         continue 
       end
+  
+      μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
+      λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
 
       do_continue_braket, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh, ksh, 
         lsh, nμ, nν, nλ, nσ)
       if do_continue_braket 
+        if do_continue_print println("CONTINUE") end
         continue 
       end
 
