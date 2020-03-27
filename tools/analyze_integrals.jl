@@ -70,7 +70,8 @@ for key in keys(julia_dict)
   end 
   
   if has_julia_key
-    same = isapprox(gamess_dict[key], julia_dict[key], rtol = 1e-9)
+    same = gamess_dict[key] < 1.0E-10 && julia_dict[key] < 1.0E-10 ? true : 
+      isapprox(gamess_dict[key], julia_dict[key], rtol = 1e-9)
     if !same
       println("Not same!: ", key, "; ", gamess_dict[key], ", ", julia_dict[key])
     end
