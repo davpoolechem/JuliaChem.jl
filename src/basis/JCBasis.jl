@@ -99,7 +99,7 @@ function run(molecule, model)
         new_shell_exp::Vector{Float64} = new_shell_dict["Exponents"]
         new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
 
-        display(new_shell_coeff)
+        #display(new_shell_coeff)
 
         #== if L shell, divide up ==# 
         if new_shell_am == -1

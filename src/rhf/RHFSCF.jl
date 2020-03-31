@@ -234,8 +234,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
 
-  quartet_batch_num_old = floor(Int,nindices/QUARTET_BATCH_SIZE) + 1
-
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
   #  "Sizes/$quartet_batch_num_old")
@@ -256,7 +254,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, D_old, ΔD, damp_values, 
-    D_damp, D_damp_rms, scf_converged, quartet_batch_num_old, test_e, test_F,
+    D_damp, D_damp_rms, scf_converged, test_e, test_F,
     FD, FDS, SD, SDF; debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load)
 
@@ -283,7 +281,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   F_part::Matrix{Float64}, 
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
   D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
-  scf_converged::Bool, quartet_batch_num_old::Int64, 
+  scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SD::Matrix{Float64},
   SDF::Matrix{Float64}; debug, niter, ndiis, dele, rmsd, load)
@@ -446,8 +444,6 @@ H = One-electron Hamiltonian Matrix
     ksh_old = 0
     lsh_old = 0
 
-    quartet_batch_num_old = ceil(Int64,nindices/QUARTET_BATCH_SIZE)
-
     #mutex = Base.Threads.ReentrantLock()
     thread_index_counter = nindices
  
@@ -465,7 +461,7 @@ H = One-electron Hamiltonian Matrix
       twoei_thread_kernel(F, D,
         H, basis, thread_index_counter, eri_quartet_batch,
         quartet, ijkl_index,
-        quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
+        ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
     #lock(mutex)
     #F .+= F_priv
     #unlock(mutex)
@@ -524,8 +520,6 @@ H = One-electron Hamiltonian Matrix
       ksh_old = 0
       lsh_old = 0
 
-      quartet_batch_num_old = ceil(Int64,nindices/QUARTET_BATCH_SIZE)
-
       #mutex = Base.Threads.ReentrantLock()
       thread_index_counter = nindices
  
@@ -561,7 +555,7 @@ H = One-electron Hamiltonian Matrix
           twoei_thread_kernel(F, D,
             H, basis, thread_index_counter, eri_quartet_batch,
             quartet, ijkl,
-            quartet_batch_num_old, ish_old, jsh_old, ksh_old, lsh_old; 
+            ish_old, jsh_old, ksh_old, lsh_old; 
             debug=debug)
         end
 
@@ -589,7 +583,7 @@ end
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   thread_index_counter::Int64, 
   eri_quartet_batch::Vector{Float64}, 
-  quartet::ShQuartet, ijkl_index::Int64, quartet_batch_num_old::Int64,
+  quartet::ShQuartet, ijkl_index::Int64, 
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
@@ -723,11 +717,11 @@ end
   
       eri = eri_batch[μνλσ] 
       
-      #do_continue_screen = abs(eri) < 1.0E-10
-      #if do_continue_screen 
-      #  if do_continue_print println("CONTINUE") end
-      #  continue 
-      #end
+      do_continue_screen = abs(eri) < 1.0E-10
+      if do_continue_screen 
+        if do_continue_print println("CONTINUE") end
+        continue 
+      end
 
       do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
         ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
