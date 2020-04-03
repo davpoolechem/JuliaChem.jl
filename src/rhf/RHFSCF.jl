@@ -697,9 +697,7 @@ end
     μμ = μsize + pμ
     νν = νsize + pν
 
-    do_continue_bra = sort_bra(μμ, νν,
-      ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
-    if do_continue_bra 
+    if μμ < νν && ish == jsh 
       if do_continue_print println("CONTINUE BRA: $μμ, $νν") end
       continue 
     end
@@ -724,9 +722,7 @@ end
         continue 
       end
 
-      do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
-        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
-      if do_continue_ket 
+      if λλ < σσ && ksh == lsh 
         if do_continue_print println("CONTINUE KET") end
         continue 
       end
@@ -734,13 +730,29 @@ end
       μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
       λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
 
-      do_continue_braket, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh, ksh, 
-        lsh, nμ, nν, nλ, nσ)
-      if do_continue_braket 
+      μν = triangular_index(μ,ν)                                                    
+      λσ = triangular_index(λ,σ)                                                    
+       
+      duplicate_braket = begin 
+        ijij = ish == ksh && jsh == lsh
+        ijij_and_more = ijij && nμ > nν && nλ > nσ                                       
+        if μν < λσ && ijij
+          true
+        elseif μ < λ && ijij_and_more 
+          true
+        else 
+          false
+        end  
+      end                                                                         
+                                                                                
+      if duplicate_braket 
         if do_continue_print println("CONTINUE BRAKET") end
         continue 
       end
     
+      μ, ν, λ, σ = μν < λσ && !(ish == ksh && jsh == lsh) ? 
+        (λ, σ, μ, ν) : (μ, ν, λ, σ)
+
       if debug println("ERI($μ, $ν, $λ, $σ) = $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
