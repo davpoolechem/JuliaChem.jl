@@ -35,7 +35,7 @@ end
 
   condition5 = ish == ksh && jsh == lsh && nμ > nν && nλ > nσ 
 
-  condition7 = ksh == lsh && ((nλ > nμ  && nσ > nμ) || (nλ > nν && nσ > nν)) 
+  condition7 = ksh == lsh 
 
   condition8 = four_same
 
@@ -57,8 +57,8 @@ end
   λσ = triangular_index(λ,σ)
 
   if μν < λσ
-    three_shell = (nμ == nν && nν == nλ) || (nμ == nν && nν == nσ) || 
-      (nμ == nλ && nλ == nσ) || (nν == nλ && nλ == nσ)
+    #three_shell = (nμ == nν && nν == nλ) || (nμ == nν && nν == nσ) || 
+    #  (nμ == nλ && nλ == nσ) || (nν == nλ && nλ == nσ)
 
     four_shell = nμ == nν && nν == nλ && nλ == nσ
 
