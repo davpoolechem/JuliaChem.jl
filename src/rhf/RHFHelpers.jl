@@ -65,9 +65,11 @@ end
     #condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
     condition1 = false
       
-    if four_shell && ((ish == ksh && jsh == lsh)) 
-      do_continue = true
-    #elseif three_shell && (μ < ν || λ < σ)
+    condition1 = ish == ksh && jsh == lsh 
+
+    if condition1 
+      do_continue = true   
+#elseif three_shell && (μ < ν || λ < σ)
     #  do_continue = true
     else
 	    λ, σ, μ, ν = μ, ν, λ, σ 
