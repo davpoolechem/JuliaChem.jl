@@ -700,6 +700,7 @@ end
     do_continue_bra = sort_bra(μμ, νν,
       ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
     if do_continue_bra 
+      if do_continue_print println("CONTINUE BRA: $μμ, $νν") end
       continue 
     end
 
@@ -719,14 +720,14 @@ end
       
       do_continue_screen = abs(eri) < 1.0E-10
       if do_continue_screen 
-        if do_continue_print println("CONTINUE") end
+        if do_continue_print println("CONTINUE SCREEN") end
         continue 
       end
 
       do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
         ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
       if do_continue_ket 
-        if do_continue_print println("CONTINUE") end
+        if do_continue_print println("CONTINUE KET") end
         continue 
       end
   
@@ -736,10 +737,10 @@ end
       do_continue_braket, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh, ksh, 
         lsh, nμ, nν, nλ, nσ)
       if do_continue_braket 
-        if do_continue_print println("CONTINUE") end
+        if do_continue_print println("CONTINUE BRAKET") end
         continue 
       end
-
+    
       if debug println("ERI($μ, $ν, $λ, $σ) = $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0

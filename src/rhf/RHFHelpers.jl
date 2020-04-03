@@ -12,14 +12,12 @@ using JLD
 
   do_continue = false
 
-  condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+  condition3 = false
 
-  condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
-    nλ > 1 && nσ > 1
+  #condition6 = ish == jsh && ((nμ > nλ && nν > nλ) || (nμ > nσ && nν > nσ)) 
+  condition6 = ish == jsh 
 
-  condition6 = ish == jsh && ((nμ > nλ && nν > nλ) || (nμ > nσ && nν > nσ)) 
-
-  if μμ < νν && (condition3 || condition6 || condition1)
+  if μμ < νν && condition6 
 	  do_continue = true
   end
   return do_continue
@@ -31,10 +29,9 @@ end
 
   do_continue = false
 
-  condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
-
-  condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
-    nλ > 1 && nσ > 1
+  #condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
+  #  nλ > 1 && nσ > 1
+  condition3 = false
 
   condition5 = ish == ksh && jsh == lsh && nμ > nν && nλ > nσ 
 
@@ -42,11 +39,9 @@ end
 
   condition8 = four_same
 
-  if μμ < νν && condition1 
+  if μμ < λλ && condition5
 	  do_continue = true
-  elseif μμ < λλ && condition5
-	  do_continue = true
-  elseif λλ < σσ && (condition1 || condition3 || condition7 || condition8)
+  elseif λλ < σσ && (condition3 || condition7 || condition8)
 	  do_continue = true
   end
 
@@ -67,18 +62,19 @@ end
 
     four_shell = nμ == nν && nν == nλ && nλ == nσ
 
-    condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
-    
+    #condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+    condition1 = false
       
-    if (condition1 || four_shell) && ((ish == ksh && jsh == lsh))
+    if four_shell && ((ish == ksh && jsh == lsh)) 
       do_continue = true
-    elseif three_shell && μ < ν && λ < σ
-      do_continue = true
+    #elseif three_shell && (μ < ν || λ < σ)
+    #  do_continue = true
     else
 	    λ, σ, μ, ν = μ, ν, λ, σ 
     end
     #if !do_continue λ, σ, μ, ν = μ, ν, λ, σ end
   end
+
   return do_continue, μ, ν, λ, σ
 end
 
