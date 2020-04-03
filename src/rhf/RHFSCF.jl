@@ -672,14 +672,6 @@ end
 
   norb = size(D,1)
 
-  two_same = (ish == jsh) || (ish == ksh) || (ish == lsh) || (jsh == ksh) || 
-    (jsh == lsh) || (ksh == lsh)
-
-  three_same = (ish == jsh && jsh == ksh) || (ish == jsh && jsh == lsh) || 
-    (ish == ksh && ksh == lsh) || (jsh == ksh && ksh == lsh)
-
-  four_same = ish == jsh && jsh == ksh && ksh == lsh
-
   pμ = quartet.bra.sh_a.pos
   nμ = quartet.bra.sh_a.nbas
 
@@ -716,8 +708,7 @@ end
   
       eri = eri_batch[μνλσ] 
       
-      do_continue_screen = abs(eri) < 1.0E-10
-      if do_continue_screen 
+      if abs(eri) < 1.0E-10
         if do_continue_print println("CONTINUE SCREEN") end
         continue 
       end
@@ -733,19 +724,7 @@ end
       μν = triangular_index(μ,ν)                                                    
       λσ = triangular_index(λ,σ)                                                    
        
-      duplicate_braket = begin 
-        ijij = ish == ksh && jsh == lsh
-        ijij_and_more = ijij && nμ > nν && nλ > nσ                                       
-        if μν < λσ && ijij
-          true
-        elseif μ < λ && ijij_and_more 
-          true
-        else 
-          false
-        end  
-      end                                                                         
-                                                                                
-      if duplicate_braket 
+      if μν < λσ && ish == ksh && jsh == lsh 
         if do_continue_print println("CONTINUE BRAKET") end
         continue 
       end
@@ -753,7 +732,7 @@ end
       μ, ν, λ, σ = μν < λσ && !(ish == ksh && jsh == lsh) ? 
         (λ, σ, μ, ν) : (μ, ν, λ, σ)
 
-      if debug println("ERI($μ, $ν, $λ, $σ) = $eri") end
+      #if debug println("ERI($μ, $ν, $λ, $σ) = $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
