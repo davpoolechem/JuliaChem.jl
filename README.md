@@ -4,13 +4,17 @@
 JuliaChem is an electronic structure theory program written in Julia, designed to combine
 Julia's dynamic and interactive nature with its high-performance capabilities to offer users the best of both worlds for quantum chemistry computations.
 
-# Building JuliaChem
+# Building JuliaChem (for Users)
 The first step to building JuliaChem is setting up SIMINT. This is needed to
 form the JuliaChem/SIMINT interface, currently called Julia Electron Repulsion 
 Integrals (JERI). This is done as follows:
 
 1. Download and install SIMINT. Note that SIMINT must be compiled with the 
--DCMAKE_C_FLAGS=-fPIC flag as one of the flag options.
+-DSIMINT_C_FLAGS=-fPIC flag as one of the flag options. Also note that you must
+compile SIMINT yourself - the pregenerated version of SIMINT is not compatible with 
+JuliaChem. Since JuliaChem only supports up to L shells, though,
+you can build SIMINT with only the smaller-AM shells, which greatly speeds
+up the process.
 
 2. Define the environmental variable SIMINT as the directory of your
 SIMINT installation.
