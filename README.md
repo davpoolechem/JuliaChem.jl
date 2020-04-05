@@ -6,7 +6,7 @@ Julia's dynamic and interactive nature with its high-performance capabilities to
 
 # Building JuliaChem (for Users)
 If you are simply interested in using JuliaChem for your calculations, you
-can use JuliaChem as follows.
+can build JuliaChem as follows.
 
 The first step to building JuliaChem is setting up SIMINT. This is needed to
 form the JuliaChem/SIMINT interface, currently called Julia Electron Repulsion 
@@ -48,21 +48,29 @@ install JuliaChem as follows.
 1. As with above, you will need to build and install SIMINT. This follows the 
 first two steps as above.
 
-2. Git clone the JuliaChem repo into your directory.
+2. Git clone the JuliaChem repo into your directory and cd into it.
 
-3. 
+3. Download the necessary dependencies. This can be done by inputting the following commands into
+the Julia REPL:
 
-1. using Pkg
+a. using Pkg
 
-2. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/MATH.jl.git"))
+b. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/MATH.jl.git"))
 
-3. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JCModules.jl.git")) 
+c. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JCModules.jl.git")) 
 
-Finally, JuliaChem itself can be downloaded and installed:
+4. Next, JuliaChem itself can be set up for development. This can be done in the Julia REPL
+by first pushing the ] button on your keyboard, and then inputting the following command into
+the REPL:
 
-4. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
+a. dev .
 
-This will download the JuliaChem package to your computer and build JERI.
+5. Finally, JuliaChem needs to be built. This can be done by inputting the following
+command into the Julia REPL:
+
+a. build JuliaChem
+
+This will build both the JuliaChem package and JERI.
 If all goes well, this should be all that is needed. Now, you can use 
 JuliaChem in any script you wish simply by importing the JuliaChem module:
 
