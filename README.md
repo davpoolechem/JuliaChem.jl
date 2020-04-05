@@ -5,6 +5,9 @@ JuliaChem is an electronic structure theory program written in Julia, designed t
 Julia's dynamic and interactive nature with its high-performance capabilities to offer users the best of both worlds for quantum chemistry computations.
 
 # Building JuliaChem (for Users)
+If you are simply interested in using JuliaChem for your calculations, you
+can use JuliaChem as follows.
+
 The first step to building JuliaChem is setting up SIMINT. This is needed to
 form the JuliaChem/SIMINT interface, currently called Julia Electron Repulsion 
 Integrals (JERI). This is done as follows:
@@ -19,8 +22,35 @@ up the process.
 2. Define the environmental variable SIMINT as the directory of your
 SIMINT installation.
 
-Then, the other GitHub dependencies for JuliaChem must be downloaded.
+3. Then, the other GitHub dependencies for JuliaChem must be downloaded.
 This can be done with the following Julia commands:
+
+a. using Pkg
+
+b. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/MATH.jl.git"))
+
+c. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JCModules.jl.git")) 
+
+Finally, JuliaChem itself can be downloaded and installed:
+
+d. Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
+
+This will download the JuliaChem package to your computer and build JERI.
+If all goes well, this should be all that is needed. Now, you can use 
+JuliaChem in any script you wish simply by importing the JuliaChem module:
+
+using JuliaChem
+
+# Building JuliaChem (for Developers)
+If you are interested in actively developing JuliaChem, you will want to build and 
+install JuliaChem as follows.
+
+1. As with above, you will need to build and install SIMINT. This follows the 
+first two steps as above.
+
+2. Git clone the JuliaChem repo into your directory.
+
+3. 
 
 1. using Pkg
 
