@@ -56,10 +56,10 @@ function analyze_bond_angles(mol::MolStructs.Molecule,
   bond_angles = zeros(Float64, (natoms_length,))
 
   ijatom = 1 
-  jkatom = 1
   ijkatom = 1
-  for iatom in 1:natoms, jatom in 1:(iatom-1) 
-    for katom in 1:(jatom-1)
+  for iatom in 1:natoms
+    jkatom = 1
+    for jatom in 1:(iatom-1), katom in 1:(jatom-1)
       if bond_lengths[ijatom] < 4.0 && bond_lengths[jkatom] < 4.0
         e_ji = Vector{Float64}(-(mol.atoms[jatom].atom_center .- 
           mol.atoms[iatom].atom_center) ./ bond_lengths[ijatom])
@@ -114,10 +114,10 @@ function analyze_bond_angles(mol::MolStructs.Molecule,
   end
   
   ijatom = 1 
-  jkatom = 1
   ijkatom = 1
-  for iatom in 1:natoms, jatom in 1:(iatom-1) 
-    for katom in 1:(jatom-1)
+  for iatom in 1:natoms 
+    jkatom = 1
+    for jatom in 1:(iatom-1), katom in 1:(jatom-1)
       if bond_lengths[ijatom] < 4.0 && bond_lengths[jkatom] < 4.0
         if (MPI.Comm_rank(comm) == 0)
           println("   ",iatom,"         ",jatom,"         ",katom,"     ",bond_angles[ijkatom])
@@ -157,9 +157,9 @@ Arguments
 coord = molecular coordinates
 """
 function coordinate_analysis(mol::MolStructs.Molecule)
-    #== bond lengths ==#
-    bond_lengths = analyze_bond_lengths(mol)
+  #== bond lengths ==#
+  bond_lengths = analyze_bond_lengths(mol)
 
-    #== bond angles ==#
-    bond_angles = analyze_bond_angles(mol,bond_lengths)
+  #== bond angles ==#
+  bond_angles = analyze_bond_angles(mol,bond_lengths)
 end

@@ -10,22 +10,30 @@ function script(input_file)
   #== initialize JuliaChem runtime ==#
   JuliaChem.initialize()
 
-  #== read in input file ==#
-  molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
+  try
+    #== read in input file ==#
+    molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
 
-  #== generate basis set ==#
-  mol, basis = JuliaChem.JCBasis.run(molecule, model)
+    #== generate basis set ==#
+    mol, basis = JuliaChem.JCBasis.run(molecule, model)
   
-  #== print molecular information ==#
-  JuliaChem.JCMolecule.run(mol)
+    #== print molecular information ==#
+    JuliaChem.JCMolecule.run(mol)
 
-  #== perform scf calculation ==#
-  #if (driver == "energy")
-  #  if (model["method"] == "RHF")
-  #    scf = JuliaChem.JCRHF.run(mol, basis, keywords)
-  #  end
-  #end
+    #== perform scf calculation ==#
+    #if (driver == "energy")
+    #  if (model["method"] == "RHF")
+    #    scf = JuliaChem.JCRHF.run(mol, basis, keywords)
+    #  end
+    #end
+  catch e
+    bt = catch_backtrace()
+    msg = sprint(showerror, e, bt)
+    println(msg)
 
+    JuliaChem.finalize()
+  end
+  
   #== finalize JuliaChem runtime ==#
   JuliaChem.finalize()
 end
