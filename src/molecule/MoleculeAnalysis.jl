@@ -12,11 +12,11 @@ function analyze_bond_lengths(mol::MolStructs.Molecule)
   #== calculate bond lengths ==#
   bond_lengths = zeros(Float64,(natoms_length,))
   
-  index = 1
+  ijatom = 1
   for iatom in 1:natoms, jatom in 1:(iatom-1)
     diff = (mol.atoms[iatom].atom_center .- mol.atoms[jatom].atom_center).^2  
-    bond_lengths[index] = 0.52917724924*sqrt(reduce(+,diff))
-    index += 1
+    bond_lengths[ijatom] = 0.52917724924*sqrt(reduce(+,diff))
+    ijatom += 1
   end
 
   #== print bond lengths ==#
@@ -28,13 +28,13 @@ function analyze_bond_lengths(mol::MolStructs.Molecule)
       println("Atom #1   Atom #2     Bond length")
   end
   
-  index = 1
+  ijatom = 1
   for iatom in 1:natoms, jatom in 1:(iatom-1)
     if (MPI.Comm_rank(comm) == 0)
       println("   ",iatom,"         ",jatom,"     ",
-        bond_lengths[index])
+        bond_lengths[ijatom])
     end
-    index += 1
+    ijatom += 1
   end
 
   if (MPI.Comm_rank(comm) == 0)
@@ -44,72 +44,98 @@ function analyze_bond_lengths(mol::MolStructs.Molecule)
   return bond_lengths
 end
 
-#=
-"
-     coordinate_analysis(coord::Array{Float64,2})
-Summary
-======
-Perform the core molecular coordinate analysis algorithm.
+function analyze_bond_angles(mol::MolStructs.Molecule, 
+  bond_lengths::Vector{Float64})
+  
+  #== determine some pre-information ==#
+  natoms = length(mol.atoms)
+  natoms_length = floor(Int64,natoms*(natoms+1)*(natoms+2)/6)
+  comm=MPI.COMM_WORLD
 
-Arguments
-======
-coord = molecular coordinates
-"""
-function analyze_bond_angles(coord::Array{Float64,2}, bond_lengths::Array{Float64,2})
-    #determine some pre-information
-    natoms::Int64 = size(coord)[1]
-    comm=MPI.COMM_WORLD
+  #== calculate bond angles ==#
+  bond_angles = zeros(Float64, (natoms_length,))
 
-    #calculate bond angles
-    bond_angles::Array{Float64,3} = zeros(natoms,natoms,natoms)
+  ijatom = 1 
+  jkatom = 1
+  ijkatom = 1
+  for iatom in 1:natoms, jatom in 1:(iatom-1) 
+    for katom in 1:(jatom-1)
+      if bond_lengths[ijatom] < 4.0 && bond_lengths[jkatom] < 4.0
+        e_ji = Vector{Float64}(-(mol.atoms[jatom].atom_center .- 
+          mol.atoms[iatom].atom_center) ./ bond_lengths[ijatom])
 
-    Threads.@threads for ijkatom in 1:natoms*natoms*natoms
-        iatom::Int64 = ceil(ijkatom/(natoms*natoms))
-        jatom::Int64 = ceil(ijkatom/natoms)%natoms+1
-        katom::Int64 = (ijkatom%(natoms*natoms))%natoms + 1
+        e_jk = Vector{Float64}(-(mol.atoms[jatom].atom_center .- 
+          mol.atoms[katom].atom_center) ./ bond_lengths[jkatom])
+     
+        e_ji ./= LinearAlgebra.norm(e_ji)
+        e_jk ./= LinearAlgebra.norm(e_jk)
 
-        if (iatom > jatom && jatom > katom)
-            if (bond_lengths[iatom,jatom] < 4.0 && bond_lengths[jatom,katom] < 4.0)
-                e_ji = [ -(coord[jatom,1]-coord[iatom,1])/bond_lengths[iatom,jatom];
-                         -(coord[jatom,2]-coord[iatom,2])/bond_lengths[iatom,jatom];
-                         -(coord[jatom,3]-coord[iatom,3])/bond_lengths[iatom,jatom]; ]
+        bond_angles[ijkatom] = (360/(2π))*acos(LinearAlgebra.dot(e_ji,e_jk))
+      
+        ijkatom += 1 
+      end
+      jkatom += 1 
+    end
+    ijatom += 1
+  end
+  
+  #= 
+  for ijkatom in 1:natoms*natoms*natoms
+      iatom::Int64 = ceil(ijkatom/(natoms*natoms))
+      jatom::Int64 = ceil(ijkatom/natoms)%natoms+1
+      katom::Int64 = (ijkatom%(natoms*natoms))%natoms + 1
 
-                e_jk = [ -(coord[jatom,1]-coord[katom,1])/bond_lengths[jatom,katom];
-                         -(coord[jatom,2]-coord[katom,2])/bond_lengths[jatom,katom];
-                         -(coord[jatom,3]-coord[katom,3])/bond_lengths[jatom,katom]; ]
+      if (iatom > jatom && jatom > katom)
+          if (bond_lengths[iatom,jatom] < 4.0 && bond_lengths[jatom,katom] < 4.0)
+              e_ji = [ -(coord[jatom,1]-coord[iatom,1])/bond_lengths[iatom,jatom];
+                       -(coord[jatom,2]-coord[iatom,2])/bond_lengths[iatom,jatom];
+                       -(coord[jatom,3]-coord[iatom,3])/bond_lengths[iatom,jatom]; ]
 
-                e_ji = e_ji/LinearAlgebra.norm(e_ji)
-                e_jk = e_jk/LinearAlgebra.norm(e_jk)
+              e_jk = [ -(coord[jatom,1]-coord[katom,1])/bond_lengths[jatom,katom];
+                       -(coord[jatom,2]-coord[katom,2])/bond_lengths[jatom,katom];
+                       -(coord[jatom,3]-coord[katom,3])/bond_lengths[jatom,katom]; ]
 
-                bond_angles[iatom,jatom,katom] = (360/(2π))*acos(LinearAlgebra.dot(e_ji,e_jk))
-            end
+              e_ji = e_ji/LinearAlgebra.norm(e_ji)
+              e_jk = e_jk/LinearAlgebra.norm(e_jk)
+
+              bond_angles[iatom,jatom,katom] = (360/(2π))*acos(LinearAlgebra.dot(e_ji,e_jk))
+          end
+      end
+  end
+  =#
+
+  #== print bond angles ==#
+  if (MPI.Comm_rank(comm) == 0)
+      println("----------------------------------------          ")
+      println("         Printing bond angles...                  ")
+      println("----------------------------------------          ")
+      println(" ")
+      println("Atom #1   Atom #2   Atom #3     Bond angle")
+  end
+  
+  ijatom = 1 
+  jkatom = 1
+  ijkatom = 1
+  for iatom in 1:natoms, jatom in 1:(iatom-1) 
+    for katom in 1:(jatom-1)
+      if bond_lengths[ijatom] < 4.0 && bond_lengths[jkatom] < 4.0
+        if (MPI.Comm_rank(comm) == 0)
+          println("   ",iatom,"         ",jatom,"         ",katom,"     ",bond_angles[ijkatom])
         end
+        ijkatom += 1
+      end
+      jkatom += 1 
     end
+    ijatom += 1
+  end
+  if (MPI.Comm_rank(comm) == 0)
+      println(" ")
+  end
 
-    #print bond angles
-    if (MPI.Comm_rank(comm) == 0)
-        println("----------------------------------------          ")
-        println("         Printing bond angles...                  ")
-        println("----------------------------------------          ")
-        println(" ")
-        println("Atom #1   Atom #2   Atom #3     Bond angle")
-    end
-    for iatom in 1:natoms, jatom in 1:natoms, katom in 1:natoms
-        if (iatom > jatom && jatom > katom)
-            if (bond_lengths[iatom,jatom] < 4.0 && bond_lengths[jatom,katom] < 4.0)
-                if (MPI.Comm_rank(comm) == 0)
-                    println("   ",iatom,"         ",jatom,"         ",katom,"     ",bond_angles[iatom,jatom,katom])
-                end
-            end
-        end
-    end
-    if (MPI.Comm_rank(comm) == 0)
-        println(" ")
-    end
-
-    return bond_lengths
+  return bond_lengths
 end
 
+#=
 function test(ijkatom::Int64)
     natoms = 3
 
@@ -134,6 +160,6 @@ function coordinate_analysis(mol::MolStructs.Molecule)
     #== bond lengths ==#
     bond_lengths = analyze_bond_lengths(mol)
 
-    #bond angles
-    #analyze_bond_angles(coord,bond_lengths)
+    #== bond angles ==#
+    bond_angles = analyze_bond_angles(mol,bond_lengths)
 end
