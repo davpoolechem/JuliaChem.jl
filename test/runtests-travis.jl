@@ -1,7 +1,7 @@
 import Pkg; Pkg.add("Test")
 import Test
 
-include("../example_scripts/minimal-rhf-travis.jl")
+include("../example_scripts/minimal-rhf-repl.jl")
 
 #== select input files ==#
 directory = joinpath(@__DIR__, "../example_inputs/S22/")

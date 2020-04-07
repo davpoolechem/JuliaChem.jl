@@ -1,7 +1,7 @@
 using MATH
 using JCModules.Globals
 
-using InteractiveUtils
+#using InteractiveUtils
 using MPI
 #using Base.Threads
 #using Distributed
@@ -253,8 +253,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== execute convergence procedure ==#
   scf_converged = true
 
-  @code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
-  #E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
+  #@code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
+  E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, D_old, ΔD, damp_values, 
     D_damp, D_damp_rms, scf_converged, test_e, test_F,
