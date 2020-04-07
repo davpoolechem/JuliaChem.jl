@@ -32,6 +32,7 @@ function script(input_file)
     println(msg)
 
     JuliaChem.finalize()
+    exit()
   end
   
   #== finalize JuliaChem runtime ==#

@@ -3,6 +3,33 @@ using MPI
 using Base.Threads
 using LinearAlgebra
 
+function print_xyz(mol::MolStructs.Molecule)
+  #== determine some pre-information ==#
+  natoms = length(mol.atoms)
+  comm = MPI.COMM_WORLD
+  comm = MPI.COMM_WORLD
+
+  #== print coordinates in xyz format ==#
+  if (MPI.Comm_rank(comm) == 0)
+    println("----------------------------------------          ")
+    println("      Printing coordinates (bohr)                 ")
+    println("            in xyz format...                      ")
+    println("----------------------------------------          ")
+    println(" ")
+  end
+  println(natoms) 
+  println() 
+
+  for iatom in mol.atoms
+    if (MPI.Comm_rank(comm) == 0)
+      println(iatom.symbol,"         ",iatom.atom_center[1],"     ",
+        iatom.atom_center[2],"     ",iatom.atom_center[3])
+    end 
+  end
+  
+  println() 
+end
+
 function analyze_bond_lengths(mol::MolStructs.Molecule)
   #== determine some pre-information ==#
   natoms = length(mol.atoms)
@@ -145,7 +172,6 @@ function test(ijkatom::Int64)
     #println(iatom,", ",jatom,", ",katom)
     return (iatom, jatom, katom)
 end
-=#
 """
      coordinate_analysis(coord::Array{Float64,2})
 Summary
@@ -157,9 +183,13 @@ Arguments
 coord = molecular coordinates
 """
 function coordinate_analysis(mol::MolStructs.Molecule)
-  #== bond lengths ==#
+  #== print coordinates ==#
+  print_xyz(mol) 
+
+  #== compute bond lengths ==#
   bond_lengths = analyze_bond_lengths(mol)
 
-  #== bond angles ==#
+  #== compute bond angles ==#
   bond_angles = analyze_bond_angles(mol,bond_lengths)
 end
+=#
