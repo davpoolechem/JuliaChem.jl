@@ -42,7 +42,7 @@ function run(mol::MolStructs.Molecule)
     bond_lengths = analyze_bond_lengths(mol)
 
     #== compute bond angles ==#
-    bond_angles = analyze_bond_angles(mol,bond_lengths)
+    #bond_angles = analyze_bond_angles(mol,bond_lengths)
 
     if (MPI.Comm_rank(comm) == 0)
         println("                       ========================================          ")
