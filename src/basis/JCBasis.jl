@@ -37,10 +37,10 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(molecule, model)
+function run(molecule, model; output="none")
   comm=MPI.COMM_WORLD
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                GENERATING BASIS SET                            ")
@@ -64,7 +64,7 @@ function run(molecule, model)
 
   mol = MolStructs.Molecule([])
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
     println("        Basis Set Information...                  ")
     println("----------------------------------------          ")
@@ -90,7 +90,9 @@ function run(molecule, model)
         bsed["$symbol/$basis"])
 
       #== process basis set values into shell objects ==#
-      if (MPI.Comm_rank(comm) == 0) println("ATOM $symbol:") end
+      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+        println("ATOM $symbol:") 
+      end
       
       for shell_num::Int64 in 1:length(shells)
         new_shell_dict::Dict{String,Any} = shells["$shell_num"]
@@ -104,7 +106,7 @@ function run(molecule, model)
         #== if L shell, divide up ==# 
         if new_shell_am == -1
           #== s component ==#
-          if (MPI.Comm_rank(comm) == 0) 
+          if MPI.Comm_rank(comm) == 0 && output == "verbose"
             println("Shell #$shell_num:") 
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,1]), 
@@ -122,7 +124,7 @@ function run(molecule, model)
           basis_set.norb += 1 
           
           #== p component ==#
-          if (MPI.Comm_rank(comm) == 0) 
+          if MPI.Comm_rank(comm) == 0 && output == "verbose"
             println("Shell #$shell_num:") 
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,2]), 
@@ -140,7 +142,7 @@ function run(molecule, model)
           basis_set.norb += 3 
         #== otherwise accept shell as is ==#
         else 
-          if (MPI.Comm_rank(comm) == 0) 
+          if MPI.Comm_rank(comm) == 0 && output == "verbose"
             println("Shell #$shell_num:") 
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff), 
@@ -160,7 +162,7 @@ function run(molecule, model)
           basis_set.norb += new_shell.nbas
         end
       end
-      if (MPI.Comm_rank(comm) == 0)
+      if MPI.Comm_rank(comm) == 0 && output == "verbose"
         println(" ")
         println(" ")
       end
@@ -169,7 +171,7 @@ function run(molecule, model)
 
   sort!(basis_set.shells, by = x->x.am)
  
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("                       ========================================                 ")
     println("                                       END BASIS                                ")

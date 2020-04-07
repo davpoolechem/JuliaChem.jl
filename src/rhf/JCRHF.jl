@@ -35,20 +35,17 @@ scf = RHF.run(input_info, basis)
 ```
 """
 function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis, 
-  keywords)
+  scf_flags; output="none")
   
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
       println("--------------------------------------------------------------------------------")
       println("                       ========================================                 ")
       println("                          RESTRICTED CLOSED-SHELL HARTREE-FOCK                  ")
       println("                       ========================================                 ")
       println("")
   end
-
-  #== initialize scf flags ==#
-  scf_flags = keywords["scf"]
 
   #== set up eris ==#
   #if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
@@ -75,11 +72,11 @@ function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
 
   #== actually perform scf calculation ==#
   #GC.enable(false)
-  scf = rhf_energy(mol, basis, scf_flags)
+  scf = rhf_energy(mol, basis, scf_flags; output=output)
   #GC.enable(true)
   #GC.gc()
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
     println("                             END RESTRICTED CLOSED-SHELL                 ")
     println("                                     HARTREE-FOCK                        ")

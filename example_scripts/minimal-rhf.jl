@@ -12,20 +12,22 @@ function script(input_file)
 
   try
     #== read in input file ==#
-    molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
+    molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
+      output="none")
 
     #== generate basis set ==#
-    mol, basis = JuliaChem.JCBasis.run(molecule, model)
+    mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
   
     #== print molecular information ==#
-    JuliaChem.JCMolecule.run(mol)
+    #JuliaChem.JCMolecule.run(mol)
 
     #== perform scf calculation ==#
-    #if (driver == "energy")
-    #  if (model["method"] == "RHF")
-    #    scf = JuliaChem.JCRHF.run(mol, basis, keywords)
-    #  end
-    #end
+    if (driver == "energy")
+      if (model["method"] == "RHF")
+        scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
+          output="verbose") 
+      end
+    end
   catch e
     bt = catch_backtrace()
     msg = sprint(showerror, e, bt)
