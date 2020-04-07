@@ -1,7 +1,7 @@
 using MATH
 using JCModules.Globals
 
-#using InteractiveUtils
+using InteractiveUtils
 using MPI
 #using Base.Threads
 #using Distributed
@@ -36,7 +36,7 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
+@inline function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
 
   comm=MPI.COMM_WORLD
@@ -112,6 +112,7 @@ function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   end
 
   E_elec = 0.0
+  #@code_warntype iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
     ortho_trans.data, basis, 0, debug)
   F = deepcopy(F_mo)
@@ -130,6 +131,7 @@ function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
+  #@code_warntype scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
     F_eval, F_evec, F_mo, F_part, E_nuc, E_elec, E_old, basis, scf_flags; 
     output=output, debug=debug, niter=niter)
@@ -251,7 +253,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== execute convergence procedure ==#
   scf_converged = true
 
-  E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
+  @code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
+  #E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, D_old, ΔD, damp_values, 
     D_damp, D_damp_rms, scf_converged, test_e, test_F,
