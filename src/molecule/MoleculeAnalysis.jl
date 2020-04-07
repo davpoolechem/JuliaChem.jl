@@ -1,59 +1,51 @@
+using JCModules.MolStructs
 using MPI
 using Base.Threads
 using LinearAlgebra
 
-"""
-     coordinate_analysis(coord::Array{Float64,2})
-Summary
-======
-Perform the core molecular coordinate analysis algorithm.
+function analyze_bond_lengths(mol::MolStructs.Molecule)
+  #== determine some pre-information ==#
+  natoms = length(mol.atoms)
+  natoms_length = floor(Int64,natoms*(natoms+1)/2)
+  comm = MPI.COMM_WORLD
 
-Arguments
-======
-coord = molecular coordinates
-"""
-function analyze_bond_lengths(coord::Array{Float64,2})
-    #determine some pre-information
-    natoms::Int64 = size(coord)[1]
-    comm=MPI.COMM_WORLD
+  #== calculate bond lengths ==#
+  bond_lengths = zeros(Float64,(natoms_length,))
+  
+  index = 1
+  for iatom in 1:natoms, jatom in 1:(iatom-1)
+    diff = (mol.atoms[iatom].atom_center .- mol.atoms[jatom].atom_center).^2  
+    bond_lengths[index] = 0.52917724924*sqrt(reduce(+,diff))
+    index += 1
+  end
 
-    #calculate bond lengths
-    bond_lengths::Array{Float64,2} = zeros(natoms,natoms)
-
-    Threads.@threads for ijatom in 1:natoms*natoms
-        iatom::Int64 = ceil(ijatom/natoms)
-        jatom::Int64 =ijatom%natoms + 1
-
-        if (iatom > jatom)
-            diff::Array{Float64,1} = (coord[iatom,2:4].-coord[jatom,2:4]).^2
-            bond_lengths[iatom,jatom] = sqrt(reduce(+,diff))
-        end
-    end
-
-    #print bond lengths
+  #== print bond lengths ==#
+  if (MPI.Comm_rank(comm) == 0)
+      println("----------------------------------------          ")
+      println("        Printing bond lengths...                  ")
+      println("----------------------------------------          ")
+      println(" ")
+      println("Atom #1   Atom #2     Bond length")
+  end
+  
+  index = 1
+  for iatom in 1:natoms, jatom in 1:(iatom-1)
     if (MPI.Comm_rank(comm) == 0)
-        println("----------------------------------------          ")
-        println("        Printing bond lengths...                  ")
-        println("----------------------------------------          ")
-        println(" ")
-        println("Atom #1   Atom #2     Bond length")
+      println("   ",iatom,"         ",jatom,"     ",
+        bond_lengths[index])
     end
-    for iatom in 1:natoms, jatom in 1:natoms
-        if (iatom > jatom)
-            if (MPI.Comm_rank(comm) == 0)
-                println("   ",iatom,"         ",jatom,"     ",
-                  bond_lengths[iatom,jatom])
-            end
-        end
-    end
-    if (MPI.Comm_rank(comm) == 0)
-        println(" ")
-    end
+    index += 1
+  end
 
-    return bond_lengths
+  if (MPI.Comm_rank(comm) == 0)
+      println(" ")
+  end
+
+  return bond_lengths
 end
 
-"""
+#=
+"
      coordinate_analysis(coord::Array{Float64,2})
 Summary
 ======
@@ -127,7 +119,7 @@ function test(ijkatom::Int64)
     #println(iatom,", ",jatom,", ",katom)
     return (iatom, jatom, katom)
 end
-
+=#
 """
      coordinate_analysis(coord::Array{Float64,2})
 Summary
@@ -138,10 +130,10 @@ Arguments
 ======
 coord = molecular coordinates
 """
-function coordinate_analysis(coord::Array{Float64,2})
-    #bond lengths
-    bond_lengths::Array{Float64,2} = analyze_bond_lengths(coord)
+function coordinate_analysis(mol::MolStructs.Molecule)
+    #== bond lengths ==#
+    bond_lengths = analyze_bond_lengths(mol)
 
     #bond angles
-    analyze_bond_angles(coord,bond_lengths)
+    #analyze_bond_angles(coord,bond_lengths)
 end

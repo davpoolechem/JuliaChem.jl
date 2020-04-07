@@ -8,6 +8,8 @@ Base.include(@__MODULE__, "../deps/src/simint.jl")
 
 Base.include(@__MODULE__, "io/JCInput.jl")
 
+Base.include(@__MODULE__, "molecule/JCMolecule.jl")
+
 Base.include(@__MODULE__, "rhf/JCRHF.jl")
 
 Base.include(@__MODULE__, "runtime/JCRuntime.jl")

@@ -9,8 +9,6 @@ module JCMolecule
 
 Base.include(@__MODULE__,"MoleculeAnalysis.jl")
 
-using MPI
-
 """
      run(input_info::Dict{String,Dict{String,Any}})
 Execute the JuliaChem molecular coordinate analysis functions.
@@ -26,25 +24,18 @@ Thus, proper use of the Molecule.run() function would look like this:
 Molecule.run(input_info)
 ```
 """
-function run(input_info::Dict{String,Dict{String,Any}})
+function run(mol::MolStructs.Molecule)
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)
-        println("--------------------------------------------------------------------------------------")
+        println("---------------------------------------------------------------------------------")
         println("                       ========================================          ")
         println("                             MOLECULAR COORDINATE ANALYSIS               ")
         println("                       ========================================          ")
         println("")
     end
 
-    coord_dict::Array{Any,1} = input_info["Geometry"]["Coordinates"]
-
-    coord::Array{Float64,2} = Matrix{Float64}(undef,(length(coord_dict),4))
-    for i in 1:length(coord_dict), j in 1:4
-        coord[i,j] = coord_dict[i][j]
-    end
-
-    coordinate_analysis(coord)
+    coordinate_analysis(mol)
 
     if (MPI.Comm_rank(comm) == 0)
         println("                       ========================================          ")
