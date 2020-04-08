@@ -7,6 +7,8 @@ directory = joinpath(@__DIR__, "../example_inputs/S22/")
 inputs = readdir(directory)
 inputs .= directory .* inputs
 
+display(inputs)
+
 #== initialize JuliaChem ==#
 JuliaChem.initialize()
 
