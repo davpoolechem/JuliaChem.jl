@@ -1,11 +1,13 @@
 import Test
 
-include("../example_scripts/minimal-rhf-travis.jl")
+include("../example_scripts/minimal-rhf-repl.jl")
 
 #== select input files ==#:w
 directory = joinpath(@__DIR__, "../example_inputs/S22/")
 inputs = readdir(directory)
 inputs .= directory .* inputs
+
+display(inputs)
 
 #== initialize JuliaChem ==#
 JuliaChem.initialize()

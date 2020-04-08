@@ -2,29 +2,18 @@
 #== put needed modules here ==#
 #=============================#
 import sys
+import os
 
 import julia
 from julia import JuliaChem
+from julia import Base 
 
 #================================#
 #== JuliaChem execution script ==#
 #================================#
-def script(input_file):
-  #== initialize JuliaChem runtime ==#
-  JuliaChem.initialize() 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+exec(open(dir_path+"/minimal-rhf-repl.py").read())
 
-  #== read in input file ==#
-  molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file)
-
-  #== generate basis set ==#
-  mol, basis = JuliaChem.JCBasis.run(molecule, model)
-
-  #== perform scf calculation ==#
-  if (driver == "energy"):
-    if (model["method"] == "RHF"):
-      scf = JuliaChem.JCRHF.run(mol, basis, keywords)
-
-  #== finalize JuliaChem runtime ==#
-  JuliaChem.finalize() 
-
-script(sys.argv[1])
+JuliaChem.initialize()
+scf = minimal_rhf(sys.argv[1])
+JuliaChem.finalize()

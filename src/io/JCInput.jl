@@ -30,10 +30,10 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(args)
+function run(args; output="none")
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                READING INPUT DATA FILE                         ")
@@ -44,7 +44,7 @@ function run(args)
   #== output parallelization information ==#
   directory = pwd()
   #println("Input file: ", directory*"/"*input_file)
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("Number of worker processes: ", MPI.Comm_size(comm))
     println("Number of threads per process: ", Threads.nthreads())
@@ -81,7 +81,7 @@ function run(args)
   merge!(model,json_parse["model"])
   merge!(keywords,json_parse["keywords"])
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("                       ========================================                 ")
     println("                                       END INPUT                                ")

@@ -13,9 +13,9 @@ using PrettyTables
 const do_continue_print = false 
 
 function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
-  scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
+  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
 
-  return rhf_kernel(mol,basis,scf_flags)
+  return rhf_kernel(mol,basis,scf_flags; output=output)
 end
 
 
@@ -36,8 +36,8 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
-  scf_flags::Union{Dict{String,Any},Dict{Any,Any}})
+@inline function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
+  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
@@ -103,7 +103,7 @@ function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   D = similar(F)
   C = similar(F)
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
     println("       Starting RHF iterations...                 ")
     println("----------------------------------------          ")
@@ -112,6 +112,7 @@ function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   end
 
   E_elec = 0.0
+  #@code_warntype iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
     ortho_trans.data, basis, 0, debug)
   F = deepcopy(F_mo)
@@ -123,19 +124,20 @@ function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   E = E_elec + E_nuc
   E_old = E
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(0,"     ", E)
   end
 
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
+  #@code_warntype scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
     F_eval, F_evec, F_mo, F_part, E_nuc, E_elec, E_old, basis, scf_flags; 
-    debug=debug, niter=niter)
+    output=output, debug=debug, niter=niter)
 
   if !converged
-    if MPI.Comm_rank(comm) == 0
+    if MPI.Comm_rank(comm) == 0 && output != "none"
       println(" ")
       println("----------------------------------------")
       println(" The SCF calculation did not converge.  ")
@@ -156,7 +158,7 @@ function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
     merge!(calculation_status, calculation_fail)
 
   else
-    if MPI.Comm_rank(comm) == 0
+    if MPI.Comm_rank(comm) == 0 && output != "none" 
       println(" ")
       println("----------------------------------------")
       println("   The SCF calculation has converged!   ")
@@ -196,7 +198,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64},
   E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
-  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; debug, niter)
+  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output, debug, niter)
 
   #== read in some more variables from scf flags input ==#
   ndiis::Int = scf_flags["ndiis"]
@@ -251,12 +253,13 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== execute convergence procedure ==#
   scf_converged = true
 
+  #@code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, D_old, ΔD, damp_values, 
     D_damp, D_damp_rms, scf_converged, test_e, test_F,
-    FD, FDS, SD, SDF; debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
-    rmsd=rmsd, load=load)
+    FD, FDS, SD, SDF; output=output, debug=debug, niter=niter, ndiis=ndiis, 
+    dele=dele, rmsd=rmsd, load=load)
 
   #== we are done! ==#
   if debug
@@ -284,7 +287,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SD::Matrix{Float64},
-  SDF::Matrix{Float64}; debug, niter, ndiis, dele, rmsd, load)
+  SDF::Matrix{Float64}; output, debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -391,7 +394,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     E = E_elec+E_nuc
     ΔE = E - E_old
 
-    if MPI.Comm_rank(comm) == 0
+    if MPI.Comm_rank(comm) == 0 && output == "verbose"
       println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
     end
 
@@ -699,9 +702,9 @@ end
       λλ = λsize + pλ
       σσ = σsize + pσ
 
-      if debug
-        if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
-      end
+      #if debug
+        #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
+      #end
 
       #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
       μνλσ += 1 
