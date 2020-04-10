@@ -39,7 +39,7 @@ function run(mol::MolStructs.Molecule)
     print_xyz(mol) 
 
     #== compute bond lengths ==#
-    bond_lengths = analyze_bond_lengths(mol)
+    #bond_lengths = analyze_bond_lengths(mol)
 
     #== compute bond angles ==#
     #bond_angles = analyze_bond_angles(mol,bond_lengths)

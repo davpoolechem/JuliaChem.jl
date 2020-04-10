@@ -11,6 +11,7 @@ using HDF5
 using PrettyTables
 
 const do_continue_print = false 
+const print_eri = false 
 
 function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
@@ -614,9 +615,12 @@ end
   quartet.ket.sh_a = basis[ksh]
   quartet.ket.sh_b = basis[lsh]
 
-  #if debug
-  #  if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
-  #end
+  if debug
+    if print_eri 
+      println()
+      println("QUARTET: $ish, $jsh, $ksh, $lsh ($ijkl_index):") 
+    end
+  end
 
  # quartet_batch_num::Int64 = fld(quartet_num,
  #   QUARTET_BATCH_SIZE) + 1
@@ -663,9 +667,17 @@ end
 
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64, eri_quartet_batch::Vector{Float64})
-
+  
+  fill!(eri_quartet_batch, 0.0)
   #= actually compute integrals =#
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
+
+  #if ish == 22 && jsh == 7 && ksh == 12 && lsh == 12  
+  #  SIMINT.get_simint_shell_info(ish-1)
+  #  SIMINT.get_simint_shell_info(jsh-1)
+  #  SIMINT.get_simint_shell_info(ksh-1)
+  #  SIMINT.get_simint_shell_info(lsh-1)
+  #end
 end
 
 
@@ -697,7 +709,7 @@ end
       continue 
     end
 
-    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
+    #μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
     for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
       λλ = λsize + pλ
       σσ = σsize + pσ
@@ -706,15 +718,15 @@ end
         #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
       #end
 
-      #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
-      μνλσ += 1 
+      μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
+      #μνλσ += 1 
   
       eri = eri_batch[μνλσ] 
       
-      if abs(eri) < 1.0E-10
-        if do_continue_print println("CONTINUE SCREEN") end
-        continue 
-      end
+      #if abs(eri) < 1.0E-10
+      #  if do_continue_print println("CONTINUE SCREEN") end
+      #  continue 
+      #end
 
       if λλ < σσ && ksh == lsh 
         if do_continue_print println("CONTINUE KET") end
@@ -735,7 +747,7 @@ end
       μ, ν, λ, σ = μν < λσ && !(ish == ksh && jsh == lsh) ? 
         (λ, σ, μ, ν) : (μ, ν, λ, σ)
 
-      #if debug println("ERI($μ, $ν, $λ, $σ) = $eri") end
+      if print_eri println("ERI($μ, $ν, $λ, $σ) = $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
@@ -784,11 +796,25 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #== obtain new orbital coefficients ==#
   BLAS.symm!('L', 'U', 1.0, ortho_trans, F_μν, 0.0, F_part)
   BLAS.gemm!('N', 'N', 1.0, F_part, ortho, 0.0, F_mo)
-  
+ 
+  if debug && MPI.Comm_rank(comm) == 0
+    h5write("debug.h5","SCF/Iteration-$iter/F_mo", F_mo)
+  end
+ 
   F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
 
   F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
+  
+  if debug && MPI.Comm_rank(comm) == 0
+    h5write("debug.h5","SCF/Iteration-$iter/F_eval", F_mo)
+    h5write("debug.h5","SCF/Iteration-$iter/F_evec/Unsorted", F_mo)
+  end
+
   @views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+
+  if debug && MPI.Comm_rank(comm) == 0
+    h5write("debug.h5","SCF/Iteration-$iter/F_evec/Sorted", F_mo)
+  end
 
   #C .= ortho*F_evec
   BLAS.symm!('L', 'U', 1.0, ortho, F_evec, 0.0, C)

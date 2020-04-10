@@ -91,7 +91,7 @@ function run(molecule, model; output="none")
 
       #== process basis set values into shell objects ==#
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
-        println("ATOM $symbol:") 
+        println("ATOM #$atom_idx ($symbol):") 
       end
       
       for shell_num::Int64 in 1:length(shells)
@@ -107,12 +107,11 @@ function run(molecule, model; output="none")
         if new_shell_am == -1
           #== s component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println("L (s)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,1]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
@@ -125,12 +124,11 @@ function run(molecule, model; output="none")
           
           #== p component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println("L (p)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,2]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
@@ -143,15 +141,14 @@ function run(molecule, model; output="none")
         #== otherwise accept shell as is ==#
         else 
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println(new_shell_dict["Shell Type"])
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
-          new_shell_nprim= size(new_shell_exp)[1]
+          new_shell_nprim = size(new_shell_exp)[1]
           new_shell_coeff_array = reshape(new_shell_coeff,
             (length(new_shell_coeff),))       
 
@@ -161,6 +158,7 @@ function run(molecule, model; output="none")
 
           basis_set.norb += new_shell.nbas
         end
+        println()
       end
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
         println(" ")
