@@ -282,10 +282,10 @@ void fill_kl_shell_pair_c(long long int ksh, long long int lsh) {
 //--Compute ERIs--//
 //----------------//
 void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
-  long long int lsh, double* eri) {
+  long long int lsh, double* eri, double* work) {
   
   //-- set up work buffers --//
-  double* work = (double*)malloc(simint_ostei_workmem(0,2)*sizeof(double));
+  //double* work = (double*)malloc(simint_ostei_workmem(0,2)*sizeof(double));
 
   int ij_idx = (ish*(ish-1)/2) + jsh - 1;
   int kl_idx = (ksh*(ksh-1)/2) + lsh - 1;
@@ -309,5 +309,5 @@ void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
   ncomputed = simint_compute_eri(&shell_pair_data[ij_idx], 
     &shell_pair_data[kl_idx], 0.0, work, eri);
   
-  SIMINT_FREE(work);
+  //SIMINT_FREE(work);
 }
