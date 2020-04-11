@@ -285,13 +285,11 @@ void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
   long long int lsh, double* eri, double* work) {
   
   //-- set up work buffers --//
-  //double* work = (double*)malloc(simint_ostei_workmem(0,2)*sizeof(double));
-
   int ij_idx = (ish*(ish-1)/2) + jsh - 1;
   int kl_idx = (ksh*(ksh-1)/2) + lsh - 1;
 
-  //struct simint_multi_shellpair left_pair_ = shell_pair_data[ij_idx]; 
-  //struct simint_multi_shellpair right_pair_ = shell_pair_data[kl_idx]; 
+  struct simint_multi_shellpair left_pair = shell_pair_data[ij_idx]; 
+  struct simint_multi_shellpair right_pair = shell_pair_data[kl_idx]; 
  
 #if 0 
   printf("IJ %d, %d, %d, %d:\n", ish, jsh, ksh, lsh);
@@ -306,8 +304,8 @@ void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
  #endif
 
   int ncomputed = 0;
-  ncomputed = simint_compute_eri(&shell_pair_data[ij_idx], 
-    &shell_pair_data[kl_idx], 0.0, work, eri);
+  ncomputed = simint_compute_eri(&left_pair,
+    &right_pair, 0.0, work, eri);
   
   //SIMINT_FREE(work);
 }

@@ -469,11 +469,11 @@ H = One-electron Hamiltonian Matrix
         end
 
         twoei_thread_kernel(F_priv, D,
-          H, basis, eri_quartet_batch,
+          H, basis, eri_quartet_batch, mutex,
           quartet, ijkl_index, simint_workspace,
           ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
       end
-    
+      
       lock(mutex)
         F .+= F_priv
       unlock(mutex)
@@ -593,13 +593,13 @@ end
 
 @inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
-  eri_quartet_batch::Vector{Float64}, 
+  eri_quartet_batch::Vector{Float64}, mutex, 
   quartet::ShQuartet, ijkl_index::Int64,
   simint_workspace::Vector{Float64}, 
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
-
+   
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
@@ -608,15 +608,11 @@ end
 
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
-
+ 
   quartet.bra.sh_a = basis[ish]
   quartet.bra.sh_b = basis[jsh]
   quartet.ket.sh_a = basis[ksh]
   quartet.ket.sh_b = basis[lsh]
-
-  #if debug
-  #  if do_continue_print println("QUARTET: $ish, $jsh, $ksh, $lsh ($quartet_num):") end
-  #end
 
  # quartet_batch_num::Int64 = fld(quartet_num,
  #   QUARTET_BATCH_SIZE) + 1
@@ -651,9 +647,7 @@ end
   #eri_quartet_batch = @view eri_batch[starting:ending]
 
   shellquart(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
-
-  #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
-  #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
+  unlock(mutex)
 
   dirfck(F, D, eri_quartet_batch, quartet,
     ish, jsh, ksh, lsh, debug)
