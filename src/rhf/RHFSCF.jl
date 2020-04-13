@@ -293,6 +293,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   comm=MPI.COMM_WORLD
 
   B_dim = 1
+  D_rms = 1.0
+  ΔE = 1.0 
+
   #length_eri_sizes = length(eri_sizes)
 
   #=================================#
@@ -300,7 +303,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   #=================================#
   iter = 1
   iter_converged = false
-
+  
   while !iter_converged
     #== reset eri arrays ==#
     #if quartet_batch_num_old != 1 && iter != 1
@@ -335,12 +338,6 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       h5write("debug.h5","SCF/Iteration-$iter/F/Total", F)
     end
 
-    #== dynamic damping of Fock matrix ==#
-    x = 0.8 
-    F .= x.*F .+ (1.0-x).*F_old 
- 
-    F_old .= F
- 
     #== do DIIS ==#
     if ndiis > 0
       BLAS.symm!('L', 'U', 1.0, F, D, 0.0, FD)
@@ -370,6 +367,14 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
         end
       end
     end
+
+    #== dynamic damping of Fock matrix ==#
+    if D_rms >= 1 || ΔE >= 1 
+      x = 0.6
+      F .= x.*F .+ (1.0-x).*F_old 
+    end
+
+    F_old .= F
 
     #== obtain new F,D,C matrices ==#
     D_old .= D
