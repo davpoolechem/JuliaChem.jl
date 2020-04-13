@@ -218,7 +218,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
 
   FD = similar(F)
   FDS = similar(F)
-  SD = similar(F)
   SDF = similar(F)
   
   #== build arrays needed for post-fock build iteration calculations ==#
@@ -226,11 +225,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   D_old = similar(F)
   ΔD = similar(F)
 
-  #== build arrays needed for dynamic damping ==#
-  damp_values = [ 0.25, 0.75 ]
-  D_damp = [ similar(F) for i in 1:2 ]
-  D_damp_rms = [ zero(Float64), zero(Float64) ]
-  
   #== build variables needed for eri batching ==#
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
@@ -256,10 +250,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
-    damp_values, 
-    D_damp, D_damp_rms, scf_converged, test_e, test_F,
-    FD, FDS, SD, SDF; output=output, debug=debug, niter=niter, ndiis=ndiis, 
-    dele=dele, rmsd=rmsd, load=load)
+    scf_converged, test_e, test_F, FD, FDS, SDF; output=output, debug=debug, 
+    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load)
 
   #== we are done! ==#
   if debug
@@ -282,12 +274,10 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, 
   F_part::Matrix{Float64}, F_old::Matrix{Float64},
-  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
-  D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
-  scf_converged::Bool,  
+  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
-  FD::Matrix{Float64}, FDS::Matrix{Float64}, SD::Matrix{Float64},
-  SDF::Matrix{Float64}; output, debug, niter, ndiis, dele, rmsd, load)
+  FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}; 
+  output, debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -342,10 +332,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     if ndiis > 0
       BLAS.symm!('L', 'U', 1.0, F, D, 0.0, FD)
       BLAS.gemm!('N', 'N', 1.0, FD, S, 0.0, FDS)
-
-      BLAS.symm!('L', 'U', 1.0, S, D, 0.0, SD)
-      BLAS.gemm!('N', 'N', 1.0, SD, F, 0.0, SDF)
-
+      
+      SDF .= transpose(FDS)
+      
       e .= FDS .- SDF
 
       @views e_array_old .= e_array[1:ndiis]
