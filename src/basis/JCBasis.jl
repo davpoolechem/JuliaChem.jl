@@ -72,6 +72,7 @@ function run(molecule, model; output="none")
 
   #== create basis set ==#
   h5open(joinpath(@__DIR__, "../../records/bsed.h5"),"r") do bsed
+    shell_id = 1
     for atom_idx::Int64 in 1:length(symbols)
       #== initialize variables needed for shell ==#
       atom_center::Vector{Float64} = geometry[atom_idx,:]
@@ -117,12 +118,14 @@ function run(molecule, model; output="none")
 
           new_shell_nprim = size(new_shell_exp)[1]
 
-          new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff[:,1],
+          new_shell = Shell(shell_id, atom_idx, new_shell_exp, 
+            new_shell_coeff[:,1],
             atom_center, 1, size(new_shell_exp)[1], true)
           add_shell(basis_set,deepcopy(new_shell))
 
           basis_set.norb += 1 
-          
+          shell_id += 1
+
           #== p component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
             println("Shell #$shell_num:") 
@@ -135,11 +138,13 @@ function run(molecule, model; output="none")
 
           new_shell_nprim = size(new_shell_exp)[1]
 
-          new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff[:,2],
+          new_shell = Shell(shell_id, atom_idx, new_shell_exp, 
+            new_shell_coeff[:,2],
             atom_center, 2, size(new_shell_exp)[1], true)
           add_shell(basis_set,deepcopy(new_shell))
 
           basis_set.norb += 3 
+          shell_id += 1
         #== otherwise accept shell as is ==#
         else 
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -155,11 +160,13 @@ function run(molecule, model; output="none")
           new_shell_coeff_array = reshape(new_shell_coeff,
             (length(new_shell_coeff),))       
 
-          new_shell = Shell(atom_idx, new_shell_exp, new_shell_coeff_array,
+          new_shell = Shell(shell_id, atom_idx, new_shell_exp, 
+            new_shell_coeff_array,
             atom_center, new_shell_am, size(new_shell_exp)[1], true)
           add_shell(basis_set,deepcopy(new_shell))
 
           basis_set.norb += new_shell.nbas
+          shell_id += 1
         end
       end
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
