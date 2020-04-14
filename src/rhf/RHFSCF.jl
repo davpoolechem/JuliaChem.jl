@@ -773,7 +773,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
 
   F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
-  @views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+  #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   #C .= ortho*F_evec
   BLAS.symm!('L', 'U', 1.0, ortho, F_evec, 0.0, C)
