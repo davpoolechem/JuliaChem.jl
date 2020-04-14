@@ -172,14 +172,14 @@ function run(molecule, model; output="none")
   sort!(basis_set.shells, by = x->((x.nbas*x.nprim),x.am))
 
   shellpairs = Vector{ShPair}([])
-  for ish in length(basis_set.shells), jsh in 1:ish
+  for ish in 1:length(basis_set.shells), jsh in 1:ish
     push!(shellpairs, ShPair(basis_set.shells[ish], basis_set.shells[jsh])) 
   end
   
   sort!(shellpairs, by = x->((x.nbas2*x.nprim2),x.am2))
   
   for shellpair in shellpairs 
-    println(unsafe_string(shellpair.class),",",(shellpair.nbas2*shellpair.nprim2)) 
+    println(unsafe_string(shellpair.class), ",", (shellpair.nbas2*shellpair.nprim2))
   end
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
