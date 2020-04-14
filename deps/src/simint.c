@@ -12,10 +12,10 @@
 static struct simint_shell* shells = NULL; //array of basis set shells for SIMINT
 static struct simint_multi_shellpair* shell_pair_data = NULL; //array of shell pair data 
 
-static int* sp_shell = NULL; //array telling if given shell is L shell or not
-static int* ksize = NULL; //array telling if given shell is L shell or not
-static int* ksize_simint = NULL; //array telling if given shell is L shell or not
-static int* kstart_simint = NULL; //array telling if given shell is L shell or not
+//static int* sp_shell = NULL; //array telling if given shell is L shell or not
+//static int* ksize = NULL; //array telling if given shell is L shell or not
+//static int* ksize_simint = NULL; //array telling if given shell is L shell or not
+//static int* kstart_simint = NULL; //array telling if given shell is L shell or not
 
 int iold, jold;
 int nshells, ishell, ishell_base;
@@ -43,10 +43,10 @@ void initialize_c()
   shells = malloc(1*sizeof(struct simint_shell));
   shell_pair_data = malloc(1*sizeof(struct simint_multi_shellpair));
   
-  sp_shell = malloc(1*sizeof(int));
-  ksize = malloc(1*sizeof(int));
-  ksize_simint = malloc(1*sizeof(int));
-  kstart_simint = malloc(1*sizeof(int));
+  //sp_shell = malloc(1*sizeof(int));
+  //ksize = malloc(1*sizeof(int));
+  //ksize_simint = malloc(1*sizeof(int));
+  //kstart_simint = malloc(1*sizeof(int));
 
   iold = -1; jold = -1;
   ishell = 0; ishell_base = 0;
@@ -58,10 +58,10 @@ void initialize_c()
 void finalize_c()
 {
     //--Free remaining memory--//
-    free(kstart_simint);
-    free(ksize_simint);
-    free(ksize);
-    free(sp_shell);
+    //free(kstart_simint);
+    //free(ksize_simint);
+    //free(ksize);
+    //free(sp_shell);
 
     free(shell_pair_data);
     for (int i = 0; i != nshell_simint; ++i) simint_free_shell(&shells[i]);
@@ -152,10 +152,10 @@ void allocate_shell_array_c(long long int nshell,
   shell_pair_data = realloc(shell_pair_data,(nshells*(nshells+1)/2)*sizeof(struct simint_multi_shellpair));
   //printf("SHELL PAIR DATA SIZE: %d\n", (nshells*(nshells+1)/2)*sizeof(struct simint_multi_shellpair));
 
-  sp_shell = realloc(sp_shell, nshells*sizeof(int));
-  ksize = realloc(ksize, nshells*sizeof(int));
-  ksize_simint = realloc(ksize_simint, nshell_simint*sizeof(int));
-  kstart_simint = realloc(kstart_simint, nshell_simint*sizeof(int));
+  //sp_shell = realloc(sp_shell, nshells*sizeof(int));
+  //ksize = realloc(ksize, nshells*sizeof(int));
+  //ksize_simint = realloc(ksize_simint, nshell_simint*sizeof(int));
+  //kstart_simint = realloc(kstart_simint, nshell_simint*sizeof(int));
 }
 
 void add_shell_c(struct shell* p_input)
@@ -164,8 +164,8 @@ void add_shell_c(struct shell* p_input)
 
   int sp = input.sp;
 
-  sp_shell[ishell_base] = sp ? 1 : 0;
-  ksize[ishell_base] = input.nbas;
+  //sp_shell[ishell_base] = sp ? 1 : 0;
+  //ksize[ishell_base] = input.nbas;
 
   for (int isp = 0; isp < sp+1; ++isp) { //two iterations for L shells to split them into s and p components
     simint_initialize_shell(&shells[ishell]);
@@ -185,12 +185,12 @@ void add_shell_c(struct shell* p_input)
       shells[ishell].coef[iprim] = input.coefficients[iprim+nprim*isp];
     };
 
-    if (sp)
-      ksize_simint[ishell] = isp ? 3 : 1;
-    else
-      ksize_simint[ishell] = input.nbas;
+    //if (sp)
+      //ksize_simint[ishell] = isp ? 3 : 1;
+    //else
+    //  ksize_simint[ishell] = input.nbas;
 
-    kstart_simint[ishell] = ishell == 0 ? 0 : kstart_simint[ishell-1] + ksize_simint[ishell-1];
+    //kstart_simint[ishell] = ishell == 0 ? 0 : kstart_simint[ishell-1] + ksize_simint[ishell-1];
 
     ++ishell;
   }
