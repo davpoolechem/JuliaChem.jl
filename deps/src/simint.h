@@ -6,6 +6,7 @@ extern struct simint_multi_shellpair right_pair;  //ket SIMINT shell pair struct
 #define MAX_CONTRACTION 12
 
 extern struct shell {
+  long long int shell_id;
   long long int atom_id;
 
   double exponents[MAX_CONTRACTION];
