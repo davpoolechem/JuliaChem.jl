@@ -18,7 +18,7 @@ function minimal_rhf(input_file)
     JuliaChem.JCMolecule.run(mol)
 
     #== perform scf calculation ==#
-    scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; output="minimal") 
+    scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; output="verbose") 
   
     #== reset JuliaChem runtime ==#
     JuliaChem.reset()
