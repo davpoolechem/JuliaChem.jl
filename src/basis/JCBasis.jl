@@ -158,7 +158,9 @@ function run(molecule, model; output="none")
 
           basis_set.norb += new_shell.nbas
         end
-        println()
+        if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          println(" ")
+        end
       end
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
         println(" ")
@@ -168,6 +170,17 @@ function run(molecule, model; output="none")
   end
 
   sort!(basis_set.shells, by = x->((x.nbas*x.nprim),x.am))
+
+  shellpairs = Vector{ShPair}([])
+  for ish in length(basis_set.shells), jsh in 1:ish
+    push!(shellpairs, ShPair(basis_set.shells[ish], basis_set.shells[jsh])) 
+  end
+  
+  sort!(shellpairs, by = x->((x.nbas2*x.nprim2),x.am2))
+  
+  for shellpair in shellpairs 
+    println(unsafe_string(shellpair.class),",",(shellpair.nbas2*shellpair.nprim2)) 
+  end
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
