@@ -115,11 +115,9 @@ type = Precision of variables in calculation
   #@code_warntype iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
     ortho_trans.data, basis, 0, debug)
-  F = deepcopy(F_mo)
-  #F .= F_mo
-  #indices_tocopy::CartesianIndices = CartesianIndices((1:size(F,1),
-  #  1:size(F,2)))
-  #copyto!(F, indices_tocopy, F_mo, indices_tocopy)
+  
+  F = deepcopy(F) #apparently this is needed for some reason
+  F_old = deepcopy(F)
 
   E = E_elec + E_nuc
   E_old = E
@@ -133,8 +131,8 @@ type = Precision of variables in calculation
   #=============================#
   #@code_warntype scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
-    F_eval, F_evec, F_mo, F_part, E_nuc, E_elec, E_old, basis, scf_flags; 
-    output=output, debug=debug, niter=niter)
+    F_eval, F_evec, F_mo, F_part, F_old, E_nuc, E_elec, E_old, basis, 
+    scf_flags; output=output, debug=debug, niter=niter)
 
   if !converged
     if MPI.Comm_rank(comm) == 0 && output != "none"
@@ -197,8 +195,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, 
   ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64},
-  E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
-  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output, debug, niter)
+  F_old::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64, 
+  basis::BasisStructs.Basis, scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; 
+  output, debug, niter)
 
   #== read in some more variables from scf flags input ==#
   ndiis::Int = scf_flags["ndiis"]
@@ -219,18 +218,12 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
 
   FD = similar(F)
   FDS = similar(F)
-  SD = similar(F)
   SDF = similar(F)
   
   #== build arrays needed for post-fock build iteration calculations ==#
   F_temp = similar(F)
   D_old = similar(F)
   ΔD = similar(F)
-
-  #== build arrays needed for dynamic damping ==#
-  damp_values = [ 0.25, 0.75 ]
-  D_damp = [ similar(F) for i in 1:2 ]
-  D_damp_rms = [ zero(Float64), zero(Float64) ]
 
   #== build variables needed for eri batching ==#
   nsh = length(basis.shells)
@@ -256,10 +249,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #@code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
-    F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, D_old, ΔD, damp_values, 
-    D_damp, D_damp_rms, scf_converged, test_e, test_F,
-    FD, FDS, SD, SDF; output=output, debug=debug, niter=niter, ndiis=ndiis, 
-    dele=dele, rmsd=rmsd, load=load)
+    F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
+    scf_converged, test_e, test_F, FD, FDS, SDF; output=output, debug=debug, 
+    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load)
 
   #== we are done! ==#
   if debug
@@ -281,18 +273,19 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, 
-  F_part::Matrix{Float64}, 
-  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, damp_values::Vector{Float64},
-  D_damp::Vector{Matrix{Float64}}, D_damp_rms::Vector{Float64},
-  scf_converged::Bool,  
+  F_part::Matrix{Float64}, F_old::Matrix{Float64},
+  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
-  FD::Matrix{Float64}, FDS::Matrix{Float64}, SD::Matrix{Float64},
-  SDF::Matrix{Float64}; output, debug, niter, ndiis, dele, rmsd, load)
+  FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}; 
+  output, debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
 
   B_dim = 1
+  D_rms = 1.0
+  ΔE = 1.0 
+
   #length_eri_sizes = length(eri_sizes)
 
   #=================================#
@@ -300,7 +293,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   #=================================#
   iter = 1
   iter_converged = false
-
+  
   while !iter_converged
     #== reset eri arrays ==#
     #if quartet_batch_num_old != 1 && iter != 1
@@ -319,7 +312,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #  eri_batch[:] = load("tei_batch.jld","Integrals/$quartet_batch_num_old")
     #end
 
-    #== build fock matrix ==#
+    #== build new Fock matrix ==#
     F_temp .= twoei(F, D, H, basis; debug=debug, load=load)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
@@ -339,10 +332,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     if ndiis > 0
       BLAS.symm!('L', 'U', 1.0, F, D, 0.0, FD)
       BLAS.gemm!('N', 'N', 1.0, FD, S, 0.0, FDS)
-
-      BLAS.symm!('L', 'U', 1.0, S, D, 0.0, SD)
-      BLAS.gemm!('N', 'N', 1.0, SD, F, 0.0, SDF)
-
+      
+      SDF .= transpose(FDS)
+      
       e .= FDS .- SDF
 
       @views e_array_old .= e_array[1:ndiis]
@@ -364,28 +356,18 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
         end
       end
     end
+
+    #== dynamic damping of Fock matrix ==#
+    x = ΔE >= 1.0 ? 0.9/log(50,50*ΔE) : 0.9
+    F .= x.*F .+ (1.0-x).*F_old 
+
+    F_old .= F
+
     #== obtain new F,D,C matrices ==#
-    #indices_tocopy = CartesianIndices((1:size(D,1),
-    #  1:size(D,2)))
-    #copyto!(D_old, indices_tocopy, D, indices_tocopy)
     D_old .= D
 
     E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part,
       ortho, ortho_trans, basis, iter, debug)
-
-    F .= F_mo
-    #indices_tocopy = CartesianIndices((1:size(F_mo,1),
-    #  1:size(F_mo,2)))
-    #copyto!(F, indices_tocopy, F_mo, indices_tocopy)
-  
-    #== dynamic damping of density matrix ==#
-    #D_damp[:] = map(x -> x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:],
-    #  damp_values)
-    #D_damp_rms = map(x->√(@∑ x-D_old x-D_old), D_damp)
-
-    #x = maximum(D_damp_rms) > oneunit(typeof(dele)) ? minimum(damp_values) :
-    #  maximum(damp_values)
-    #D[:,:] = x*D[:,:] + (oneunit(typeof(dele))-x)*D_old[:,:]
 
     #== check for convergence ==#
     ΔD .= D .- D_old
