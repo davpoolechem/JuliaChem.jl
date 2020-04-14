@@ -123,7 +123,8 @@ function run(molecule, model; output="none")
           add_shell(basis_set,deepcopy(new_shell))
 
           basis_set.norb += 1 
-          shell_id += 1   
+          shell_id += 1
+
           #== p component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
             println("L (p)")
@@ -140,8 +141,8 @@ function run(molecule, model; output="none")
             atom_center, 2, size(new_shell_exp)[1], true)
           add_shell(basis_set,deepcopy(new_shell))
 
-          basis_set.norb += 3
-          shell_id += 1 
+          basis_set.norb += 3 
+          shell_id += 1
         #== otherwise accept shell as is ==#
         else 
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -163,7 +164,6 @@ function run(molecule, model; output="none")
 
           basis_set.norb += new_shell.nbas
           shell_id += 1
-        end
         if MPI.Comm_rank(comm) == 0 && output == "verbose"
           println(" ")
         end
