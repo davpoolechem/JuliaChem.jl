@@ -451,11 +451,11 @@ H = One-electron Hamiltonian Matrix
         H, basis, eri_quartet_batch, mutex,
         quartet, ijkl_index, simint_workspace,
         ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
-      end
+    end
       
-      #lock(mutex)
-      #  F .+= F_priv
-      #unlock(mutex)
+    #lock(mutex)
+    #  F .+= F_priv
+    #unlock(mutex)
   #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
     batch_size = 2500 
