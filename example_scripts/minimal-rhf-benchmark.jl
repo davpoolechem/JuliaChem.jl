@@ -33,17 +33,17 @@ function script(input_file)
 
     #== generate basis set ==#
     basis_time1_t1 = time_ns()/1e9
-    basis = JuliaChem.JCBasis.run(molecule, model; output="verbose")
+    basis = JuliaChem.JCBasis.run(molecule, model; output="none")
     basis_time1_t2 = time_ns()/1e9
     basis_time1 = basis_time1_t2 - basis_time1_t1 
 
     basis_time2_t1 = time_ns()/1e9
-    basis = JuliaChem.JCBasis.run(molecule, model; output="verbose")
+    basis = JuliaChem.JCBasis.run(molecule, model; output="none")
     basis_time2_t2 = time_ns()/1e9
     basis_time2 = basis_time2_t2 - basis_time2_t1
   
     basis_jit = basis_time1 - basis_time2
-    mol, basis = JuliaChem.JCBasis.run(molecule, model; output="verbose")
+    mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
 
     #== perform scf benchmark ==#
     timeof = Vector{Float64}(undef,0)
@@ -62,7 +62,7 @@ function script(input_file)
         #for index in 1:1
           molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
             output="verbose")
-          mol, basis = JuliaChem.JCBasis.run(molecule, model; output="verbose")
+          mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
 
           scf_timeof_t1 = time_ns()/1e9
           scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 

@@ -196,9 +196,6 @@ function run(molecule, model; output="none")
       shellpair.sh_b.shell_id))
   end
 
-
-  display(basis_set.shpair_ordering)
-
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("                       ========================================                 ")
