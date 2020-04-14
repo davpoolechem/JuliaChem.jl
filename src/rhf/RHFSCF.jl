@@ -586,11 +586,11 @@ end
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
-  ish = decompose(bra_pair)
-  jsh = bra_pair - triangular_index(ish)
+  ish = basis.shpair_ordering[bra_pair][1] 
+  jsh = basis.shpair_ordering[bra_pair][2] 
 
-  ksh = decompose(ket_pair)
-  lsh = ket_pair - triangular_index(ksh)
+  ksh = basis.shpair_ordering[ket_pair][1] 
+  lsh = basis.shpair_ordering[ket_pair][2]
 
   quartet.bra.sh_a = basis[ish]
   quartet.bra.sh_b = basis[jsh]
