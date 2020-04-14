@@ -358,10 +358,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
 
     #== dynamic damping of Fock matrix ==#
-    if  ΔE >= 1 
-      x = 1.0/sqrt(ΔE)
-      F .= x.*F .+ (1.0-x).*F_old 
-    end
+    x = ΔE >= 1.0 ? 0.9/log(50,50*ΔE) : 0.9
+    F .= x.*F .+ (1.0-x).*F_old 
 
     F_old .= F
 
