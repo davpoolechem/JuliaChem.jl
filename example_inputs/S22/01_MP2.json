@@ -27,7 +27,7 @@
       "prec":"Float64",
       "direct":true,
       "debug":false,
-      "load":"static"
+      "load":"dynamic"
     }
   }
 }

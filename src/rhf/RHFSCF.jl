@@ -445,39 +445,35 @@ H = One-electron Hamiltonian Matrix
   
   #== simply do calculation for single-rank runs ==#
   if load == "static" 
-    Threads.@threads for thread in 1:Threads.nthreads()
-      ish_old = 0
-      jsh_old = 0
-      ksh_old = 0
-      lsh_old = 0
+    ish_old = 0
+    jsh_old = 0
+    ksh_old = 0
+    lsh_old = 0
 
-      F_priv = zeros(Float64,(basis.norb,basis.norb))
+    max_shell_am = MAX_SHELL_AM
+    eri_quartet_batch = Vector{Float64}(undef,1296)
 
-      max_shell_am = MAX_SHELL_AM
-      eri_quartet_batch = Vector{Float64}(undef,1296)
-
-      quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
-        ShPair(basis.shells[1], basis.shells[1]))
+    quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
+      ShPair(basis.shells[1], basis.shells[1]))
  
-      simint_workspace = Vector{Float64}(undef,100000)
+    simint_workspace = Vector{Float64}(undef,100000)
 
-      while true 
-        ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
+    while true 
+      ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
  
-        if ijkl_index <= 0 break
-        elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
-        end
+      if ijkl_index <= 0 break
+      elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
+      end
 
-        twoei_thread_kernel(F_priv, D,
-          H, basis, eri_quartet_batch, mutex,
-          quartet, ijkl_index, simint_workspace,
-          ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
+      twoei_thread_kernel(F, D,
+        H, basis, eri_quartet_batch, mutex,
+        quartet, ijkl_index, simint_workspace,
+        ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
       end
       
-      lock(mutex)
-        F .+= F_priv
-      unlock(mutex)
-    end
+      #lock(mutex)
+      #  F .+= F_priv
+      #unlock(mutex)
   #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
     batch_size = 2500 
@@ -544,6 +540,8 @@ H = One-electron Hamiltonian Matrix
       quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
         ShPair(basis.shells[1], basis.shells[1]))
    
+      simint_workspace = Vector{Float64}(undef,100000)
+      
       #== do computations ==# 
       while true 
         #== get shell quartet ==#
@@ -564,9 +562,10 @@ H = One-electron Hamiltonian Matrix
         #println("NEW BATCH")
         for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
           #println("IJKL: $ijkl")
-          twoei_thread_kernel(F, D,
-            H, basis, eri_quartet_batch,
-            quartet, ijkl,
+
+         twoei_thread_kernel(F, D,
+            H, basis, eri_quartet_batch, mutex,
+            quartet, ijkl, simint_workspace,
             ish_old, jsh_old, ksh_old, lsh_old; 
             debug=debug)
         end
@@ -647,7 +646,7 @@ end
   #eri_quartet_batch = @view eri_batch[starting:ending]
 
   shellquart(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
-  unlock(mutex)
+  #unlock(mutex)
 
   dirfck(F, D, eri_quartet_batch, quartet,
     ish, jsh, ksh, lsh, debug)
