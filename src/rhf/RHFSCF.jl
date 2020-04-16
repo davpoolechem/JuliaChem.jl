@@ -439,7 +439,7 @@ H = One-electron Hamiltonian Matrix
     quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
  
-    simint_workspace = Vector{Float64}(undef,100000)
+    simint_workspace = Vector{Float64}(undef,10000)
 
     while true 
       ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
@@ -523,7 +523,7 @@ H = One-electron Hamiltonian Matrix
       quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
         ShPair(basis.shells[1], basis.shells[1]))
    
-      simint_workspace = Vector{Float64}(undef,100000)
+      simint_workspace = Vector{Float64}(undef,10000)
       
       #== do computations ==# 
       while true 
@@ -585,23 +585,16 @@ end
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
-  ish = basis.shpair_ordering[bra_pair][1] 
-  jsh = basis.shpair_ordering[bra_pair][2] 
+  #ish = basis.shpair_ordering[bra_pair][1] 
+  #jsh = basis.shpair_ordering[bra_pair][2] 
 
-  ksh = basis.shpair_ordering[ket_pair][1] 
-  lsh = basis.shpair_ordering[ket_pair][2]
+  #ksh = basis.shpair_ordering[ket_pair][1] 
+  #lsh = basis.shpair_ordering[ket_pair][2]
 
   quartet.bra.sh_a = basis[ish]
   quartet.bra.sh_b = basis[jsh]
   quartet.ket.sh_a = basis[ksh]
   quartet.ket.sh_b = basis[lsh]
-
-  if debug
-    if print_eri 
-      println()
-      println("QUARTET: $ish, $jsh, $ksh, $lsh ($ijkl_index):") 
-    end
-  end
 
  # quartet_batch_num::Int64 = fld(quartet_num,
  #   QUARTET_BATCH_SIZE) + 1
@@ -678,11 +671,11 @@ end
     νν = νsize + pν
 
     if μμ < νν && ish == jsh 
-      if do_continue_print println("CONTINUE BRA: $μμ, $νν") end
+      #if do_continue_print println("CONTINUE BRA: $μμ, $νν") end
       continue 
     end
 
-    #μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
+    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
     for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
       λλ = λsize + pλ
       σσ = σsize + pσ
@@ -691,18 +684,18 @@ end
         #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
       #end
 
-      μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
-      #μνλσ += 1 
+      #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
+      μνλσ += 1 
   
       eri = eri_batch[μνλσ] 
       
-      #if abs(eri) < 1.0E-10
-      #  if do_continue_print println("CONTINUE SCREEN") end
-      #  continue 
-      #end
+      if abs(eri) < 1.0E-10
+        #if do_continue_print println("CONTINUE SCREEN") end
+        continue 
+      end
 
       if λλ < σσ && ksh == lsh 
-        if do_continue_print println("CONTINUE KET") end
+        #if do_continue_print println("CONTINUE KET") end
         continue 
       end
   
@@ -713,14 +706,14 @@ end
       λσ = triangular_index(λ,σ)                                                    
        
       if μν < λσ && ish == ksh && jsh == lsh 
-        if do_continue_print println("CONTINUE BRAKET") end
+        #if do_continue_print println("CONTINUE BRAKET") end
         continue 
       end
     
       μ, ν, λ, σ = μν < λσ && !(ish == ksh && jsh == lsh) ? 
         (λ, σ, μ, ν) : (μ, ν, λ, σ)
 
-      if print_eri println("ERI($μ, $ν, $λ, $σ) = $eri") end
+      #if print_eri println("ERI($μ, $ν, $λ, $σ) = $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0

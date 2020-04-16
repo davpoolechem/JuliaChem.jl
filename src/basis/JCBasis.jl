@@ -164,6 +164,7 @@ function run(molecule, model; output="none")
 
           basis_set.norb += new_shell.nbas
           shell_id += 1
+        end
         if MPI.Comm_rank(comm) == 0 && output == "verbose"
           println(" ")
         end
