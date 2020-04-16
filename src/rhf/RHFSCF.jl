@@ -423,9 +423,6 @@ H = One-electron Hamiltonian Matrix
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
  
-  mutex = Base.Threads.ReentrantLock()
-  thread_index_counter = Threads.Atomic{Int64}(nindices)
-  
   #== simply do calculation for single-rank runs ==#
   if load == "static" 
     ish_old = 0
@@ -434,22 +431,19 @@ H = One-electron Hamiltonian Matrix
     lsh_old = 0
 
     max_shell_am = MAX_SHELL_AM
-    eri_quartet_batch = Vector{Float64}(undef,1296)
+    eri_quartet_batch = Vector{Float64}(undef,81)
 
     quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
  
     simint_workspace = Vector{Float64}(undef,10000)
 
-    while true 
-      ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
- 
-      if ijkl_index <= 0 break
-      elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
+    for ijkl_index in nindices:-1:1  
+      if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
       end
 
       twoei_thread_kernel(F, D,
-        H, basis, eri_quartet_batch, mutex,
+        H, basis, eri_quartet_batch, 
         quartet, ijkl_index, simint_workspace,
         ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
     end
@@ -459,7 +453,7 @@ H = One-electron Hamiltonian Matrix
     #unlock(mutex)
   #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
-    batch_size = 2500 
+    batch_size = ceil(Int, nindices/(MPI.Comm_size(comm)*10000))
 
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
@@ -546,8 +540,8 @@ H = One-electron Hamiltonian Matrix
         for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
           #println("IJKL: $ijkl")
 
-         twoei_thread_kernel(F, D,
-            H, basis, eri_quartet_batch, mutex,
+          twoei_thread_kernel(F, D,
+            H, basis, eri_quartet_batch, 
             quartet, ijkl, simint_workspace,
             ish_old, jsh_old, ksh_old, lsh_old; 
             debug=debug)
@@ -575,7 +569,7 @@ end
 
 @inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
-  eri_quartet_batch::Vector{Float64}, mutex, 
+  eri_quartet_batch::Vector{Float64}, 
   quartet::ShQuartet, ijkl_index::Int64,
   simint_workspace::Vector{Float64}, 
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
