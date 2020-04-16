@@ -184,7 +184,7 @@ function run(molecule, model; output="none")
     push!(shellpairs, ShPair(basis_set.shells[ish], basis_set.shells[jsh])) 
   end
   
-  sort!(shellpairs, by = x->((x.nbas2*x.nprim2),x.am2))
+  sort!(shellpairs, by = x->((x.nbas2*x.nprim2),x.am2,unsafe_string(x.class)))
  
   #for ish in 1:length(basis_set.shells), jsh in 1:ish 
   #  idx = ceil(Int64, ish*(ish-1)/2) + jsh
@@ -193,9 +193,11 @@ function run(molecule, model; output="none")
   #end
 
   for shellpair in shellpairs 
-    push!(basis_set.shpair_ordering,(shellpair.sh_a.shell_id, 
-      shellpair.sh_b.shell_id))
+    basis_set.shpair_ordering = vcat(basis_set.shpair_ordering, [shellpair.sh_a.shell_id shellpair.sh_b.shell_id])
   end
+  
+  #delete first row, as it is simply zeroes
+  basis_set.shpair_ordering = basis_set.shpair_ordering[setdiff(1:end, 1),:]
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
