@@ -699,13 +699,14 @@ end
       μν = triangular_index(μ,ν)                                                    
       λσ = triangular_index(λ,σ)                                                    
        
-      if μν < λσ && ish == ksh && jsh == lsh 
-        #if do_continue_print println("CONTINUE BRAKET") end
-        continue 
+      if μν < λσ 
+        if ish == ksh && jsh == lsh 
+          #if do_continue_print println("CONTINUE BRAKET") end
+          continue 
+        else
+          μ, ν, λ, σ = λ, σ, μ, ν
+        end
       end
-    
-      μ, ν, λ, σ = μν < λσ && !(ish == ksh && jsh == lsh) ? 
-        (λ, σ, μ, ν) : (μ, ν, λ, σ)
 
       #if print_eri println("ERI($μ, $ν, $λ, $σ) = $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0 
