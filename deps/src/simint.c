@@ -288,9 +288,6 @@ void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
   int ij_idx = (ish*(ish-1)/2) + jsh - 1;
   int kl_idx = (ksh*(ksh-1)/2) + lsh - 1;
 
-  struct simint_multi_shellpair left_pair = shell_pair_data[ij_idx]; 
-  struct simint_multi_shellpair right_pair = shell_pair_data[kl_idx]; 
- 
 #if 0 
   printf("IJ %d, %d, %d, %d:\n", ish, jsh, ksh, lsh);
   printf("%d, %d, %d\n",left_pair_.am1, left_pair_.am2, left_pair_.nprim);
@@ -304,8 +301,8 @@ void compute_eris_c(long long int ish, long long int jsh, long long int ksh,
  #endif
 
   int ncomputed = 0;
-  ncomputed = simint_compute_eri(&left_pair,
-    &right_pair, 0.0, work, eri);
+  ncomputed = simint_compute_eri(&shell_pair_data[ij_idx],
+    &shell_pair_data[kl_idx], 0.0, work, eri);
   
   //SIMINT_FREE(work);
 }
