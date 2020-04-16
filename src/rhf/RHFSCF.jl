@@ -314,8 +314,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== build new Fock matrix ==#
-    F_temp .= twoei(F, D, H, basis; debug=debug, load=load)
-
+    F_temp .= twoei(F, D, H, basis, debug, load)
+    #@code_warntype twoei(F, D, H, basis, debug, load)
+    
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
 
@@ -414,7 +415,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 @inline function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
-  basis::BasisStructs.Basis; debug, load)
+  basis::BasisStructs.Basis, debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
@@ -453,7 +454,7 @@ H = One-electron Hamiltonian Matrix
     #unlock(mutex)
   #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
-    batch_size = ceil(Int, nindices/(MPI.Comm_size(comm)*10000))
+    batch_size = ceil(Int, nindices/(MPI.Comm_size(comm)*100))
 
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
@@ -579,11 +580,17 @@ end
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
-  ish = basis.shpair_ordering[bra_pair,1] 
-  jsh = basis.shpair_ordering[bra_pair,2] 
+  ish = decompose(bra_pair)
+  jsh = bra_pair - triangular_index(ish)
 
-  ksh = basis.shpair_ordering[ket_pair,1] 
-  lsh = basis.shpair_ordering[ket_pair,2]
+  ksh = decompose(ket_pair)
+  lsh = ket_pair - triangular_index(ksh)
+
+  #ish = basis.shpair_ordering[bra_pair,1] 
+  #jsh = basis.shpair_ordering[bra_pair,2] 
+
+  #ksh = basis.shpair_ordering[ket_pair,1] 
+  #lsh = basis.shpair_ordering[ket_pair,2]
 
   quartet.bra.sh_a = basis[ish]
   quartet.bra.sh_b = basis[jsh]
