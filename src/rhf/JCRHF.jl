@@ -57,7 +57,7 @@ function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
       SIMINT.add_shell(shell)
     end
 
-    SIMINT.normalize_shells()
+    #SIMINT.normalize_shells()
     SIMINT.precompute_shell_pair_data()
 
     #for ishell::Int64 in 0:(nshell_simint-1)

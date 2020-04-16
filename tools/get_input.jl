@@ -98,17 +98,14 @@ function create_input(input_file_string::String)
 end
 
 #== create_all S22 inputs ==#
-function get_all_S22(directory)
-  for input_number in 1:22
-    input_number_string = input_number < 10 ? "0"*"$input_number" : "$input_number"
-    input_file_inp_string = directory*"/"*input_number_string #*"_MP2.inp" 
-    println("Working on input file "*input_file_inp_string*".inp")
-   
-    get_geometry_and_symbols(input_file_inp_string*"_MP2.inp") 
-    create_input(input_file_inp_string*"_MP2")
-  end
-end
+#function get_all_S22(directory)
+#  for input_number in 1:22
+input_file_inp_string = ARGS[1]
+get_geometry_and_symbols(input_file_inp_string*".inp") 
+create_input(input_file_inp_string)
+#  end
+#end
 
-get_all_S22(ARGS[1])
+#get_all_S22(ARGS[1])
 
 

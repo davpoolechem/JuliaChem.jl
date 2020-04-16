@@ -3,7 +3,7 @@ using JCModules.Globals
 
 #using InteractiveUtils
 using MPI
-#using Base.Threads
+using Base.Threads
 #using Distributed
 using LinearAlgebra
 #using JLD
@@ -422,6 +422,9 @@ H = One-electron Hamiltonian Matrix
 
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
+ 
+  mutex = Base.Threads.ReentrantLock()
+  thread_index_counter = Threads.Atomic{Int64}(nindices)
   
   #== simply do calculation for single-rank runs ==#
   if load == "static" 
@@ -430,28 +433,30 @@ H = One-electron Hamiltonian Matrix
     ksh_old = 0
     lsh_old = 0
 
-    #mutex = Base.Threads.ReentrantLock()
-    thread_index_counter = nindices
- 
-    #for thread in 1:Threads.nthreads()
-    #  F_priv = zeros(basis.norb,basis.norb)
-
     max_shell_am = MAX_SHELL_AM
     eri_quartet_batch = Vector{Float64}(undef,1296)
 
     quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
-   
-    for ijkl_index in nindices:-1:1
-      if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
+ 
+    simint_workspace = Vector{Float64}(undef,100000)
+
+    while true 
+      ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
+ 
+      if ijkl_index <= 0 break
+      elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
+      end
+
       twoei_thread_kernel(F, D,
-        H, basis, thread_index_counter, eri_quartet_batch,
-        quartet, ijkl_index,
+        H, basis, eri_quartet_batch, mutex,
+        quartet, ijkl_index, simint_workspace,
         ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
-    #lock(mutex)
-    #F .+= F_priv
-    #unlock(mutex)
     end
+      
+    #lock(mutex)
+    #  F .+= F_priv
+    #unlock(mutex)
   #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
     batch_size = 2500 
@@ -518,6 +523,8 @@ H = One-electron Hamiltonian Matrix
       quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
         ShPair(basis.shells[1], basis.shells[1]))
    
+      simint_workspace = Vector{Float64}(undef,100000)
+      
       #== do computations ==# 
       while true 
         #== get shell quartet ==#
@@ -538,9 +545,10 @@ H = One-electron Hamiltonian Matrix
         #println("NEW BATCH")
         for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
           #println("IJKL: $ijkl")
-          twoei_thread_kernel(F, D,
-            H, basis, thread_index_counter, eri_quartet_batch,
-            quartet, ijkl,
+
+         twoei_thread_kernel(F, D,
+            H, basis, eri_quartet_batch, mutex,
+            quartet, ijkl, simint_workspace,
             ish_old, jsh_old, ksh_old, lsh_old; 
             debug=debug)
         end
@@ -567,22 +575,13 @@ end
 
 @inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
-  thread_index_counter::Int64, 
-  eri_quartet_batch::Vector{Float64}, 
-  quartet::ShQuartet, ijkl_index::Int64, 
+  eri_quartet_batch::Vector{Float64}, mutex, 
+  quartet::ShQuartet, ijkl_index::Int64,
+  simint_workspace::Vector{Float64}, 
   ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
-
-  #if debug println("START TWO-ELECTRON INTEGRALS") end
-  #for ijkl_index in nindices:-1:1
-  #while true
-  #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
-  #ijkl_index = thread_index_counter
-  #thread_index_counter -= 1
-  #if ijkl_index < 1 break end
-
-  #if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
+   
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
@@ -636,10 +635,8 @@ end
   #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
   #eri_quartet_batch = @view eri_batch[starting:ending]
 
-  shellquart(ish, jsh, ksh, lsh, eri_quartet_batch)
-
-  #eqb_size = bra.sh_a.am*bra.sh_b.am*ket.sh_a.am*ket.sh_b.am
-  #@views eri_quartet_batch_abs[1:eqb_size] = abs.(eri_quartet_batch[1:eqb_size])
+  shellquart(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
+  #unlock(mutex)
 
   dirfck(F, D, eri_quartet_batch, quartet,
     ish, jsh, ksh, lsh, debug)
@@ -648,18 +645,12 @@ end
 end
 
 @inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
-  lsh::Int64, eri_quartet_batch::Vector{Float64})
-  
-  fill!(eri_quartet_batch, 0.0)
-  #= actually compute integrals =#
-  SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch)
+  lsh::Int64, eri_quartet_batch::Vector{Float64},
+  simint_workspace::Vector{Float64})
 
-  #if ish == 22 && jsh == 7 && ksh == 12 && lsh == 12  
-  #  SIMINT.get_simint_shell_info(ish-1)
-  #  SIMINT.get_simint_shell_info(jsh-1)
-  #  SIMINT.get_simint_shell_info(ksh-1)
-  #  SIMINT.get_simint_shell_info(lsh-1)
-  #end
+  #= actually compute integrals =#
+  SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
+    simint_workspace)
 end
 
 
@@ -786,13 +777,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
 
   F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
-  
-  if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-$iter/F_eval", F_mo)
-    h5write("debug.h5","SCF/Iteration-$iter/F_evec/Unsorted", F_mo)
-  end
-
-  @views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+  #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   if debug && MPI.Comm_rank(comm) == 0
     h5write("debug.h5","SCF/Iteration-$iter/F_evec/Sorted", F_mo)
