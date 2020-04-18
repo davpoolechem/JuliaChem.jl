@@ -50,16 +50,16 @@ function script(input_file)
     scf_time1 = 0.0
     if (driver == "energy")
       if (model["method"] == "RHF")
-        scf_time1_t1 = time_ns()/1e9
-        scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
-          output="verbose") 
-        scf_time1_t2 = time_ns()/1e9
-        scf_time1 = scf_time1_t2 - scf_time1_t1 
+        #scf_time1_t1 = time_ns()/1e9
+        #scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
+        #  output="verbose") 
+        #scf_time1_t2 = time_ns()/1e9
+        #scf_time1 = scf_time1_t2 - scf_time1_t1 
 
-        JuliaChem.reset()
+        #JuliaChem.reset()
       
-        for index in 1:3
-        #for index in 1:1
+        #for index in 1:3
+        for index in 1:1
           molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
             output="verbose")
           mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
@@ -77,17 +77,20 @@ function script(input_file)
     scf_jit = scf_time1 - Statistics.mean(timeof)
   
     MPI.Barrier(MPI.COMM_WORLD)
-    if (MPI.Comm_rank(MPI.COMM_WORLD) == 0)  
+    #if (MPI.Comm_rank(MPI.COMM_WORLD) == 0)  
       #== output relevant information ==# 
-      println("Input JIT: ", input_jit)
-      println("Basis JIT: ", basis_jit)
-      println("SCF JIT: ", scf_jit)
-      println("Total JIT: ", input_jit + basis_jit + scf_jit)
-      println("")
+    #  println("Input JIT: ", input_jit)
+    #  println("Basis JIT: ", basis_jit)
+    #  println("SCF JIT: ", scf_jit)
+    #  println("Total JIT: ", input_jit + basis_jit + scf_jit)
+    #  println("")
   
       #== perform t-test to compare to GAMESS ==#
-      p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)
-      println(p)
+    #  p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)
+    #  println(p)
+    #end
+    if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+      display(timeof)
     end
     MPI.Barrier(MPI.COMM_WORLD)
     

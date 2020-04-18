@@ -454,7 +454,7 @@ H = One-electron Hamiltonian Matrix
     #unlock(mutex)
   #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
-    batch_size = ceil(Int, nindices/(MPI.Comm_size(comm)*100))
+    batch_size = ceil(Int, nindices/(MPI.Comm_size(comm)*1000000))
 
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
