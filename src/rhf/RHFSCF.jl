@@ -458,7 +458,7 @@ H = One-electron Hamiltonian Matrix
     #unlock(mutex)
   #== otherwise use dynamic task distribution with a master/slave model ==#
   elseif load == "dynamic"
-    batch_size = 2500 
+    batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*10000)) 
 
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
@@ -517,12 +517,12 @@ H = One-electron Hamiltonian Matrix
       #  F_priv = zeros(basis.norb,basis.norb)
 
       max_shell_am = MAX_SHELL_AM
-      eri_quartet_batch = Vector{Float64}(undef,1296)
+      eri_quartet_batch = Vector{Float64}(undef,81)
 
       quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
         ShPair(basis.shells[1], basis.shells[1]))
    
-      simint_workspace = Vector{Float64}(undef,100000)
+      simint_workspace = Vector{Float64}(undef,10000)
       
       #== do computations ==# 
       while true 
