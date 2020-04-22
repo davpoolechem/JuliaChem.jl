@@ -1,0 +1,25 @@
+Jobid: 92547
+qsub -O example_inputs/Scaling-10000/w50-11rank -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-11rank.sh
+Mon Apr 20 13:07:35 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 92547 submitted from terminal /dev/pts/24
+Mon Apr 20 13:07:52 2020 +0000 (UTC) 
+Mon Apr 20 13:07:52 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake07' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.92547' '--jobid' '92547' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=92547' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-11rank.sh'
+Mon Apr 20 13:07:52 2020 +0000 (UTC) 
+Mon Apr 20 13:07:52 2020 +0000 (UTC) Environment:
+Mon Apr 20 13:07:52 2020 +0000 (UTC) SHELL=/bin/bash
+Mon Apr 20 13:07:52 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpbanGPo
+Mon Apr 20 13:07:52 2020 +0000 (UTC) COBALT_PARTNAME=skylake07
+Mon Apr 20 13:07:52 2020 +0000 (UTC) COBALT_JOBID=92547
+Mon Apr 20 13:07:52 2020 +0000 (UTC) COBALT_STARTTIME=1587388058
+Mon Apr 20 13:07:52 2020 +0000 (UTC) LOGNAME=davpoolechem
+Mon Apr 20 13:07:52 2020 +0000 (UTC) USER=davpoolechem
+Mon Apr 20 13:07:52 2020 +0000 (UTC) COBALT_ENDTIME=1587409658
+Mon Apr 20 13:07:52 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Mon Apr 20 13:07:52 2020 +0000 (UTC) HOME=/home/davpoolechem
+Mon Apr 20 13:07:52 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Mon Apr 20 13:07:52 2020 +0000 (UTC) 
+Mon Apr 20 13:07:52 2020 +0000 (UTC) Info: stdin received from /dev/null
+Mon Apr 20 13:07:52 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-11rank.output
+Mon Apr 20 13:07:52 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-11rank.error
+Mon Apr 20 13:07:52 2020 +0000 (UTC) 
+Mon Apr 20 19:07:43 2020 +0000 (UTC) Info: maximum execution time exceeded; initiating job termination
