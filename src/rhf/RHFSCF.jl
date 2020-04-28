@@ -602,30 +602,30 @@ end
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
 
-  #pμ = quartet.bra.sh_a.pos
-  #nμ = quartet.bra.sh_a.nbas
+  pμ = quartet.bra.sh_a.pos
+  nμ = quartet.bra.sh_a.nbas
 
-  #pν = quartet.bra.sh_b.pos
-  #nν = quartet.bra.sh_b.nbas
+  pν = quartet.bra.sh_b.pos
+  nν = quartet.bra.sh_b.nbas
   
-  #pλ = quartet.ket.sh_a.pos
-  #nλ = quartet.ket.sh_a.nbas
+  pλ = quartet.ket.sh_a.pos
+  nλ = quartet.ket.sh_a.nbas
   
-  #pσ = quartet.ket.sh_b.pos
-  #nσ = quartet.ket.sh_b.nbas
+  pσ = quartet.ket.sh_b.pos
+  nσ = quartet.ket.sh_b.nbas
  
-  #@views dijmax = 4.0*maximum(D[pμ:(pμ+nμ-1), pν:(pν+nν-1)])
-  #@views dklmax = 4.0*maximum(D[pλ:(pλ+nλ-1), pσ:(pσ+nσ-1)])
+  @views dijmax = 4.0*maximum(D[pμ:(pμ+nμ-1), pν:(pν+nν-1)])
+  @views dklmax = 4.0*maximum(D[pλ:(pλ+nλ-1), pσ:(pσ+nσ-1)])
   
-  #@views dikmax = maximum(D[pμ:(pμ+nμ-1), pλ:(pλ+nλ-1)])
-  #@views dilmax = maximum(D[pμ:(pμ+nμ-1), pσ:(pσ+nσ-1)])
-  #@views djkmax = maximum(D[pν:(pν+nν-1), pλ:(pλ+nλ-1)])
-  #@views djlmax = maximum(D[pν:(pν+nν-1), pσ:(pσ+nσ-1)])
+  @views dikmax = maximum(D[pμ:(pμ+nμ-1), pλ:(pλ+nλ-1)])
+  @views dilmax = maximum(D[pμ:(pμ+nμ-1), pσ:(pσ+nσ-1)])
+  @views djkmax = maximum(D[pν:(pν+nν-1), pλ:(pλ+nλ-1)])
+  @views djlmax = maximum(D[pν:(pν+nν-1), pσ:(pσ+nσ-1)])
  
-  #maxden = max(dijmax, dklmax, dikmax, dilmax, djkmax, djlmax)
-  #bound *= maxden
+  maxden = max(dijmax, dklmax, dikmax, dilmax, djkmax, djlmax)
+  bound *= maxden
  
-  if bound >= 1.0E-10 
+  if abs(bound) >= 1.0E-10 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
 
