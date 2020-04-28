@@ -619,16 +619,16 @@ end
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
 
-  dijmax = 4.0*Dsh[triangular_index(ish, jsh)]
-  dklmax = 4.0*Dsh[triangular_index(ksh, lsh)]
+  dijmax = 4.0*Dsh[ish, jsh]
+  dklmax = 4.0*Dsh[ksh, lsh]
   
-  dikmax = Dsh[triangular_index(ish, ksh)]
-  dilmax = Dsh[triangular_index(ish, lsh)]
-  djkmax = Dsh[triangular_index(jsh, ksh)]
-  djlmax = Dsh[triangular_index(jsh, lsh)]
+  dikmax = Dsh[ish, ksh]
+  dilmax = Dsh[ish, lsh]
+  djkmax = Dsh[jsh, ksh]
+  djlmax = Dsh[jsh, lsh]
  
   maxden = max(dijmax, dklmax, dikmax, dilmax, djkmax, djlmax)
-  #bound *= maxden
+  bound *= maxden
 
   #== fock build for significant shell quartets ==# 
   if abs(bound) >= 1.0E-10 
