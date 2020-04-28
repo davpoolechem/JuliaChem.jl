@@ -99,7 +99,7 @@ version = "1.0.0"
 deps = ["StaticArrays", "Test"]
 git-tree-sha1 = "e2c780285089e2308b718a2cc2ace286617e075d"
 repo-rev = "master"
-repo-url = "../JCModules.jl"
+repo-url = "https://github.com/davpoolechem/JCModules.jl.git"
 uuid = "825a225a-aa46-11e9-32ce-a5f5c03ee8dd"
 version = "0.1.0"
 
@@ -133,7 +133,7 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 deps = ["LinearAlgebra", "Test"]
 git-tree-sha1 = "6a76f019246caf3873983fd8cfad7aa0a3ab12ed"
 repo-rev = "master"
-repo-url = "../MATH.jl"
+repo-url = "https://github.com/davpoolechem/MATH.jl.git"
 uuid = "175a8a3e-c02e-11e9-3701-6726ac2668a8"
 version = "0.1.0"
 
