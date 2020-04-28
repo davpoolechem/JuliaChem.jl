@@ -201,6 +201,10 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   rmsd::Float64 = scf_flags["rmsd"]
   load::String = scf_flags["load"]
 
+  #== build variables needed for eri batching ==#
+  nsh = length(basis.shells)
+  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
+
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
 
@@ -221,9 +225,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   D_old = similar(F)
   ΔD = similar(F)
 
-  #== build variables needed for eri batching ==#
-  nsh = length(basis.shells)
-  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
+  #== build matrix of Cauchy-Schwarz upper bounds ==# 
+  schwarz_bounds = zeros(Float64,(nsh,nsh)) 
+  compute_schwarz_bounds(schwarz_bounds, nsh)
 
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
