@@ -22,7 +22,7 @@ install:
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
-- cd deps && julia build.jl && cd ../
+#- cd deps && julia build.jl && cd ../
 - julia --code-coverage test/runtests-travis.jl
 
 after_success:
