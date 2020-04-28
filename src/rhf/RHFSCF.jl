@@ -229,6 +229,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   schwarz_bounds = zeros(Float64,(nsh,nsh)) 
   compute_schwarz_bounds(schwarz_bounds, nsh)
 
+  Dsh = similar(schwarz_bounds)
+
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
   #  "Sizes/$quartet_batch_num_old")
@@ -250,8 +252,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
-    scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds,; output=output, 
-    debug=debug, niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load)
+    scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, Dsh; 
+    output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
+    rmsd=rmsd, load=load)
 
   #== we are done! ==#
   if debug
@@ -277,7 +280,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}, 
-  schwarz_bounds::Matrix{Float64};
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64};
   output, debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
@@ -313,8 +316,21 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #  eri_batch[:] = load("tei_batch.jld","Integrals/$quartet_batch_num_old")
     #end
 
+    #== compress D into shells in Dsh ==#
+    for ish in 1:length(basis.shells), jsh in 1:ish
+      ipos = basis[ish].pos
+      ibas = basis[ish].nbas
+
+      jpos = basis[jsh].pos
+      jbas = basis[jsh].nbas
+
+      @views Dsh[ish, jsh] = maximum(D[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)])
+      Dsh[jsh, ish] = Dsh[ish, jsh] 
+    end
+  
     #== build new Fock matrix ==#
-    F_temp .= fock_build(F, D, H, basis, schwarz_bounds; debug=debug, load=load)
+    F_temp .= fock_build(F, D, H, basis, schwarz_bounds, Dsh; 
+      debug=debug, load=load)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -414,8 +430,8 @@ H = One-electron Hamiltonian Matrix
 =#
 
 @inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
-  H::Matrix{Float64},
-  basis::BasisStructs.Basis, schwarz_bounds::Matrix{Float64}; debug, load)
+  H::Matrix{Float64}, basis::BasisStructs.Basis, 
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}; debug, load)
 
   comm = MPI.COMM_WORLD
   
@@ -451,7 +467,7 @@ H = One-electron Hamiltonian Matrix
 
       fock_build_thread_kernel(F, D,
         H, basis, eri_quartet_batch, mutex,
-        quartet, ijkl_index, simint_workspace, schwarz_bounds,
+        quartet, ijkl_index, simint_workspace, schwarz_bounds, Dsh,
         ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
     end
       
@@ -549,7 +565,7 @@ H = One-electron Hamiltonian Matrix
 
          fock_build_thread_kernel(F, D,
             H, basis, eri_quartet_batch, mutex,
-            quartet, ijkl, simint_workspace, schwarz_bounds,
+            quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
             ish_old, jsh_old, ksh_old, lsh_old; 
             debug=debug)
         end
@@ -579,7 +595,8 @@ end
   eri_quartet_batch::Vector{Float64}, mutex, 
   quartet::ShQuartet, ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
-  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
+  Dsh::Matrix{Float64}, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, 
+  lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
   
@@ -602,29 +619,18 @@ end
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
 
-  pμ = quartet.bra.sh_a.pos
-  nμ = quartet.bra.sh_a.nbas
-
-  pν = quartet.bra.sh_b.pos
-  nν = quartet.bra.sh_b.nbas
+  dijmax = 4.0*Dsh[triangular_index(ish, jsh)]
+  dklmax = 4.0*Dsh[triangular_index(ksh, lsh)]
   
-  pλ = quartet.ket.sh_a.pos
-  nλ = quartet.ket.sh_a.nbas
-  
-  pσ = quartet.ket.sh_b.pos
-  nσ = quartet.ket.sh_b.nbas
- 
-  @views dijmax = 4.0*maximum(D[pμ:(pμ+nμ-1), pν:(pν+nν-1)])
-  @views dklmax = 4.0*maximum(D[pλ:(pλ+nλ-1), pσ:(pσ+nσ-1)])
-  
-  @views dikmax = maximum(D[pμ:(pμ+nμ-1), pλ:(pλ+nλ-1)])
-  @views dilmax = maximum(D[pμ:(pμ+nμ-1), pσ:(pσ+nσ-1)])
-  @views djkmax = maximum(D[pν:(pν+nν-1), pλ:(pλ+nλ-1)])
-  @views djlmax = maximum(D[pν:(pν+nν-1), pσ:(pσ+nσ-1)])
+  dikmax = Dsh[triangular_index(ish, ksh)]
+  dilmax = Dsh[triangular_index(ish, lsh)]
+  djkmax = Dsh[triangular_index(jsh, ksh)]
+  djlmax = Dsh[triangular_index(jsh, lsh)]
  
   maxden = max(dijmax, dklmax, dikmax, dilmax, djkmax, djlmax)
-  bound *= maxden
- 
+  #bound *= maxden
+
+  #== fock build for significant shell quartets ==# 
   if abs(bound) >= 1.0E-10 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
