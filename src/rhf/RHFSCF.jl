@@ -324,7 +324,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       jpos = basis[jsh].pos
       jbas = basis[jsh].nbas
 
-      @views Dsh[ish, jsh] = maximum(D[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)])
+      @views Dsh[ish, jsh] = maximum(abs.(D[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)]))
       Dsh[jsh, ish] = Dsh[ish, jsh] 
     end
   
