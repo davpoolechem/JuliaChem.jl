@@ -176,15 +176,15 @@ function run(molecule, model; output="none")
     end
   end
 
-  sort!(basis_set.shells, by = x->((x.nbas*x.nprim),x.am))
+  #sort!(basis_set.shells, by = x->((x.nbas*x.nprim),x.am))
 
   #== set up shell pair ordering ==#
-  #shellpairs = Vector{ShPair}([])
-  #for ish in 1:length(basis_set.shells), jsh in 1:ish
-  #  push!(shellpairs, ShPair(basis_set.shells[ish], basis_set.shells[jsh])) 
-  #end
+  for ish in 1:length(basis_set.shells), jsh in 1:ish
+    push!(basis_set.shpair_ordering, ShPair(basis_set.shells[ish], 
+      basis_set.shells[jsh])) 
+  end
   
-  #sort!(shellpairs, by = x->((x.nbas2*x.nprim2),x.am2,unsafe_string(x.class)))
+  sort!(basis_set.shpair_ordering, by = x->((x.nbas2*x.nprim2),x.am2,unsafe_string(x.class)))
  
   #for ish in 1:length(basis_set.shells), jsh in 1:ish 
   #  idx = ceil(Int64, ish*(ish-1)/2) + jsh

@@ -580,22 +580,8 @@ end
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
-  ish = decompose(bra_pair)
-  jsh = bra_pair - triangular_index(ish)
-
-  ksh = decompose(ket_pair)
-  lsh = ket_pair - triangular_index(ksh)
-
-  #ish = basis.shpair_ordering[bra_pair,1] 
-  #jsh = basis.shpair_ordering[bra_pair,2] 
-
-  #ksh = basis.shpair_ordering[ket_pair,1] 
-  #lsh = basis.shpair_ordering[ket_pair,2]
-
-  quartet.bra.sh_a = basis[ish]
-  quartet.bra.sh_b = basis[jsh]
-  quartet.ket.sh_a = basis[ksh]
-  quartet.ket.sh_b = basis[lsh]
+  quartet.bra = basis.shpair_ordering[bra_pair]
+  quartet.ket = basis.shpair_ordering[ket_pair]
 
  # quartet_batch_num::Int64 = fld(quartet_num,
  #   QUARTET_BATCH_SIZE) + 1
@@ -629,18 +615,22 @@ end
   #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
   #eri_quartet_batch = @view eri_batch[starting:ending]
 
-  shellquart(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
+  shellquart(quartet, eri_quartet_batch, simint_workspace)
   #unlock(mutex)
 
-  dirfck(F, D, eri_quartet_batch, quartet,
-    ish, jsh, ksh, lsh, debug)
+  dirfck(F, D, eri_quartet_batch, quartet, debug)
   
   #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
-@inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
-  lsh::Int64, eri_quartet_batch::Vector{Float64},
+@inline function shellquart(quartet::BasisStructs.ShQuartet, 
+  eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
+
+  ish = quartet.bra.sh_a.shell_id
+  jsh = quartet.bra.sh_b.shell_id
+  ksh = quartet.ket.sh_a.shell_id
+  lsh = quartet.ket.sh_b.shell_id
 
   #= actually compute integrals =#
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
@@ -649,10 +639,14 @@ end
 
 
 @inline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
-  eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
-  ksh::Int64, lsh::Int64, debug::Bool)
+  eri_batch::Vector{Float64}, quartet::ShQuartet, debug::Bool)
 
   norb = size(D,1)
+  
+  ish = quartet.bra.sh_a.shell_id
+  jsh = quartet.bra.sh_b.shell_id
+  ksh = quartet.ket.sh_a.shell_id
+  lsh = quartet.ket.sh_b.shell_id
 
   pμ = quartet.bra.sh_a.pos
   nμ = quartet.bra.sh_a.nbas
