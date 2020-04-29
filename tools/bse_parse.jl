@@ -240,7 +240,7 @@ function parse_all()
             "In", "Sn", "Sb", "Te", "I", "Xe"
             ] #H-Xe
         basis_sets = ["3-21G", "4-31G", "5-21G", "5-31G", "6-21G",
-            "6-31G","6-31G(d,p)" ] #pople family
+            "6-31G", "6-31G*", "6-31G**" ] #pople family
 
         for atom::String in atoms
             for basis::String in basis_sets
@@ -258,7 +258,7 @@ function parse_all()
             "Rb", "Sr", "Y", "Zr", "Nb", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",
             "In", "Sn", "Sb", "Te", "I", "Xe"
             ] #H-Xe
-        basis_sets = ["PCSeg-0"] #polarization-consistent family
+        basis_sets = ["PCSeg-0", "PCSeg-1"] #polarization-consistent family
 
         for atom::String in atoms
             for basis::String in basis_sets

@@ -1,48 +1,52 @@
 using JCModules.BasisStructs
+using JCModules.MolStructs
 using JCModules.Globals
 
 using Base.Threads
 using MATH
 using JLD
 
-@inline function sort_bra(μμ::Int, νν::Int, ish::Int, jsh::Int, ksh::Int, lsh::Int,
-  nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, three_same::Bool)
+@inline function sort_bra(μμ::Int, νν::Int, ish::Int, jsh::Int, ksh::Int, 
+  lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, 
+  three_same::Bool, four_same::Bool)
 
   do_continue = false
+
+  condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
 
   condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
     nλ > 1 && nσ > 1
 
-  condition6 = ish == jsh && nμ > 1 && nν > 1 && (nλ == 1 || nσ == 1)
+  condition6 = ish == jsh && ((nμ > nλ && nν > nλ) || (nμ > nσ && nν > nσ)) 
 
-  if μμ < νν && (condition3 || condition6)
+  if μμ < νν && (condition3 || condition6 || condition1)
 	  do_continue = true
   end
   return do_continue
 end
 
-@inline function sort_ket(μμ::Int, νν::Int, λλ::Int, σσ::Int, ish::Int, jsh::Int, 
-  ksh::Int, lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, 
-  three_same::Bool)
+@inline function sort_ket(μμ::Int, νν::Int, λλ::Int, σσ::Int, ish::Int, 
+  jsh::Int, ksh::Int, lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int, 
+  two_same::Bool, three_same::Bool, four_same::Bool)
 
   do_continue = false
 
-  condition1 = ((μμ == λλ && νν == σσ) || (μμ == νν && λλ == σσ) || 
-    (μμ == σσ && λλ == νν)) && nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+  condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
 
   condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
     nλ > 1 && nσ > 1
 
-  condition5 = ish == ksh && jsh == lsh && nμ > 1 && nν == 1 && nλ > 1 && 
-    nσ == 1
+  condition5 = ish == ksh && jsh == lsh && nμ > nν && nλ > nσ 
 
-  condition7 = ksh == lsh && (nμ == 1 || nν == 1) && nλ > 1 && nσ > 1
+  condition7 = ksh == lsh && ((nλ > nμ  && nσ > nμ) || (nλ > nν && nσ > nν)) 
 
-  if μμ < νν && condition1
+  condition8 = four_same
+
+  if μμ < νν && condition1 
 	  do_continue = true
   elseif μμ < λλ && condition5
 	  do_continue = true
-  elseif λλ < σσ && (condition1 || condition3 || condition7)
+  elseif λλ < σσ && (condition1 || condition3 || condition7 || condition8)
 	  do_continue = true
   end
 
@@ -63,7 +67,10 @@ end
 
     four_shell = nμ == nν && nν == nλ && nλ == nσ
 
-    if four_shell && ish == ksh && jsh == lsh
+    condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
+    
+      
+    if (condition1 || four_shell) && ((ish == ksh && jsh == lsh))
       do_continue = true
     elseif three_shell && μ < ν && λ < σ
       do_continue = true
@@ -224,6 +231,151 @@ end
 function read_in_enuc()
 	return input_enuc()
 end
+
+function compute_enuc(mol::MolStructs.Molecule)
+  E_nuc = 0.0
+  for iatom in 1:length(mol.atoms), jatom in 1:(iatom-1)
+    ix = mol.atoms[iatom].atom_center[1] 
+    jx = mol.atoms[jatom].atom_center[1] 
+
+    iy = mol.atoms[iatom].atom_center[2] 
+    jy = mol.atoms[jatom].atom_center[2] 
+
+    iz = mol.atoms[iatom].atom_center[3]
+    jz = mol.atoms[jatom].atom_center[3]
+  
+    distance = √((jx-ix)^2 + (jy-iy)^2 + (jz-iz)^2) 
+    
+    E_nuc += mol.atoms[iatom].atom_id*mol.atoms[jatom].atom_id/distance
+  end 
+  
+  return E_nuc
+end
+ 
+function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
+  for ash in 1:length(basis.shells), bsh in 1:ash
+    abas = basis.shells[ash].nbas
+    bbas = basis.shells[bsh].nbas
+    
+    apos = basis.shells[ash].pos
+    bpos = basis.shells[bsh].pos
+       
+    S_block = zeros(abas*bbas)
+    SIMINT.compute_overlap(ash, bsh, S_block)
+    
+    idx = 1
+    for ibas in 0:abas-1, jbas in 0:bbas-1
+      iorb = apos + ibas
+      jorb = bpos + jbas
+      
+      S[max(iorb,jorb),min(iorb,jorb)] = S_block[idx]
+      
+      idx += 1 
+    end
+  end
+  
+  for iorb in 1:basis.norb, jorb in 1:iorb
+    if iorb != jorb
+      S[min(iorb,jorb),max(iorb,jorb)] = S[max(iorb,jorb),min(iorb,jorb)]
+    end
+  end
+end
+
+function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
+  for ash in 1:length(basis.shells), bsh in 1:ash
+    abas = basis.shells[ash].nbas
+    bbas = basis.shells[bsh].nbas
+    
+    apos = basis.shells[ash].pos
+    bpos = basis.shells[bsh].pos
+       
+    T_block = zeros(Float64, (abas*bbas,))
+    SIMINT.compute_ke(ash, bsh, T_block)
+    
+    idx = 1
+    for ibas in 0:abas-1, jbas in 0:bbas-1
+      iorb = apos + ibas
+      jorb = bpos + jbas
+      
+      T[max(iorb,jorb),min(iorb,jorb)] = T_block[idx]
+      
+      idx += 1 
+    end
+  end
+  
+  for iorb in 1:basis.norb, jorb in 1:iorb
+    if iorb != jorb
+      T[min(iorb,jorb),max(iorb,jorb)] = T[max(iorb,jorb),min(iorb,jorb)]
+    end
+  end
+end
+
+function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule, 
+  basis::BasisStructs.Basis)
+  
+  #== define ncenter ==#
+  ncenter::Int64 = length(mol.atoms)
+  
+  Z = Vector{Float64}([])
+  x = Vector{Float64}([])
+  y = Vector{Float64}([])
+  z = Vector{Float64}([])
+
+  for atom in mol.atoms 
+    push!(Z, convert(Float64,atom.atom_id))  
+    push!(x, atom.atom_center[1])  
+    push!(y, atom.atom_center[2])  
+    push!(z, atom.atom_center[3])  
+  end
+
+  for ash in 1:length(basis.shells), bsh in 1:ash
+    abas = basis.shells[ash].nbas
+    bbas = basis.shells[bsh].nbas
+    
+    apos = basis.shells[ash].pos
+    bpos = basis.shells[bsh].pos
+       
+    V_block = zeros(Float64, (abas*bbas,))
+    SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block)
+    
+    idx = 1
+    for ibas in 0:abas-1, jbas in 0:bbas-1
+      iorb = apos + ibas
+      jorb = bpos + jbas
+      
+      V[max(iorb,jorb),min(iorb,jorb)] = V_block[idx]
+      
+      idx += 1 
+    end
+  end
+  
+  for iorb in 1:basis.norb, jorb in 1:iorb
+    if iorb != jorb
+      V[min(iorb,jorb),max(iorb,jorb)] = V[max(iorb,jorb),min(iorb,jorb)]
+    end
+  end
+end
+
+function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
+  eri_quartet_batch = Vector{Float64}(undef,81)
+  simint_workspace = Vector{Float64}(undef,10000)
+
+  for ash in 1:nsh, bsh in 1:ash
+    SIMINT.compute_eris(ash, bsh, ash, bsh, eri_quartet_batch, 
+      simint_workspace)
+    
+    schwarz_bounds[ash, bsh] = sqrt(maximum(eri_quartet_batch) )
+  end
+
+  for ash in 1:nsh, bsh in 1:ash
+    if ash != bsh
+      schwarz_bounds[min(ash,bsh),max(ash,bsh)] = 
+        schwarz_bounds[max(ash,bsh),min(ash,bsh)]
+    end
+  end
+end
+
+
 #=
 """
 		get_oei_matrix(oei::Array{Float64,2})

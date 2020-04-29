@@ -2,7 +2,6 @@ language: julia
 julia:
   - nightly
   - 1.3.1
-  - 1.0.5
 codecov: true 
 coveralls: true 
 
@@ -18,10 +17,12 @@ install:
 - export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
 - ./tools/travis-install-simint.sh
 - export SIMINT=/home/travis/simint-install
+- export CC=gcc
+- export CXX=g++
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
-- cd deps && julia build.jl && cd ../
+#- cd deps && julia build.jl && cd ../
 - julia --code-coverage test/runtests-travis.jl
 
 after_success:

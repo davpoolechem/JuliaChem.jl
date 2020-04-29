@@ -1,0 +1,25 @@
+Jobid: 92497
+qsub -O example_inputs/Scaling-10000/w50-8rank -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-8rank.sh
+Sun Apr 19 18:22:02 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 92497 submitted from terminal /dev/pts/12
+Sun Apr 19 18:22:24 2020 +0000 (UTC) 
+Sun Apr 19 18:22:24 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake07' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.92497' '--jobid' '92497' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=92497' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.sh'
+Sun Apr 19 18:22:24 2020 +0000 (UTC) 
+Sun Apr 19 18:22:24 2020 +0000 (UTC) Environment:
+Sun Apr 19 18:22:24 2020 +0000 (UTC) SHELL=/bin/bash
+Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpM_S9yu
+Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_PARTNAME=skylake07
+Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_JOBID=92497
+Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_STARTTIME=1587320532
+Sun Apr 19 18:22:24 2020 +0000 (UTC) LOGNAME=davpoolechem
+Sun Apr 19 18:22:24 2020 +0000 (UTC) USER=davpoolechem
+Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_ENDTIME=1587342132
+Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Apr 19 18:22:24 2020 +0000 (UTC) HOME=/home/davpoolechem
+Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Apr 19 18:22:24 2020 +0000 (UTC) 
+Sun Apr 19 18:22:24 2020 +0000 (UTC) Info: stdin received from /dev/null
+Sun Apr 19 18:22:24 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.output
+Sun Apr 19 18:22:24 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.error
+Sun Apr 19 18:22:24 2020 +0000 (UTC) 
+Mon Apr 20 00:22:18 2020 +0000 (UTC) Info: maximum execution time exceeded; initiating job termination

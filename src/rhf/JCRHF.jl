@@ -9,12 +9,12 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-Base.include(@__MODULE__,"RHFHelpers.jl")
-Base.include(@__MODULE__,"RHFSCF.jl")
-Base.include(@__MODULE__,"../../deps/src/simint.jl")
-
+using JCModules.SIMINT
 using MPI
 using JSON
+
+Base.include(@__MODULE__,"RHFHelpers.jl")
+Base.include(@__MODULE__,"RHFSCF.jl")
 
 """
   run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
@@ -34,19 +34,18 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(basis, molecule, keywords)
+function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis, 
+  scf_flags; output="none")
+  
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
       println("--------------------------------------------------------------------------------")
       println("                       ========================================                 ")
       println("                          RESTRICTED CLOSED-SHELL HARTREE-FOCK                  ")
       println("                       ========================================                 ")
       println("")
   end
-
-  #== initialize scf flags ==#
-  scf_flags = keywords["scf"]
 
   #== set up eris ==#
   #if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
@@ -58,7 +57,7 @@ function run(basis, molecule, keywords)
       SIMINT.add_shell(shell)
     end
 
-    SIMINT.normalize_shells()
+    #SIMINT.normalize_shells()
     SIMINT.precompute_shell_pair_data()
 
     #for ishell::Int64 in 0:(nshell_simint-1)
@@ -73,11 +72,11 @@ function run(basis, molecule, keywords)
 
   #== actually perform scf calculation ==#
   #GC.enable(false)
-  scf = rhf_energy(basis, molecule, scf_flags)
+  scf = rhf_energy(mol, basis, scf_flags; output=output)
   #GC.enable(true)
   #GC.gc()
 
-  if (MPI.Comm_rank(comm) == 0)
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
     println("                             END RESTRICTED CLOSED-SHELL                 ")
     println("                                     HARTREE-FOCK                        ")
