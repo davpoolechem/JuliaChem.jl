@@ -9,12 +9,12 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-Base.include(@__MODULE__,"RHFHelpers.jl")
-Base.include(@__MODULE__,"RHFSCF.jl")
-Base.include(@__MODULE__,"../../deps/src/simint.jl")
-
+using JCModules.SIMINT
 using MPI
 using JSON
+
+Base.include(@__MODULE__,"RHFHelpers.jl")
+Base.include(@__MODULE__,"RHFSCF.jl")
 
 """
   run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)

@@ -356,6 +356,26 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
   end
 end
 
+function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
+  eri_quartet_batch = Vector{Float64}(undef,81)
+  simint_workspace = Vector{Float64}(undef,10000)
+
+  for ash in 1:nsh, bsh in 1:ash
+    SIMINT.compute_eris(ash, bsh, ash, bsh, eri_quartet_batch, 
+      simint_workspace)
+    
+    schwarz_bounds[ash, bsh] = sqrt(maximum(eri_quartet_batch) )
+  end
+
+  for ash in 1:nsh, bsh in 1:ash
+    if ash != bsh
+      schwarz_bounds[min(ash,bsh),max(ash,bsh)] = 
+        schwarz_bounds[max(ash,bsh),min(ash,bsh)]
+    end
+  end
+end
+
+
 #=
 """
 		get_oei_matrix(oei::Array{Float64,2})

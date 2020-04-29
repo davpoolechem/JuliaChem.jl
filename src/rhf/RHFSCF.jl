@@ -1,12 +1,8 @@
 using MATH
 using JCModules.Globals
 
-#using InteractiveUtils
-using MPI
 using Base.Threads
-#using Distributed
 using LinearAlgebra
-#using JLD
 using HDF5
 using PrettyTables
 
@@ -205,6 +201,10 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   rmsd::Float64 = scf_flags["rmsd"]
   load::String = scf_flags["load"]
 
+  #== build variables needed for eri batching ==#
+  nsh = length(basis.shells)
+  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
+
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
 
@@ -225,9 +225,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   D_old = similar(F)
   ΔD = similar(F)
 
-  #== build variables needed for eri batching ==#
-  nsh = length(basis.shells)
-  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
+  #== build matrix of Cauchy-Schwarz upper bounds ==# 
+  schwarz_bounds = zeros(Float64,(nsh,nsh)) 
+  compute_schwarz_bounds(schwarz_bounds, nsh)
+
+  Dsh = similar(schwarz_bounds)
 
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
@@ -250,8 +252,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
-    scf_converged, test_e, test_F, FD, FDS, SDF; output=output, debug=debug, 
-    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load)
+    scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, Dsh; 
+    output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
+    rmsd=rmsd, load=load)
 
   #== we are done! ==#
   if debug
@@ -276,7 +279,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   F_part::Matrix{Float64}, F_old::Matrix{Float64},
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
-  FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}; 
+  FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}, 
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64};
   output, debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
@@ -312,8 +316,21 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #  eri_batch[:] = load("tei_batch.jld","Integrals/$quartet_batch_num_old")
     #end
 
+    #== compress D into shells in Dsh ==#
+    for ish in 1:length(basis.shells), jsh in 1:ish
+      ipos = basis[ish].pos
+      ibas = basis[ish].nbas
+
+      jpos = basis[jsh].pos
+      jbas = basis[jsh].nbas
+
+      @views Dsh[ish, jsh] = maximum(abs.(D[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)]))
+      Dsh[jsh, ish] = Dsh[ish, jsh] 
+    end
+  
     #== build new Fock matrix ==#
-    F_temp .= twoei(F, D, H, basis; debug=debug, load=load)
+    F_temp .= fock_build(F, D, H, basis, schwarz_bounds, Dsh; 
+      debug=debug, load=load)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -395,7 +412,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 end
 #=
 """
-	 twoei(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
+	 fock_build(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
 Summary
 ======
 Perform Fock build step.
@@ -412,8 +429,9 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-@inline function twoei(F::Matrix{Float64}, D::Matrix{Float64}, H::Matrix{Float64},
-  basis::BasisStructs.Basis; debug, load)
+@inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
+  H::Matrix{Float64}, basis::BasisStructs.Basis, 
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}; debug, load)
 
   comm = MPI.COMM_WORLD
   
@@ -447,9 +465,9 @@ H = One-electron Hamiltonian Matrix
       elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
       end
 
-      twoei_thread_kernel(F, D,
+      fock_build_thread_kernel(F, D,
         H, basis, eri_quartet_batch, mutex,
-        quartet, ijkl_index, simint_workspace,
+        quartet, ijkl_index, simint_workspace, schwarz_bounds, Dsh,
         ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
     end
       
@@ -545,9 +563,9 @@ H = One-electron Hamiltonian Matrix
         for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
           #println("IJKL: $ijkl")
 
-         twoei_thread_kernel(F, D,
+         fock_build_thread_kernel(F, D,
             H, basis, eri_quartet_batch, mutex,
-            quartet, ijkl, simint_workspace,
+            quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
             ish_old, jsh_old, ksh_old, lsh_old; 
             debug=debug)
         end
@@ -572,15 +590,17 @@ H = One-electron Hamiltonian Matrix
   return F
 end
 
-@inline function twoei_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
+@inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   eri_quartet_batch::Vector{Float64}, mutex, 
   quartet::ShQuartet, ijkl_index::Int64,
-  simint_workspace::Vector{Float64}, 
-  ish_old::Int64, jsh_old::Int64, ksh_old::Int64, lsh_old::Int64; debug)
+  simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
+  Dsh::Matrix{Float64}, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, 
+  lsh_old::Int64; debug)
 
   comm=MPI.COMM_WORLD
-   
+  
+  #== determine shells==# 
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
@@ -589,54 +609,40 @@ end
 
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
- 
+  
+  #== create shell quartet ==#
   quartet.bra.sh_a = basis[ish]
   quartet.bra.sh_b = basis[jsh]
   quartet.ket.sh_a = basis[ksh]
   quartet.ket.sh_b = basis[lsh]
 
- # quartet_batch_num::Int64 = fld(quartet_num,
- #   QUARTET_BATCH_SIZE) + 1
+  #== Cauchy-Schwarz screening ==#
+  bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
 
-  #if quartet_batch_num != quartet_batch_num_old
-  #  if length(eri_starts) != QUARTET_BATCH_SIZE && length(eri_sizes) != QUARTET_BATCH_SIZE
-  #    resize!(eri_sizes,QUARTET_BATCH_SIZE)
-  #    resize!(eri_starts,QUARTET_BATCH_SIZE)
-  #  end
-
-  #  eri_sizes[:] = load("tei_batch.jld",
-  #    "Sizes/$quartet_batch_num")
-
-    #@views eri_starts[:] = [1, [ sum(eri_sizes[1:i])+1 for i in 1:(QUARTET_BATCH_SIZE-1)]... ]
-    #eri_starts[:] = load("tei_batch.jld","Starts/$quartet_batch_num")
-    #@views eri_starts[:] = eri_starts[:] .- (eri_starts[1] - 1)
-
-  #  resize!(eri_batch,sum(eri_sizes))
-  #  eri_batch[:] = load("tei_batch.jld","Integrals/$quartet_batch_num")
-
-  #  quartet_batch_num_old = quartet_batch_num
-  #end
-
-  #quartet_num_in_batch::Int64 = quartet_num - QUARTET_BATCH_SIZE*
-  #  (quartet_batch_num-1) + 1
-
-  #starting::Int64 = eri_starts[quartet_num_in_batch]
-  #ending::Int64 = starting + eri_sizes[quartet_num_in_batch] - 1
-  #batch_ending_final::Int64 = ending - starting + 1
-
-  #@views eri_quartet_batch[1:batch_ending_final] = eri_batch[starting:ending]
-  #eri_quartet_batch = @view eri_batch[starting:ending]
-
-  shellquart(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
-  #unlock(mutex)
-
-  dirfck(F, D, eri_quartet_batch, quartet,
-    ish, jsh, ksh, lsh, debug)
+  dijmax = 4.0*Dsh[ish, jsh]
+  dklmax = 4.0*Dsh[ksh, lsh]
   
-  #if debug println("END TWO-ELECTRON INTEGRALS") end
+  dikmax = Dsh[ish, ksh]
+  dilmax = Dsh[ish, lsh]
+  djkmax = Dsh[jsh, ksh]
+  djlmax = Dsh[jsh, lsh]
+ 
+  maxden = max(dijmax, dklmax, dikmax, dilmax, djkmax, djlmax)
+  bound *= maxden
+
+  #== fock build for significant shell quartets ==# 
+  if abs(bound) >= 1.0E-10 
+    #== compute electron repulsion integrals ==#
+    compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
+
+    #== contract ERIs into Fock matrix ==#
+    contract_eris(F, D, eri_quartet_batch, quartet,
+      ish, jsh, ksh, lsh, debug)
+  end
+    #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
-@inline function shellquart(ish::Int64, jsh::Int64, ksh::Int64,
+@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64, eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
 
@@ -646,7 +652,7 @@ end
 end
 
 
-@inline function dirfck(F_priv::Matrix{Float64}, D::Matrix{Float64},
+@inline function contract_eris(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64, debug::Bool)
 
