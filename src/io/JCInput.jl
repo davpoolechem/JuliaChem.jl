@@ -30,10 +30,10 @@ Thus, proper use of the Input.run() function would look like this:
 input_info, basis = Input.run(args)
 ```
 """
-function run(args::String)
+function run(args; output="none")
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                READING INPUT DATA FILE                         ")
@@ -44,7 +44,7 @@ function run(args::String)
   #== output parallelization information ==#
   directory = pwd()
   #println("Input file: ", directory*"/"*input_file)
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("Number of worker processes: ", MPI.Comm_size(comm))
     println("Number of threads per process: ", Threads.nthreads())
@@ -69,9 +69,6 @@ function run(args::String)
   merge!(molecule,Dict("geometry" => json_parse["molecule"]["geometry"]))
   merge!(molecule,Dict("symbols" => json_parse["molecule"]["symbols"]))
   merge!(molecule,Dict("molecular_charge" => json_parse["molecule"]["molecular_charge"]))
-  merge!(molecule,Dict("enuc" => json_parse["molecule"]["enuc"]))
-  merge!(molecule,Dict("ovr" => json_parse["molecule"]["ovr"]))
-  merge!(molecule,Dict("hcore" => json_parse["molecule"]["hcore"]))
 
   #if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
   #  jldopen("tei_all.jld", "w") do file
@@ -84,7 +81,7 @@ function run(args::String)
   merge!(model,json_parse["model"])
   merge!(keywords,json_parse["keywords"])
 
-  if MPI.Comm_rank(comm) == 0
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("                       ========================================                 ")
     println("                                       END INPUT                                ")

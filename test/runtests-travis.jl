@@ -8,6 +8,9 @@ directory = joinpath(@__DIR__, "../example_inputs/S22/")
 inputs = readdir(directory)
 inputs .= directory .* inputs
 
+#== initialize JuliaChem ==#
+JuliaChem.initialize()
+
 #== run S22 tests ==#
 Test.@testset "S22 accuracy test" begin
 #  scf = minimal_rhf(inputs[1])
@@ -17,7 +20,7 @@ Test.@testset "S22 accuracy test" begin
 #  Test.@test scf[4] ≈ -151.5637222519 
 
   scf = minimal_rhf(inputs[3])
-  Test.@test scf[4] ≈ -376.3871095400
+  Test.@test scf["Energy"] ≈ -377.3533493344 
 
 #  scf = minimal_rhf(inputs[4])
 #  Test.@test scf[4] ≈ -336.8722288570 
