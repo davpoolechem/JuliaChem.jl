@@ -167,20 +167,20 @@ function parse_individual(atom::String, basis::String, bsed::HDF5File)
         shell_num::String = string(outer_counter)
 
         h5write("bsed.h5",
-            "$atom/$basis/$shell_num/Shell Type", shell_type_string)
+            "$basis/$atom/$shell_num/Shell Type", shell_type_string)
         h5write("bsed.h5",
-            "$atom/$basis/$shell_num/Exponents", exponents)
+            "$basis/$atom/$shell_num/Exponents", exponents)
         h5write("bsed.h5",
-            "$atom/$basis/$shell_num/Coefficients", coeff)
+            "$basis/$atom/$shell_num/Coefficients", coeff)
 
 
         println("Exponents:")
         display(h5read("bsed.h5",
-            "$atom/$basis/$shell_num/Exponents"))
+            "$basis/$atom/$shell_num/Exponents"))
         println("")
         println("Contraction Coefficients:")
         display(h5read("bsed.h5",
-            "$atom/$basis/$shell_num/Coefficients"))
+            "$basis/$atom/$shell_num/Coefficients"))
         println("")
 
 
@@ -223,8 +223,8 @@ function parse_all()
         basis_sets::Array{String,1} = ["STO-2G", "STO-3G", "STO-4G", "STO-5G",
             "STO-6G" ] #STO family
 
-        for atom::String in atoms
-            for basis::String in basis_sets
+        for basis::String in basis_sets
+            for atom::String in atoms
                 parse_individual(atom, basis, bsed)
             end
         end
@@ -242,8 +242,8 @@ function parse_all()
         basis_sets = ["3-21G", "4-31G", "5-21G", "5-31G", "6-21G",
             "6-31G", "6-31G*", "6-31G**" ] #pople family
 
-        for atom::String in atoms
-            for basis::String in basis_sets
+        for basis::String in basis_sets
+            for atom::String in atoms
                 parse_individual(atom, basis, bsed)
             end
         end
@@ -260,8 +260,8 @@ function parse_all()
             ] #H-Xe
         basis_sets = ["PCSeg-0", "PCSeg-1"] #polarization-consistent family
 
-        for atom::String in atoms
-            for basis::String in basis_sets
+        for basis::String in basis_sets
+            for atom::String in atoms 
                 parse_individual(atom, basis, bsed)
             end
         end
@@ -278,8 +278,8 @@ function parse_all()
             ] #H-Xe
         basis_sets = ["cc-pVDZ", "cc-pVTZ", "cc-pVQZ", "cc-pV5Z", "cc-pV6Z"] 
 
-        for atom::String in atoms
-            for basis::String in basis_sets
+        for basis::String in basis_sets
+            for atom::String in atoms
                 parse_individual(atom, basis, bsed)
             end
         end

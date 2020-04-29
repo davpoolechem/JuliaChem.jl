@@ -88,7 +88,7 @@ function run(molecule, model; output="none")
 
       #== read in basis set values==#
       shells::Dict{String,Any} = read(
-        bsed["$symbol/$basis"])
+        bsed["$basis/$symbol"])
 
       #== process basis set values into shell objects ==#
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
