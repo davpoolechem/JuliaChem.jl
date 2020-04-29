@@ -77,6 +77,8 @@ function script(input_file)
     scf_jit = scf_time1 - Statistics.mean(timeof)
   
     MPI.Barrier(MPI.COMM_WORLD)
+    if (MPI.Comm_rank(MPI.COMM_WORLD) == 0) display(timeof) end
+    
     #if (MPI.Comm_rank(MPI.COMM_WORLD) == 0)  
       #== output relevant information ==# 
     #  println("Input JIT: ", input_jit)
@@ -89,9 +91,6 @@ function script(input_file)
     #  p = HypothesisTests.OneSampleTTest(timeof,2.94+0.19)
     #  println(p)
     #end
-    if MPI.Comm_rank(MPI.COMM_WORLD) == 0
-      display(timeof)
-    end
     MPI.Barrier(MPI.COMM_WORLD)
     
     #== finalize JuliaChem runtime ==#

@@ -1,4 +1,5 @@
 using MPI
+using JCModules.SIMINT
 
 #== initialize JuliaChem runtime ==#
 function initialize()
