@@ -230,6 +230,15 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   compute_schwarz_bounds(schwarz_bounds, nsh)
 
   Dsh = similar(schwarz_bounds)
+  
+  #== allocate miscalleneous things needed for fock build step ==#
+  max_shell_am = MAX_SHELL_AM
+  eri_quartet_batch = Vector{Float64}(undef,81)
+
+  quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
+      ShPair(basis.shells[1], basis.shells[1]))
+ 
+  simint_workspace = Vector{Float64}(undef,10000)
 
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
@@ -252,7 +261,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
-    scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, Dsh; 
+    scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, Dsh, 
+    eri_quartet_batch, quartet, simint_workspace; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load)
 
@@ -280,7 +290,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}, 
-  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64};
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
+  eri_quartet_batch::Vector{Float64}, quartet::BasisStructs.ShQuartet,
+  simint_workspace::Vector{Float64};
   output, debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
@@ -329,7 +341,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
   
     #== build new Fock matrix ==#
-    F_temp .= fock_build(F, D, H, basis, schwarz_bounds, Dsh; 
+    F_temp .= fock_build(F, D, H, basis, schwarz_bounds, Dsh, 
+      eri_quartet_batch, quartet, simint_workspace; 
       debug=debug, load=load)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
@@ -431,7 +444,9 @@ H = One-electron Hamiltonian Matrix
 
 @inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
-  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}; debug, load)
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
+  eri_quartet_batch::Vector{Float64}, quartet::BasisStructs.ShQuartet,
+  simint_workspace::Vector{Float64}; debug, load)
 
   comm = MPI.COMM_WORLD
   
@@ -449,14 +464,6 @@ H = One-electron Hamiltonian Matrix
     jsh_old = 0
     ksh_old = 0
     lsh_old = 0
-
-    max_shell_am = MAX_SHELL_AM
-    eri_quartet_batch = Vector{Float64}(undef,1296)
-
-    quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
-      ShPair(basis.shells[1], basis.shells[1]))
- 
-    simint_workspace = Vector{Float64}(undef,100000)
 
     while true 
       ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
@@ -534,14 +541,6 @@ H = One-electron Hamiltonian Matrix
       #for thread in 1:Threads.nthreads()
       #  F_priv = zeros(basis.norb,basis.norb)
 
-      max_shell_am = MAX_SHELL_AM
-      eri_quartet_batch = Vector{Float64}(undef,81)
-
-      quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
-        ShPair(basis.shells[1], basis.shells[1]))
-   
-      simint_workspace = Vector{Float64}(undef,10000)
-      
       #== do computations ==# 
       while true 
         #== get shell quartet ==#
