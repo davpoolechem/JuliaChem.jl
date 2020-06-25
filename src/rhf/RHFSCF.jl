@@ -341,11 +341,17 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
       jpos = basis[jsh].pos
       jbas = basis[jsh].nbas
-    
-      Dsh_abs[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)] .= abs.(
-        view(D,ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)))
-      Dsh[ish, jsh] = maximum(view(Dsh_abs,ipos:(ipos+ibas-1),
-        jpos:(jpos+jbas-1)))
+   
+      max_value = 0.0
+      for i in ipos:(ipos+ibas-1), j in jpos:(jpos+jbas-1) 
+        max_value = max(max_value, abs(D[i,j]))
+      end
+      Dsh[ish,jsh] = max_value
+      
+      #Dsh_abs[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)] .= abs.(
+       # view(D,ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)))
+      #Dsh[ish, jsh] = maximum(view(Dsh_abs,ipos:(ipos+ibas-1),
+      #  jpos:(jpos+jbas-1)))
       Dsh[jsh, ish] = Dsh[ish, jsh] 
     end
   
