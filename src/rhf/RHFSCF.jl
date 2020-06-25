@@ -41,7 +41,7 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-@inline function rhf_kernel(mol::MolStructs.Molecule, 
+function rhf_kernel(mol::MolStructs.Molecule, 
   basis::BasisStructs.Basis; 
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String)
@@ -235,6 +235,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   compute_schwarz_bounds(schwarz_bounds, nsh)
 
   Dsh = similar(schwarz_bounds)
+  Dsh_abs = similar(D)
   
   #== allocate miscalleneous things needed for fock build step ==#
   max_shell_am = MAX_SHELL_AM
@@ -267,7 +268,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
     F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
     scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, Dsh, 
-    eri_quartet_batch, quartet, simint_workspace; 
+    Dsh_abs, eri_quartet_batch, quartet, simint_workspace; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load)
 
@@ -295,9 +296,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}, 
-  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  eri_quartet_batch::Vector{Float64}, quartet::BasisStructs.ShQuartet,
-  simint_workspace::Vector{Float64};
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}, 
+  Dsh_abs::Matrix{Float64}, eri_quartet_batch::Vector{Float64}, 
+  quartet::BasisStructs.ShQuartet, simint_workspace::Vector{Float64};
   output, debug, niter, ndiis, dele, rmsd, load)
 
   #== initialize a few more variables ==#
@@ -340,8 +341,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
       jpos = basis[jsh].pos
       jbas = basis[jsh].nbas
-
-      @views Dsh[ish, jsh] = maximum(abs.(D[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)]))
+    
+      Dsh_abs[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)] .= abs.(
+        view(D,ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)))
+      Dsh[ish, jsh] = maximum(view(Dsh_abs,ipos:(ipos+ibas-1),
+        jpos:(jpos+jbas-1)))
       Dsh[jsh, ish] = Dsh[ish, jsh] 
     end
   
@@ -372,13 +376,13 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       
       e .= FDS .- SDF
 
-      @views e_array_old .= e_array[1:ndiis]
+      e_array_old .= view(e_array,1:ndiis)
       test_e[1] .= e
-      @views e_array .= vcat(deepcopy(test_e), e_array_old[1:ndiis-1])
+      e_array .= vcat(deepcopy(test_e), view(e_array_old,1:ndiis-1))
 
-      @views F_array_old .= F_array[1:ndiis]
+      F_array_old .= view(F_array,1:ndiis)
       test_F[1] .= F
-      @views F_array .= vcat(deepcopy(test_F), F_array_old[1:ndiis-1])
+      F_array .= vcat(deepcopy(test_F), view(F_array_old,1:ndiis-1))
 
       if iter > 1
         B_dim += 1
