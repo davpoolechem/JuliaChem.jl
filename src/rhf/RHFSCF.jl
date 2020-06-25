@@ -10,8 +10,17 @@ const do_continue_print = false
 
 function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
+  
+  debug::Bool = scf_flags["debug"]
+  niter::Int = scf_flags["niter"]
 
-  return rhf_kernel(mol,basis,scf_flags; output=output)
+  ndiis::Int = scf_flags["ndiis"]
+  dele::Float64 = scf_flags["dele"]
+  rmsd::Float64 = scf_flags["rmsd"]
+  load::String = scf_flags["load"]
+
+  return rhf_kernel(mol,basis; output=output, debug=debug, niter=niter,
+    ndiis=ndiis, dele=dele, rmsd=rmsd, load=load)
 end
 
 
@@ -32,17 +41,16 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-@inline function rhf_kernel(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
-  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
+@inline function rhf_kernel(mol::MolStructs.Molecule, 
+  basis::BasisStructs.Basis; 
+  output::String, debug::Bool, niter::Int, ndiis::Int, 
+  dele::Float64, rmsd::Float64, load::String)
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
 
   #== read in some variables from scf input ==#
-  debug::Bool = scf_flags["debug"]
   debug_output = debug ? h5open("debug.h5","w") : nothing
-
-  niter::Int = scf_flags["niter"]
 
   #== compute nuclear repulsion energy ==# 
   #E_nuc::Float64 = molecule["enuc"]
@@ -127,8 +135,9 @@ type = Precision of variables in calculation
   #=============================#
   #@code_warntype scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
-    F_eval, F_evec, F_mo, F_part, F_old, E_nuc, E_elec, E_old, basis, 
-    scf_flags; output=output, debug=debug, niter=niter)
+    F_eval, F_evec, F_mo, F_part, F_old, E_nuc, E_elec, E_old, basis; 
+    output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele,
+    rmsd=rmsd, load=load)
 
   if !converged
     if MPI.Comm_rank(comm) == 0 && output != "none"
@@ -192,16 +201,12 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64},
   F_old::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64, 
-  basis::BasisStructs.Basis, scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; 
-  output, debug, niter)
+  basis::BasisStructs.Basis;
+  output::String, debug::Bool, niter::Int, ndiis::Int, 
+  dele::Float64, rmsd::Float64, load::String)
+
 
   #== read in some more variables from scf flags input ==#
-  ndiis::Int = scf_flags["ndiis"]
-  dele::Float64 = scf_flags["dele"]
-  rmsd::Float64 = scf_flags["rmsd"]
-  load::String = scf_flags["load"]
-
-  #== build variables needed for eri batching ==#
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
 
