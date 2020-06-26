@@ -790,14 +790,14 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   BLAS.symm!('L', 'U', 1.0, ortho_trans, F_μν, 0.0, F_part)
   BLAS.gemm!('N', 'N', 1.0, F_part, ortho, 0.0, F_mo)
  
-  F_e = eigen(LinearAlgebra.Hermitian(F_mo)) 
+  F_eval, F_evec = eigen!(LinearAlgebra.Hermitian(F_mo)) 
   
   #F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
   #F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   #C .= ortho*F_evec
-  BLAS.symm!('L', 'U', 1.0, ortho, F_e.vectors, 0.0, C)
+  BLAS.symm!('L', 'U', 1.0, ortho, F_evec, 0.0, C)
   
   if debug && MPI.Comm_rank(comm) == 0
     h5write("debug.h5","SCF/Iteration-$iter/C", C)
