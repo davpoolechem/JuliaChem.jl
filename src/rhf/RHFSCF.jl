@@ -357,8 +357,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     F_temp .= fock_build(F, D, H, basis, schwarz_bounds, Dsh, 
-      eri_quartet_batch, quartet, simint_workspace; 
-      debug=debug, load=load)
+      eri_quartet_batch, quartet, simint_workspace, debug, load)
 
     F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -378,7 +377,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       BLAS.symm!('L', 'U', 1.0, F, D, 0.0, FD)
       BLAS.gemm!('N', 'N', 1.0, FD, S, 0.0, FDS)
       
-      SDF .= transpose(FDS)
+      transpose!(SDF, FDS)
       
       e .= FDS .- SDF
 
@@ -461,7 +460,7 @@ H = One-electron Hamiltonian Matrix
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
   eri_quartet_batch::Vector{Float64}, quartet::BasisStructs.ShQuartet,
-  simint_workspace::Vector{Float64}; debug, load)
+  simint_workspace::Vector{Float64}, debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
@@ -490,7 +489,7 @@ H = One-electron Hamiltonian Matrix
       fock_build_thread_kernel(F, D,
         H, basis, eri_quartet_batch, mutex,
         quartet, ijkl_index, simint_workspace, schwarz_bounds, Dsh,
-        ish_old, jsh_old, ksh_old, lsh_old; debug=debug)
+        ish_old, jsh_old, ksh_old, lsh_old, debug)
     end
       
     #lock(mutex)
@@ -580,8 +579,7 @@ H = One-electron Hamiltonian Matrix
          fock_build_thread_kernel(F, D,
             H, basis, eri_quartet_batch, mutex,
             quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
-            ish_old, jsh_old, ksh_old, lsh_old; 
-            debug=debug)
+            ish_old, jsh_old, ksh_old, lsh_old, debug)
         end
 
         send_mesg[1] = MPI.Comm_rank(comm)
@@ -610,7 +608,7 @@ end
   quartet::ShQuartet, ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, 
-  lsh_old::Int64; debug)
+  lsh_old::Int64, debug::Bool)
 
   comm=MPI.COMM_WORLD
   
