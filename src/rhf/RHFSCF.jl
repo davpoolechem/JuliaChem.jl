@@ -382,11 +382,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       e .= FDS .- SDF
 
       e_array_old = view(e_array,1:(ndiis-1))
-      test_e[1] = deepcopy(e)
+      test_e[1] = deepcopy(e) #i wish i didn't have to do deepcopy, but alas
       e_array = vcat(test_e, e_array_old)
       
       F_array_old = view(F_array,1:(ndiis-1))
-      test_F[1] = deepcopy(F)
+      test_F[1] = deepcopy(F) #i wish i didn't have to do deepcopy, but alas
       F_array = vcat(test_F, F_array_old)
 
       if iter > 1
