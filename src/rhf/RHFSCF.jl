@@ -216,10 +216,10 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   e = similar(F)
   test_e = [ similar(F) ]
   e_array = fill(similar(F), ndiis)
-  e_array_old = fill(similar(F), ndiis)
+  e_array_old = fill(similar(F), ndiis-1)
   
   test_F = [ similar(F) ]
-  F_array_old = fill(similar(F), ndiis)
+  F_array_old = fill(similar(F), ndiis-1)
 
   FD = similar(F)
   FDS = similar(F)
@@ -381,13 +381,13 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       
       e .= FDS .- SDF
 
-      e_array_old = view(e_array,1:ndiis)
+      e_array_old = view(e_array,1:(ndiis-1))
       test_e[1] = deepcopy(e)
-      e_array = vcat(test_e, view(e_array_old,1:ndiis-1))
-
-      F_array_old = view(F_array,1:ndiis)
+      e_array = vcat(test_e, e_array_old)
+      
+      F_array_old = view(F_array,1:(ndiis-1))
       test_F[1] = deepcopy(F)
-      F_array = vcat(test_F, view(F_array_old,1:ndiis-1))
+      F_array = vcat(test_F, F_array_old)
 
       if iter > 1
         B_dim += 1
