@@ -3,7 +3,7 @@
 #=============================#
 import JuliaChem
 import Statistics
-import HypothesisTests 
+#import HypothesisTests 
 import MPI
 
 #================================#

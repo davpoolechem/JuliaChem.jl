@@ -1,25 +1,25 @@
-Jobid: 92497
+Jobid: 147405
 qsub -O example_inputs/Scaling-10000/w50-8rank -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-8rank.sh
-Sun Apr 19 18:22:02 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
-jobid 92497 submitted from terminal /dev/pts/12
-Sun Apr 19 18:22:24 2020 +0000 (UTC) 
-Sun Apr 19 18:22:24 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake07' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.92497' '--jobid' '92497' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=92497' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.sh'
-Sun Apr 19 18:22:24 2020 +0000 (UTC) 
-Sun Apr 19 18:22:24 2020 +0000 (UTC) Environment:
-Sun Apr 19 18:22:24 2020 +0000 (UTC) SHELL=/bin/bash
-Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpM_S9yu
-Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_PARTNAME=skylake07
-Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_JOBID=92497
-Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_STARTTIME=1587320532
-Sun Apr 19 18:22:24 2020 +0000 (UTC) LOGNAME=davpoolechem
-Sun Apr 19 18:22:24 2020 +0000 (UTC) USER=davpoolechem
-Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_ENDTIME=1587342132
-Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_PARTSIZE=1
-Sun Apr 19 18:22:24 2020 +0000 (UTC) HOME=/home/davpoolechem
-Sun Apr 19 18:22:24 2020 +0000 (UTC) COBALT_JOBSIZE=1
-Sun Apr 19 18:22:24 2020 +0000 (UTC) 
-Sun Apr 19 18:22:24 2020 +0000 (UTC) Info: stdin received from /dev/null
-Sun Apr 19 18:22:24 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.output
-Sun Apr 19 18:22:24 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.error
-Sun Apr 19 18:22:24 2020 +0000 (UTC) 
-Mon Apr 20 00:22:18 2020 +0000 (UTC) Info: maximum execution time exceeded; initiating job termination
+Tue Jun 30 23:53:26 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147405 submitted from terminal /dev/pts/156
+Tue Jun 30 23:54:01 2020 +0000 (UTC) 
+Tue Jun 30 23:54:01 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake05' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147405' '--jobid' '147405' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147405' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.sh'
+Tue Jun 30 23:54:01 2020 +0000 (UTC) 
+Tue Jun 30 23:54:01 2020 +0000 (UTC) Environment:
+Tue Jun 30 23:54:01 2020 +0000 (UTC) SHELL=/bin/bash
+Tue Jun 30 23:54:01 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpG4SLxP
+Tue Jun 30 23:54:01 2020 +0000 (UTC) COBALT_PARTNAME=skylake05
+Tue Jun 30 23:54:01 2020 +0000 (UTC) COBALT_JOBID=147405
+Tue Jun 30 23:54:01 2020 +0000 (UTC) COBALT_STARTTIME=1593561225
+Tue Jun 30 23:54:01 2020 +0000 (UTC) LOGNAME=davpoolechem
+Tue Jun 30 23:54:01 2020 +0000 (UTC) USER=davpoolechem
+Tue Jun 30 23:54:01 2020 +0000 (UTC) COBALT_ENDTIME=1593582825
+Tue Jun 30 23:54:01 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Tue Jun 30 23:54:01 2020 +0000 (UTC) HOME=/home/davpoolechem
+Tue Jun 30 23:54:01 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Tue Jun 30 23:54:01 2020 +0000 (UTC) 
+Tue Jun 30 23:54:01 2020 +0000 (UTC) Info: stdin received from /dev/null
+Tue Jun 30 23:54:01 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.output
+Tue Jun 30 23:54:01 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank.error
+Tue Jun 30 23:54:01 2020 +0000 (UTC) 
+Wed Jul 01 04:03:56 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+source /etc/profile.d/modules.sh
+source ~/.bashrc
+#
 export OMP_NUM_THREADS=1
 export JULIA_NUM_THREADS=1
 #
