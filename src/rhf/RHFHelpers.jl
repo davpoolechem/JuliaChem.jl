@@ -361,10 +361,11 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
   simint_workspace = Vector{Float64}(undef,10000)
 
   for ash in 1:nsh, bsh in 1:ash
+    fill!(eri_quartet_batch, 0.0)
     SIMINT.compute_eris(ash, bsh, ash, bsh, eri_quartet_batch, 
       simint_workspace)
     
-    schwarz_bounds[ash, bsh] = sqrt(maximum(eri_quartet_batch) )
+    schwarz_bounds[ash, bsh] = sqrt(maximum(abs.(eri_quartet_batch)) )
   end
 
   for ash in 1:nsh, bsh in 1:ash
