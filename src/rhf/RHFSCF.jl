@@ -470,33 +470,109 @@ H = One-electron Hamiltonian Matrix
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
  
   mutex = Base.Threads.ReentrantLock()
-  thread_index_counter = Threads.Atomic{Int64}(nindices)
+  #thread_index_counter = Threads.Atomic{Int64}(nindices)
   
-  #== simply do calculation for single-rank runs ==#
-  if load == "static" 
+  #== simply do calculation for serial runs ==#
+  if MPI.Comm_size(comm) == 1 
     ish_old = 0
     jsh_old = 0
     ksh_old = 0
     lsh_old = 0
 
-    while true 
-      ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
+    #while nindices > 1 
+    for ijkl in nindices:-1:1
+       #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
  
-      if ijkl_index <= 0 break
-      elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
-      end
+      #if ijkl_index <= 0 break
+      #elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
+      #end
 
       fock_build_thread_kernel(F, D,
         H, basis, eri_quartet_batch, mutex,
-        quartet, ijkl_index, simint_workspace, schwarz_bounds, Dsh,
+        quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
         ish_old, jsh_old, ksh_old, lsh_old, debug)
     end
       
     #lock(mutex)
     #  F .+= F_priv
     #unlock(mutex)
-  #== otherwise use dynamic task distribution with a master/slave model ==#
-  elseif load == "dynamic"
+  #== use static task distribution for multirank runs if selected ==#
+  elseif MPI.Comm_size(comm) > 1 && load == "static"
+    #== master rank ==#
+    if MPI.Comm_rank(comm) == 0 
+      #== send out initial tasks to slaves ==#
+      task = [ nindices ]
+  
+      recv_mesg = [ 0 ]
+     
+      #println("Start sending out initial tasks") 
+      while task[1] > 0
+        worker = (task[1]%(MPI.Comm_size(comm)-1)) + 1 
+        #println("Sending task $task to rank $initial_task")
+        sreq = MPI.Send(task, worker, 1, comm)
+        #println("Task $task sent to rank $initial_task") 
+        
+        task[1] -= 1 
+      end
+      #println("Done sending out intiial tasks") 
+
+      #== hand out ending signals once done ==#
+      #println("Start sending out enders") 
+      for rank in 1:(MPI.Comm_size(comm)-1)
+        #println("Sending ender to rank $rank")
+        sreq = MPI.Send([ -1 ], rank, 0, comm)                           
+        #println("Ender sent to rank $rank")
+      end      
+      #println("Done sending out enders") 
+    #== slave ranks perform actual computations on quartets ==#
+    elseif MPI.Comm_rank(comm) > 0
+      #== intial setup ==#
+      recv_mesg = [ 0 ]
+      send_mesg = [ 0 ]
+
+      ish_old = 0
+      jsh_old = 0
+      ksh_old = 0
+      lsh_old = 0
+
+      #mutex = Base.Threads.ReentrantLock()
+      thread_index_counter = nindices
+ 
+      #for thread in 1:Threads.nthreads()
+      #  F_priv = zeros(basis.norb,basis.norb)
+
+      #== do computations ==# 
+      while true 
+        #== get shell quartet ==#
+        #println("About to recieve task from master")
+        rreq = MPI.Recv!(recv_mesg, 0, MPI.MPI_ANY_TAG, comm)
+
+        ijkl = recv_mesg[1]
+        #println(ijkl_index)
+        if ijkl < 0 break end
+        #println("Recieved task $ijkl_index from master")
+ 
+        #for rank in 1:MPI.Comm_size(comm)
+        #  if MPI.Comm_rank(comm) == rank
+        #    println("IJKL_INDEX: ", ijkl_index)
+        #  end
+        #end
+        #println("NEW BATCH")
+        #for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+          #println("IJKL: $ijkl")
+
+         fock_build_thread_kernel(F, D,
+            H, basis, eri_quartet_batch, mutex,
+            quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
+            ish_old, jsh_old, ksh_old, lsh_old, debug)
+        #end
+      #lock(mutex)
+      #F .+= F_priv
+      #unlock(mutex)
+      end
+    end
+  #== use dynamic task distribution for multirank runs if selected ==#
+  elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
     batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*10000)) 
 
     #== master rank ==#
