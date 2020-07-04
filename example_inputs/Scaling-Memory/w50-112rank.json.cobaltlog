@@ -1,0 +1,25 @@
+Jobid: 147335
+qsub -O example_inputs/Scaling-Memory/w50-112rank.json -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-Memory/w50-112rank.json.sh
+Tue Jun 30 16:22:18 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147335 submitted from terminal /dev/pts/221
+Tue Jun 30 16:22:40 2020 +0000 (UTC) 
+Tue Jun 30 16:22:40 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake07' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147335' '--jobid' '147335' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147335' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-112rank.json.sh'
+Tue Jun 30 16:22:40 2020 +0000 (UTC) 
+Tue Jun 30 16:22:40 2020 +0000 (UTC) Environment:
+Tue Jun 30 16:22:40 2020 +0000 (UTC) SHELL=/bin/bash
+Tue Jun 30 16:22:40 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpVXrtGR
+Tue Jun 30 16:22:40 2020 +0000 (UTC) COBALT_PARTNAME=skylake07
+Tue Jun 30 16:22:40 2020 +0000 (UTC) COBALT_JOBID=147335
+Tue Jun 30 16:22:40 2020 +0000 (UTC) COBALT_STARTTIME=1593534143
+Tue Jun 30 16:22:40 2020 +0000 (UTC) LOGNAME=davpoolechem
+Tue Jun 30 16:22:40 2020 +0000 (UTC) USER=davpoolechem
+Tue Jun 30 16:22:40 2020 +0000 (UTC) COBALT_ENDTIME=1593555743
+Tue Jun 30 16:22:40 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Tue Jun 30 16:22:40 2020 +0000 (UTC) HOME=/home/davpoolechem
+Tue Jun 30 16:22:40 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Tue Jun 30 16:22:40 2020 +0000 (UTC) 
+Tue Jun 30 16:22:40 2020 +0000 (UTC) Info: stdin received from /dev/null
+Tue Jun 30 16:22:40 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-112rank.json.output
+Tue Jun 30 16:22:40 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-112rank.json.error
+Tue Jun 30 16:22:40 2020 +0000 (UTC) 
+Tue Jun 30 16:23:45 2020 +0000 (UTC) Info: task completed normally with an exit code of 1; initiating job cleanup and removal

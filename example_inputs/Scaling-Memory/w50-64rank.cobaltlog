@@ -23,3 +23,53 @@ Tue Jun 30 15:48:48 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/d
 Tue Jun 30 15:48:48 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-64rank.error
 Tue Jun 30 15:48:48 2020 +0000 (UTC) 
 Tue Jun 30 16:17:50 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
+Jobid: 147822
+qsub -O example_inputs/Scaling-Memory/w50-64rank -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-Memory/w50-64rank.sh
+Sat Jul 04 17:24:21 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147822 submitted from terminal /dev/pts/22
+Sat Jul 04 17:24:45 2020 +0000 (UTC) 
+Sat Jul 04 17:24:45 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake07' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147822' '--jobid' '147822' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147822' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-64rank.sh'
+Sat Jul 04 17:24:45 2020 +0000 (UTC) 
+Sat Jul 04 17:24:45 2020 +0000 (UTC) Environment:
+Sat Jul 04 17:24:45 2020 +0000 (UTC) SHELL=/bin/bash
+Sat Jul 04 17:24:45 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp4iOS8k
+Sat Jul 04 17:24:45 2020 +0000 (UTC) COBALT_PARTNAME=skylake07
+Sat Jul 04 17:24:45 2020 +0000 (UTC) COBALT_JOBID=147822
+Sat Jul 04 17:24:45 2020 +0000 (UTC) COBALT_STARTTIME=1593883471
+Sat Jul 04 17:24:45 2020 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jul 04 17:24:45 2020 +0000 (UTC) USER=davpoolechem
+Sat Jul 04 17:24:45 2020 +0000 (UTC) COBALT_ENDTIME=1593905071
+Sat Jul 04 17:24:45 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jul 04 17:24:45 2020 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jul 04 17:24:45 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jul 04 17:24:45 2020 +0000 (UTC) 
+Sat Jul 04 17:24:45 2020 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jul 04 17:24:45 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-64rank.output
+Sat Jul 04 17:24:45 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-64rank.error
+Sat Jul 04 17:24:45 2020 +0000 (UTC) 
+Sat Jul 04 17:30:33 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
+Jobid: 147823
+qsub -O example_inputs/Scaling-Memory/w50-64rank -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-Memory/w50-64rank.sh
+Sat Jul 04 17:36:28 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147823 submitted from terminal /dev/pts/22
+Sat Jul 04 17:36:41 2020 +0000 (UTC) 
+Sat Jul 04 17:36:41 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake07' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147823' '--jobid' '147823' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147823' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-64rank.sh'
+Sat Jul 04 17:36:41 2020 +0000 (UTC) 
+Sat Jul 04 17:36:41 2020 +0000 (UTC) Environment:
+Sat Jul 04 17:36:41 2020 +0000 (UTC) SHELL=/bin/bash
+Sat Jul 04 17:36:41 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpbDDhIE
+Sat Jul 04 17:36:41 2020 +0000 (UTC) COBALT_PARTNAME=skylake07
+Sat Jul 04 17:36:41 2020 +0000 (UTC) COBALT_JOBID=147823
+Sat Jul 04 17:36:41 2020 +0000 (UTC) COBALT_STARTTIME=1593884189
+Sat Jul 04 17:36:41 2020 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jul 04 17:36:41 2020 +0000 (UTC) USER=davpoolechem
+Sat Jul 04 17:36:41 2020 +0000 (UTC) COBALT_ENDTIME=1593905789
+Sat Jul 04 17:36:41 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jul 04 17:36:41 2020 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jul 04 17:36:41 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jul 04 17:36:41 2020 +0000 (UTC) 
+Sat Jul 04 17:36:41 2020 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jul 04 17:36:41 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-64rank.output
+Sat Jul 04 17:36:41 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-Memory/w50-64rank.error
+Sat Jul 04 17:36:41 2020 +0000 (UTC) 
+Sat Jul 04 17:42:35 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

@@ -5,6 +5,7 @@ import JuliaChem
 import Statistics
 #import HypothesisTests 
 import MPI
+using BenchmarkTools
 
 #================================#
 #== JuliaChem execution script ==#
@@ -65,7 +66,7 @@ function script(input_file)
           mol, basis = JuliaChem.JCBasis.run(molecule, model; output="verbose")
 
           scf_timeof_t1 = time_ns()/1e9
-          scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
+          scf = @time JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
             output="verbose") #initial run
           scf_timeof_t2 = time_ns()/1e9
           push!(timeof, scf_timeof_t2 - scf_timeof_t1) 

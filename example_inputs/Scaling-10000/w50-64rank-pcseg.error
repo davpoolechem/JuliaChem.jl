@@ -4,48 +4,353 @@
 /home/davpoolechem/programs/env/cuda.sh: line 10: module: command not found
 /home/davpoolechem/programs/env/cuda.sh: line 11: module: command not found
 /home/davpoolechem/.bashrc: line 44: module: command not found
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
-┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
-│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
-└ @ Base loading.jl:1041
+ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: ERROR: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directorySystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directorySystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+ [1] SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+ [1] SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+ [1] SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+ [1] SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+ [1] 
+ [1] 
+ [1] SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+ [1] SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:
+ [1] 
+ [1] systemerror
+ [1] 
+ [1] SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:systemerror
+ [1] systemerror
+ [1] 
+ [1] systemerror
+ [1] 
+ [1] 
+ [1] systemerrorsystemerrorsystemerror
+ [1] systemerror
+ [1] systemerrorsystemerrorsystemerror(systemerror(SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:(systemerror
+ [1] systemerror(systemerrorsystemerror(systemerror
+ [1] systemerror
+ [1] 
+ [1] systemerror::(
+ [1] (
+ [1] systemerror(::
+ [1] 
+ [1] (((
+ [1] 
+ [1] 
+ [1] 
+ [1] 
+ [1] (
+ [1] 
+ [1] 
+ [1] ::
+ [1] systemerror
+ [1] ((
+ [1] 
+ [1] (::
+ [1] (::::::(
+ [1] ::::::systemerrorsystemerror((::systemerrorsystemerror
+ [1] ::systemerrorsystemerrorsystemerrorsystemerrorsystemerrorSystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:systemerrorsystemerrorsystemerrorsystemerror::::
+ [1] 
+ [1] (systemerrorsystemerror
+ [1] (systemerrorsystemerror::::
+ [1] systemerrorsystemerror::systemerror(::
+ [1] 
+ [1] (systemerror((((systemerror(::((SystemError: opening file "/home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji": No such file or directory
+Stacktrace:::((((systemerrorString, ::Int32; (systemerror((((String, ::Int32; extrainfo::Nothing) at ./error.jl:168
+ [2] String, ::Int32; systemerrorsystemerror#systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] ::(::::::::extrainfo::Nothing) at ./error.jl:168
+ [2] extrainfo::Nothing) at ./error.jl:168
+ [2] 
+ [1] ::#systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String, ::Int32; String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] (::String, ::Int32; ::systemerror::String, ::Int32; (::extrainfo::Nothing) at ./error.jl:168
+ [2] ::String, ::Int32; extrainfo::Nothing) at ./error.jl:168
+ [2] String, ::Int32; #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(extrainfo::Nothing) at ./error.jl:168
+ [2] ::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] String, ::Int32; String, ::Int32; ::#systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] extrainfo::Nothing) at ./error.jl:168
+ [2] extrainfo::Nothing) at ./error.jl:168
+ [2] ::(::systemerror#systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] ::(extrainfo::Nothing) at ./error.jl:168
+ [2] extrainfo::open(::String, ::String) at Nothing) at ./iostream.jl:310
+ [6] stale_cachefile(::String, ::./error.jl:168
+ [2] String) at ./loading.jl:1396
+ [7] _require_search_from_serialized(::Base.PkgId, ::String) at ./loading.jl:757
+ [8] _require(::Base.PkgId) at ./loading.jl:1006
+ [9] require(::Base.PkgId) at ./loading.jl:927
+ [10] require(::Module, ::Symbol) at ./loading.jl:922
+ [11] include(::Module, ::String) at ./Base.jl:377
+ [12] exec_options(::Base.JLOptions) at ./client.jl:288
+ [13] _start() at ./client.jl:484
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+(String, ::Int32; #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] ::String, ::Int32; ::String, ::Int32; open(::String, ::String) at ./iostream.jl:310
+ [6] stale_cachefile(::String, ::String) at ./loading.jl:1396
+ [7] _require_search_from_serialized(::Base.PkgId, ::String) at ./loading.jl:757
+ [8] _require(::Base.PkgId) at ./loading.jl:1006
+ [9] require(::Base.PkgId) at ./loading.jl:927
+ [10] require(::Module, ::Symbol) at ./loading.jl:922
+ [11] include(::Module, ::String) at ./Base.jl:377
+ [12] exec_options(::Base.JLOptions) at ./client.jl:288
+ [13] _start() at ./client.jl:484
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+open(::String, ::String) at ./iostream.jl:310
+ [6] stale_cachefile(::String, ::String) at ./loading.jl:1396
+ [7] _require_search_from_serialized(::Base.PkgId, ::String) at ./loading.jl:757
+ [8] _require(::Base.PkgId) at ./loading.jl:1006
+ [9] require(::Base.PkgId) at ./loading.jl:927
+ [10] require(::Module, ::Symbol) at ./loading.jl:922
+ [11] include(::Module, ::String) at ./Base.jl:377
+ [12] exec_options(::Base.JLOptions) at ./client.jl:288
+ [13] _start() at ./client.jl:484
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+::systemerror
+signal (15): Terminated
+in expression starting at none:0
+pthread_self at /lib64/libpthread.so.0 (unknown line)
+jl_apply_tuple_type_v_ at /buildworker/worker/package_linux64/build/src/jltypes.c:1354 [inlined]
+jl_apply_tuple_type_v at /buildworker/worker/package_linux64/build/src/jltypes.c:1364
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2145 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2323
+extrainfo::Nothing) at ./error.jl:168
+signal (15): Terminated
+in expression starting at none:0
+
+ [2] 
+signal (15): Terminated
+in expression starting at none:0
+
+signal (15): Terminated
+in expression starting at none:0
+
+signal (15): Terminated
+in expression starting at none:0
+_new_array_ at /buildworker/worker/package_linux64/build/src/array.c:98 [inlined]
+_new_array at /buildworker/worker/package_linux64/build/src/array.c:162 [inlined]
+jl_alloc_array_1d at /buildworker/worker/package_linux64/build/src/array.c:433
+
+signal (15): Terminated
+in expression starting at none:0
+__memcmp_sse4_1 at /lib64/libc.so.6 (unknown line)
+::
+signal (15): Terminated
+in expression starting at none:0
+malloc_consolidate at /lib64/libc.so.6 (unknown line)
+_int_malloc at /lib64/libc.so.6 (unknown line)
+__libc_malloc at /lib64/libc.so.6 (unknown line)
+extrainfo::Nothing) at ./error.jl:168
+ [2] #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] extrainfo::Nothing) at ./error.jl:168
+ [2] #systemerror#50 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; read::Bool, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:254
+ [5] 
+signal (15): Terminated
+in expression starting at none:0
+
+signal (15): Terminated
+in expression starting at none:0
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/src/JuliaChem.jl:3
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+
+signal (15): Terminated
+in expression starting at none:0
+jl_typemap_entry_assoc_exact at /buildworker/worker/package_linux64/build/src/typemap.c:766
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/src/JuliaChem.jl:3
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+jl_unwrap_unionall at /buildworker/worker/package_linux64/build/src/jltypes.c:959
+(
+signal (15): Terminated
+in expression starting at none:0
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/src/JuliaChem.jl:3
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+(
+signal (15): Terminated
+in expression starting at none:0
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+String, ::Int32; 
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/src/JuliaChem.jl:3
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/src/JuliaChem.jl:3
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+jl_subtype_env at /buildworker/worker/package_linux64/build/src/subtype.c:1798
+sub_msp at /buildworker/worker/package_linux64/build/src/subtype.c:3364
+tuple_morespecific at /buildworker/worker/package_linux64/build/src/subtype.c:3438 [inlined]
+type_morespecific_ at /buildworker/worker/package_linux64/build/src/subtype.c:3575
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/src/JuliaChem.jl:3
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+jl_unwrap_unionall at /buildworker/worker/package_linux64/build/src/jltypes.c:956
+
+signal (15): Terminated
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4
+epoll_pwait at /lib64/libc.so.6 (unknown line)
+uv__io_poll at /workspace/srcdir/libuv/src/unix/linux-core.c:270
+uv_run at /workspace/srcdir/libuv/src/unix/core.c:359
+jl_task_get_next at /buildworker/worker/package_linux64/build/src/partr.c:449
+
+signal (15): Terminated
+in expression starting at none:0
+/home/davpoolechem/.bashrc: line 7: /etc/profile.d/modules.sh: No such file or directory
+/home/davpoolechem/programs/env/cuda.sh: line 2: module: command not found
+/home/davpoolechem/programs/env/cuda.sh: line 4: module: command not found
+/home/davpoolechem/programs/env/cuda.sh: line 10: module: command not found
+/home/davpoolechem/programs/env/cuda.sh: line 11: module: command not found
+/home/davpoolechem/.bashrc: line 44: module: command not found
 ┌ Warning: The API of formatters has changed in PrettyTables v0.9.
 │ The keyword is now called `formatters` instead of `formatter` and it is a tuple
 │ of functions instead of a dictionary.

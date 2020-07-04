@@ -1,0 +1,25 @@
+Jobid: 147778
+qsub -O example_inputs/Scaling-10000/w50-4rank-pcseg -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-4rank-pcseg.sh
+Fri Jul 03 17:29:25 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147778 submitted from terminal /dev/pts/150
+Fri Jul 03 17:30:01 2020 +0000 (UTC) 
+Fri Jul 03 17:30:01 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake01' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147778' '--jobid' '147778' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147778' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-4rank-pcseg.sh'
+Fri Jul 03 17:30:01 2020 +0000 (UTC) 
+Fri Jul 03 17:30:01 2020 +0000 (UTC) Environment:
+Fri Jul 03 17:30:01 2020 +0000 (UTC) SHELL=/bin/bash
+Fri Jul 03 17:30:01 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpxNLO5x
+Fri Jul 03 17:30:01 2020 +0000 (UTC) COBALT_PARTNAME=skylake01
+Fri Jul 03 17:30:01 2020 +0000 (UTC) COBALT_JOBID=147778
+Fri Jul 03 17:30:01 2020 +0000 (UTC) COBALT_STARTTIME=1593797387
+Fri Jul 03 17:30:01 2020 +0000 (UTC) LOGNAME=davpoolechem
+Fri Jul 03 17:30:01 2020 +0000 (UTC) USER=davpoolechem
+Fri Jul 03 17:30:01 2020 +0000 (UTC) COBALT_ENDTIME=1593818987
+Fri Jul 03 17:30:01 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Fri Jul 03 17:30:01 2020 +0000 (UTC) HOME=/home/davpoolechem
+Fri Jul 03 17:30:01 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Fri Jul 03 17:30:01 2020 +0000 (UTC) 
+Fri Jul 03 17:30:01 2020 +0000 (UTC) Info: stdin received from /dev/null
+Fri Jul 03 17:30:01 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-4rank-pcseg.output
+Fri Jul 03 17:30:01 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-4rank-pcseg.error
+Fri Jul 03 17:30:01 2020 +0000 (UTC) 
+Fri Jul 03 18:28:03 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

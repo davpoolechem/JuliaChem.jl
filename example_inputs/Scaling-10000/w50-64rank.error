@@ -3,7 +3,40 @@
 /home/davpoolechem/programs/env/cuda.sh: line 4: module: command not found
 /home/davpoolechem/programs/env/cuda.sh: line 10: module: command not found
 /home/davpoolechem/programs/env/cuda.sh: line 11: module: command not found
-/home/davpoolechem/.bashrc: line 43: module: command not found
+/home/davpoolechem/.bashrc: line 44: module: command not found
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
+┌ Warning: The call to compilecache failed to create a usable precompiled cache file for JuliaChem [0a8e60a0-aa30-11e9-2bf2-3fef263b0d75]
+│   exception = ArgumentError: Invalid checksum in cache file /home/davpoolechem/.julia/compiled/v1.4/JuliaChem/rfCM7_ygb6C.ji.
+└ @ Base loading.jl:1041
 ┌ Warning: The API of formatters has changed in PrettyTables v0.9.
 │ The keyword is now called `formatters` instead of `formatter` and it is a tuple
 │ of functions instead of a dictionary.

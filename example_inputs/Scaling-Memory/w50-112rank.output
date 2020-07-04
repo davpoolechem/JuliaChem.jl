@@ -1,70 +1,12 @@
-#######################################################################
-FORTRAN=gfortran
-FORTRAN_VERSION=9.2.0
-MATH=mkl
-BLASDIR=
-MPI_LIB=openmpi
-MPI_HOME=/soft/libraries/mpi/openmpi/2.1.6/
-HDF5_PATH=/home/davpoolechem/programs/install/hdf5
-EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
-BOOST_PATH=/home/davpoolechem/programs/install/boost
-GA_PATH=/home/davpoolechem/programs/install/ga
-CUDA_BOARD=volta
-CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
-#######################################################################
-
-#######################################################################
-FORTRAN=gfortran
-FORTRAN_VERSION=9.2.0
-MATH=mkl
-BLASDIR=/soft/restricted/CNDA/sdk/2020.6.15.1/inteloneapi/mkl/latest
-MPI_LIB=openmpi
-MPI_HOME=/soft/libraries/mpi/openmpi/2.1.6/
-HDF5_PATH=/home/davpoolechem/programs/install/hdf5
-EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
-BOOST_PATH=/home/davpoolechem/programs/install/boost
-GA_PATH=/home/davpoolechem/programs/install/ga
-CUDA_BOARD=volta
-CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
-#######################################################################
-
-#######################################################################
-FORTRAN=gfortran
-FORTRAN_VERSION=9.2.0
-MATH=mkl
-BLASDIR=/soft/restricted/CNDA/sdk/2020.6.15.1/inteloneapi/mkl/latest
-MPI_LIB=openmpi
-MPI_HOME=/soft/libraries/mpi/openmpi/2.1.6/
-HDF5_PATH=/home/davpoolechem/programs/install/hdf5
-EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
-BOOST_PATH=/home/davpoolechem/programs/install/boost
-GA_PATH=/home/davpoolechem/programs/install/ga
-CUDA_BOARD=volta
-CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
-#######################################################################
-
---------------------------------------------------------------------------
-mpirun was unable to find the specified executable file, and therefore
-did not launch the job.  This error was first reported for process
-rank 0; it may have occurred for other processes as well.
-
-NOTE: A common cause for this error is misspelling a mpirun command
-      line parameter option (remember that mpirun interprets the first
-      unrecognized command line token as the executable).
-
-Node:       skylake08
-Executable: julia
---------------------------------------------------------------------------
-64 total processes failed to start
 --------------------------------------------------------------------------------
                        ========================================                 
                                 READING INPUT DATA FILE                         
                        ========================================                 
  
  
-Number of worker processes: 64
+Number of worker processes: 112
 Number of threads per process: 1
-Number of threads in total: 64
+Number of threads in total: 112
  
                        ========================================                 
                                        END INPUT                                
@@ -75,9 +17,9 @@ Number of threads in total: 64
                        ========================================                 
  
  
-Number of worker processes: 64
+Number of worker processes: 112
 Number of threads per process: 1
-Number of threads in total: 64
+Number of threads in total: 112
  
                        ========================================                 
                                        END INPUT                                
@@ -12874,9 +12816,9 @@ Shell #2:
                        ========================================                 
  
  
-Number of worker processes: 64
+Number of worker processes: 112
 Number of threads per process: 1
-Number of threads in total: 64
+Number of threads in total: 112
  
                        ========================================                 
                                        END INPUT                                
@@ -17154,54 +17096,166 @@ Shell #2:
  
 Iter      Energy                   ΔE                   Drms
 0     -17777.505977201898
-1     -3665.057790874809     14112.448186327088     246.04357873442996
-2     -3371.9163471840548     293.1414436907544     61.07052275336616
-3     -3168.61471030332     203.3016368807348     60.99963329680699
-4     -3119.2308999570632     49.38381034625672     42.22335315617583
-5     -3123.332116180085     -4.1012162230217655     25.0837028675734
-6     -3076.7884978959646     46.543618284120384     26.747607767735975
-7     -3040.148686835533     36.639811060431384     14.929252773741606
-8     -3033.251810886215     6.896875949318201     9.687950111540966
-9     -3027.331156075752     5.92065481046302     3.5820537543804036
-10     -3025.4715612068103     1.8595948689417128     1.0334670677706774
-11     -5848.179497800702     -2822.7079365938916     222.88182785320276
-12     -4079.71027217534     1768.469225625362     215.84418300267194
-13     -3882.0441749597394     197.66609721560053     29.873852833429474
-14     -3770.8983750967946     111.14579986294484     15.79490852243224
-15     -3762.5767008257462     8.321674271048323     9.233124694407577
-16     -3719.3046623470455     43.27203847870078     9.551613100177434
-17     -3697.7817674697526     21.522894877292856     10.691068913417942
-18     -3697.2772015259798     0.5045659437728318     3.044801334031407
-19     -3705.3381617090454     -8.060960183065617     8.705211519436869
-20     -3706.0402647510145     -0.702103041969167     8.875562577824455
-21     -3757.0056004019043     -50.965335650889756     8.870604243157267
-22     -3801.8126934910524     -44.80709308914811     5.889186092403263
-23     -3801.9369408849143     -0.12424739386187866     0.8873306388610572
-24     -3798.7592078659145     3.1777330189997883     0.6689600355870584
-25     -3799.2678078134977     -0.5085999475832068     0.13141580604795078
-26     -3799.261949416883     0.005858396614712547     0.12861476566816593
-27     -3799.331382040229     -0.06943262334607425     0.030715978655792286
-28     -3799.300598241418     0.030783798811171437     0.011558077047898121
-29     -3799.3394398224063     -0.03884158098844637     0.004381709544658465
-30     -3799.3596095064404     -0.02016968403404462     0.002216270815549635
-31     -3799.3791770390217     -0.01956753258127719     0.001554631506647536
-32     -3799.3803400432917     -0.001163004269983503     0.00033957949351264276
-33     -3799.380161356343     0.00017868694885692094     0.00011504221801472311
-34     -3799.380163380756     -2.0244133338565007e-6     4.152476139551671e-5
-35     -3799.380205037134     -4.165637801634148e-5     1.6366649200449928e-5
-36     -3799.380205350837     -3.137029125355184e-7     4.072279408199555e-6
-37     -3799.3802057204157     -3.6957862903364003e-7     1.8206938833419588e-6
-38     -3799.3802046974706     1.0229450708720833e-6     3.984970900760466e-7
-39     -3799.380205157604     -4.601333785103634e-7     1.2972451867098824e-7
+1     -3665.0577909022104     14112.448186299687     246.04357872435537
+2     -3371.9163471918546     293.1414437103558     61.070522686484026
+3     -3168.6147103930816     203.30163679877296     60.99963329664509
+4     -3119.230900007409     49.383810385672405     42.223353129372995
+5     -3123.3321162022366     -4.10121619482743     25.08370285670652
+6     -3076.7884979577484     46.54361824448824     26.747607760251743
+7     -3040.148686920138     36.63981103761034     14.929252779561553
+8     -3033.2518110258934     6.896875894244658     9.687950066015969
+9     -3027.3311561596565     5.920654866236873     3.582053810651738
+10     -3025.4715613006647     1.8595948589918407     1.0334670651129712
+11     -5848.179499739752     -2822.7079384390872     222.88182783013718
+12     -4079.710271125694     1768.469228614058     215.84418299178057
+13     -3882.0441740707884     197.66609705490555     29.873852816414747
+14     -3770.898369712817     111.14580435797143     15.794908680625902
+15     -3762.576705043306     8.321664669510938     9.233125565778789
+16     -3719.3046698080107     43.272035235295334     9.551613763642568
+17     -3697.78175408497     21.52291572304057     10.691076200857282
+18     -3697.2772434617673     0.5045106232028047     3.0447809983086827
+19     -3705.33818118771     -8.060937725942495     8.705214807650075
+20     -3706.0402838685186     -0.7021026808088209     8.875567280402132
+21     -3757.0055747011484     -50.96529083262976     8.870603517349815
+22     -3801.812720517846     -44.80714581669781     5.88918562403561
+23     -3801.9369925163355     -0.12427199848934833     0.8873309547361461
+24     -3798.7592646495305     3.1777278668050712     0.6689610504521784
+25     -3799.267848823063     -0.508584173532654     0.13141584340303555
+26     -3799.261971872231     0.005876950832316652     0.12861449152361018
+27     -3799.3313970026757     -0.06942513044486986     0.03071586235869737
+28     -3799.3006080708437     0.030788931831921218     0.011557895454344973
+29     -3799.339444897172     -0.03883682632840646     0.004381529260278569
+30     -3799.3596113734166     -0.02016647624441248     0.0022160669327341586
+31     -3799.3791774696074     -0.01956609619082883     0.0015545148683744694
+32     -3799.380340085323     -0.0011626157156570116     0.000339554439447774
+33     -3799.380161352212     0.00017873311117000412     0.00011503556153727486
+34     -3799.380163379419     -2.027207301580347e-6     4.1520680535308637e-5
+35     -3799.3802050352097     -4.165579048276413e-5     1.636548327012905e-5
+36     -3799.380205347601     -3.1239142117556185e-7     4.071741321074662e-6
+37     -3799.380205717298     -3.696968633448705e-7     1.8204828428622e-6
+38     -3799.38020469438     1.0229177860310301e-6     3.9847082529727894e-7
+39     -3799.3802051545244     -4.601442924467847e-7     1.2970815152967186e-7
  
 ----------------------------------------
    The SCF calculation has converged!   
 ----------------------------------------
-Total SCF Energy: -3799.380205157604 h
+Total SCF Energy: -3799.3802051545244 h
  
+1519.378445 seconds1519.280792 seconds1519.508408 seconds1519.260857 seconds1519.292446 seconds1519.769908 (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+1519.333302 seconds1519.297610 seconds seconds (759.01 k allocations: 803.880 MiB, 0.12% gc time)
+1519.243937 seconds (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+1519.494095 seconds1519.425904 seconds (759.01 k allocations: 803.880 MiB, 0.19% gc time)
+1519.540248 seconds (759.01 k allocations: 803.880 MiB, 0.16% gc time)
+1519.644850 seconds (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.13% gc time)
+1519.807670 seconds (759.72 k allocations: 803.919 MiB, 0.07% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.13% gc time)
+1519.627673 seconds (759.72 k allocations: 803.919 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.12% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.13% gc time)
+1519.311065 seconds1519.275741 seconds1519.415704 seconds1519.603386 seconds (759.72 k allocations: 803.919 MiB, 0.07% gc time)
+1519.587864 seconds1519.506802 seconds1520.251319 seconds (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.13% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.17% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.07% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.16% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.15% gc time)
+1519.424495 seconds1519.620827 seconds (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+1519.833420 seconds1520.035085 seconds1519.860170 seconds1519.759699 seconds1519.779052 seconds (759.01 k allocations: 803.880 MiB, 0.07% gc time)
+1519.732945 seconds1519.642110 seconds (759.01 k allocations: 803.880 MiB, 0.08% gc time)
+1519.424666 seconds1519.350821 seconds1519.600922 seconds1519.648739 seconds1519.621268 seconds1519.589418 seconds (759.72 k allocations: 803.919 MiB, 0.09% gc time)
+1519.622628 seconds1524.148799 seconds1519.517817 seconds1519.556329 seconds1521.427063 seconds (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+1519.473154 seconds1528.999415 seconds1519.399728 seconds (759.72 k allocations:  (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+1519.565482 seconds1519.431228 seconds803.919 MiB, 0.07% gc time)
+1519.801600 seconds1519.482146 seconds1519.401926 seconds1519.450053 seconds1519.466653 seconds1519.518872 seconds1519.583888 seconds1519.432667 seconds1519.613830 seconds (759.01 k allocations: 803.880 MiB, 0.17% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+1519.488926 seconds1519.596644 seconds1519.453178 seconds1519.605019 seconds1520.428288 seconds1519.647268 seconds1519.689458 seconds1520.047841 seconds1519.763883 seconds1519.889339 seconds (759.72 k allocations: 803.919 MiB, 0.10% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.08% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.08% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+1519.563361 seconds (759.01 k allocations: 803.880 MiB, 0.17% gc time)
+1528.236926 seconds1519.593627 seconds1520.233934 seconds1519.427023 seconds1519.497024 seconds1519.435555 seconds1520.008589 seconds1519.831262 seconds (759.72 k allocations: 803.919 MiB, 0.09% gc time)
+1520.133025 seconds (759.01 k allocations: 803.880 MiB, 0.12% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.08% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+1521.506879 seconds1519.481246 seconds (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+1520.273444 seconds (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.12% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.13% gc time)
+1519.506703 seconds (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.17% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.15% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.15% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.19% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.08% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.12% gc time)
+1519.691592 seconds (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.19% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.13% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+1519.696884 seconds1519.696552 seconds (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+1519.665118 seconds (759.01 k allocations: 803.880 MiB, 0.17% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+1519.436193 seconds1519.457470 seconds1519.570061 seconds (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+1519.535681 seconds1520.914114 seconds (759.72 k allocations: 803.919 MiB, 0.13% gc time)
+1519.635073 seconds (759.72 k allocations: 803.919 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+1519.677456 seconds (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+1523.126488 seconds1519.419843 seconds1519.427193 seconds1519.447760 seconds (759.01 k allocations: 803.880 MiB, 0.12% gc time)
+1519.567868 seconds (759.72 k allocations: 803.919 MiB, 0.12% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.17% gc time)
+1519.435956 seconds (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+1519.573375 seconds (759.72 k allocations: 803.919 MiB, 0.13% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.14% gc time)
+1519.726922 seconds1520.165730 seconds (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+1522.503146 seconds1519.604253 seconds (759.72 k allocations: 803.919 MiB, 0.19% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.15% gc time)
+1519.509175 seconds (759.01 k allocations: 803.880 MiB, 0.12% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.16% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.10% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.10% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.16% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.16% gc time)
+1519.663603 seconds (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.16% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.15% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.15% gc time)
+1519.772501 seconds (759.01 k allocations: 803.880 MiB, 0.10% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.16% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.15% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.08% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+1519.576257 seconds (759.01 k allocations: 803.880 MiB, 0.11% gc time)
+1519.696324 seconds (759.01 k allocations: 803.880 MiB, 0.19% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.09% gc time)
+1519.597625 seconds1519.822373 seconds1520.597171 seconds (759.01 k allocations: 803.880 MiB, 0.15% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.17% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.13% gc time)
+1519.810364 seconds (759.01 k allocations: 803.880 MiB, 0.13% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.19% gc time)
+ (759.01 k allocations: 803.880 MiB, 0.14% gc time)
+ (759.72 k allocations: 803.919 MiB, 0.13% gc time)
                        ========================================                 
                              END RESTRICTED CLOSED-SHELL                 
                                      HARTREE-FOCK                        
                        ========================================                 
+1519.106342 seconds (1.89 M allocations: 858.384 MiB, 0.12% gc time)
 1-element Array{Float64,1}:
- 5829.463142381001
+ 1519.13730271
