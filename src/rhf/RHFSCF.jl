@@ -473,19 +473,21 @@ H = One-electron Hamiltonian Matrix
   #thread_index_counter = Threads.Atomic{Int64}(nindices)
   
   #== simply do calculation for serial runs ==#
-  if MPI.Comm_size(comm) == 1 
+  if MPI.Comm_size(comm) == 1  || load == "static"
     ish_old = 0
     jsh_old = 0
     ksh_old = 0
     lsh_old = 0
 
     #while nindices > 1 
-    for ijkl in nindices:-1:1
+    top = nindices - (MPI.Comm_rank(comm))
+    middle = -MPI.Comm_size(comm) 
+    #for ijkl in nindices:-1:1
+    for ijkl in top:middle:1 
        #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
  
       #if ijkl_index <= 0 break
-      #elseif MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue 
-      #end
+      #if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
 
       fock_build_thread_kernel(F, D,
         H, basis, eri_quartet_batch, mutex,
@@ -497,6 +499,7 @@ H = One-electron Hamiltonian Matrix
     #  F .+= F_priv
     #unlock(mutex)
   #== use static task distribution for multirank runs if selected ==#
+  #=
   elseif MPI.Comm_size(comm) > 1 && load == "static"
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
@@ -572,6 +575,7 @@ H = One-electron Hamiltonian Matrix
       end
     end
   #== use dynamic task distribution for multirank runs if selected ==#
+  =#
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
     batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*10000)) 
 
