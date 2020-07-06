@@ -223,8 +223,10 @@ end
 end
 
 @inline function decompose(input::Int)
-  return ceil(Int,(-1.0+√(1+8*input))/2.0)
-  #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
+  #return ceil(Int,(-1.0+√(1+8*input))/2.0)
+  return Base.fptosi(Int, Base.ceil_llvm((-1.0 + 
+    Base.Math.sqrt_llvm(float(1+8*input)))/2.0))
+    #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
   #  Int64, (Int64,), input)
 end
 
