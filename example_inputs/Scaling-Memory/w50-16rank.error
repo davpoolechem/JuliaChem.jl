@@ -1,9 +1,0 @@
-/home/davpoolechem/programs/env/opencl.sh: line 2: module: command not found
-/home/davpoolechem/programs/env/opencl.sh: line 6: module: command not found
-/home/davpoolechem/programs/env/opencl.sh: line 9: module: command not found
-/home/davpoolechem/programs/env/opencl.sh: line 10: module: command not found
-/home/davpoolechem/.bashrc: line 42: module: command not found
-Loading gcc/8.2.0 module
-
-Loading opencl/2020.03.15.001
-  Loading requirement: gcc/8.2.0

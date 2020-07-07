@@ -1,0 +1,75 @@
+Jobid: 147875
+qsub -O example_inputs/Scaling-10000/w50-8rank-static -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-8rank-static.sh
+Sat Jul 04 23:48:46 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147875 submitted from terminal /dev/pts/37
+Sat Jul 04 23:49:21 2020 +0000 (UTC) 
+Sat Jul 04 23:49:21 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake05' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147875' '--jobid' '147875' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147875' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.sh'
+Sat Jul 04 23:49:21 2020 +0000 (UTC) 
+Sat Jul 04 23:49:21 2020 +0000 (UTC) Environment:
+Sat Jul 04 23:49:21 2020 +0000 (UTC) SHELL=/bin/bash
+Sat Jul 04 23:49:21 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpHytjja
+Sat Jul 04 23:49:21 2020 +0000 (UTC) COBALT_PARTNAME=skylake05
+Sat Jul 04 23:49:21 2020 +0000 (UTC) COBALT_JOBID=147875
+Sat Jul 04 23:49:21 2020 +0000 (UTC) COBALT_STARTTIME=1593906546
+Sat Jul 04 23:49:21 2020 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jul 04 23:49:21 2020 +0000 (UTC) USER=davpoolechem
+Sat Jul 04 23:49:21 2020 +0000 (UTC) COBALT_ENDTIME=1593928146
+Sat Jul 04 23:49:21 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jul 04 23:49:21 2020 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jul 04 23:49:21 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jul 04 23:49:21 2020 +0000 (UTC) 
+Sat Jul 04 23:49:21 2020 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jul 04 23:49:21 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.output
+Sat Jul 04 23:49:21 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.error
+Sat Jul 04 23:49:21 2020 +0000 (UTC) 
+Sun Jul 05 01:55:47 2020 +0000 (UTC) Info: user delete requested with signal SIGTERM by user davpoolechem
+Jobid: 147893
+qsub -O example_inputs/Scaling-10000/w50-8rank-static -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-8rank-static.sh
+Sun Jul 05 03:19:40 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147893 submitted from terminal /dev/pts/25
+Sun Jul 05 03:20:09 2020 +0000 (UTC) 
+Sun Jul 05 03:20:09 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake05' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147893' '--jobid' '147893' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147893' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.sh'
+Sun Jul 05 03:20:09 2020 +0000 (UTC) 
+Sun Jul 05 03:20:09 2020 +0000 (UTC) Environment:
+Sun Jul 05 03:20:09 2020 +0000 (UTC) SHELL=/bin/bash
+Sun Jul 05 03:20:09 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmplmxVHJ
+Sun Jul 05 03:20:09 2020 +0000 (UTC) COBALT_PARTNAME=skylake05
+Sun Jul 05 03:20:09 2020 +0000 (UTC) COBALT_JOBID=147893
+Sun Jul 05 03:20:09 2020 +0000 (UTC) COBALT_STARTTIME=1593919192
+Sun Jul 05 03:20:09 2020 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jul 05 03:20:09 2020 +0000 (UTC) USER=davpoolechem
+Sun Jul 05 03:20:09 2020 +0000 (UTC) COBALT_ENDTIME=1593940792
+Sun Jul 05 03:20:09 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jul 05 03:20:09 2020 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jul 05 03:20:09 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jul 05 03:20:09 2020 +0000 (UTC) 
+Sun Jul 05 03:20:09 2020 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jul 05 03:20:09 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.output
+Sun Jul 05 03:20:09 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.error
+Sun Jul 05 03:20:09 2020 +0000 (UTC) 
+Sun Jul 05 05:55:17 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
+Jobid: 147906
+qsub -O example_inputs/Scaling-10000/w50-8rank-static -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-8rank-static.sh
+Sun Jul 05 16:10:19 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147906 submitted from terminal /dev/pts/32
+Sun Jul 05 16:10:43 2020 +0000 (UTC) 
+Sun Jul 05 16:10:43 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake08' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147906' '--jobid' '147906' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147906' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.sh'
+Sun Jul 05 16:10:43 2020 +0000 (UTC) 
+Sun Jul 05 16:10:43 2020 +0000 (UTC) Environment:
+Sun Jul 05 16:10:43 2020 +0000 (UTC) SHELL=/bin/bash
+Sun Jul 05 16:10:43 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpTm3tgZ
+Sun Jul 05 16:10:43 2020 +0000 (UTC) COBALT_PARTNAME=skylake08
+Sun Jul 05 16:10:43 2020 +0000 (UTC) COBALT_JOBID=147906
+Sun Jul 05 16:10:43 2020 +0000 (UTC) COBALT_STARTTIME=1593965436
+Sun Jul 05 16:10:43 2020 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jul 05 16:10:43 2020 +0000 (UTC) USER=davpoolechem
+Sun Jul 05 16:10:43 2020 +0000 (UTC) COBALT_ENDTIME=1593987036
+Sun Jul 05 16:10:43 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jul 05 16:10:43 2020 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jul 05 16:10:43 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jul 05 16:10:43 2020 +0000 (UTC) 
+Sun Jul 05 16:10:43 2020 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jul 05 16:10:43 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.output
+Sun Jul 05 16:10:43 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-8rank-static.error
+Sun Jul 05 16:10:43 2020 +0000 (UTC) 
+Sun Jul 05 16:39:21 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

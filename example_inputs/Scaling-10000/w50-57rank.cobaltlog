@@ -1,0 +1,25 @@
+Jobid: 147821
+qsub -O example_inputs/Scaling-10000/w50-57rank -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-57rank.sh
+Sat Jul 04 17:01:37 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
+jobid 147821 submitted from terminal /dev/pts/22
+Sat Jul 04 17:01:54 2020 +0000 (UTC) 
+Sat Jul 04 17:01:54 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake06' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.147821' '--jobid' '147821' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=147821' '/gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-57rank.sh'
+Sat Jul 04 17:01:54 2020 +0000 (UTC) 
+Sat Jul 04 17:01:54 2020 +0000 (UTC) Environment:
+Sat Jul 04 17:01:54 2020 +0000 (UTC) SHELL=/bin/bash
+Sat Jul 04 17:01:54 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp_yvtxZ
+Sat Jul 04 17:01:54 2020 +0000 (UTC) COBALT_PARTNAME=skylake06
+Sat Jul 04 17:01:54 2020 +0000 (UTC) COBALT_JOBID=147821
+Sat Jul 04 17:01:54 2020 +0000 (UTC) COBALT_STARTTIME=1593882106
+Sat Jul 04 17:01:54 2020 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jul 04 17:01:54 2020 +0000 (UTC) USER=davpoolechem
+Sat Jul 04 17:01:54 2020 +0000 (UTC) COBALT_ENDTIME=1593903706
+Sat Jul 04 17:01:54 2020 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jul 04 17:01:54 2020 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jul 04 17:01:54 2020 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jul 04 17:01:54 2020 +0000 (UTC) 
+Sat Jul 04 17:01:54 2020 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jul 04 17:01:54 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-57rank.output
+Sat Jul 04 17:01:54 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl/example_inputs/Scaling-10000/w50-57rank.error
+Sat Jul 04 17:01:54 2020 +0000 (UTC) 
+Sat Jul 04 17:08:51 2020 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
