@@ -114,7 +114,7 @@ type = Precision of variables in calculation
   
   F = deepcopy(F) #apparently this is needed for some reason
   F_old = deepcopy(F)
-
+  
   E = E_elec + E_nuc
   E_old = E
 
@@ -127,8 +127,9 @@ type = Precision of variables in calculation
   #=============================#
   #@code_warntype scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
-    F_eval, F_evec, F_mo, F_part, F_old, E_nuc, E_elec, E_old, basis, 
-    scf_flags; output=output, debug=debug, niter=niter)
+    F_eval, F_evec, F_mo, F_part, F_old, E_nuc, E_elec, E_old, 
+    basis, scf_flags; 
+    output=output, debug=debug, niter=niter)
 
   if !converged
     if MPI.Comm_rank(comm) == 0 && output != "none"
@@ -191,7 +192,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, 
   ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
   F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_part::Matrix{Float64},
-  F_old::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64, 
+  F_old::Matrix{Float64}, 
+  E_nuc::Float64, E_elec::Float64, E_old::Float64, 
   basis::BasisStructs.Basis, scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; 
   output, debug, niter)
 
@@ -222,8 +224,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   
   #== build arrays needed for post-fock build iteration calculations ==#
   F_temp = similar(F)
+  ΔF = similar(F) 
+  F_cumul = zeros(size(F)) 
+  
   D_old = similar(F)
-  ΔD = similar(F)
+  ΔD = deepcopy(D) 
 
   #== build matrix of Cauchy-Schwarz upper bounds ==# 
   schwarz_bounds = zeros(Float64,(nsh,nsh)) 
@@ -251,8 +256,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #@code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
-    F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
-    scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, Dsh; 
+    F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, ΔF, F_cumul, 
+    D_old, ΔD, scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, 
+    Dsh; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load)
 
@@ -276,8 +282,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, 
-  F_part::Matrix{Float64}, F_old::Matrix{Float64},
-  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
+  F_part::Matrix{Float64}, F_old::Matrix{Float64}, ΔF::Matrix{Float64},
+  F_cumul::Matrix{Float64}, D_old::Matrix{Float64}, ΔD::Matrix{Float64}, 
+  scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64};
@@ -324,22 +331,24 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       jpos = basis[jsh].pos
       jbas = basis[jsh].nbas
 
-      @views Dsh[ish, jsh] = maximum(abs.(D[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)]))
+      @views Dsh[ish, jsh] = maximum(abs.(ΔD[ipos:(ipos+ibas-1),
+        jpos:(jpos+jbas-1)]))
       Dsh[jsh, ish] = Dsh[ish, jsh] 
     end
   
     #== build new Fock matrix ==#
-    F_temp .= fock_build(F, D, H, basis, schwarz_bounds, Dsh; 
+    F_temp .= fock_build(ΔF, ΔD, H, basis, schwarz_bounds, Dsh; 
       debug=debug, load=load)
 
-    F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
+    ΔF .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
       h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F)
     end
-
-    F .+= H
+  
+    F_cumul .+= ΔF
+    F .= F_cumul .+ H
 
     if debug && MPI.Comm_rank(comm) == 0
       h5write("debug.h5","SCF/Iteration-$iter/F/Total", F)
