@@ -1,7 +1,0 @@
-Jobid: 147913
-qsub -O example_inputs/Scaling-10000/w50-3rank-static -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/Scaling-10000/w50-3rank-static.sh
-Sun Jul 05 17:51:36 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/Sandbox/Julia/JuliaChem.jl
-jobid 147913 submitted from terminal /dev/pts/37
-Sun Jul 05 17:51:59 2020 +0000 (UTC) Info: user delete requested with signal SIGTERM by user davpoolechem now pending
-Sun Jul 05 17:52:10 2020 +0000 (UTC) Info: pending user delete; releasing resources
-Sun Jul 05 17:52:11 2020 +0000 (UTC) Info: resources released; starting job epilogue scripts
