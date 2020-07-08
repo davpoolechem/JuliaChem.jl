@@ -204,7 +204,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   F_old::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64, 
   basis::BasisStructs.Basis;
   output::String, debug::Bool, niter::Int, ndiis::Int, 
-  dele::Float64, rmsd::Float64, load::String)
+  dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
 
   #== read in some more variables from scf flags input ==#
@@ -367,7 +367,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     F_temp .= fock_build(F_input, D_input, H, basis, schwarz_bounds, Dsh, 
-      eri_quartet_batch, quartet, simint_workspace, debug, load) :
+      eri_quartet_batch, quartet, simint_workspace, debug, load)
 
     F_input .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
