@@ -6,6 +6,7 @@ import qcportal as ptl
 import julia
 from julia import JuliaChem
 from julia import JSON
+from julia import Base
 
 #================================#
 #== JuliaChem execution script ==#
@@ -19,12 +20,12 @@ def script():
   s22_database = client.get_collection("ReactionDataset", "S22")
   
   mol_index = s22_database.get_index()[0]
-  mol_value = s22_data.get_molecules(mol_index)
-
-  print(mol_value.to_json())
+  mol_object_full = s22_database.get_molecules(mol_index)
+  mol_object = mol_object_full.molecule[0] 
 
   #== create input system ==#
-  molecule = JSON.parse(mol_value.to_json())
+  molecule = JSON.parse(mol_object.json())
+  Base.display(molecule)
 
   driver = "energy"
 
