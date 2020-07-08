@@ -16,16 +16,21 @@ def script():
 
   #== get molecule information from QCArchive ==# 
   client = ptl.FractalClient()
-  mol = client.query_molecules(1234)[0]
+  s22_database = client.get_collection("ReactionDataset", "S22")
+  
+  mol_index = s22_database.get_index()[0]
+  mol_value = s22_data.get_molecules(mol_index)
+
+  print(mol_value.to_json())
 
   #== create input system ==#
-  molecule = JSON.parse(mol.json())
+  molecule = JSON.parse(mol_value.to_json())
 
   driver = "energy"
 
   model = { 
     "method": "RHF",
-    "basis": "6-31G(d,p)"
+    "basis": "6-31G"
   }
 
   keywords = { 
