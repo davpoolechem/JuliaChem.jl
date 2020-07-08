@@ -169,7 +169,7 @@
       "prec":"Float64",
       "direct":true,
       "debug":false,
-      "load":"dynamic"
+      "load":"static"
     }
   }
 }
