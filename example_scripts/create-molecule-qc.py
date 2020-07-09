@@ -6,6 +6,7 @@ import qcportal as ptl
 import julia
 from julia import JuliaChem
 from julia import JSON
+from julia import Base
 
 #================================#
 #== JuliaChem execution script ==#
@@ -16,16 +17,21 @@ def script():
 
   #== get molecule information from QCArchive ==# 
   client = ptl.FractalClient()
-  mol = client.query_molecules(1234)[0]
+  s22_database = client.get_collection("ReactionDataset", "S22")
+  
+  mol_index = s22_database.get_index()[0]
+  mol_object_full = s22_database.get_molecules(mol_index)
+  mol_object = mol_object_full.molecule[0] 
 
   #== create input system ==#
-  molecule = JSON.parse(mol.json())
+  molecule = JSON.parse(mol_object.json())
+  Base.display(molecule)
 
   driver = "energy"
 
   model = { 
     "method": "RHF",
-    "basis": "6-31G(d,p)"
+    "basis": "6-31G"
   }
 
   keywords = { 

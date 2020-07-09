@@ -20,12 +20,13 @@
     "scf":{
       "niter":100,
       "ndiis":8,
-      "dele":1E-10,
-      "rmsd":1E-8,
+      "dele":1E-8,
+      "rmsd":1E-6,
       "prec":"Float64",
       "direct":true,
       "debug":false,
-      "load":"static"
+      "load":"static",
+      "fdiff":true
     }
   }
 }

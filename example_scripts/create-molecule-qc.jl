@@ -14,11 +14,14 @@ import JSON
 function script()
   #== get molecule information from QCArchive ==#
   client = ptl.FractalClient()
-  mol = client.query_molecules(6)[1]
+  s22_database = client.get_collection("ReactionDataset", "S22")
 
+  mol_index = s22_database.get_index()[1]
+  mol_object_full = s22_database.get_molecules(first) #doesn't seem to work
+  mol_object = get(mol_object_full.molecule, 0)
+  
   #== create input system ==#
-  molecule = JSON.parse(mol.json())
-
+  molecule = JSON.parse(mol_object.json())
   display(molecule)
   
   driver = "energy"
@@ -48,3 +51,5 @@ function script()
 end
 
 JuliaChem.initialize()
+script()
+JuliaChem.finalize()

@@ -19,9 +19,10 @@ function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   dele::Float64 = scf_flags["dele"]
   rmsd::Float64 = scf_flags["rmsd"]
   load::String = scf_flags["load"]
+  fdiff::Bool = scf_flags["fdiff"]
 
   return rhf_kernel(mol,basis; output=output, debug=debug, niter=niter,
-    ndiis=ndiis, dele=dele, rmsd=rmsd, load=load)
+    ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, fdiff=fdiff)
 end
 
 
@@ -45,7 +46,7 @@ type = Precision of variables in calculation
 function rhf_kernel(mol::MolStructs.Molecule, 
   basis::BasisStructs.Basis; 
   output::String, debug::Bool, niter::Int, ndiis::Int, 
-  dele::Float64, rmsd::Float64, load::String)
+  dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
   comm=MPI.COMM_WORLD
   calculation_status = Dict([])
@@ -123,7 +124,7 @@ function rhf_kernel(mol::MolStructs.Molecule,
   
   F = deepcopy(F) #apparently this is needed for some reason
   F_old = deepcopy(F)
-
+  
   E = E_elec + E_nuc
   E_old = E
 
@@ -138,7 +139,7 @@ function rhf_kernel(mol::MolStructs.Molecule,
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
     F_eval, F_evec, F_mo, F_part, F_old, E_nuc, E_elec, E_old, basis; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele,
-    rmsd=rmsd, load=load)
+    rmsd=rmsd, load=load, fdiff=fdiff)
 
   if !converged
     if MPI.Comm_rank(comm) == 0 && output != "none"
@@ -204,7 +205,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   F_old::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64, 
   basis::BasisStructs.Basis;
   output::String, debug::Bool, niter::Int, ndiis::Int, 
-  dele::Float64, rmsd::Float64, load::String)
+  dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
 
   #== read in some more variables from scf flags input ==#
@@ -228,8 +229,13 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   
   #== build arrays needed for post-fock build iteration calculations ==#
   F_temp = similar(F)
+  ΔF = similar(F) 
+  F_cumul = zeros(size(F)) 
+  F_input = similar(F)
+ 
   D_old = similar(F)
-  ΔD = similar(F)
+  ΔD = deepcopy(D) 
+  D_input = similar(F)
 
   #== build matrix of Cauchy-Schwarz upper bounds ==# 
   schwarz_bounds = zeros(Float64,(nsh,nsh)) 
@@ -241,12 +247,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== allocate miscalleneous things needed for fock build step ==#
   max_shell_am = MAX_SHELL_AM
   eri_quartet_batch = Vector{Float64}(undef,81)
-
   quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
- 
   simint_workspace = Vector{Float64}(undef,10000)
 
+  
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
   #  "Sizes/$quartet_batch_num_old")
@@ -267,11 +272,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #@code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
   E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
-    F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, D_old, ΔD, 
-    scf_converged, test_e, test_F, FD, FDS, SDF, schwarz_bounds, Dsh, 
-    Dsh_abs, eri_quartet_batch, quartet, simint_workspace; 
+    F_array_old, F_temp, F_eval, F_evec, F_mo, F_part, F_old, ΔF, F_cumul, 
+    F_input, D_old, ΔD, D_input, scf_converged, test_e, test_F, FD, FDS, SDF, 
+    schwarz_bounds, Dsh, Dsh_abs, eri_quartet_batch, quartet, simint_workspace; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
-    rmsd=rmsd, load=load)
+    rmsd=rmsd, load=load, fdiff=fdiff)
 
   #== we are done! ==#
   if debug
@@ -293,14 +298,15 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, 
-  F_part::Matrix{Float64}, F_old::Matrix{Float64},
-  D_old::Matrix{Float64}, ΔD::Matrix{Float64}, scf_converged::Bool,  
+  F_part::Matrix{Float64}, F_old::Matrix{Float64}, ΔF::Matrix{Float64},
+  F_cumul::Matrix{Float64}, F_input::Matrix{Float64}, D_old::Matrix{Float64}, 
+  ΔD::Matrix{Float64}, D_input::Matrix{Float64}, scf_converged::Bool,  
   test_e::Vector{Matrix{Float64}}, test_F::Vector{Matrix{Float64}},
   FD::Matrix{Float64}, FDS::Matrix{Float64}, SDF::Matrix{Float64}, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}, 
   Dsh_abs::Matrix{Float64}, eri_quartet_batch::Vector{Float64}, 
   quartet::BasisStructs.ShQuartet, simint_workspace::Vector{Float64};
-  output, debug, niter, ndiis, dele, rmsd, load)
+  output, debug, niter, ndiis, dele, rmsd, load, fdiff)
 
   #== initialize a few more variables ==#
   comm=MPI.COMM_WORLD
@@ -335,6 +341,10 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #  eri_batch[:] = load("tei_batch.jld","Integrals/$quartet_batch_num_old")
     #end
 
+    #== determine input D and F ==#
+    D_input .= fdiff ? ΔD : D
+    F_input .= fdiff ? ΔF : F
+
     #== compress D into shells in Dsh ==#
     for ish in 1:length(basis.shells), jsh in 1:ish
       ipos = basis[ish].pos
@@ -342,10 +352,10 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
       jpos = basis[jsh].pos
       jbas = basis[jsh].nbas
-   
+      
       max_value = 0.0
       for i in ipos:(ipos+ibas-1), j in jpos:(jpos+jbas-1) 
-        max_value = max(max_value, abs(D[i,j]))
+        max_value = max(max_value, abs(D_input[i,j]))
       end
       Dsh[ish,jsh] = max_value
       
@@ -357,17 +367,23 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
   
     #== build new Fock matrix ==#
-    F_temp .= fock_build(F, D, H, basis, schwarz_bounds, Dsh, 
+    F_temp .= fock_build(F_input, D_input, H, basis, schwarz_bounds, Dsh, 
       eri_quartet_batch, quartet, simint_workspace, debug, load)
 
-    F .= MPI.Allreduce(F_temp,MPI.SUM,comm)
+    F_input .= MPI.Allreduce(F_temp,MPI.SUM,comm)
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
       h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F)
     end
-
-    F .+= H
+ 
+    if fdiff 
+      ΔF .= F_input
+      F_cumul .+= ΔF
+      F .= F_cumul .+ H
+    else
+      F .= F_input .+ H
+    end
 
     if debug && MPI.Comm_rank(comm) == 0
       h5write("debug.h5","SCF/Iteration-$iter/F/Total", F)
