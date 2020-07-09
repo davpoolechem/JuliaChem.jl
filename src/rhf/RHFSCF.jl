@@ -608,7 +608,7 @@ end
 
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
-  eri_quartet_batch::Vector{Float64}, 
+  eri_quartet_batch::Vector{Float64}, mutex, 
   quartet::ShQuartet, ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, 
@@ -620,9 +620,21 @@ end
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
-  quartet.bra = basis.shpair_ordering[bra_pair]
-  quartet.ket = basis.shpair_ordering[ket_pair]
+  #quartet.bra = basis.shpair_ordering[bra_pair]
+  #quartet.ket = basis.shpair_ordering[ket_pair]
+  
+  ish = decompose(bra_pair)
+  jsh = bra_pair - triangular_index(ish)
 
+  ksh = decompose(ket_pair)
+  lsh = ket_pair - triangular_index(ksh)
+
+  #== create shell quartet ==#
+  quartet.bra.sh_a = basis[ish]
+  quartet.bra.sh_b = basis[jsh]
+  quartet.ket.sh_a = basis[ksh]
+  quartet.ket.sh_b = basis[lsh]
+  
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
 
@@ -653,10 +665,10 @@ end
   lsh::Int64, eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
 
-  ish = quartet.bra.sh_a.shell_id
-  jsh = quartet.bra.sh_b.shell_id
-  ksh = quartet.ket.sh_a.shell_id
-  lsh = quartet.ket.sh_b.shell_id
+  #ish = quartet.bra.sh_a.shell_id
+  #jsh = quartet.bra.sh_b.shell_id
+  #ksh = quartet.ket.sh_a.shell_id
+  #lsh = quartet.ket.sh_b.shell_id
 
   #= actually compute integrals =#
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
@@ -670,10 +682,10 @@ end
 
   norb = size(D,1)
   
-  ish = quartet.bra.sh_a.shell_id
-  jsh = quartet.bra.sh_b.shell_id
-  ksh = quartet.ket.sh_a.shell_id
-  lsh = quartet.ket.sh_b.shell_id
+  #ish = quartet.bra.sh_a.shell_id
+  #jsh = quartet.bra.sh_b.shell_id
+  #ksh = quartet.ket.sh_a.shell_id
+  #lsh = quartet.ket.sh_b.shell_id
 
   pμ = quartet.bra.sh_a.pos
   nμ = quartet.bra.sh_a.nbas
