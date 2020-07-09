@@ -246,10 +246,10 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   
   #== allocate miscalleneous things needed for fock build step ==#
   max_shell_am = MAX_SHELL_AM
-  eri_quartet_batch = Vector{Float64}(undef,81)
+  eri_quartet_batch = Vector{Float64}(undef,1296)
   quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
-  simint_workspace = Vector{Float64}(undef,10000)
+  simint_workspace = Vector{Float64}(undef,100000)
 
   
   #== build eri batch arrays ==#
