@@ -31,8 +31,10 @@ end
 end
 
 @inline function decompose(input::Int)
-  return ceil(Int,(-1.0+√(1+8*input))/2.0)
-  #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
+  #return ceil(Int,(-1.0+√(1+8*input))/2.0)
+  return Base.fptosi(Int, Base.ceil_llvm((-1.0 + 
+    Base.Math.sqrt_llvm(float(1+8*input)))/2.0))
+    #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
   #  Int64, (Int64,), input)
 end
 
@@ -169,10 +171,11 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
   simint_workspace = Vector{Float64}(undef,10000)
 
   for ash in 1:nsh, bsh in 1:ash
+    fill!(eri_quartet_batch, 0.0)
     SIMINT.compute_eris(ash, bsh, ash, bsh, eri_quartet_batch, 
       simint_workspace)
     
-    schwarz_bounds[ash, bsh] = sqrt(maximum(eri_quartet_batch) )
+    schwarz_bounds[ash, bsh] = sqrt(maximum(abs.(eri_quartet_batch)) )
   end
 
   for ash in 1:nsh, bsh in 1:ash
