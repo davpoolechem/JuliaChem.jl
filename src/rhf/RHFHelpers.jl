@@ -215,7 +215,6 @@ function read_in_oei(oei::Vector{T}, nbf::Int) where T
 	return oei_matrix
 end
 
->>>>>>> development
 function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}}, 
   F_array::Vector{Matrix{Float64}}, B_dim::Int64)
   
