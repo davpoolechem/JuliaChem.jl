@@ -1,6 +1,0 @@
-/home/davpoolechem/.bashrc: line 7: /etc/profile.d/modules.sh: No such file or directory
-/home/davpoolechem/programs/env/cuda.sh: line 2: module: command not found
-/home/davpoolechem/programs/env/cuda.sh: line 4: module: command not found
-/home/davpoolechem/programs/env/cuda.sh: line 10: module: command not found
-/home/davpoolechem/programs/env/cuda.sh: line 11: module: command not found
-/home/davpoolechem/.bashrc: line 44: module: command not found
