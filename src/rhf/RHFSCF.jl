@@ -638,6 +638,11 @@ end
 
   #quartet.bra = basis.shpair_ordering[bra_pair]
   #quartet.ket = basis.shpair_ordering[ket_pair]
+ 
+  #ish = quartet.bra.sh_a.shell_id 
+  #jsh = quartet.bra.sh_b.shell_id 
+  #ksh = quartet.ket.sh_a.shell_id 
+  #lsh = quartet.ket.sh_b.shell_id 
   
   ish = decompose(bra_pair)
   jsh = bra_pair - triangular_index(ish)
