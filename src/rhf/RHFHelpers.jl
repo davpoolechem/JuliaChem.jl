@@ -168,7 +168,7 @@ end
 
 function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
   eri_quartet_batch = Vector{Float64}(undef,1296)
-  simint_workspace = Vector{Float64}(undef,100000)
+  simint_workspace = Vector{Float64}(undef,1000000)
 
   for ash in 1:nsh, bsh in 1:ash
     fill!(eri_quartet_batch, 0.0)

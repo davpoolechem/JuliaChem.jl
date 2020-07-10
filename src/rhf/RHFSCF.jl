@@ -249,7 +249,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   eri_quartet_batch = Vector{Float64}(undef,1296)
   quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
       ShPair(basis.shells[1], basis.shells[1]))
-  simint_workspace = Vector{Float64}(undef,100000)
+  simint_workspace = Vector{Float64}(undef,1000000)
 
   
   #== build eri batch arrays ==#
@@ -374,7 +374,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
-      h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F)
+      h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F_input)
     end
  
     if fdiff 
@@ -671,21 +671,22 @@ end
   bound *= maxden
 
   #== fock build for significant shell quartets ==# 
-  if abs(bound) >= 1.0E-10 
+  #if abs(bound) >= 1.0E-10 
     #== compute electron repulsion integrals ==#
-    compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
+    compute_eris(quartet, ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
 
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, quartet,
       ish, jsh, ksh, lsh, debug)
-  end
+  #end
     #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
-@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64,
+@inline function compute_eris(quartet, ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64, eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
 
+  fill!(eri_quartet_batch, 0.0)
   #ish = quartet.bra.sh_a.shell_id
   #jsh = quartet.bra.sh_b.shell_id
   #ksh = quartet.ket.sh_a.shell_id
@@ -694,6 +695,54 @@ end
   #= actually compute integrals =#
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
     simint_workspace)
+
+  amμ = quartet.bra.sh_a.am
+  amν = quartet.bra.sh_b.am
+  amλ = quartet.ket.sh_a.am
+  amσ = quartet.ket.sh_b.am
+
+  nμ = quartet.bra.sh_a.nbas
+  nν = quartet.bra.sh_b.nbas
+  nλ = quartet.ket.sh_a.nbas
+  nσ = quartet.ket.sh_b.nbas
+
+  am = [ amμ, amν, amλ, amσ ]
+  axial_norm_fact = [ [ 1.0 ],
+                      [ 1.0,
+                        1.0,
+                        1.0 ],
+                      [ 1.0, sqrt(3.0), sqrt(3.0),
+                        1.0, sqrt(3.0),
+                        1.0 ]
+                    ]
+
+  μνλσ = 0 
+  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
+    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
+      
+    unorm = axial_norm_fact[amμ][μsize+1]
+    vnorm = axial_norm_fact[amν][νsize+1]
+
+    uvnorm = unorm*vnorm
+
+    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
+      μνλσ += 1 
+   
+      hnorm = axial_norm_fact[amλ][λsize+1]
+      onorm = axial_norm_fact[amσ][σsize+1]
+    
+      honorm = hnorm*onorm 
+      eri_quartet_batch[μνλσ] *= uvnorm*honorm
+    end 
+  end
+
+  if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
+    #for idx in 1:nbasμ*nbasν*nbasλ*nbasσ 
+    for idx in 1:1296
+      eri = eri_quartet_batch[idx]
+      println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
+    end
+  end
 end
 
 

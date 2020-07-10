@@ -60,9 +60,9 @@ function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
     #SIMINT.normalize_shells()
     SIMINT.precompute_shell_pair_data()
 
-    #for ishell::Int64 in 0:(nshell_simint-1)
-    #  SIMINT.get_simint_shell_info(ishell)
-    #end
+    for ishell::Int64 in 0:(nshell_simint-1)
+      SIMINT.get_simint_shell_info(ishell)
+    end
 
     #end
   else
