@@ -650,6 +650,13 @@ end
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
 
+  icls = unsafe_string(quartet.bra.sh_a.class)
+  jcls = unsafe_string(quartet.bra.sh_b.class) 
+  kcls = unsafe_string(quartet.ket.sh_a.class) 
+  lcls = unsafe_string(quartet.ket.sh_b.class)
+
+  println("QUARTET($ish, $jsh, $ksh, $lsh) -> ($icls $jcls | $kcls $lcls)")
+
   #== create shell quartet ==#
   quartet.bra.sh_a = basis[ish]
   quartet.bra.sh_b = basis[jsh]
@@ -826,11 +833,9 @@ end
         end
       end
 
-      if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
-        println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
-      end
-
-      #println("ERI($μ, $ν, $λ, $σ) = $eri") 
+      #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
+      println("ERI($μ, $ν, $λ, $σ) = $eri") 
+      
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
