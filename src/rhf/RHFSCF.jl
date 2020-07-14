@@ -736,13 +736,15 @@ end
     end 
   end
 
+  #=
   if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
-    #for idx in 1:nbasμ*nbasν*nbasλ*nbasσ 
-    for idx in 1:1296
+    for idx in 1:nμ*nν*nλ*nσ 
+    #for idx in 1:1296
       eri = eri_quartet_batch[idx]
       println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
     end
   end
+  =#
 end
 
 
@@ -769,6 +771,12 @@ end
   pσ = quartet.ket.sh_b.pos
   nσ = quartet.ket.sh_b.nbas
 
+  amμ = quartet.bra.sh_a.am
+  amν = quartet.bra.sh_b.am
+  amλ = quartet.ket.sh_a.am
+  amσ = quartet.ket.sh_b.am
+  am = [ amμ, amν, amλ, amσ ]
+
   μνλσ = 0
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
     μμ = μsize + pμ
@@ -792,7 +800,7 @@ end
       μνλσ += 1 
   
       eri = eri_batch[μνλσ] 
-      
+   
       if abs(eri) < 1.0E-10
         #if do_continue_print println("CONTINUE SCREEN") end
         continue 
@@ -818,7 +826,11 @@ end
         end
       end
 
-      #if print_eri println("ERI($μ, $ν, $λ, $σ) = $eri") end
+      if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
+        println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
+      end
+
+      #println("ERI($μ, $ν, $λ, $σ) = $eri") 
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
