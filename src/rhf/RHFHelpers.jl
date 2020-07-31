@@ -251,21 +251,12 @@ function axial_normalization_factor(oei, ash, bsh)
   na = ash.nbas
   nb = bsh.nbas
 
-  axial_norm_fact = [ [ 1.0 ],
-                      [ 1.0,
-                        1.0,
-                        1.0 ],
-                      [ 1.0, sqrt(3.0), sqrt(3.0),
-                        1.0, sqrt(3.0),
-                        1.0 ]
-                    ]
-
   ab = 0 
   for asize::Int64 in 0:(na-1), bsize::Int64 in 0:(nb-1)
     ab += 1 
    
-    anorm = axial_norm_fact[ama][asize+1]
-    bnorm = axial_norm_fact[amb][bsize+1]
+    anorm = axial_norm_fact[asize+1,ama]
+    bnorm = axial_norm_fact[bsize+1,amb]
     
     abnorm = anorm*bnorm 
     oei[ab] *= abnorm

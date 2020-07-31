@@ -13,8 +13,17 @@ using JCModules.SIMINT
 using MPI
 using JSON
 
+const axial_norm_fact = [1.0 1.0 1.0; 
+                     0.0 1.0 sqrt(3.0);
+                     0.0 1.0 sqrt(3.0);
+                     0.0 0.0 1.0;
+                     0.0 0.0 sqrt(3.0);
+                     0.0 0.0 1.0
+                    ]
+
 Base.include(@__MODULE__,"RHFHelpers.jl")
 Base.include(@__MODULE__,"RHFSCF.jl")
+
 
 """
   run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
@@ -60,9 +69,9 @@ function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
     #SIMINT.normalize_shells()
     SIMINT.precompute_shell_pair_data()
 
-    for ishell::Int64 in 0:(nshell_simint-1)
-      SIMINT.get_simint_shell_info(ishell)
-    end
+    #for ishell::Int64 in 0:(nshell_simint-1)
+    #  SIMINT.get_simint_shell_info(ishell)
+    #end
 
     #end
   else

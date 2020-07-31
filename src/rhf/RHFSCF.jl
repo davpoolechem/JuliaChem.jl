@@ -690,14 +690,14 @@ end
   bound *= maxden
 
   #== fock build for significant shell quartets ==# 
-  #if abs(bound) >= 1.0E-10 
+  if abs(bound) >= 1.0E-10 
     #== compute electron repulsion integrals ==#
     compute_eris(quartet, ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
 
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, quartet,
       ish, jsh, ksh, lsh, debug)
-  #end
+  end
     #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
@@ -705,7 +705,7 @@ end
   lsh::Int64, eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
 
-  fill!(eri_quartet_batch, 0.0)
+  #fill!(eri_quartet_batch, 0.0)
   #ish = quartet.bra.sh_a.shell_id
   #jsh = quartet.bra.sh_b.shell_id
   #ksh = quartet.ket.sh_a.shell_id
@@ -725,33 +725,23 @@ end
   nλ = quartet.ket.sh_a.nbas
   nσ = quartet.ket.sh_b.nbas
 
-  am = [ amμ, amν, amλ, amσ ]
-  axial_norm_fact = [ [ 1.0 ],
-                      [ 1.0,
-                        1.0,
-                        1.0 ],
-                      [ 1.0, sqrt(3.0), sqrt(3.0),
-                        1.0, sqrt(3.0),
-                        1.0 ]
-                    ]
-
   μνλσ = 0 
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
     μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
       
-    unorm = axial_norm_fact[amμ][μsize+1]
-    vnorm = axial_norm_fact[amν][νsize+1]
+    μnorm = axial_norm_fact[μsize+1,amμ]
+    νnorm = axial_norm_fact[νsize+1,amν]
 
-    uvnorm = unorm*vnorm
+    μνnorm = μnorm*νnorm
 
     for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
       μνλσ += 1 
    
-      hnorm = axial_norm_fact[amλ][λsize+1]
-      onorm = axial_norm_fact[amσ][σsize+1]
+      λnorm = axial_norm_fact[λsize+1,amλ]
+      σnorm = axial_norm_fact[σsize+1,amσ]
     
-      honorm = hnorm*onorm 
-      eri_quartet_batch[μνλσ] *= uvnorm*honorm
+      λσnorm = λnorm*σnorm 
+      eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
     end 
   end
 
@@ -790,11 +780,11 @@ end
   pσ = quartet.ket.sh_b.pos
   nσ = quartet.ket.sh_b.nbas
 
-  amμ = quartet.bra.sh_a.am
-  amν = quartet.bra.sh_b.am
-  amλ = quartet.ket.sh_a.am
-  amσ = quartet.ket.sh_b.am
-  am = [ amμ, amν, amλ, amσ ]
+  #amμ = quartet.bra.sh_a.am
+  #amν = quartet.bra.sh_b.am
+  #amλ = quartet.ket.sh_a.am
+  #amσ = quartet.ket.sh_b.am
+  #am = [ amμ, amν, amλ, amσ ]
 
   μνλσ = 0
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
