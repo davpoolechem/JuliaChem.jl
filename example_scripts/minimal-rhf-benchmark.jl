@@ -66,14 +66,14 @@ function script(input_file)
           mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
 
           scf_timeof_t1 = time_ns()/1e9
-          scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
-            output="none")
-          #scf = BenchmarkTools.@benchmark begin
-          #  JuliaChem.JCRHF.run($mol, $basis, $(keywords["scf"]); 
-          #    output="none") #initial run
-          #  JuliaChem.reset()
-          #end
-          #display(scf)
+          #scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
+          #  output="none")
+          scf = BenchmarkTools.@benchmark begin
+            JuliaChem.JCRHF.run($mol, $basis, $(keywords["scf"]); 
+              output="none") #initial run
+            JuliaChem.reset()
+          end
+          display(scf)
           scf_timeof_t2 = time_ns()/1e9
           push!(timeof, scf_timeof_t2 - scf_timeof_t1) 
         
