@@ -73,17 +73,19 @@ function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
     S_block = zeros(abas*bbas)
     SIMINT.compute_overlap(ash, bsh, S_block)
     
+    axial_normalization_factor(S_block, basis.shells[ash], basis.shells[bsh])
+
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
       jorb = bpos + jbas
-      
+     
       S[max(iorb,jorb),min(iorb,jorb)] = S_block[idx]
       
       idx += 1 
     end
   end
-  
+ 
   for iorb in 1:basis.norb, jorb in 1:iorb
     if iorb != jorb
       S[min(iorb,jorb),max(iorb,jorb)] = S[max(iorb,jorb),min(iorb,jorb)]
@@ -101,6 +103,8 @@ function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
        
     T_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_ke(ash, bsh, T_block)
+    
+    axial_normalization_factor(T_block, basis.shells[ash], basis.shells[bsh])
     
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
@@ -147,6 +151,8 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
        
     V_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block)
+    
+    axial_normalization_factor(V_block, basis.shells[ash], basis.shells[bsh])
     
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
@@ -235,6 +241,34 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   fill!(F, zero(Float64))
   for index in 1:B_dim
     F .+= DIIS_coeff[index] .* F_array[index]
+  end
+end
+
+function axial_normalization_factor(oei, ash, bsh)
+  ama = ash.am
+  amb = bsh.am
+
+  na = ash.nbas
+  nb = bsh.nbas
+
+  axial_norm_fact = [ [ 1.0 ],
+                      [ 1.0,
+                        1.0,
+                        1.0 ],
+                      [ 1.0, sqrt(3.0), sqrt(3.0),
+                        1.0, sqrt(3.0),
+                        1.0 ]
+                    ]
+
+  ab = 0 
+  for asize::Int64 in 0:(na-1), bsize::Int64 in 0:(nb-1)
+    ab += 1 
+   
+    anorm = axial_norm_fact[ama][asize+1]
+    bnorm = axial_norm_fact[amb][bsize+1]
+    
+    abnorm = anorm*bnorm 
+    oei[ab] *= abnorm
   end
 end
 

@@ -63,6 +63,10 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))
   compute_overlap(S, basis)
+ 
+  #for i in 1:basis.norb, j in 1:i
+  #  println("OVR($i,$j): ", S[i,j])
+  #end
   
   T = zeros(Float64, (basis.norb, basis.norb))
   compute_ke(T, basis)
@@ -72,6 +76,10 @@ function rhf_kernel(mol::MolStructs.Molecule,
 
   #H = read_in_oei(molecule["hcore"], basis.norb)
   H = T .+ V
+  
+  #for i in 1:basis.norb, j in 1:i
+  #  println("HAMIL($i,$j): ", H[i,j])
+  #end
  
   if debug && MPI.Comm_rank(comm) == 0
     h5write("debug.h5","SCF/Iteration-None/E_nuc", E_nuc)
@@ -121,7 +129,11 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #@code_warntype iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
     ortho_trans.data, basis, 0, debug)
-  
+   
+  #for i in 1:basis.norb, j in 1:i
+  #  println("DENS($i,$j): ", D[i,j])
+  #end
+   
   F = deepcopy(F) #apparently this is needed for some reason
   F_old = deepcopy(F)
   
@@ -655,7 +667,7 @@ end
   kcls = unsafe_string(quartet.ket.sh_a.class) 
   lcls = unsafe_string(quartet.ket.sh_b.class)
 
-  println("QUARTET($ish, $jsh, $ksh, $lsh) -> ($icls $jcls | $kcls $lcls)")
+  #println("QUARTET($ish, $jsh, $ksh, $lsh) -> ($icls $jcls | $kcls $lcls)")
 
   #== create shell quartet ==#
   quartet.bra.sh_a = basis[ish]
@@ -834,7 +846,7 @@ end
       end
 
       #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
-      println("ERI($μ, $ν, $λ, $σ) = $eri") 
+      #println("ERI($μ, $ν, $λ, $σ) = $eri") 
       
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
@@ -880,7 +892,12 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   basis::BasisStructs.Basis, iter::Int, debug::Bool)
 
   comm=MPI.COMM_WORLD
- 
+
+  #display(ortho) 
+  #for i in 1:size(ortho)[1], j in 1:i
+  #  println("ORTHO($i,$j): ", ortho[i,j])
+  #end
+   
   #== obtain new orbital coefficients ==#
   BLAS.symm!('L', 'U', 1.0, ortho_trans, F_μν, 0.0, F_part)
   BLAS.gemm!('N', 'N', 1.0, F_part, ortho, 0.0, F_mo)

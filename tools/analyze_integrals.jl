@@ -193,7 +193,7 @@ for gamess_key in keys(gamess_dict)
     println("Missing Julia key:", julia_key)
   else
     same = gamess_dict[gamess_key] < 1.0E-10 && julia_dict[julia_key] < 1.0E-10 ? true : 
-      isapprox(gamess_dict[gamess_key], julia_dict[julia_key], rtol = 1e-3)
+      isapprox(gamess_dict[gamess_key], julia_dict[julia_key], atol = 1e-9)
     if !same
       println("Not same!: $gamess_key => $julia_key: ", gamess_dict[gamess_key], ", ", julia_dict[julia_key])
     end
@@ -207,7 +207,7 @@ for julia_key in keys(julia_dict)
     println("Missing GAMESS key:", gamess_key)
   else
     same = gamess_dict[gamess_key] < 1.0E-10 && julia_dict[julia_key] < 1.0E-10 ? true : 
-      isapprox(gamess_dict[gamess_key], julia_dict[julia_key], rtol = 1e-3)
+      isapprox(gamess_dict[gamess_key], julia_dict[julia_key], atol = 1e-9)
     if !same
       println("Not same!: $julia_key => $gamess_key: ", julia_dict[julia_key], ", ", gamess_dict[gamess_key])
     end
