@@ -263,11 +263,6 @@ function axial_normalization_factor(oei, ash, bsh)
   end
 end
 
-function eri_quartet_batch_size(basis)
-  max_am = 0
-  for shell in basis.shells
-    max_am = shell.am > max_am ? shell.am : max_am
-  end
-
+function eri_quartet_batch_size(max_am)
   return am_to_nbas_cart(max_am)^4
 end
