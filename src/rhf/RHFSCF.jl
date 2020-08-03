@@ -667,10 +667,10 @@ end
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
 
-  icls = unsafe_string(quartet.bra.sh_a.class)
-  jcls = unsafe_string(quartet.bra.sh_b.class) 
-  kcls = unsafe_string(quartet.ket.sh_a.class) 
-  lcls = unsafe_string(quartet.ket.sh_b.class)
+  #icls = unsafe_string(quartet.bra.sh_a.class)
+  #jcls = unsafe_string(quartet.bra.sh_b.class) 
+  #kcls = unsafe_string(quartet.ket.sh_a.class) 
+  #lcls = unsafe_string(quartet.ket.sh_b.class)
 
   #println("QUARTET($ish, $jsh, $ksh, $lsh) -> ($icls $jcls | $kcls $lcls)")
 
