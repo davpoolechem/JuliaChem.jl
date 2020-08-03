@@ -172,9 +172,9 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
   end
 end
 
-function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
-  eri_quartet_batch = Vector{Float64}(undef,1296)
-  simint_workspace = Vector{Float64}(undef,1000000)
+function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, 
+  eri_quartet_batch::Vector{Float64}, simint_workspace::Vector{Float64},
+  nsh::Int64)
 
   for ash in 1:nsh, bsh in 1:ash
     fill!(eri_quartet_batch, 0.0)
@@ -263,19 +263,11 @@ function axial_normalization_factor(oei, ash, bsh)
   end
 end
 
-macro eri_quartet_batch_size(max_am)
-  return quote
-    if $(max_am) == "s"
-      1
-    elseif $(max_am) == "p"
-      81
-    elseif $(max_am) == "L"
-      256
-    elseif $(max_am) == "d"
-      1296
-    elseif $(max_am) == "f"
-      10000
-    else throw
-    end
+function eri_quartet_batch_size(basis)
+  max_am = 0
+  for shell in basis.shells
+    max_am = shell.am > max_am ? shell.am : max_am
   end
+
+  return am_to_nbas_cart(max_am)^4
 end

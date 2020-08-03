@@ -249,20 +249,25 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   ΔD = deepcopy(D) 
   D_input = similar(F)
 
+  #== allocate miscalleneous things needed for fock build step ==#
+  max_am = 0.0
+  for shell in basis.shells
+    max_am = shell.am > max_am ? shell.am : max_am
+  end
+
+  quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
+      ShPair(basis.shells[1], basis.shells[1]))
+ 
+  eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
+  simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am))
+ 
   #== build matrix of Cauchy-Schwarz upper bounds ==# 
   schwarz_bounds = zeros(Float64,(nsh,nsh)) 
-  compute_schwarz_bounds(schwarz_bounds, nsh)
+  compute_schwarz_bounds(schwarz_bounds, eri_quartet_batch, simint_workspace, 
+'   nsh)
 
   Dsh = similar(schwarz_bounds)
   Dsh_abs = similar(D)
-  
-  #== allocate miscalleneous things needed for fock build step ==#
-  max_shell_am = MAX_SHELL_AM
-  eri_quartet_batch = Vector{Float64}(undef,1296)
-  quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
-      ShPair(basis.shells[1], basis.shells[1]))
-  simint_workspace = Vector{Float64}(undef,1000000)
-
   
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
