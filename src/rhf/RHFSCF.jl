@@ -250,7 +250,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   D_input = similar(F)
 
   #== allocate miscalleneous things needed for fock build step ==#
-  max_am = 0.0
+  max_am = 0
   for shell in basis.shells
     max_am = shell.am > max_am ? shell.am : max_am
   end
@@ -259,8 +259,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
       ShPair(basis.shells[1], basis.shells[1]))
  
   eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-  println(get_workmem(0,max_am))
-  simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am))
+  simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am-1))
  
   #== build matrix of Cauchy-Schwarz upper bounds ==# 
   schwarz_bounds = zeros(Float64,(nsh,nsh)) 
