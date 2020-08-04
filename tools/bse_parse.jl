@@ -127,17 +127,7 @@ function parse_all()
         end
 
         #== parse polarization-consistent basis family ==#
-        atoms = [
-            "H", "He",
-            "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-            "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",
-            "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
-            "Ga", "Ge", "As", "Se", "Br", "Kr",
-            "Rb", "Sr", "Y", "Zr", "Nb", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",
-            "In", "Sn", "Sb", "Te", "I", "Xe"
-            ] #H-Xe
         basis_sets = ["PCSeg-0"] #polarization-consistent family
-
         for basis::String in basis_sets
             println("Basis: $basis")
             bs_dict = bse.get_basis(basis,fmt="json", header=false)
@@ -150,9 +140,8 @@ function parse_all()
         end
 
         #== parse correlation-consistent basis family ==#
-        basis_sets = ["cc-pVDZ", "cc-pVTZ", "cc-pVQZ", "cc-pV5Z", "cc-pV6Z"] 
-
         #=
+        basis_sets = ["cc-pVDZ", "cc-pVTZ", "cc-pVQZ", "cc-pV5Z", "cc-pV6Z"] 
         for basis::String in basis_sets
             println("Basis: $basis")
             bs_dict = bse.get_basis(basis,fmt="json", header=false)
