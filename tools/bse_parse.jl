@@ -239,8 +239,17 @@ function parse_all()
             "Rb", "Sr", "Y", "Zr", "Nb", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",
             "In", "Sn", "Sb", "Te", "I", "Xe"
             ] #H-Xe
-        basis_sets = ["3-21G", "4-31G", "5-21G", "5-31G", "6-21G",
-            "6-31G", "6-31G*", "6-31G**" ] #pople family
+        basis_sets = ["3-21G"          , "4-31G"             , "5-21G"        , "5-31G"       , 
+                      "6-21G"          , "6-31G"             , "6-31G*"       , "6-31G**"     , 
+                      "6-31+G"         , "6-31+G*"           , "6-31+G**"     , "6-31+G*-J"   ,
+                      "6-31++G"        , "6-31++G*"          , "6-31++G**"    , "6-31++G**-J" ,
+                      "6-31G"          , "6-31++G*"          , "6-31++G**"    , "6-31++G**-J" , 
+                      "6-31G(2df,p)"   , "6-31G(3df,3pd)"    , "6-31G(d,p)"   , "6-31G-J"     ,
+                      "6-311G"         , "6-311G*"           , "6-311G**"     , 
+                      "6-311+G"        , "6-311+G*"          , "6-311+G**"    , "6-311+G*-J"  ,
+                      "6-311++G"       , "6-311++G*"         , "6-311++G**"   , "6-311++G**-J",
+                      "6-311G(d,p)"    , "6-311G(2df,2pd)"   , "6-311+G(2d,p)", 
+                      "6-311++G(2d,2p)", "6-311++G(3df, 3pd)" ] #pople family
 
         for atom::String in atoms
             for basis::String in basis_sets
@@ -258,13 +267,13 @@ function parse_all()
             "Rb", "Sr", "Y", "Zr", "Nb", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",
             "In", "Sn", "Sb", "Te", "I", "Xe"
             ] #H-Xe
-        basis_sets = ["PCSeg-0", "PCSeg-1"] #polarization-consistent family
+        basis_sets = ["PCSeg-0"] #polarization-consistent family
 
-        for atom::String in atoms
-            for basis::String in basis_sets
-                parse_individual(atom, basis, bsed)
-            end
-        end
+        #for atom::String in atoms
+        #    for basis::String in basis_sets
+        #        parse_individual(atom, basis, bsed)
+        #    end
+        #end
     
         #== parse correlation-consistent basis family ==#
         atoms = [
@@ -278,11 +287,11 @@ function parse_all()
             ] #H-Xe
         basis_sets = ["cc-pVDZ", "cc-pVTZ", "cc-pVQZ", "cc-pV5Z", "cc-pV6Z"] 
 
-        for atom::String in atoms
-            for basis::String in basis_sets
-                parse_individual(atom, basis, bsed)
-            end
-        end
+        #for atom::String in atoms
+        #    for basis::String in basis_sets
+        #        parse_individual(atom, basis, bsed)
+        #    end
+        #end
 
     end
 end
