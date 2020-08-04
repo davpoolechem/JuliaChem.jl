@@ -92,8 +92,6 @@ function rhf_kernel(mol::MolStructs.Molecule,
   
   ortho = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
   
-  ortho_trans = transpose(LinearAlgebra.Hermitian(ortho))
-
   if debug && MPI.Comm_rank(comm) == 0
     h5write("debug.h5","SCF/Iteration-None/Ortho", ortho)
   end
@@ -102,14 +100,15 @@ function rhf_kernel(mol::MolStructs.Molecule,
   F = H
   F_eval = Vector{Float64}(undef,basis.norb)
   F_evec = similar(F)
-  F_mo = similar(F)
+  #F_mo = similar(F)
   #F_part = similar(F)
 
   D = similar(F)
   C = similar(F)
 
-  #== allocate work matrices ==#
+  #== allocate workspace matrices ==#
   workspace_a = similar(F)
+  workspace_b = similar(F)
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
@@ -120,9 +119,8 @@ function rhf_kernel(mol::MolStructs.Molecule,
   end
 
   E_elec = 0.0
-  #@code_warntype iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
-  E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, workspace_a, ortho, 
-    ortho_trans.data, basis, 0, debug)
+  E_elec = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
+    workspace_b, ortho, basis, 0, debug)
   
   F = deepcopy(F) #apparently this is needed for some reason
   F_old = deepcopy(F)
@@ -137,9 +135,8 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  #@code_warntype scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
-  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, ortho_trans.data, S, 
-    F_eval, F_evec, F_mo, F_old, workspace_a, E_nuc, E_elec, E_old, basis; 
+  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, 
+    F_eval, F_evec, F_old, workspace_a, workspace_b, E_nuc, E_elec, E_old, basis; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele,
     rmsd=rmsd, load=load, fdiff=fdiff)
 
@@ -202,10 +199,10 @@ end
 
 function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, 
-  ortho_trans::Matrix{Float64}, S::Matrix{Float64}, F_eval::Vector{Float64}, 
-  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, F_old::Matrix{Float64},
-  workspace_a::Matrix{Float64}, E_nuc::Float64, E_elec::Float64, E_old::Float64, 
-  basis::BasisStructs.Basis;
+  S::Matrix{Float64}, F_eval::Vector{Float64}, 
+  F_evec::Matrix{Float64},  F_old::Matrix{Float64},
+  workspace_a::Matrix{Float64}, workspace_b::Matrix{Float64}, 
+  E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis;
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
@@ -224,10 +221,10 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
 
   #FD = similar(F)
   FDS = similar(F)
-  SDF = similar(F)
+  #SDF = similar(F)
   
   #== build arrays needed for post-fock build iteration calculations ==#
-  F_temp = similar(F)
+  #F_temp = similar(F)
   ΔF = similar(F) 
   F_cumul = zeros(size(F)) 
   F_input = similar(F)
@@ -241,7 +238,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   compute_schwarz_bounds(schwarz_bounds, nsh)
 
   Dsh = similar(schwarz_bounds)
-  Dsh_abs = similar(D)
   
   #== allocate miscalleneous things needed for fock build step ==#
   max_shell_am = MAX_SHELL_AM
@@ -250,7 +246,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
       ShPair(basis.shells[1], basis.shells[1]))
   simint_workspace = Vector{Float64}(undef,10000)
 
-  
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
   #  "Sizes/$quartet_batch_num_old")
@@ -268,12 +263,12 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== execute convergence procedure ==#
   scf_converged = true
 
-  #@code_warntype scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
-  E = scf_cycles_kernel(F, D, C, E, H, ortho, ortho_trans, S, E_nuc,
+  E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, F_array, e, e_array, e_array_old,
-    F_array_old, F_temp, F_eval, F_evec, F_mo, F_old, workspace_a, ΔF, F_cumul, 
-    F_input, D_old, ΔD, D_input, scf_converged, FDS, SDF, 
-    schwarz_bounds, Dsh, Dsh_abs, eri_quartet_batch, quartet, simint_workspace; 
+    F_array_old, F_eval, F_evec, F_old, workspace_a, 
+    workspace_b, ΔF, F_cumul, 
+    F_input, D_old, ΔD, D_input, scf_converged, FDS, 
+    schwarz_bounds, Dsh, eri_quartet_batch, quartet, simint_workspace; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load, fdiff=fdiff)
 
@@ -290,19 +285,20 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
 end
 
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
-  C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64},
-  ortho_trans::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
+  C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, 
+  ortho::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
   E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
   F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
-  F_array_old::Vector{Matrix{Float64}}, F_temp::Matrix{Float64},
-  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, 
-  F_old::Matrix{Float64}, workspace_a::Matrix{Float64}, ΔF::Matrix{Float64},
+  F_array_old::Vector{Matrix{Float64}}, 
+  F_eval::Vector{Float64}, F_evec::Matrix{Float64}, 
+  F_old::Matrix{Float64}, workspace_a::Matrix{Float64}, 
+  workspace_b::Matrix{Float64}, ΔF::Matrix{Float64},
   F_cumul::Matrix{Float64}, F_input::Matrix{Float64}, D_old::Matrix{Float64}, 
   ΔD::Matrix{Float64}, D_input::Matrix{Float64}, scf_converged::Bool,  
-  FDS::Matrix{Float64}, SDF::Matrix{Float64}, 
+  FDS::Matrix{Float64}, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}, 
-  Dsh_abs::Matrix{Float64}, eri_quartet_batch::Vector{Float64}, 
+  eri_quartet_batch::Vector{Float64}, 
   quartet::BasisStructs.ShQuartet, simint_workspace::Vector{Float64};
   output, debug, niter, ndiis, dele, rmsd, load, fdiff)
 
@@ -356,19 +352,14 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
         max_value = max(max_value, abs(D_input[i,j]))
       end
       Dsh[ish,jsh] = max_value
-      
-      #Dsh_abs[ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)] .= abs.(
-       # view(D,ipos:(ipos+ibas-1),jpos:(jpos+jbas-1)))
-      #Dsh[ish, jsh] = maximum(view(Dsh_abs,ipos:(ipos+ibas-1),
-      #  jpos:(jpos+jbas-1)))
       Dsh[jsh, ish] = Dsh[ish, jsh] 
     end
   
     #== build new Fock matrix ==#
-    F_temp .= fock_build(F_input, D_input, H, basis, schwarz_bounds, Dsh, 
+    workspace_a .= fock_build(F_input, D_input, H, basis, schwarz_bounds, Dsh, 
       eri_quartet_batch, quartet, simint_workspace, debug, load)
 
-    F_input .= MPI.Allreduce(F_temp,MPI.SUM,comm)
+    F_input .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
@@ -392,9 +383,9 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       BLAS.symm!('L', 'U', 1.0, F, D, 0.0, workspace_a)
       BLAS.gemm!('N', 'N', 1.0, workspace_a, S, 0.0, FDS)
       
-      transpose!(SDF, FDS)
+      transpose!(workspace_b, FDS)
       
-      e .= FDS .- SDF
+      e .= FDS .- workspace_b 
 
       e_array_old = e_array[1:(ndiis-1)]
       F_array_old = F_array[1:(ndiis-1)]
@@ -420,15 +411,15 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== dynamic damping of Fock matrix ==#
     x = ΔE >= 1.0 ? 0.9/log(50,50*ΔE) : 0.9
-    F .= x.*F .+ (1.0-x).*F_old 
+    F .= x.*F .+ (1.0-x).*F_old
 
     F_old .= F
 
     #== obtain new F,D,C matrices ==#
     D_old .= D
 
-    E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, workspace_a,
-      ortho, ortho_trans, basis, iter, debug)
+    E_elec = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
+      workspace_b, ortho, basis, iter, debug)
 
     #== check for convergence ==#
     ΔD .= D .- D_old
@@ -486,16 +477,11 @@ H = One-electron Hamiltonian Matrix
   nsh = length(basis.shells)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
  
-  mutex = Base.Threads.ReentrantLock()
+  #mutex = Base.Threads.ReentrantLock()
   #thread_index_counter = Threads.Atomic{Int64}(nindices)
   
   #== simply do calculation for serial runs ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
-    ish_old = 0
-    jsh_old = 0
-    ksh_old = 0
-    lsh_old = 0
-
     #while nindices > 1 
     top = nindices - (MPI.Comm_rank(comm))
     middle = -MPI.Comm_size(comm) 
@@ -507,9 +493,9 @@ H = One-electron Hamiltonian Matrix
       #if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
 
       fock_build_thread_kernel(F, D,
-        H, basis, eri_quartet_batch, mutex,
+        H, basis, eri_quartet_batch, #mutex,
         quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
-        ish_old, jsh_old, ksh_old, lsh_old, debug)
+        debug)
     end
       
     #lock(mutex)
@@ -564,11 +550,6 @@ H = One-electron Hamiltonian Matrix
       recv_mesg = [ 0 ]
       send_mesg = [ 0 ]
 
-      ish_old = 0
-      jsh_old = 0
-      ksh_old = 0
-      lsh_old = 0
-
       #mutex = Base.Threads.ReentrantLock()
       thread_index_counter = nindices
  
@@ -597,9 +578,9 @@ H = One-electron Hamiltonian Matrix
           #println("IJKL: $ijkl")
 
          fock_build_thread_kernel(F, D,
-            H, basis, eri_quartet_batch, mutex,
+            H, basis, eri_quartet_batch, #mutex,
             quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
-            ish_old, jsh_old, ksh_old, lsh_old, debug)
+            debug)
         end
 
         send_mesg[1] = MPI.Comm_rank(comm)
@@ -624,11 +605,10 @@ end
 
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
-  eri_quartet_batch::Vector{Float64}, mutex, 
+  eri_quartet_batch::Vector{Float64}, #mutex, 
   quartet::ShQuartet, ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
-  Dsh::Matrix{Float64}, ish_old::Int64, jsh_old::Int64, ksh_old::Int64, 
-  lsh_old::Int64, debug::Bool)
+  Dsh::Matrix{Float64}, debug::Bool)
 
   comm=MPI.COMM_WORLD
   
@@ -798,17 +778,19 @@ ortho = Symmetric Orthogonalization Matrix
 =#
 function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
-  F_evec::Matrix{Float64}, F_mo::Matrix{Float64}, workspace_a::Matrix{Float64}, 
-  ortho::Matrix{Float64}, ortho_trans::Matrix{Float64},
+  F_evec::Matrix{Float64}, workspace_a::Matrix{Float64}, 
+  workspace_b::Matrix{Float64}, ortho::Matrix{Float64}, 
   basis::BasisStructs.Basis, iter::Int, debug::Bool)
 
   comm=MPI.COMM_WORLD
  
+  transpose!(workspace_b, LinearAlgebra.Hermitian(ortho)) 
+
   #== obtain new orbital coefficients ==#
-  BLAS.symm!('L', 'U', 1.0, ortho_trans, F_μν, 0.0, workspace_a)
-  BLAS.gemm!('N', 'N', 1.0, workspace_a, ortho, 0.0, F_mo)
+  BLAS.symm!('L', 'U', 1.0, workspace_b, F_μν, 0.0, workspace_a)
+  BLAS.gemm!('N', 'N', 1.0, workspace_a, ortho, 0.0, workspace_b)
  
-  F_eval, F_evec = eigen!(LinearAlgebra.Hermitian(F_mo)) 
+  F_eval, F_evec = eigen!(LinearAlgebra.Hermitian(workspace_b)) 
   
   #F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
   #F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
