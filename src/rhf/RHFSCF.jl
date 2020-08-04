@@ -206,7 +206,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
 
-  e = similar(F)
   e_array = fill(similar(F), ndiis)
   e_array_old = fill(similar(F), ndiis-1)
   
@@ -220,7 +219,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #F_temp = similar(F)
   ΔF = similar(F) 
   F_cumul = zeros(size(F)) 
-  F_input = similar(F)
  
   D_old = similar(F)
   ΔD = deepcopy(D) 
@@ -257,10 +255,10 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   scf_converged = true
 
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
-    E_elec, E_old, basis, F_array, e, e_array, e_array_old,
+    E_elec, E_old, basis, F_array, e_array, e_array_old,
     F_array_old, F_eval, F_evec, F_old, workspace_a, 
     workspace_b, ΔF, F_cumul, 
-    F_input, D_old, ΔD, D_input, scf_converged, FDS, 
+    D_old, ΔD, D_input, scf_converged, FDS, 
     schwarz_bounds, Dsh, eri_quartet_batch, quartet, simint_workspace; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load, fdiff=fdiff)
@@ -281,13 +279,13 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, 
   ortho::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
   E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
-  F_array::Vector{Matrix{Float64}}, e::Matrix{Float64},
+  F_array::Vector{Matrix{Float64}}, 
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, 
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, 
   F_old::Matrix{Float64}, workspace_a::Matrix{Float64}, 
   workspace_b::Matrix{Float64}, ΔF::Matrix{Float64},
-  F_cumul::Matrix{Float64}, F_input::Matrix{Float64}, D_old::Matrix{Float64}, 
+  F_cumul::Matrix{Float64}, D_old::Matrix{Float64}, 
   ΔD::Matrix{Float64}, D_input::Matrix{Float64}, scf_converged::Bool,  
   FDS::Matrix{Float64}, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}, 
@@ -330,7 +328,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== determine input D and F ==#
     D_input .= fdiff ? ΔD : D
-    F_input .= fdiff ? ΔF : F
+    workspace_b .= fdiff ? ΔF : F
 
     #== compress D into shells in Dsh ==#
     for ish in 1:length(basis.shells), jsh in 1:ish
@@ -349,10 +347,10 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
   
     #== build new Fock matrix ==#
-    workspace_a .= fock_build(F_input, D_input, H, basis, schwarz_bounds, Dsh, 
+    workspace_a .= fock_build(workspace_b, D_input, H, basis, schwarz_bounds, Dsh, 
       eri_quartet_batch, quartet, simint_workspace, debug, load)
 
-    F_input .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
+    workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
@@ -360,11 +358,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
  
     if fdiff 
-      ΔF .= F_input
+      ΔF .= workspace_b
       F_cumul .+= ΔF
       F .= F_cumul .+ H
     else
-      F .= F_input .+ H
+      F .= workspace_b .+ H
     end
 
     if debug && MPI.Comm_rank(comm) == 0
@@ -378,12 +376,12 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       
       transpose!(workspace_b, FDS)
       
-      e .= FDS .- workspace_b 
+      workspace_a .= FDS .- workspace_b 
 
       e_array_old = e_array[1:(ndiis-1)]
       F_array_old = F_array[1:(ndiis-1)]
 
-      e_array[1] = deepcopy(e)
+      e_array[1] = deepcopy(workspace_a)
       F_array[1] .= F
       for imatrix in 1:ndiis-1
         e_array[imatrix+1] .= e_array_old[imatrix]
