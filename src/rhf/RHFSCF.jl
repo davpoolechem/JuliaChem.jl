@@ -77,7 +77,7 @@ function rhf_kernel(mol::MolStructs.Molecule,
   end
 
   #== build the initial matrices ==#
-  F = H
+  F = deepcopy(H)
   F_eval = Vector{Float64}(undef,basis.norb)
   F_evec = similar(F)
 
@@ -115,7 +115,7 @@ function rhf_kernel(mol::MolStructs.Molecule,
   E_elec = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
     workspace_b, ortho, basis, 0, debug)
   
-  F = deepcopy(F) #apparently this is needed for some reason
+  #F = deepcopy(F) #apparently this is needed for some reason
   F_old = deepcopy(F)
   
   E = E_elec + E_nuc
@@ -688,12 +688,11 @@ end
     μμ = μsize + pμ
     νν = νsize + pν
 
-    do_continue_bra = sort_bra(μμ, νν,
-      ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
-    if do_continue_bra 
-      continue 
-    end
-
+    if μμ < νν && ish == jsh                                                    
+      #if do_continue_print println("CONTINUE BRA: $μμ, $νν") end               
+      continue                                                                  
+    end                                                                         
+    
     μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
     for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
       λλ = λsize + pλ
@@ -708,29 +707,31 @@ end
   
       eri = eri_batch[μνλσ] 
       
-      do_continue_screen = abs(eri) < 1.0E-10
-      if do_continue_screen 
-        #if do_continue_print println("CONTINUE") end
-        continue 
-      end
+      if abs(eri) < 1.0E-10                                                     
+        #if do_continue_print println("CONTINUE SCREEN") end                    
+        continue                                                                
+      end       
 
-      do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
-        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
-      if do_continue_ket 
-        #if do_continue_print println("CONTINUE") end
-        continue 
-      end
-  
+      if λλ < σσ && ksh == lsh                                                  
+        #if do_continue_print println("CONTINUE KET") end                       
+        continue                                                                
+      end   
+ 
       μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
       λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
 
-      do_continue_braket, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh, ksh, 
-        lsh, nμ, nν, nλ, nσ)
-      if do_continue_braket 
-        #if do_continue_print println("CONTINUE") end
-        continue 
-      end
-
+      μν = triangular_index(μ,ν)                                                
+      λσ = triangular_index(λ,σ)                                                
+                                                                                
+      if μν < λσ                                                                
+        if ish == ksh && jsh == lsh                                             
+          #if do_continue_print println("CONTINUE BRAKET") end                  
+          continue                                                              
+        else                                                                    
+          μ, ν, λ, σ = λ, σ, μ, ν                                               
+        end                                                                     
+      end     
+    
       #if debug println("ERI($μ, $ν, $λ, $σ) = $eri") end
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
