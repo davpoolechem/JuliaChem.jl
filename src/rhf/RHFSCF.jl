@@ -54,10 +54,7 @@ function rhf_kernel(mol::MolStructs.Molecule,
   debug_output = debug ? h5open("debug.h5","w") : nothing
 
   #== compute nuclear repulsion energy ==# 
-  #E_nuc::Float64 = molecule["enuc"]
   E_nuc = compute_enuc(mol)
-  
-  #S = read_in_oei(molecule["ovr"], basis.norb)
   
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))
@@ -69,7 +66,6 @@ function rhf_kernel(mol::MolStructs.Molecule,
   V = zeros(Float64, (basis.norb, basis.norb))
   compute_nah(V, mol, basis)
 
-  #H = read_in_oei(molecule["hcore"], basis.norb)
   H = T .+ V
  
   if debug && MPI.Comm_rank(comm) == 0
@@ -80,28 +76,10 @@ function rhf_kernel(mol::MolStructs.Molecule,
     h5write("debug.h5","SCF/Iteration-None/H", H)
   end
 
-  #== build the orthogonalization matrix ==#
-  S_evec = eigvecs(LinearAlgebra.Hermitian(S))
-
-  S_eval_diag = eigvals(LinearAlgebra.Hermitian(S))
-
-  S_eval = zeros(basis.norb,basis.norb)
-  for i in 1:basis.norb
-    S_eval[i,i] = S_eval_diag[i]
-  end
-  
-  ortho = S_evec*(LinearAlgebra.Diagonal(S_eval)^-0.5)*transpose(S_evec)
-  
-  if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-None/Ortho", ortho)
-  end
-
   #== build the initial matrices ==#
   F = H
   F_eval = Vector{Float64}(undef,basis.norb)
   F_evec = similar(F)
-  #F_mo = similar(F)
-  #F_part = similar(F)
 
   D = similar(F)
   C = similar(F)
@@ -109,6 +87,21 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #== allocate workspace matrices ==#
   workspace_a = similar(F)
   workspace_b = similar(F)
+
+  #== build the orthogonalization matrix ==#
+  workspace_b .= S
+  S_eval_diag, workspace_a = eigen!(LinearAlgebra.Hermitian(workspace_b))
+
+  fill!(workspace_b, 0.0)
+  for i in 1:basis.norb
+    workspace_b[i,i] = S_eval_diag[i]
+  end
+  
+  ortho = workspace_a*(LinearAlgebra.Diagonal(workspace_b)^-0.5)*transpose(workspace_a)
+  
+  if debug && MPI.Comm_rank(comm) == 0
+    h5write("debug.h5","SCF/Iteration-None/Ortho", ortho)
+  end
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
@@ -792,8 +785,6 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
  
   F_eval, F_evec = eigen!(LinearAlgebra.Hermitian(workspace_b)) 
   
-  #F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
-  #F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   #C .= ortho*F_evec
