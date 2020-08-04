@@ -13,13 +13,19 @@ using JCModules.SIMINT
 using MPI
 using JSON
 
-const axial_norm_fact = [1.0 1.0 1.0; 
-                     0.0 1.0 sqrt(3.0);
-                     0.0 1.0 sqrt(3.0);
-                     0.0 0.0 1.0;
-                     0.0 0.0 sqrt(3.0);
-                     0.0 0.0 1.0
-                    ]
+#                        | s | p |    d     |    f    |
+#                        ------------------------------ 
+const axial_norm_fact = [ 1.0 1.0    1.0        1.0   ; 
+                          0.0 1.0 sqrt(3.0)  sqrt(5.0);
+                          0.0 1.0 sqrt(3.0)  sqrt(5.0);
+                          0.0 0.0    1.0     sqrt(5.0);
+                          0.0 0.0 sqrt(3.0) sqrt(15.0);
+                          0.0 0.0    1.0     sqrt(5.0);
+                          0.0 0.0    0.0        1.0   ;
+                          0.0 0.0    0.0     sqrt(5.0);
+                          0.0 0.0    0.0     sqrt(5.0);
+                          0.0 0.0    0.0        1.0
+                        ]
 
 Base.include(@__MODULE__,"RHFHelpers.jl")
 Base.include(@__MODULE__,"RHFSCF.jl")
