@@ -235,20 +235,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   ΔD = deepcopy(D) 
   D_input = similar(F)
 
-  #== allocate miscalleneous things needed for fock build step ==#
-  max_am = 0
-  for shell in basis.shells
-    max_am = shell.am > max_am ? shell.am : max_am
-  end
-
- 
-  eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-  simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am-1))
- 
   #== build matrix of Cauchy-Schwarz upper bounds ==# 
   schwarz_bounds = zeros(Float64,(nsh,nsh)) 
-  compute_schwarz_bounds(schwarz_bounds, eri_quartet_batch, simint_workspace, 
-    nsh)
+  compute_schwarz_bounds(schwarz_bounds, basis, nsh)
 
   Dsh = similar(schwarz_bounds)
   
@@ -274,7 +263,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
     F_array_old, F_eval, F_evec, F_old, workspace_a, 
     workspace_b, workspace_c, ΔF, F_cumul, 
     D_old, ΔD, D_input, scf_converged, FDS, 
-    schwarz_bounds, Dsh, eri_quartet_batch, simint_workspace; 
+    schwarz_bounds, Dsh; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load, fdiff=fdiff)
 
@@ -304,8 +293,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   F_cumul::Matrix{Float64}, D_old::Matrix{Float64}, 
   ΔD::Matrix{Float64}, D_input::Matrix{Float64}, scf_converged::Bool,  
   FDS::Matrix{Float64}, 
-  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}, 
-  eri_quartet_batch::Vector{Float64}, simint_workspace::Vector{Float64};
+  schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}; 
   output, debug, niter, ndiis, dele, rmsd, load, fdiff)
 
   #== initialize a few more variables ==#
@@ -363,7 +351,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     workspace_a .= fock_build(workspace_b, D_input, H, basis, schwarz_bounds, Dsh, 
-      eri_quartet_batch, simint_workspace, debug, load)
+      debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -470,8 +458,7 @@ H = One-electron Hamiltonian Matrix
 @inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  eri_quartet_batch::Vector{Float64}, 
-  simint_workspace::Vector{Float64}, debug::Bool, load::String)
+  debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
@@ -485,25 +472,35 @@ H = One-electron Hamiltonian Matrix
   
   #== simply do calculation for serial runs ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
-    #while nindices > 1 
-    top = nindices - (MPI.Comm_rank(comm))
-    middle = -MPI.Comm_size(comm) 
-    #for ijkl in nindices:-1:1
-    for ijkl in top:middle:1 
-       #ijkl_index = Threads.atomic_sub!(thread_index_counter, 1)
- 
-      #if ijkl_index <= 0 break
-      #if MPI.Comm_rank(comm) != ijkl_index%MPI.Comm_size(comm) continue end
+    top_index = nindices - (MPI.Comm_rank(comm))
+    stride = MPI.Comm_size(comm) 
+    
+    mutex = Base.Threads.ReentrantLock()
+    thread_index_counter = Threads.Atomic{Int64}(top_index)
+    Threads.@threads for thread in 1:Threads.nthreads() 
+      max_am = 0
+      for shell in basis.shells
+        max_am = shell.am > max_am ? shell.am : max_am
+      end 
+      eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
+      simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+    
+      F_priv = zeros(size(F))
+      while true 
+        ijkl = Threads.atomic_sub!(thread_index_counter, stride) 
 
-      fock_build_thread_kernel(F, D,
-        H, basis, eri_quartet_batch, #mutex,
-        ijkl, simint_workspace, schwarz_bounds, Dsh,
-        debug)
+        if ijkl < 1 break end
+        
+        fock_build_thread_kernel(F_priv, D,
+          H, basis, eri_quartet_batch_priv, #mutex,
+          ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
+          debug)
+      end
+
+      lock(mutex)
+        F .+= F_priv
+      unlock(mutex)
     end
-      
-    #lock(mutex)
-    #  F .+= F_priv
-    #unlock(mutex)
   #== use static task distribution for multirank runs if selected ==#
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
     batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*10000)) 
@@ -608,7 +605,7 @@ end
 
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
-  eri_quartet_batch::Vector{Float64}, #mutex, 
+  eri_quartet_batch::Vector{Float64}, 
   ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, debug::Bool)

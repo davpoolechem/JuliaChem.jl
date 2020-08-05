@@ -169,9 +169,16 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
 end
 
 function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, 
-  eri_quartet_batch::Vector{Float64}, simint_workspace::Vector{Float64},
-  nsh::Int64)
+  basis::BasisStructs.Basis, nsh::Int64)
 
+  max_am = 0
+  for shell in basis.shells
+    max_am = shell.am > max_am ? shell.am : max_am
+  end
+  
+  eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
+  simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am-1))
+ 
   for ash in 1:nsh, bsh in 1:ash
     fill!(eri_quartet_batch, 0.0)
     SIMINT.compute_eris(ash, bsh, ash, bsh, eri_quartet_batch, 
