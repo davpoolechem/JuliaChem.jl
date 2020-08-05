@@ -7,6 +7,7 @@ using HDF5
 using PrettyTables
 
 const do_continue_print = false 
+const print_eri = false 
 
 function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
@@ -62,6 +63,10 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))
   compute_overlap(S, basis)
+ 
+  #for i in 1:basis.norb, j in 1:i
+  #  println("OVR($i,$j): ", S[i,j])
+  #end
   
   T = zeros(Float64, (basis.norb, basis.norb))
   compute_ke(T, basis)
@@ -71,6 +76,10 @@ function rhf_kernel(mol::MolStructs.Molecule,
 
   #H = read_in_oei(molecule["hcore"], basis.norb)
   H = T .+ V
+  
+  #for i in 1:basis.norb, j in 1:i
+  #  println("HAMIL($i,$j): ", H[i,j])
+  #end
  
   if debug && MPI.Comm_rank(comm) == 0
     h5write("debug.h5","SCF/Iteration-None/E_nuc", E_nuc)
@@ -120,7 +129,11 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #@code_warntype iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
   E_elec = iteration(F, D, C, H, F_eval, F_evec, F_mo, F_part, ortho, 
     ortho_trans.data, basis, 0, debug)
-  
+   
+  #for i in 1:basis.norb, j in 1:i
+  #  println("DENS($i,$j): ", D[i,j])
+  #end
+   
   F = deepcopy(F) #apparently this is needed for some reason
   F_old = deepcopy(F)
   
@@ -236,20 +249,25 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   ΔD = deepcopy(D) 
   D_input = similar(F)
 
+  #== allocate miscalleneous things needed for fock build step ==#
+  max_am = 0
+  for shell in basis.shells
+    max_am = shell.am > max_am ? shell.am : max_am
+  end
+
+  quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
+      ShPair(basis.shells[1], basis.shells[1]))
+ 
+  eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
+  simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am-1))
+ 
   #== build matrix of Cauchy-Schwarz upper bounds ==# 
   schwarz_bounds = zeros(Float64,(nsh,nsh)) 
-  compute_schwarz_bounds(schwarz_bounds, nsh)
+  compute_schwarz_bounds(schwarz_bounds, eri_quartet_batch, simint_workspace, 
+    nsh)
 
   Dsh = similar(schwarz_bounds)
   Dsh_abs = similar(D)
-  
-  #== allocate miscalleneous things needed for fock build step ==#
-  max_shell_am = MAX_SHELL_AM
-  eri_quartet_batch = Vector{Float64}(undef,81)
-  quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
-      ShPair(basis.shells[1], basis.shells[1]))
-  simint_workspace = Vector{Float64}(undef,10000)
-
   
   #== build eri batch arrays ==#
   #eri_sizes::Vector{Int64} = load("tei_batch.jld",
@@ -373,7 +391,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
-      h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F)
+      h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F_input)
     end
  
     if fdiff 
@@ -635,18 +653,33 @@ end
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
 
+  #quartet.bra = basis.shpair_ordering[bra_pair]
+  #quartet.ket = basis.shpair_ordering[ket_pair]
+ 
+  #ish = quartet.bra.sh_a.shell_id 
+  #jsh = quartet.bra.sh_b.shell_id 
+  #ksh = quartet.ket.sh_a.shell_id 
+  #lsh = quartet.ket.sh_b.shell_id 
+  
   ish = decompose(bra_pair)
   jsh = bra_pair - triangular_index(ish)
 
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
-  
+
+  #icls = unsafe_string(quartet.bra.sh_a.class)
+  #jcls = unsafe_string(quartet.bra.sh_b.class) 
+  #kcls = unsafe_string(quartet.ket.sh_a.class) 
+  #lcls = unsafe_string(quartet.ket.sh_b.class)
+
+  #println("QUARTET($ish, $jsh, $ksh, $lsh) -> ($icls $jcls | $kcls $lcls)")
+
   #== create shell quartet ==#
   quartet.bra.sh_a = basis[ish]
   quartet.bra.sh_b = basis[jsh]
   quartet.ket.sh_a = basis[ksh]
   quartet.ket.sh_b = basis[lsh]
-
+  
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
 
@@ -664,7 +697,7 @@ end
   #== fock build for significant shell quartets ==# 
   if abs(bound) >= 1.0E-10 
     #== compute electron repulsion integrals ==#
-    compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
+    compute_eris(quartet, ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
 
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, quartet,
@@ -673,13 +706,59 @@ end
     #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
-@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64,
+@inline function compute_eris(quartet, ish::Int64, jsh::Int64, ksh::Int64,
   lsh::Int64, eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
+
+  #fill!(eri_quartet_batch, 0.0)
+  #ish = quartet.bra.sh_a.shell_id
+  #jsh = quartet.bra.sh_b.shell_id
+  #ksh = quartet.ket.sh_a.shell_id
+  #lsh = quartet.ket.sh_b.shell_id
 
   #= actually compute integrals =#
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
     simint_workspace)
+
+  amμ = quartet.bra.sh_a.am
+  amν = quartet.bra.sh_b.am
+  amλ = quartet.ket.sh_a.am
+  amσ = quartet.ket.sh_b.am
+
+  nμ = quartet.bra.sh_a.nbas
+  nν = quartet.bra.sh_b.nbas
+  nλ = quartet.ket.sh_a.nbas
+  nσ = quartet.ket.sh_b.nbas
+
+  μνλσ = 0 
+  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
+    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
+      
+    μnorm = axial_norm_fact[μsize+1,amμ]
+    νnorm = axial_norm_fact[νsize+1,amν]
+
+    μνnorm = μnorm*νnorm
+
+    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
+      μνλσ += 1 
+   
+      λnorm = axial_norm_fact[λsize+1,amλ]
+      σnorm = axial_norm_fact[σsize+1,amσ]
+    
+      λσnorm = λnorm*σnorm 
+      eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
+    end 
+  end
+
+  #=
+  if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
+    for idx in 1:nμ*nν*nλ*nσ 
+    #for idx in 1:1296
+      eri = eri_quartet_batch[idx]
+      println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
+    end
+  end
+  =#
 end
 
 
@@ -688,14 +767,11 @@ end
   ksh::Int64, lsh::Int64, debug::Bool)
 
   norb = size(D,1)
-
-  two_same = (ish == jsh) || (ish == ksh) || (ish == lsh) || (jsh == ksh) || 
-    (jsh == lsh) || (ksh == lsh)
-
-  three_same = (ish == jsh && jsh == ksh) || (ish == jsh && jsh == lsh) || 
-    (ish == ksh && ksh == lsh) || (jsh == ksh && ksh == lsh)
-
-  four_same = ish == jsh && jsh == ksh && ksh == lsh
+  
+  #ish = quartet.bra.sh_a.shell_id
+  #jsh = quartet.bra.sh_b.shell_id
+  #ksh = quartet.ket.sh_a.shell_id
+  #lsh = quartet.ket.sh_b.shell_id
 
   pμ = quartet.bra.sh_a.pos
   nμ = quartet.bra.sh_a.nbas
@@ -709,14 +785,19 @@ end
   pσ = quartet.ket.sh_b.pos
   nσ = quartet.ket.sh_b.nbas
 
+  #amμ = quartet.bra.sh_a.am
+  #amν = quartet.bra.sh_b.am
+  #amλ = quartet.ket.sh_a.am
+  #amσ = quartet.ket.sh_b.am
+  #am = [ amμ, amν, amλ, amσ ]
+
   μνλσ = 0
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
     μμ = μsize + pμ
     νν = νsize + pν
 
-    do_continue_bra = sort_bra(μμ, νν,
-      ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
-    if do_continue_bra 
+    if μμ < νν && ish == jsh 
+      #if do_continue_print println("CONTINUE BRA: $μμ, $νν") end
       continue 
     end
 
@@ -733,31 +814,35 @@ end
       μνλσ += 1 
   
       eri = eri_batch[μνλσ] 
-      
-      do_continue_screen = abs(eri) < 1.0E-10
-      if do_continue_screen 
-        #if do_continue_print println("CONTINUE") end
+   
+      if abs(eri) < 1.0E-10
+        #if do_continue_print println("CONTINUE SCREEN") end
         continue 
       end
 
-      do_continue_ket = sort_ket(μμ, νν, λλ, σσ,
-        ish, jsh, ksh, lsh, nμ, nν, nλ, nσ, two_same, three_same, four_same)
-      if do_continue_ket 
-        #if do_continue_print println("CONTINUE") end
+      if λλ < σσ && ksh == lsh 
+        #if do_continue_print println("CONTINUE KET") end
         continue 
       end
   
       μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
       λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
 
-      do_continue_braket, μ, ν, λ, σ = sort_braket(μ, ν, λ, σ, ish, jsh, ksh, 
-        lsh, nμ, nν, nλ, nσ)
-      if do_continue_braket 
-        #if do_continue_print println("CONTINUE") end
-        continue 
+      μν = triangular_index(μ,ν)                                                    
+      λσ = triangular_index(λ,σ)                                                    
+       
+      if μν < λσ 
+        if ish == ksh && jsh == lsh 
+          #if do_continue_print println("CONTINUE BRAKET") end
+          continue 
+        else
+          μ, ν, λ, σ = λ, σ, μ, ν
+        end
       end
 
-      #if debug println("ERI($μ, $ν, $λ, $σ) = $eri") end
+      #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
+      #println("ERI($μ, $ν, $λ, $σ) = $eri") 
+      
       eri *= (μ == ν) ? 0.5 : 1.0 
       eri *= (λ == σ) ? 0.5 : 1.0
       eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
@@ -802,7 +887,12 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   basis::BasisStructs.Basis, iter::Int, debug::Bool)
 
   comm=MPI.COMM_WORLD
- 
+
+  #display(ortho) 
+  #for i in 1:size(ortho)[1], j in 1:i
+  #  println("ORTHO($i,$j): ", ortho[i,j])
+  #end
+   
   #== obtain new orbital coefficients ==#
   BLAS.symm!('L', 'U', 1.0, ortho_trans, F_μν, 0.0, F_part)
   BLAS.gemm!('N', 'N', 1.0, F_part, ortho, 0.0, F_mo)
@@ -812,6 +902,10 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #F_eval .= eigvals(LinearAlgebra.Hermitian(F_mo))
   #F_evec .= eigvecs(LinearAlgebra.Hermitian(F_mo))
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
+
+  if debug && MPI.Comm_rank(comm) == 0
+    h5write("debug.h5","SCF/Iteration-$iter/F_evec/Sorted", F_mo)
+  end
 
   #C .= ortho*F_evec
   BLAS.symm!('L', 'U', 1.0, ortho, F_evec, 0.0, C)

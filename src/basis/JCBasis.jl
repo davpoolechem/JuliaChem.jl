@@ -92,7 +92,7 @@ function run(molecule, model; output="none")
 
       #== process basis set values into shell objects ==#
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
-        println("ATOM $symbol:") 
+        println("ATOM #$atom_idx ($symbol):") 
       end
       
       for shell_num::Int64 in 1:length(shells)
@@ -108,12 +108,11 @@ function run(molecule, model; output="none")
         if new_shell_am == -1
           #== s component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println("L (s)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,1]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
@@ -128,12 +127,11 @@ function run(molecule, model; output="none")
 
           #== p component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println("L (p)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,2]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
@@ -148,15 +146,14 @@ function run(molecule, model; output="none")
         #== otherwise accept shell as is ==#
         else 
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println(new_shell_dict["Shell Type"])
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
-          new_shell_nprim= size(new_shell_exp)[1]
+          new_shell_nprim = size(new_shell_exp)[1]
           new_shell_coeff_array = reshape(new_shell_coeff,
             (length(new_shell_coeff),))       
 
@@ -168,6 +165,9 @@ function run(molecule, model; output="none")
           basis_set.norb += new_shell.nbas
           shell_id += 1
         end
+        if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          println(" ")
+        end
       end
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
         println(" ")
@@ -176,8 +176,29 @@ function run(molecule, model; output="none")
     end
   end
 
-  sort!(basis_set.shells, by = x->x.am)
+  sort!(basis_set.shells, by = x->((x.nbas*x.nprim),x.am))
+
+  #== set up shell pair ordering ==#
+  #for ish in 1:length(basis_set.shells), jsh in 1:ish
+  #  push!(basis_set.shpair_ordering, ShPair(basis_set.shells[ish], 
+  #    basis_set.shells[jsh])) 
+  #end
+  
+  #sort!(basis_set.shpair_ordering, by = x->((x.nbas2*x.nprim2),x.am2,unsafe_string(x.class)))
  
+  #for ish in 1:length(basis_set.shells), jsh in 1:ish 
+  #  idx = ceil(Int64, ish*(ish-1)/2) + jsh
+  #  push!(basis_set.shpair_ordering,(shellpairs[idx].sh_a.shell_id, 
+  #    shellpairs[idx].sh_b.shell_id))
+  #end
+
+  #for shellpair in shellpairs 
+  #  basis_set.shpair_ordering = vcat(basis_set.shpair_ordering, [shellpair.sh_a.shell_id shellpair.sh_b.shell_id])
+  #end
+  
+  #delete first row, as it is simply zeroes
+  #basis_set.shpair_ordering = basis_set.shpair_ordering[setdiff(1:end, 1),:]
+
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("                       ========================================                 ")
