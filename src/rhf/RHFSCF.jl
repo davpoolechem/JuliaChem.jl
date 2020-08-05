@@ -503,7 +503,8 @@ H = One-electron Hamiltonian Matrix
     end
   #== use static task distribution for multirank runs if selected ==#
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
-    batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*10000)) 
+    batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
+      Threads.nthreads()*10000)) 
 
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
@@ -546,14 +547,11 @@ H = One-electron Hamiltonian Matrix
       #println("Done sending out enders") 
     #== slave ranks perform actual computations on quartets ==#
     elseif MPI.Comm_rank(comm) > 0
-      #== intial setup ==#
-      recv_mesg = [ 0 ]
-      send_mesg = [ 0 ]
-
       mutex = Base.Threads.ReentrantLock()
-      thread_index_counter = Threads.Atomic{Int64}(nindices)
-    
       Threads.@threads for thread in 1:Threads.nthreads() 
+        recv_mesg = [ 0 ]
+        send_mesg = [ 0 ]
+
         max_am = 0
         for shell in basis.shells
           max_am = shell.am > max_am ? shell.am : max_am
@@ -562,8 +560,6 @@ H = One-electron Hamiltonian Matrix
         simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
     
         F_priv = zeros(size(F))
-
-        #== do computations ==# 
         while true 
           #== get shell quartet ==#
           status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
@@ -585,8 +581,8 @@ H = One-electron Hamiltonian Matrix
             #println("IJKL: $ijkl")
 
             fock_build_thread_kernel(F, D,
-              H, basis, eri_quartet_batch, #mutex,
-              ijkl, simint_workspace, schwarz_bounds, Dsh,
+              H, basis, eri_quartet_batch_priv, #mutex,
+              ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
               debug)
           end
 
