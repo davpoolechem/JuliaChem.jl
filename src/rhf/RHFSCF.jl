@@ -550,44 +550,53 @@ H = One-electron Hamiltonian Matrix
       recv_mesg = [ 0 ]
       send_mesg = [ 0 ]
 
-      #mutex = Base.Threads.ReentrantLock()
-      thread_index_counter = nindices
+      mutex = Base.Threads.ReentrantLock()
+      thread_index_counter = Threads.Atomic{Int64}(nindices)
+    
+      Threads.@threads for thread in 1:Threads.nthreads() 
+        max_am = 0
+        for shell in basis.shells
+          max_am = shell.am > max_am ? shell.am : max_am
+        end 
+        eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
+        simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+    
+        F_priv = zeros(size(F))
+
+        #== do computations ==# 
+        while true 
+          #== get shell quartet ==#
+          status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
+          #println("About to recieve task from master")
+          rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+
+          ijkl_index = recv_mesg[1]
+          #println(ijkl_index)
+          if ijkl_index < 0 break end
+          #println("Recieved task $ijkl_index from master")
  
-      #for thread in 1:Threads.nthreads()
-      #  F_priv = zeros(basis.norb,basis.norb)
+          #for rank in 1:MPI.Comm_size(comm)
+          #  if MPI.Comm_rank(comm) == rank
+          #    println("IJKL_INDEX: ", ijkl_index)
+          #  end
+          #end
+          #println("NEW BATCH")
+          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+            #println("IJKL: $ijkl")
 
-      #== do computations ==# 
-      while true 
-        #== get shell quartet ==#
-        status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
-        #println("About to recieve task from master")
-        rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+            fock_build_thread_kernel(F, D,
+              H, basis, eri_quartet_batch, #mutex,
+              ijkl, simint_workspace, schwarz_bounds, Dsh,
+              debug)
+          end
 
-        ijkl_index = recv_mesg[1]
-        #println(ijkl_index)
-        if ijkl_index < 0 break end
-        #println("Recieved task $ijkl_index from master")
- 
-        #for rank in 1:MPI.Comm_size(comm)
-        #  if MPI.Comm_rank(comm) == rank
-        #    println("IJKL_INDEX: ", ijkl_index)
-        #  end
-        #end
-        #println("NEW BATCH")
-        for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
-          #println("IJKL: $ijkl")
-
-         fock_build_thread_kernel(F, D,
-            H, basis, eri_quartet_batch, #mutex,
-            ijkl, simint_workspace, schwarz_bounds, Dsh,
-            debug)
+          send_mesg[1] = MPI.Comm_rank(comm)
+          MPI.Send(send_mesg, 0, 1, comm)
         end
-
-        send_mesg[1] = MPI.Comm_rank(comm)
-        MPI.Send(send_mesg, 0, 1, comm)
-      #lock(mutex)
-      #F .+= F_priv
-      #unlock(mutex)
+      
+        lock(mutex)
+          F .+= F_priv
+        unlock(mutex)
       end
     end
     MPI.Barrier(comm)
