@@ -91,7 +91,7 @@ version = "1.0.0"
 
 [[JCModules]]
 deps = ["BinDeps", "StaticArrays", "Test"]
-git-tree-sha1 = "2799dc7dd618ba4e4cdeec619b7892c0030ec3bd"
+git-tree-sha1 = "ace2b3d0ebebfe689ce268c2af271c76de25b940"
 repo-rev = "master"
 repo-url = "https://github.com/davpoolechem/JCModules.jl.git"
 uuid = "825a225a-aa46-11e9-32ce-a5f5c03ee8dd"

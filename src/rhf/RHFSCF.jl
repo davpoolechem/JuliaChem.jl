@@ -241,8 +241,6 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
     max_am = shell.am > max_am ? shell.am : max_am
   end
 
-  quartet = ShQuartet(ShPair(basis.shells[1], basis.shells[1]),
-      ShPair(basis.shells[1], basis.shells[1]))
  
   eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
   simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am-1))
@@ -276,7 +274,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
     F_array_old, F_eval, F_evec, F_old, workspace_a, 
     workspace_b, workspace_c, ΔF, F_cumul, 
     D_old, ΔD, D_input, scf_converged, FDS, 
-    schwarz_bounds, Dsh, eri_quartet_batch, quartet, simint_workspace; 
+    schwarz_bounds, Dsh, eri_quartet_batch, simint_workspace; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
     rmsd=rmsd, load=load, fdiff=fdiff)
 
@@ -307,8 +305,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   ΔD::Matrix{Float64}, D_input::Matrix{Float64}, scf_converged::Bool,  
   FDS::Matrix{Float64}, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64}, 
-  eri_quartet_batch::Vector{Float64}, 
-  quartet::BasisStructs.ShQuartet, simint_workspace::Vector{Float64};
+  eri_quartet_batch::Vector{Float64}, simint_workspace::Vector{Float64};
   output, debug, niter, ndiis, dele, rmsd, load, fdiff)
 
   #== initialize a few more variables ==#
@@ -366,7 +363,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     workspace_a .= fock_build(workspace_b, D_input, H, basis, schwarz_bounds, Dsh, 
-      eri_quartet_batch, quartet, simint_workspace, debug, load)
+      eri_quartet_batch, simint_workspace, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -473,7 +470,7 @@ H = One-electron Hamiltonian Matrix
 @inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  eri_quartet_batch::Vector{Float64}, quartet::BasisStructs.ShQuartet,
+  eri_quartet_batch::Vector{Float64}, 
   simint_workspace::Vector{Float64}, debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
@@ -500,7 +497,7 @@ H = One-electron Hamiltonian Matrix
 
       fock_build_thread_kernel(F, D,
         H, basis, eri_quartet_batch, #mutex,
-        quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
+        ijkl, simint_workspace, schwarz_bounds, Dsh,
         debug)
     end
       
@@ -585,7 +582,7 @@ H = One-electron Hamiltonian Matrix
 
          fock_build_thread_kernel(F, D,
             H, basis, eri_quartet_batch, #mutex,
-            quartet, ijkl, simint_workspace, schwarz_bounds, Dsh,
+            ijkl, simint_workspace, schwarz_bounds, Dsh,
             debug)
         end
 
@@ -612,7 +609,7 @@ end
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::BasisStructs.Basis, 
   eri_quartet_batch::Vector{Float64}, #mutex, 
-  quartet::ShQuartet, ijkl_index::Int64,
+  ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, debug::Bool)
 
@@ -625,10 +622,10 @@ end
   #quartet.bra = basis.shpair_ordering[bra_pair]
   #quartet.ket = basis.shpair_ordering[ket_pair]
  
-  #ish = quartet.bra.sh_a.shell_id 
-  #jsh = quartet.bra.sh_b.shell_id 
-  #ksh = quartet.ket.sh_a.shell_id 
-  #lsh = quartet.ket.sh_b.shell_id 
+  #ish = μsh.shell_id 
+  #jsh = νsh.shell_id 
+  #ksh = λsh.shell_id 
+  #lsh = σsh.shell_id 
   
   ish = decompose(bra_pair)
   jsh = bra_pair - triangular_index(ish)
@@ -636,19 +633,18 @@ end
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
 
-  #icls = unsafe_string(quartet.bra.sh_a.class)
-  #jcls = unsafe_string(quartet.bra.sh_b.class) 
-  #kcls = unsafe_string(quartet.ket.sh_a.class) 
-  #lcls = unsafe_string(quartet.ket.sh_b.class)
+  μsh = basis[ish] 
+  νsh = basis[jsh] 
+  λsh = basis[ksh] 
+  σsh = basis[lsh] 
+  
+  #icls = unsafe_string(μsh.class)
+  #jcls = unsafe_string(νsh.class) 
+  #kcls = unsafe_string(λsh.class) 
+  #lcls = unsafe_string(σsh.class)
 
   #println("QUARTET($ish, $jsh, $ksh, $lsh) -> ($icls $jcls | $kcls $lcls)")
 
-  #== create shell quartet ==#
-  quartet.bra.sh_a = basis[ish]
-  quartet.bra.sh_b = basis[jsh]
-  quartet.ket.sh_a = basis[ksh]
-  quartet.ket.sh_b = basis[lsh]
-  
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
 
@@ -666,38 +662,46 @@ end
   #== fock build for significant shell quartets ==# 
   if abs(bound) >= 1.0E-10 
     #== compute electron repulsion integrals ==#
-    compute_eris(quartet, ish, jsh, ksh, lsh, eri_quartet_batch, simint_workspace)
+    compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
+      eri_quartet_batch, simint_workspace)
 
     #== contract ERIs into Fock matrix ==#
-    contract_eris(F, D, eri_quartet_batch, quartet,
-      ish, jsh, ksh, lsh, debug)
+    contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
+      μsh, νsh, λsh, σsh, debug)
   end
     #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
-@inline function compute_eris(quartet, ish::Int64, jsh::Int64, ksh::Int64,
-  lsh::Int64, eri_quartet_batch::Vector{Float64},
+@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64, 
+  μsh::BasisStructs.Shell, νsh::BasisStructs.Shell, 
+  λsh::BasisStructs.Shell, σsh::BasisStructs.Shell,
+  eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
 
+  amμ = μsh.am
+  amν = νsh.am
+  amλ = λsh.am
+  amσ = σsh.am
+
   #fill!(eri_quartet_batch, 0.0)
-  #ish = quartet.bra.sh_a.shell_id
-  #jsh = quartet.bra.sh_b.shell_id
-  #ksh = quartet.ket.sh_a.shell_id
-  #lsh = quartet.ket.sh_b.shell_id
+  #ish = μsh.shell_id
+  #jsh = νsh.shell_id
+  #ksh = λsh.shell_id
+  #lsh = σsh.shell_id
 
   #= actually compute integrals =#
   SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
     simint_workspace)
 
-  amμ = quartet.bra.sh_a.am
-  amν = quartet.bra.sh_b.am
-  amλ = quartet.ket.sh_a.am
-  amσ = quartet.ket.sh_b.am
+  amμ = μsh.am
+  amν = νsh.am
+  amλ = λsh.am
+  amσ = σsh.am
 
-  nμ = quartet.bra.sh_a.nbas
-  nν = quartet.bra.sh_b.nbas
-  nλ = quartet.ket.sh_a.nbas
-  nσ = quartet.ket.sh_b.nbas
+  nμ = μsh.nbas
+  nν = νsh.nbas
+  nλ = λsh.nbas
+  nσ = σsh.nbas
 
   μνλσ = 0 
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
@@ -732,32 +736,35 @@ end
 
 
 @inline function contract_eris(F_priv::Matrix{Float64}, D::Matrix{Float64},
-  eri_batch::Vector{Float64}, quartet::ShQuartet, ish::Int64, jsh::Int64,
-  ksh::Int64, lsh::Int64, debug::Bool)
+  eri_batch::Vector{Float64}, ish::Int64, jsh::Int64,
+  ksh::Int64, lsh::Int64, 
+  μsh::BasisStructs.Shell, νsh::BasisStructs.Shell, 
+  λsh::BasisStructs.Shell, σsh::BasisStructs.Shell,
+  debug::Bool)
 
   norb = size(D,1)
   
-  #ish = quartet.bra.sh_a.shell_id
-  #jsh = quartet.bra.sh_b.shell_id
-  #ksh = quartet.ket.sh_a.shell_id
-  #lsh = quartet.ket.sh_b.shell_id
+  #ish = μsh.shell_id
+  #jsh = νsh.shell_id
+  #ksh = λsh.shell_id
+  #lsh = σsh.shell_id
 
-  pμ = quartet.bra.sh_a.pos
-  nμ = quartet.bra.sh_a.nbas
+  pμ = μsh.pos
+  nμ = μsh.nbas
 
-  pν = quartet.bra.sh_b.pos
-  nν = quartet.bra.sh_b.nbas
+  pν = νsh.pos
+  nν = νsh.nbas
   
-  pλ = quartet.ket.sh_a.pos
-  nλ = quartet.ket.sh_a.nbas
+  pλ = λsh.pos
+  nλ = λsh.nbas
   
-  pσ = quartet.ket.sh_b.pos
-  nσ = quartet.ket.sh_b.nbas
+  pσ = σsh.pos
+  nσ = σsh.nbas
 
-  #amμ = quartet.bra.sh_a.am
-  #amν = quartet.bra.sh_b.am
-  #amλ = quartet.ket.sh_a.am
-  #amσ = quartet.ket.sh_b.am
+  #amμ = μsh.am
+  #amν = νsh.am
+  #amλ = λsh.am
+  #amσ = σsh.am
   #am = [ amμ, amν, amλ, amσ ]
 
   μνλσ = 0
