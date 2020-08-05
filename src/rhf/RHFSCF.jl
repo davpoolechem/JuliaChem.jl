@@ -96,6 +96,7 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #== allocate workspace matrices ==#
   workspace_a = similar(F)
   workspace_b = similar(F)
+  workspace_c = [ similar(F) ]
 
   #== build the orthogonalization matrix ==#
   workspace_b .= S
@@ -137,7 +138,8 @@ function rhf_kernel(mol::MolStructs.Molecule,
   #== start scf cycles: #7-10 ==#
   #=============================#
   F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, 
-    F_eval, F_evec, F_old, workspace_a, workspace_b, E_nuc, E_elec, E_old, basis; 
+    F_eval, F_evec, F_old, workspace_a, workspace_b, workspace_c,
+    E_nuc, E_elec, E_old, basis; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele,
     rmsd=rmsd, load=load, fdiff=fdiff)
 
@@ -203,7 +205,8 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   S::Matrix{Float64}, F_eval::Vector{Float64}, 
   F_evec::Matrix{Float64},  F_old::Matrix{Float64},
   workspace_a::Matrix{Float64}, workspace_b::Matrix{Float64}, 
-  E_nuc::Float64, E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis;
+  workspace_c::Vector{Matrix{Float64}}, E_nuc::Float64, E_elec::Float64, 
+  E_old::Float64, basis::BasisStructs.Basis;
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
@@ -271,7 +274,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, F_array, e_array, e_array_old,
     F_array_old, F_eval, F_evec, F_old, workspace_a, 
-    workspace_b, ΔF, F_cumul, 
+    workspace_b, workspace_c, ΔF, F_cumul, 
     D_old, ΔD, D_input, scf_converged, FDS, 
     schwarz_bounds, Dsh, eri_quartet_batch, quartet, simint_workspace; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele, 
@@ -298,7 +301,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   F_array_old::Vector{Matrix{Float64}}, 
   F_eval::Vector{Float64}, F_evec::Matrix{Float64}, 
   F_old::Matrix{Float64}, workspace_a::Matrix{Float64}, 
-  workspace_b::Matrix{Float64}, ΔF::Matrix{Float64},
+  workspace_b::Matrix{Float64}, workspace_c::Vector{Matrix{Float64}}, 
+  ΔF::Matrix{Float64},
   F_cumul::Matrix{Float64}, D_old::Matrix{Float64}, 
   ΔD::Matrix{Float64}, D_input::Matrix{Float64}, scf_converged::Bool,  
   FDS::Matrix{Float64}, 
@@ -390,23 +394,15 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       
       transpose!(workspace_b, FDS)
       
-      workspace_a .= FDS .- workspace_b 
+      workspace_a .= FDS .- workspace_b #error matrix 
 
       e_array_old = view(e_array,1:(ndiis-1))                                   
-      e_array = vcat([deepcopy(workspace_a)], e_array_old)                                                                          
+      workspace_c[1] = deepcopy(workspace_a)
+      e_array = vcat(workspace_c, e_array_old)                                                                          
       F_array_old = view(F_array,1:(ndiis-1))                                   
-      F_array = vcat([deepcopy(F)], F_array_old)              
+      workspace_c[1] = deepcopy(F)
+      F_array = vcat(workspace_c, F_array_old)              
       
-      #e_array_old = e_array[1:(ndiis-1)]
-      #F_array_old = F_array[1:(ndiis-1)]
-
-      #e_array[1] = deepcopy(workspace_a)
-      #F_array[1] .= F
-      #for imatrix in 1:ndiis-1
-      #  e_array[imatrix+1] .= e_array_old[imatrix]
-      #  F_array[imatrix+1] .= F_array_old[imatrix]
-      #end
-
       if iter > 1
         B_dim += 1
         B_dim = min(B_dim,ndiis)
