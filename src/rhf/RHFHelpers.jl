@@ -69,17 +69,19 @@ function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
     S_block = zeros(abas*bbas)
     SIMINT.compute_overlap(ash, bsh, S_block)
     
+    axial_normalization_factor(S_block, basis.shells[ash], basis.shells[bsh])
+
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
       jorb = bpos + jbas
-      
+     
       S[max(iorb,jorb),min(iorb,jorb)] = S_block[idx]
       
       idx += 1 
     end
   end
-  
+ 
   for iorb in 1:basis.norb, jorb in 1:iorb
     if iorb != jorb
       S[min(iorb,jorb),max(iorb,jorb)] = S[max(iorb,jorb),min(iorb,jorb)]
@@ -97,6 +99,8 @@ function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
        
     T_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_ke(ash, bsh, T_block)
+    
+    axial_normalization_factor(T_block, basis.shells[ash], basis.shells[bsh])
     
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
@@ -144,6 +148,8 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
     V_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block)
     
+    axial_normalization_factor(V_block, basis.shells[ash], basis.shells[bsh])
+    
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
@@ -162,9 +168,9 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
   end
 end
 
-function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
-  eri_quartet_batch = Vector{Float64}(undef,81)
-  simint_workspace = Vector{Float64}(undef,10000)
+function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, 
+  eri_quartet_batch::Vector{Float64}, simint_workspace::Vector{Float64},
+  nsh::Int64)
 
   for ash in 1:nsh, bsh in 1:ash
     fill!(eri_quartet_batch, 0.0)
@@ -233,19 +239,25 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   end
 end
 
-macro eri_quartet_batch_size(max_am)
-  return quote
-    if $(max_am) == "s"
-      1
-    elseif $(max_am) == "p"
-      81
-    elseif $(max_am) == "L"
-      256
-    elseif $(max_am) == "d"
-      1296
-    elseif $(max_am) == "f"
-      10000
-    else throw
-    end
+function axial_normalization_factor(oei, ash, bsh)
+  ama = ash.am
+  amb = bsh.am
+
+  na = ash.nbas
+  nb = bsh.nbas
+
+  ab = 0 
+  for asize::Int64 in 0:(na-1), bsize::Int64 in 0:(nb-1)
+    ab += 1 
+   
+    anorm = axial_norm_fact[asize+1,ama]
+    bnorm = axial_norm_fact[bsize+1,amb]
+    
+    abnorm = anorm*bnorm 
+    oei[ab] *= abnorm
   end
+end
+
+function eri_quartet_batch_size(max_am)
+  return am_to_nbas_cart(max_am)^4
 end

@@ -15,70 +15,70 @@ JuliaChem.initialize()
 #== run S22 tests ==#
 Test.@testset "S22 accuracy test" begin
   scf = minimal_rhf(inputs[1])
-  Test.@test scf["Energy"] ≈ -112.3279768245 
+  Test.@test scf["Energy"] ≈ -112.3731088312
 
   scf = minimal_rhf(inputs[2])
-  Test.@test scf["Energy"] ≈ -151.9797610160
+  Test.@test scf["Energy"] ≈ -152.0298289870
 
   scf = minimal_rhf(inputs[3])
-  Test.@test scf["Energy"] ≈ -377.3533493344
+  Test.@test scf["Energy"] ≈ -377.5431167329
 
   scf = minimal_rhf(inputs[4])
-  Test.@test scf["Energy"] ≈ -337.7335100592
+  Test.@test scf["Energy"] ≈ -337.8788667317
 
   scf = minimal_rhf(inputs[5])
-  Test.@test scf["Energy"] ≈ -824.5903952242
+  Test.@test scf["Energy"] ≈ -824.9593611954
 
   scf = minimal_rhf(inputs[6])
-  Test.@test scf["Energy"] ≈ -623.0671382153
+  Test.@test scf["Energy"] ≈ -623.3152616759
 
   scf = minimal_rhf(inputs[7])
-  Test.@test scf["Energy"] ≈ -915.6187742465
+  Test.@test scf["Energy"] ≈ -916.0396657781
 
   scf = minimal_rhf(inputs[8])
-  Test.@test scf["Energy"] ≈ -80.3604114875
+  Test.@test scf["Energy"] ≈ -80.3897573362
 
   scf = minimal_rhf(inputs[9])
-  Test.@test scf["Energy"] ≈ -156.0078302833
+  Test.@test scf["Energy"] ≈ -156.0622806362
 
   scf = minimal_rhf(inputs[10])
-  Test.@test scf["Energy"] ≈ -270.8033880084
+  Test.@test scf["Energy"] ≈ -270.8967526555
 
   scf = minimal_rhf(inputs[11])
-  Test.@test scf["Energy"] ≈ -461.2416993739
+  Test.@test scf["Energy"] ≈ -461.3993110203
 
   scf = minimal_rhf(inputs[12])
-  Test.@test scf["Energy"] ≈ -525.1067034131
+  Test.@test scf["Energy"] ≈ -525.3578242397
 
   scf = minimal_rhf(inputs[13])
-  Test.@test scf["Energy"] ≈ -824.5593071962
+  Test.@test scf["Energy"] ≈ -824.9362675225
 
   scf = minimal_rhf(inputs[14])
-  Test.@test scf["Energy"] ≈ -591.9507402872
+  Test.@test scf["Energy"] ≈ -592.1602243851
 
   scf = minimal_rhf(inputs[15])
-  Test.@test scf["Energy"] ≈ -915.5895688619
+  Test.@test scf["Energy"] ≈ -916.0206299206
 
   scf = minimal_rhf(inputs[16])
-  Test.@test scf["Energy"] ≈ -154.7980797272
+  Test.@test scf["Energy"] ≈ -154.8498650045
 
   scf = minimal_rhf(inputs[17])
-  Test.@test scf["Energy"] ≈ -306.6112223872
+  Test.@test scf["Energy"] ≈ -306.7164812315
 
   scf = minimal_rhf(inputs[18])
-  Test.@test scf["Energy"] ≈ -286.7853098231
+  Test.@test scf["Energy"] ≈ -286.8877785284
 
   scf = minimal_rhf(inputs[19])
-  Test.@test scf["Energy"] ≈ -323.4546492465
+  Test.@test scf["Energy"] ≈ -323.5790904725
 
   scf = minimal_rhf(inputs[20])
-  Test.@test scf["Energy"] ≈ -461.2469197501
+  Test.@test scf["Energy"] ≈ -461.4043292962
 
   scf = minimal_rhf(inputs[21])
-  Test.@test scf["Energy"] ≈ -591.9609978993
+  Test.@test scf["Energy"] ≈ -592.1704932173
 
   scf = minimal_rhf(inputs[22])
-  Test.@test scf["Energy"] ≈ -610.8987019726
+  Test.@test scf["Energy"] ≈ -611.1204856578
 end
 
 #== finalize JuliaChem ==#
