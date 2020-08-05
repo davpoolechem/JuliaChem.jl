@@ -392,15 +392,20 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       
       workspace_a .= FDS .- workspace_b 
 
-      e_array_old = e_array[1:(ndiis-1)]
-      F_array_old = F_array[1:(ndiis-1)]
+      e_array_old = view(e_array,1:(ndiis-1))                                   
+      e_array = vcat([deepcopy(workspace_a)], e_array_old)                                                                          
+      F_array_old = view(F_array,1:(ndiis-1))                                   
+      F_array = vcat([deepcopy(F)], F_array_old)              
+      
+      #e_array_old = e_array[1:(ndiis-1)]
+      #F_array_old = F_array[1:(ndiis-1)]
 
-      e_array[1] = deepcopy(workspace_a)
-      F_array[1] .= F
-      for imatrix in 1:ndiis-1
-        e_array[imatrix+1] .= e_array_old[imatrix]
-        F_array[imatrix+1] .= F_array_old[imatrix]
-      end
+      #e_array[1] = deepcopy(workspace_a)
+      #F_array[1] .= F
+      #for imatrix in 1:ndiis-1
+      #  e_array[imatrix+1] .= e_array_old[imatrix]
+      #  F_array[imatrix+1] .= F_array_old[imatrix]
+      #end
 
       if iter > 1
         B_dim += 1
