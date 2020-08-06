@@ -38,10 +38,6 @@ end
   #  Int64, (Int64,), input)
 end
 
-function read_in_enuc()
-	return input_enuc()
-end
-
 function compute_enuc(mol::MolStructs.Molecule)
   E_nuc = 0.0
   for iatom in 1:length(mol.atoms), jatom in 1:(iatom-1)
@@ -191,7 +187,6 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     end
   end
 end
-
 
 #=
 """
