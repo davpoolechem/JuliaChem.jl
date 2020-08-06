@@ -501,10 +501,11 @@ H = One-electron Hamiltonian Matrix
         F .+= F_priv
       unlock(mutex)
     end
+    #MPI.Barrier()
   #== use static task distribution for multirank runs if selected ==#
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
     batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-      Threads.nthreads()*10000)) 
+      Threads.nthreads()*1000)) 
 
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
@@ -516,22 +517,26 @@ H = One-electron Hamiltonian Matrix
      
       #println("Start sending out initial tasks") 
       while initial_task < MPI.Comm_size(comm)
-        #println("Sending task $task to rank $initial_task")
-        sreq = MPI.Send(task, initial_task, 1, comm)
-        #println("Task $task sent to rank $initial_task") 
+        for thread in 1:Threads.nthreads()
+          #println("Sending task $task to rank $initial_task")
+          sreq = MPI.Send(task, initial_task, thread, comm)
+          #println("Task $task sent to rank $initial_task") 
         
-        task[1] -= batch_size 
-        initial_task += 1 
+          task[1] -= batch_size 
+        end
+        initial_task += 1
       end
       #println("Done sending out intiial tasks") 
 
       #== hand out quartets to slaves dynamically ==#
       #println("Start sending out rest of tasks") 
       while task[1] > 0 
-        status = MPI.Probe(MPI.MPI_ANY_SOURCE, 1, comm) 
-        rreq = MPI.Recv!(recv_mesg, status.source, 1, comm)  
+        status = MPI.Probe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, 
+          comm) 
+        rreq = MPI.Recv!(recv_mesg, status.source, status.tag, 
+          comm)  
         #println("Sending task $task to rank ", status.source)
-        sreq = MPI.Send(task, status.source, 1, comm)  
+        sreq = MPI.Send(task, status.source, status.tag, comm)  
         #println("Task $task sent to rank ", status.source)
         task[1] -= batch_size 
       end
@@ -540,14 +545,16 @@ H = One-electron Hamiltonian Matrix
       #== hand out ending signals once done ==#
       #println("Start sending out enders") 
       for rank in 1:(MPI.Comm_size(comm)-1)
-        #println("Sending ender to rank $rank")
-        sreq = MPI.Send([ -1 ], rank, 0, comm)                           
-        #println("Ender sent to rank $rank")
+        for thread in 1:Threads.nthreads()
+          sreq = MPI.Send([ -1 ], rank, thread, comm)                           
+        end
       end      
       #println("Done sending out enders") 
     #== slave ranks perform actual computations on quartets ==#
     elseif MPI.Comm_rank(comm) > 0
-      mutex = Base.Threads.ReentrantLock()
+      mutex_mpi = Base.Threads.ReentrantLock()
+      mutex_reduce = Base.Threads.ReentrantLock()
+      
       Threads.@threads for thread in 1:Threads.nthreads() 
         recv_mesg = [ 0 ]
         send_mesg = [ 0 ]
@@ -562,14 +569,18 @@ H = One-electron Hamiltonian Matrix
         F_priv = zeros(size(F))
         while true 
           #== get shell quartet ==#
-          status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
+          #status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
           #println("About to recieve task from master")
-          rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+      
+          lock(mutex_mpi)
+            status = MPI.Probe(0, thread, comm)
+            rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+            ijkl_index = recv_mesg[1]
+          unlock(mutex_mpi)
 
-          ijkl_index = recv_mesg[1]
           #println(ijkl_index)
           if ijkl_index < 0 break end
-          #println("Recieved task $ijkl_index from master")
+          #println("Thread $thread ecieved task $ijkl_index from master")
  
           #for rank in 1:MPI.Comm_size(comm)
           #  if MPI.Comm_rank(comm) == rank
@@ -580,23 +591,26 @@ H = One-electron Hamiltonian Matrix
           for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
             #println("IJKL: $ijkl")
 
-            fock_build_thread_kernel(F, D,
+            fock_build_thread_kernel(F_priv, D,
               H, basis, eri_quartet_batch_priv, #mutex,
               ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
               debug)
           end
 
-          send_mesg[1] = MPI.Comm_rank(comm)
-          MPI.Send(send_mesg, 0, 1, comm)
+          lock(mutex_mpi)
+            send_mesg[1] = MPI.Comm_rank(comm)
+            MPI.Send(send_mesg, 0, thread, comm)
+          unlock(mutex_mpi)
         end
       
-        lock(mutex)
+        lock(mutex_reduce)
           F .+= F_priv
-        unlock(mutex)
+        unlock(mutex_reduce)
       end
     end
-    MPI.Barrier(comm)
+    #MPI.Barrier(comm)
   end
+  MPI.Barrier(comm)
 
   for iorb in 1:basis.norb, jorb in 1:iorb
     if iorb != jorb
