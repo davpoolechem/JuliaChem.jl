@@ -55,30 +55,25 @@ function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   comm=MPI.COMM_WORLD
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
-      println("--------------------------------------------------------------------------------")
-      println("                       ========================================                 ")
-      println("                          RESTRICTED CLOSED-SHELL HARTREE-FOCK                  ")
-      println("                       ========================================                 ")
-      println("")
+    println("--------------------------------------------------------------------------------")
+    println("                       ========================================                 ")
+    println("                                RESTRICTED CLOSED-SHELL                         ")
+    println("                                  HARTREE-FOCK ENERGY                           ")
+    println("                       ========================================                 ")
+    println("")
   end
 
   #== set up eris ==#
-  #if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
   if scf_flags["direct"] == true
-  #  set_up_eri_database(basis)
-  #else
     nshell_simint = SIMINT.allocate_shell_array(basis)
     for shell in basis.shells
       SIMINT.add_shell(shell)
     end
 
-    #SIMINT.normalize_shells()
     SIMINT.precompute_shell_pair_data()
 
     #for ishell::Int64 in 0:(nshell_simint-1)
     #  SIMINT.get_simint_shell_info(ishell)
-    #end
-
     #end
   else
     println("Reading integrals from disk is not implemented yet!")
@@ -86,19 +81,17 @@ function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   end
 
   #== actually perform scf calculation ==#
-  #GC.enable(false)
-  scf = rhf_energy(mol, basis, scf_flags; output=output)
-  #GC.enable(true)
-  #GC.gc()
+  rhfenergy = rhf_energy(mol, basis, scf_flags; output=output)
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
-    println("                             END RESTRICTED CLOSED-SHELL                 ")
-    println("                                     HARTREE-FOCK                        ")
+    println("                              END RESTRICTED CLOSED-SHELL                       ")
+    println("                                  HARTREE-FOCK ENERGY                           ")
     println("                       ========================================                 ")
+    println("--------------------------------------------------------------------------------")
   end
 
-  return scf
+  return rhfenergy 
 end
 export run
 
