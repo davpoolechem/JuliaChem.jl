@@ -11,37 +11,49 @@ import JSON
 #================================#
 #== JuliaChem execution script ==#
 #================================#
-#== initialize JuliaChem ==#
-JuliaChem.initialize()
+function script()
+  #== get molecule information from QCArchive ==#
+  client = ptl.FractalClient()
+  s22_database = client.get_collection("ReactionDataset", "S22")
 
-#== get molecule information from QCArchive ==#
-client = ptl.FractalClient()
-mol = client.query_molecules(6)[1]
-
-#== create input system ==#
-molecule = JSON.parse(mol.json())
-
-display(molecule)
+  mol_index = s22_database.get_index()[1]
+  mol_object_full = s22_database.get_molecules(first) #doesn't seem to work
+  mol_object = get(mol_object_full.molecule, 0)
   
-driver = "energy"
+  #== create input system ==#
+  molecule = JSON.parse(mol_object.json())
+  display(molecule)
+  
+  driver = "energy"
 
-model = Dict(
-  "method" => "RHF",
-  "basis" => "STO-3G"
-)
+  #== create input system ==#
+  molecule = JSON.parse(mol.json())
 
-keywords = Dict(
-  "scf" => Dict(
-    "niter" => 50,
-    "ndiis" => 3,
-    "dele" => 1E-8,
-    "rmsd" => 1E-6,
-    "prec" => "Float64",
-    "direct" => false,
-    "debug" => false
+  display(molecule)
+  
+  driver = "energy"
+
+  model = Dict(
+    "method" => "RHF",
+    "basis" => "STO-3G"
   )
-)
 
-#== generate basis set ==#
-basis = JuliaChem.JCBasis.run(molecule, model)
+  keywords = Dict(
+    "scf" => Dict(
+      "niter" => 50,
+      "ndiis" => 3,
+      "dele" => 1E-8,
+      "rmsd" => 1E-6,
+      "prec" => "Float64",
+      "direct" => false,
+      "debug" => false
+    )
+  )
 
+  #== generate basis set ==#
+  basis = JuliaChem.JCBasis.run(molecule, model)
+end
+
+JuliaChem.initialize()
+script()
+JuliaChem.finalize()

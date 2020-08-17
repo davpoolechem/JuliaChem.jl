@@ -6,198 +6,6 @@ using Base.Threads
 using MATH
 using JLD
 
-@inline function sort_bra(μμ::Int, νν::Int, ish::Int, jsh::Int, ksh::Int, 
-  lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int, two_same::Bool, 
-  three_same::Bool, four_same::Bool)
-
-  do_continue = false
-
-  condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
-
-  condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
-    nλ > 1 && nσ > 1
-
-  condition6 = ish == jsh && ((nμ > nλ && nν > nλ) || (nμ > nσ && nν > nσ)) 
-
-  if μμ < νν && (condition3 || condition6 || condition1)
-	  do_continue = true
-  end
-  return do_continue
-end
-
-@inline function sort_ket(μμ::Int, νν::Int, λλ::Int, σσ::Int, ish::Int, 
-  jsh::Int, ksh::Int, lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int, 
-  two_same::Bool, three_same::Bool, four_same::Bool)
-
-  do_continue = false
-
-  condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
-
-  condition3 = two_same && !(ish == ksh && jsh == lsh) && nμ > 1 && nν > 1 && 
-    nλ > 1 && nσ > 1
-
-  condition5 = ish == ksh && jsh == lsh && nμ > nν && nλ > nσ 
-
-  condition7 = ksh == lsh && ((nλ > nμ  && nσ > nμ) || (nλ > nν && nσ > nν)) 
-
-  condition8 = four_same
-
-  if μμ < νν && condition1 
-	  do_continue = true
-  elseif μμ < λλ && condition5
-	  do_continue = true
-  elseif λλ < σσ && (condition1 || condition3 || condition7 || condition8)
-	  do_continue = true
-  end
-
-  return do_continue
-end
-
-@inline function sort_braket(μ::Int, ν::Int, λ::Int, σ::Int, ish::Int, 
-  jsh::Int, ksh::Int, lsh::Int, nμ::Int, nν::Int, nλ::Int, nσ::Int)
-
-  do_continue = false
-
-  μν = triangular_index(μ,ν)
-  λσ = triangular_index(λ,σ)
-
-  if μν < λσ
-    three_shell = (nμ == nν && nν == nλ) || (nμ == nν && nν == nσ) || 
-      (nμ == nλ && nλ == nσ) || (nν == nλ && nλ == nσ)
-
-    four_shell = nμ == nν && nν == nλ && nλ == nσ
-
-    condition1 = nμ > 1 && nν > 1 && nλ > 1 && nσ > 1
-    
-      
-    if (condition1 || four_shell) && ((ish == ksh && jsh == lsh))
-      do_continue = true
-    elseif three_shell && μ < ν && λ < σ
-      do_continue = true
-    else
-	    λ, σ, μ, ν = μ, ν, λ, σ 
-    end
-    #if !do_continue λ, σ, μ, ν = μ, ν, λ, σ end
-  end
-  return do_continue, μ, ν, λ, σ
-end
-
-#=
-function set_up_eri_database(basis::BasisStructs.Basis)
-  jldopen("tei_batch.jld", "w") do file
-    #== write quartet eri lists to database ==#
-    eri_array = load("tei_all.jld")["Integrals"]["All"]
-
-    nsh::Int64 = length(basis.shells)
-
-    eri_array_batch::Vector{Float64} = [ ]
-    #eri_array_starts::Vector{Int64} = [ ]
-	  eri_array_sizes::Vector{Int64} = [ ]
-
-    eri_start::Int64 = 1
-    quartet_batch_num_old::Int64 = 1
-
-    for ish::Int64 in 1:nsh, jsh::Int64 in 1:ish
-      ijsh::Int64 = index(ish,jsh)
-      qnum_ij = ish*(ish-1)/2 + jsh
-
-      ibas::Int64 = basis.shells[ish].nbas
-      jbas::Int64 = basis.shells[jsh].nbas
-
-      ipos::Int64 = basis.shells[ish].pos
-      jpos::Int64 = basis.shells[jsh].pos
-
-      for ksh::Int64 in 1:nsh, lsh::Int64 in 1:ksh
-        klsh::Int64 = index(ksh,lsh)
-        if (klsh > ijsh) continue end
-
-        kbas::Int64 = basis.shells[ksh].nbas
-        lbas::Int64 = basis.shells[lsh].nbas
-
-        kpos::Int64 = basis.shells[ksh].pos
-        lpos::Int64 = basis.shells[lsh].pos
-
-        qnum_kl::Int64 = ksh*(ksh-1)/2 + lsh
-        quartet_num::Int64 = qnum_ij*(qnum_ij-1)/2 + qnum_kl - 1
-
-        qint_ij::Int64 = ibas*(ibas-1)/2 + jbas
-        qint_kl::Int64 = kbas*(kbas-1)/2 + lbas
-
-        eri_size::Int64 = 0
-        #println("QUARTET: $ish, $jsh, $ksh, $lsh")
-        for μμ::Int64 in ipos:ipos+(ibas-1), νν::Int64 in jpos:jpos+(jbas-1)
-          μ::Int64, ν::Int64 = μμ,νν
-          if (μμ < νν) continue end
-
-          μν::Int64 = index(μμ,νν)
-
-          for λλ::Int64 in kpos:kpos+(kbas-1), σσ::Int64 in lpos:lpos+(lbas-1)
-            λ::Int64, σ::Int64 = λλ,σσ
-            if (λλ < σσ) continue end
-
-            λσ::Int64 = index(λλ,σσ)
-
-            if (μν < λσ)
-              do_continue::Bool = false
-
-              #print("$μμ, $νν, $λλ, $σσ => ")
-              do_continue, μ, ν, λ, σ = sort_braket(μμ, νν, λλ, σσ, ish, jsh,
-                ksh, lsh, ibas, jbas, kbas, lbas)
-
-              if (do_continue)
-                continue
-              end
-            end
-            #println(" $μ, $ν, $λ, $σ")
-            eri_size += 1
-          end
-        end
-
-        quartet_batch_num::Int64 = Int64(floor(quartet_num/
-          QUARTET_BATCH_SIZE)) + 1
-
-        if quartet_batch_num != quartet_batch_num_old
-
-          #== write arrays to disk ==#
-          write(file, "Integrals/$quartet_batch_num_old",
-            eri_array_batch)
-        #  write(file, "Starts/$quartet_batch_num_old",
-          #  eri_array_starts)
-		      write(file, "Sizes/$quartet_batch_num_old",
-            eri_array_sizes)
-
-          #== reset variables as needed ==#
-          eri_array_batch = [ ]
-      #    eri_array_starts = [ ]
-		       eri_array_sizes = [ ]
-
-          quartet_batch_num_old = quartet_batch_num
-        end
-
-        append!(eri_array_batch,
-          @view eri_array[eri_start:eri_start+(eri_size-1)])
-
-      #  eri_start_readin::Int64 = eri_start - QUARTET_BATCH_SIZE*
-    #      (quartet_batch_num-1)
-      #  push!(eri_array_starts,eri_start_readin)
-        push!(eri_array_sizes,eri_size)
-
-        eri_start += eri_size
-
-        #println("$ish, $jsh, $ksh, $lsh, $quartet_num, $eri_size")
-      end
-    end
-
-    write(file, "Integrals/$quartet_batch_num_old",
-      eri_array_batch)
-  #  write(file, "Starts/$quartet_batch_num_old",
-    #  eri_array_starts)
-  	write(file, "Sizes/$quartet_batch_num_old",
-	    eri_array_sizes)
-  end
-end
-=#
-
 #=
 """
 	 index(a::Int64,b::Int64)
@@ -223,13 +31,11 @@ end
 end
 
 @inline function decompose(input::Int)
-  return ceil(Int,(-1.0+√(1+8*input))/2.0)
-  #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
+  #return ceil(Int,(-1.0+√(1+8*input))/2.0)
+  return Base.fptosi(Int, Base.ceil_llvm((-1.0 + 
+    Base.Math.sqrt_llvm(float(1+8*input)))/2.0))
+    #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
   #  Int64, (Int64,), input)
-end
-
-function read_in_enuc()
-	return input_enuc()
 end
 
 function compute_enuc(mol::MolStructs.Molecule)
@@ -263,17 +69,19 @@ function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
     S_block = zeros(abas*bbas)
     SIMINT.compute_overlap(ash, bsh, S_block)
     
+    axial_normalization_factor(S_block, basis.shells[ash], basis.shells[bsh])
+
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
       jorb = bpos + jbas
-      
+     
       S[max(iorb,jorb),min(iorb,jorb)] = S_block[idx]
       
       idx += 1 
     end
   end
-  
+ 
   for iorb in 1:basis.norb, jorb in 1:iorb
     if iorb != jorb
       S[min(iorb,jorb),max(iorb,jorb)] = S[max(iorb,jorb),min(iorb,jorb)]
@@ -291,6 +99,8 @@ function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
        
     T_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_ke(ash, bsh, T_block)
+    
+    axial_normalization_factor(T_block, basis.shells[ash], basis.shells[bsh])
     
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
@@ -338,6 +148,8 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
     V_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block)
     
+    axial_normalization_factor(V_block, basis.shells[ash], basis.shells[bsh])
+    
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
@@ -356,15 +168,16 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
   end
 end
 
-function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
-  eri_quartet_batch = Vector{Float64}(undef,81)
-  simint_workspace = Vector{Float64}(undef,10000)
+function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, 
+  eri_quartet_batch::Vector{Float64}, simint_workspace::Vector{Float64},
+  nsh::Int64)
 
   for ash in 1:nsh, bsh in 1:ash
+    fill!(eri_quartet_batch, 0.0)
     SIMINT.compute_eris(ash, bsh, ash, bsh, eri_quartet_batch, 
       simint_workspace)
     
-    schwarz_bounds[ash, bsh] = sqrt(maximum(eri_quartet_batch) )
+    schwarz_bounds[ash, bsh] = sqrt(maximum(abs.(eri_quartet_batch)) )
   end
 
   for ash in 1:nsh, bsh in 1:ash
@@ -374,7 +187,6 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, nsh::Int64)
     end
   end
 end
-
 
 #=
 """
@@ -427,19 +239,25 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   end
 end
 
-macro eri_quartet_batch_size(max_am)
-  return quote
-    if $(max_am) == "s"
-      1
-    elseif $(max_am) == "p"
-      81
-    elseif $(max_am) == "L"
-      256
-    elseif $(max_am) == "d"
-      1296
-    elseif $(max_am) == "f"
-      10000
-    else throw
-    end
+function axial_normalization_factor(oei, ash, bsh)
+  ama = ash.am
+  amb = bsh.am
+
+  na = ash.nbas
+  nb = bsh.nbas
+
+  ab = 0 
+  for asize::Int64 in 0:(na-1), bsize::Int64 in 0:(nb-1)
+    ab += 1 
+   
+    anorm = axial_norm_fact[asize+1,ama]
+    bnorm = axial_norm_fact[bsize+1,amb]
+    
+    abnorm = anorm*bnorm 
+    oei[ab] *= abnorm
   end
+end
+
+function eri_quartet_batch_size(max_am)
+  return am_to_nbas_cart(max_am)^4
 end

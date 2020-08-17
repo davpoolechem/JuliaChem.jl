@@ -58,7 +58,6 @@ function run(molecule, model; output="none")
   geometry_array_t::Matrix{Float64} = reshape(geometry_array,(3,num_atoms))
   geometry::Matrix{Float64} = transpose(geometry_array_t)
 
-  basis_set::Basis = Basis(basis, charge)
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
@@ -69,6 +68,11 @@ function run(molecule, model; output="none")
     println("        Basis Set Information...                  ")
     println("----------------------------------------          ")
   end
+
+  basis_set_shells = Vector{Shell}([])
+  basis_set_nels = -charge 
+  basis_set_norb = 0
+  pos = 1
 
   #== create basis set ==#
   h5open(joinpath(@__DIR__, "../../records/bsed.h5"),"r") do bsed
@@ -81,10 +85,10 @@ function run(molecule, model; output="none")
       symbol::String = symbols[atom_idx]
       atomic_number::Int64 = atomic_number_mapping[symbol]
 
-      atom = Atom(atomic_number, symbol, atom_center)
+      #atom = Atom(atomic_number, symbol, atom_center)
       push!(mol.atoms, Atom(atomic_number, symbol, atom_center))
  
-      basis_set.nels += atomic_number
+      basis_set_nels += atomic_number
 
       #== read in basis set values==#
       shells::Dict{String,Any} = read(
@@ -92,7 +96,7 @@ function run(molecule, model; output="none")
 
       #== process basis set values into shell objects ==#
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
-        println("ATOM $symbol:") 
+        println("ATOM #$atom_idx ($symbol):") 
       end
       
       for shell_num::Int64 in 1:length(shells)
@@ -108,65 +112,68 @@ function run(molecule, model; output="none")
         if new_shell_am == -1
           #== s component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println("L (s)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,1]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
 
           new_shell = Shell(shell_id, atom_idx, new_shell_exp, 
             new_shell_coeff[:,1],
-            atom_center, 1, size(new_shell_exp)[1], true)
-          add_shell(basis_set,deepcopy(new_shell))
-
-          basis_set.norb += 1 
+            atom_center, 1, size(new_shell_exp)[1], pos, true)
+          push!(basis_set_shells,new_shell)
+        
+          basis_set_norb += 1 
           shell_id += 1
+          pos += new_shell.nbas
 
           #== p component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println("L (p)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,2]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
 
           new_shell = Shell(shell_id, atom_idx, new_shell_exp, 
             new_shell_coeff[:,2],
-            atom_center, 2, size(new_shell_exp)[1], true)
-          add_shell(basis_set,deepcopy(new_shell))
+            atom_center, 2, size(new_shell_exp)[1], pos, true)
+          push!(basis_set_shells,new_shell)
 
-          basis_set.norb += 3 
+          basis_set_norb += 3 
           shell_id += 1
+          pos += new_shell.nbas
         #== otherwise accept shell as is ==#
         else 
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Shell #$shell_num:") 
+            println(new_shell_dict["Shell Type"])
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
               formatter = ft_printf("%5.6f", [2,3]) )
-            println("")
           end 
 
-          new_shell_nprim= size(new_shell_exp)[1]
+          new_shell_nprim = size(new_shell_exp)[1]
           new_shell_coeff_array = reshape(new_shell_coeff,
             (length(new_shell_coeff),))       
 
           new_shell = Shell(shell_id, atom_idx, new_shell_exp, 
             new_shell_coeff_array,
-            atom_center, new_shell_am, size(new_shell_exp)[1], true)
-          add_shell(basis_set,deepcopy(new_shell))
+            atom_center, new_shell_am, size(new_shell_exp)[1], pos, true)
+          push!(basis_set_shells,new_shell)
 
-          basis_set.norb += new_shell.nbas
+          basis_set_norb += new_shell.nbas
           shell_id += 1
+          pos += new_shell.nbas
+        end
+        if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          println(" ")
         end
       end
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -176,8 +183,32 @@ function run(molecule, model; output="none")
     end
   end
 
-  sort!(basis_set.shells, by = x->x.am)
+  sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
+  
+  basis_set::Basis = Basis(basis_set_shells, basis, 
+    basis_set_norb, basis_set_nels)                                       
+
+  #== set up shell pair ordering ==#
+  #for ish in 1:length(basis_set.shells), jsh in 1:ish
+  #  push!(basis_set.shpair_ordering, ShPair(basis_set.shells[ish], 
+  #    basis_set.shells[jsh])) 
+  #end
+  
+  #sort!(basis_set.shpair_ordering, by = x->((x.nbas2*x.nprim2),x.am2,unsafe_string(x.class)))
  
+  #for ish in 1:length(basis_set.shells), jsh in 1:ish 
+  #  idx = ceil(Int64, ish*(ish-1)/2) + jsh
+  #  push!(basis_set.shpair_ordering,(shellpairs[idx].sh_a.shell_id, 
+  #    shellpairs[idx].sh_b.shell_id))
+  #end
+
+  #for shellpair in shellpairs 
+  #  basis_set.shpair_ordering = vcat(basis_set.shpair_ordering, [shellpair.sh_a.shell_id shellpair.sh_b.shell_id])
+  #end
+  
+  #delete first row, as it is simply zeroes
+  #basis_set.shpair_ordering = basis_set.shpair_ordering[setdiff(1:end, 1),:]
+
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println(" ")
     println("                       ========================================                 ")
