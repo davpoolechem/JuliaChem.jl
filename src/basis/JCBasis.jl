@@ -1,5 +1,4 @@
 #Base.include(@__MODULE__,"../basis/BasisStructs.jl")
-
 """
   module JCInput
 The module required for reading in and processing the selected input file.
@@ -10,10 +9,11 @@ module JCBasis
 
 using JCModules.BasisStructs
 using JCModules.MolStructs
+using JuliaChem.JERI
 
+using CxxWrap
 using MPI
 using Base.Threads
-#using Distributed
 using HDF5
 using PrettyTables
 
@@ -62,6 +62,7 @@ function run(molecule, model; output="none")
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
   mol = MolStructs.Molecule([])
+  mol_cxx = StdVector{JERI.Atom}()
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
@@ -85,9 +86,17 @@ function run(molecule, model; output="none")
       symbol::String = symbols[atom_idx]
       atomic_number::Int64 = atomic_number_mapping[symbol]
 
-      #atom = Atom(atomic_number, symbol, atom_center)
-      push!(mol.atoms, Atom(atomic_number, symbol, atom_center))
- 
+      #== create atom objects ==#
+      push!(mol.atoms, MolStructs.Atom(atomic_number, symbol, atom_center))
+      
+      atom_cxx = JERI.Atom()
+      JERI.atomic_number(atom_cxx, atomic_number)
+      JERI.x(atom_cxx, atom_center[1])
+      JERI.y(atom_cxx, atom_center[2])
+      JERI.z(atom_cxx, atom_center[3])
+      
+      push!(mol_cxx, atom_cxx) 
+       
       basis_set_nels += atomic_number
 
       #== read in basis set values==#
@@ -188,6 +197,9 @@ function run(molecule, model; output="none")
   basis_set::Basis = Basis(basis_set_shells, basis, 
     basis_set_norb, basis_set_nels)                                       
 
+  #== create integral engine ==#
+  jeri_engine = JERI.Engine(mol_cxx, model["basis"])
+
   #== set up shell pair ordering ==#
   #for ish in 1:length(basis_set.shells), jsh in 1:ish
   #  push!(basis_set.shpair_ordering, ShPair(basis_set.shells[ish], 
@@ -216,7 +228,7 @@ function run(molecule, model; output="none")
     println("                       ========================================                 ")
   end
 
-  return mol, basis_set
+  return mol, basis_set, jeri_engine
 end
 export run
 
