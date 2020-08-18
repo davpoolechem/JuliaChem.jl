@@ -192,7 +192,7 @@ function run(molecule, model; output="none")
     end
   end
 
-  sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
+  #sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
   
   basis_set::Basis = Basis(basis_set_shells, basis, 
     basis_set_norb, basis_set_nels)                                       

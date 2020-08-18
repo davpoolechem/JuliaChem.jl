@@ -10,7 +10,7 @@ const do_continue_print = false
 const print_eri = false 
 
 function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
-  scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
+  jeri_engine, scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
   
   debug::Bool = scf_flags["debug"]
   niter::Int = scf_flags["niter"]
@@ -21,8 +21,8 @@ function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   load::String = scf_flags["load"]
   fdiff::Bool = scf_flags["fdiff"]
 
-  return rhf_kernel(mol,basis; output=output, debug=debug, niter=niter,
-    ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, fdiff=fdiff)
+  return rhf_kernel(mol,basis,jeri_engine; output=output, debug=debug, 
+    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, fdiff=fdiff)
 end
 
 
@@ -44,7 +44,7 @@ read_in = file required to read in from input file
 type = Precision of variables in calculation
 """
 function rhf_kernel(mol::MolStructs.Molecule, 
-  basis::BasisStructs.Basis; 
+  basis::BasisStructs.Basis, jeri_engine; 
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
@@ -59,17 +59,17 @@ function rhf_kernel(mol::MolStructs.Molecule,
   
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))
-  compute_overlap(S, basis)
+  compute_overlap(S, basis, jeri_engine)
  
   #for i in 1:basis.norb, j in 1:i
   #  println("OVR($i,$j): ", S[i,j])
   #end
   
   T = zeros(Float64, (basis.norb, basis.norb))
-  compute_ke(T, basis)
+  compute_ke(T, basis, jeri_engine)
  
   V = zeros(Float64, (basis.norb, basis.norb))
-  compute_nah(V, mol, basis)
+  compute_nah(V, mol, basis, jeri_engine)
 
   H = T .+ V
   

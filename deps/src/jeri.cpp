@@ -84,28 +84,28 @@ public:
 
   //-- member functions --//
   void compute_overlap_block(jlcxx::ArrayRef<double> S_block, julia_int ash, 
-    julia_int bsh) 
+    julia_int bsh, julia_int absize) 
   {
     m_overlap_eng.compute(m_basis_set[ash-1], m_basis_set[bsh-1]);
-    for (int i = 0; i != 9; ++i) {
+    for (int i = 0; i != absize; ++i) {
       S_block[i] = m_overlap_eng.results()[0][i];
     }
   }
  
   void compute_kinetic_block(jlcxx::ArrayRef<double> T_block, julia_int ash, 
-    julia_int bsh) 
+    julia_int bsh, julia_int absize) 
   {
     m_kinetic_eng.compute(m_basis_set[ash-1], m_basis_set[bsh-1]);
-    for (int i = 0; i != 9; ++i) {
+    for (int i = 0; i != absize; ++i) {
       T_block[i] = m_kinetic_eng.results()[0][i];
     }
   }
 
   void compute_nuc_attr_block(jlcxx::ArrayRef<double> V_block, julia_int ash, 
-    julia_int bsh) 
+    julia_int bsh, julia_int absize) 
   {
     m_nuc_attr_eng.compute(m_basis_set[ash-1], m_basis_set[bsh-1]);
-    for (int i = 0; i != 9; ++i) {
+    for (int i = 0; i != absize; ++i) {
       V_block[i] = m_nuc_attr_eng.results()[0][i];
     }
   }

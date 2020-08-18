@@ -10,6 +10,8 @@ wave function for closed-shell systems.
 module JCRHF
 
 using JCModules.SIMINT
+using JuliaChem.JERI
+
 using MPI
 using JSON
 
@@ -30,7 +32,6 @@ const axial_norm_fact = [ 1.0 1.0    1.0        1.0   ;
 Base.include(@__MODULE__,"RHFHelpers.jl")
 Base.include(@__MODULE__,"RHFSCF.jl")
 
-
 """
   run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
 
@@ -50,7 +51,7 @@ scf = RHF.run(input_info, basis)
 ```
 """
 function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis, 
-  scf_flags; output="none")
+  jeri_engine, scf_flags; output="none")
   
   comm=MPI.COMM_WORLD
 
@@ -81,7 +82,7 @@ function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
   end
 
   #== actually perform scf calculation ==#
-  rhfenergy = rhf_energy(mol, basis, scf_flags; output=output)
+  rhfenergy = rhf_energy(mol, basis, jeri_engine, scf_flags; output=output)
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")

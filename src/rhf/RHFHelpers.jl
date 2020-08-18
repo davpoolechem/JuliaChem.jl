@@ -58,7 +58,9 @@ function compute_enuc(mol::MolStructs.Molecule)
   return E_nuc
 end
  
-function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
+function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis,
+  jeri_engine)
+
   for ash in 1:length(basis.shells), bsh in 1:ash
     abas = basis.shells[ash].nbas
     bbas = basis.shells[bsh].nbas
@@ -66,17 +68,21 @@ function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
     apos = basis.shells[ash].pos
     bpos = basis.shells[bsh].pos
        
-    S_block = zeros(abas*bbas)
-    SIMINT.compute_overlap(ash, bsh, S_block)
+    #S_block_SIMINT = zeros(Float64,(abas*bbas,))
+    #SIMINT.compute_overlap(ash, bsh, S_block_SIMINT)
+    #axial_normalization_factor(S_block_SIMINT, basis.shells[ash], basis.shells[bsh])
     
-    axial_normalization_factor(S_block, basis.shells[ash], basis.shells[bsh])
+    S_block_JERI = zeros(Float64,(abas*bbas,))
+    JERI.compute_overlap_block(jeri_engine, S_block_JERI, ash, bsh, 
+      length(S_block_JERI))
+    axial_normalization_factor(S_block_JERI, basis.shells[ash], basis.shells[bsh])
 
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
       jorb = bpos + jbas
      
-      S[max(iorb,jorb),min(iorb,jorb)] = S_block[idx]
+      S[max(iorb,jorb),min(iorb,jorb)] = S_block_JERI[idx]
       
       idx += 1 
     end
@@ -89,7 +95,9 @@ function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
   end
 end
 
-function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
+function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis, 
+  jeri_engine)
+
   for ash in 1:length(basis.shells), bsh in 1:ash
     abas = basis.shells[ash].nbas
     bbas = basis.shells[bsh].nbas
@@ -97,17 +105,23 @@ function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
     apos = basis.shells[ash].pos
     bpos = basis.shells[bsh].pos
        
-    T_block = zeros(Float64, (abas*bbas,))
-    SIMINT.compute_ke(ash, bsh, T_block)
+    #T_block_SIMINT = zeros(Float64, (abas*bbas,))
+    #SIMINT.compute_ke(ash, bsh, T_block_SIMINT)
+    #axial_normalization_factor(T_block_SIMINT, basis.shells[ash], 
+    #  basis.shells[bsh])
     
-    axial_normalization_factor(T_block, basis.shells[ash], basis.shells[bsh])
-    
+    T_block_JERI = zeros(Float64,(abas*bbas,))
+    JERI.compute_kinetic_block(jeri_engine, T_block_JERI, ash, bsh, 
+      length(T_block_JERI))
+    axial_normalization_factor(T_block_JERI, basis.shells[ash], 
+      basis.shells[bsh])
+
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      T[max(iorb,jorb),min(iorb,jorb)] = T_block[idx]
+      T[max(iorb,jorb),min(iorb,jorb)] = T_block_JERI[idx]
       
       idx += 1 
     end
@@ -121,7 +135,7 @@ function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
 end
 
 function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule, 
-  basis::BasisStructs.Basis)
+  basis::BasisStructs.Basis, jeri_engine)
   
   #== define ncenter ==#
   ncenter::Int64 = length(mol.atoms)
@@ -145,17 +159,23 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
     apos = basis.shells[ash].pos
     bpos = basis.shells[bsh].pos
        
-    V_block = zeros(Float64, (abas*bbas,))
-    SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block)
-    
-    axial_normalization_factor(V_block, basis.shells[ash], basis.shells[bsh])
-    
+    #V_block_SIMINT = zeros(Float64, (abas*bbas,))
+    #SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block_SIMINT)
+    #axial_normalization_factor(V_block_SIMINT, basis.shells[ash], 
+    #  basis.shells[bsh])
+  
+    V_block_JERI = zeros(Float64,(abas*bbas,))
+    JERI.compute_nuc_attr_block(jeri_engine, V_block_JERI, ash, bsh, 
+      length(V_block_JERI))
+    axial_normalization_factor(V_block_JERI, basis.shells[ash], 
+      basis.shells[bsh])
+  
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      V[max(iorb,jorb),min(iorb,jorb)] = V_block[idx]
+      V[max(iorb,jorb),min(iorb,jorb)] = V_block_JERI[idx]
       
       idx += 1 
     end
