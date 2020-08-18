@@ -11,7 +11,7 @@ cd build
 cmake ../
 make 
 cd ..
-./create.py -g build/generator/ostei -l 2 -p 2 /home/travis/simint 
+./create.py -g build/generator/ostei -l 3 -p 3 /home/travis/simint 
 
 #== build simint ==#
 cd /home/travis/simint 

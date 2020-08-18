@@ -26,16 +26,7 @@ up the process.
 2. Define the environmental variable SIMINT as the directory of your
 SIMINT installation.
 
-3. Then, the other GitHub dependencies for JuliaChem.jl must be downloaded.
-This can be done with the following Julia commands:
-
-```julia
-using Pkg
-Pkg.add(PackageSpec(url="https://github.com/davpoolechem/MATH.jl.git"))
-Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JCModules.jl.git")) 
-```
-
-Finally, JuliaChem.jl itself can be downloaded and installed:
+3. Finally, JuliaChem.jl itself can be downloaded and installed:
 
 ```julia
 Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
@@ -56,16 +47,7 @@ first two steps as above.
 
 2. Git clone the JuliaChem.jl repo into your directory and cd into it.
 
-3. Download the necessary dependencies. This can be done by inputting the following commands into
-the Julia REPL:
-
-```julia
-using Pkg
-Pkg.add(PackageSpec(url="https://github.com/davpoolechem/MATH.jl.git"))
-Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JCModules.jl.git")) 
-```
-
-4. Next, JuliaChem.jl itself can be set up for development. This can be done in the Julia REPL
+3. Next, JuliaChem.jl itself can be set up for development. This can be done in the Julia REPL
 by first pushing the ] button on your keyboard, and then inputting the following command into
 the REPL:
 
@@ -73,7 +55,7 @@ the REPL:
 dev .
 ```
 
-5. Finally, JuliaChem.jl needs to be built. This can be done by inputting the following
+4. Finally, JuliaChem.jl needs to be built. This can be done by inputting the following
 command into the Julia REPL:
 
 ```julia
