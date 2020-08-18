@@ -1,10 +1,4 @@
-using JCModules.BasisStructs
-using JCModules.MolStructs
-using JCModules.Globals
-
 using Base.Threads
-using MATH
-using JLD
 
 #=
 """
@@ -38,7 +32,7 @@ end
   #  Int64, (Int64,), input)
 end
 
-function compute_enuc(mol::MolStructs.Molecule)
+function compute_enuc(mol::Molecule)
   E_nuc = 0.0
   for iatom in 1:length(mol.atoms), jatom in 1:(iatom-1)
     ix = mol.atoms[iatom].atom_center[1] 
@@ -58,7 +52,7 @@ function compute_enuc(mol::MolStructs.Molecule)
   return E_nuc
 end
  
-function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
+function compute_overlap(S::Matrix{Float64}, basis::Basis)
   for ash in 1:length(basis.shells), bsh in 1:ash
     abas = basis.shells[ash].nbas
     bbas = basis.shells[bsh].nbas
@@ -89,7 +83,7 @@ function compute_overlap(S::Matrix{Float64}, basis::BasisStructs.Basis)
   end
 end
 
-function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
+function compute_ke(T::Matrix{Float64}, basis::Basis)
   for ash in 1:length(basis.shells), bsh in 1:ash
     abas = basis.shells[ash].nbas
     bbas = basis.shells[bsh].nbas
@@ -120,8 +114,8 @@ function compute_ke(T::Matrix{Float64}, basis::BasisStructs.Basis)
   end
 end
 
-function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule, 
-  basis::BasisStructs.Basis)
+function compute_nah(V::Matrix{Float64}, mol::Molecule, 
+  basis::Basis)
   
   #== define ncenter ==#
   ncenter::Int64 = length(mol.atoms)
@@ -169,7 +163,7 @@ function compute_nah(V::Matrix{Float64}, mol::MolStructs.Molecule,
 end
 
 function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, 
-  basis::BasisStructs.Basis, nsh::Int64)
+  basis::Basis, nsh::Int64)
 
   max_am = 0
   for shell in basis.shells
@@ -228,7 +222,7 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   
   B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
   for i in 1:B_dim, j in 1:B_dim
-    B[i,j] = @∑ e_array[i] e_array[j]
+    B[i,j] = LinearAlgebra.dot(e_array[i], e_array[j])
 
 	  B[i,B_dim+1] = -1
 	  B[B_dim+1,i] = -1
