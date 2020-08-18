@@ -1,9 +1,10 @@
-using JCModules.MolStructs
+using JuliaChem.JCModules
+
 using MPI
 using Base.Threads
 using LinearAlgebra
 
-function print_xyz(mol::MolStructs.Molecule)
+function print_xyz(mol::Molecule)
   #== determine some pre-information ==#
   natoms = length(mol.atoms)
   comm = MPI.COMM_WORLD
@@ -30,7 +31,7 @@ function print_xyz(mol::MolStructs.Molecule)
   println() 
 end
 
-function analyze_bond_lengths(mol::MolStructs.Molecule)
+function analyze_bond_lengths(mol::Molecule)
   #== determine some pre-information ==#
   natoms = length(mol.atoms)
   natoms_length = floor(Int64,natoms*(natoms+1)/2)
@@ -71,7 +72,7 @@ function analyze_bond_lengths(mol::MolStructs.Molecule)
   return bond_lengths
 end
 
-function analyze_bond_angles(mol::MolStructs.Molecule, 
+function analyze_bond_angles(mol::Molecule, 
   bond_lengths::Vector{Float64})
   
   #== determine some pre-information ==#
@@ -182,7 +183,7 @@ Arguments
 ======
 coord = molecular coordinates
 """
-function coordinate_analysis(mol::MolStructs.Molecule)
+function coordinate_analysis(mol::Molecule)
   #== print coordinates ==#
   print_xyz(mol) 
 

@@ -89,14 +89,6 @@ git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
 uuid = "82899510-4779-5014-852e-03e436cf321d"
 version = "1.0.0"
 
-[[JCModules]]
-deps = ["BinDeps", "StaticArrays", "Test"]
-git-tree-sha1 = "b3b46c4b913cf4a224ff9b56a2c0dc28e1155120"
-repo-rev = "master"
-repo-url = "https://github.com/davpoolechem/JCModules.jl.git"
-uuid = "825a225a-aa46-11e9-32ce-a5f5c03ee8dd"
-version = "0.1.0"
-
 [[JLD]]
 deps = ["FileIO", "HDF5", "Printf"]
 git-tree-sha1 = "f6cf928214ae7c0e7550b2424a57f11875d7e49a"

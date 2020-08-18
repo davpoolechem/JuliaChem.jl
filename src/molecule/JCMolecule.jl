@@ -24,7 +24,7 @@ Thus, proper use of the Molecule.run() function would look like this:
 Molecule.run(input_info)
 ```
 """
-function run(mol::MolStructs.Molecule)
+function run(mol::Molecule)
     comm=MPI.COMM_WORLD
 
     if (MPI.Comm_rank(comm) == 0)

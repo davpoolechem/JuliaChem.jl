@@ -6,7 +6,6 @@ version = "0.1.0"
 [deps]
 BinDeps = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
-JCModules = "825a225a-aa46-11e9-32ce-a5f5c03ee8dd"
 JLD = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
