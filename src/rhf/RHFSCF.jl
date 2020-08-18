@@ -1,5 +1,3 @@
-using MATH
-
 using Base.Threads
 using LinearAlgebra
 using HDF5
@@ -412,7 +410,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== check for convergence ==#
     ΔD .= D .- D_old
-    D_rms = √(@∑ ΔD ΔD)
+    D_rms = √(LinearAlgebra.dot(ΔD,ΔD))
 
     E = E_elec+E_nuc
     ΔE = E - E_old
@@ -905,16 +903,14 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
 
   fill!(D, 0.0)
   for i in 1:basis.norb, j in 1:basis.norb
-    #@views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
     for iocc in 1:nocc
       D[i,j] += 2 * C[i, iocc] * C[j, iocc]
     end
-    #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
   end
  
   #== compute new SCF energy ==#
-  EHF1 = @∑ D F_μν
-  EHF2 = @∑ D H
+  EHF1 = LinearAlgebra.dot(D, F_μν)
+  EHF2 = LinearAlgebra.dot(D, H)
   E_elec = (EHF1 + EHF2)/2.0
   
   if debug && MPI.Comm_rank(comm) == 0

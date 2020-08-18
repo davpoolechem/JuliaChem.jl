@@ -1,5 +1,4 @@
 using Base.Threads
-using MATH
 
 #=
 """
@@ -223,7 +222,7 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   
   B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
   for i in 1:B_dim, j in 1:B_dim
-    B[i,j] = @∑ e_array[i] e_array[j]
+    B[i,j] = LinearAlgebra.dot(e_array[i], e_array[j])
 
 	  B[i,B_dim+1] = -1
 	  B[B_dim+1,i] = -1

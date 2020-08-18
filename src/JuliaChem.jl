@@ -43,10 +43,6 @@ if (isfile("../snoop/precompile_Libdl.jl"))
     include("../snoop/precompile_Libdl.jl")
     _precompile_()
 end
-if (isfile("../snoop/precompile_MATH.jl"))
-    Base.include(@__MODULE__, "../snoop/precompile_MATH.jl")
-    _precompile_()
-end
 if (isfile("../snoop/precompile_MPI.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_MPI.jl")
     _precompile_()

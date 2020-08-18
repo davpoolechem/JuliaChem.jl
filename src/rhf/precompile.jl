@@ -30,7 +30,6 @@ precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Tuple{Any, Any, Int64}}
 precompile(Tuple{typeof(Base.rehash!), Base.Dict{Int64, Tuple{Function, Int64, Vararg{Int64, N} where N}}, Int64})
 precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Type}, Int64})
 precompile(Tuple{typeof(Base.rehash!), Base.Dict{Type, Nothing}, Int64})
-precompile(Tuple{getfield(MATH, Symbol("#@∑")), LineNumberNode, Module, Any, Any})
 precompile(Tuple{typeof(Base.active_project), Bool})
 precompile(Tuple{typeof(Base.load_path_expand), String})
 precompile(Tuple{typeof(Base.load_path)})

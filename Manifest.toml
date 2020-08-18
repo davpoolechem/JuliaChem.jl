@@ -109,14 +109,6 @@ git-tree-sha1 = "51b1db0732bbdcfabb60e36095cc3ed9c0016932"
 uuid = "5ced341a-0733-55b8-9ab6-a4889d929147"
 version = "1.9.2+2"
 
-[[MATH]]
-deps = ["LinearAlgebra", "Test"]
-git-tree-sha1 = "6a76f019246caf3873983fd8cfad7aa0a3ab12ed"
-repo-rev = "master"
-repo-url = "https://github.com/davpoolechem/MATH.jl.git"
-uuid = "175a8a3e-c02e-11e9-3701-6726ac2668a8"
-version = "0.1.0"
-
 [[MPI]]
 deps = ["Distributed", "DocStringExtensions", "Libdl", "MPICH_jll", "MicrosoftMPI_jll", "OpenMPI_jll", "Pkg", "Random", "Requires", "Serialization", "Sockets"]
 git-tree-sha1 = "0bd36605eea7a4d9c3ae0d7f21c10210dd54cb83"
