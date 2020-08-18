@@ -1,7 +1,7 @@
 language: julia
 julia:
   - nightly
-  - 1.3.1
+  - 1.5.0
 codecov: true 
 coveralls: true 
 
@@ -26,4 +26,4 @@ script:
 - julia --code-coverage test/runtests-travis.jl
 
 after_success:
-- julia -e 'using Pkg; cd(Pkg.dir("JuliaChem")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+- JULIA_NUM_THREADS=8 julia -e 'using Pkg; cd(Pkg.dir("JuliaChem")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

@@ -10,7 +10,7 @@ function minimal_rhf(input_file)
   try
     #== read in input file ==#
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file;       
-      output="none")       
+      output="verbose")       
     
     #== generate basis set ==#
     mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")          
