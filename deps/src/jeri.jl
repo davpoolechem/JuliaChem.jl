@@ -10,6 +10,7 @@ module JERI
   end
 
   export Atom, atomic_number, x, y, z
+  export Shell 
   export BasisSet 
   export Engine, basis, compute_overlap_block, compute_kinetic_block, compute_nuc_attr_block
 end

@@ -1,3 +1,5 @@
+using Printf
+
 struct Shell
   shell_id::Int64
   atom_id::Int64
@@ -102,10 +104,10 @@ end
    # println(coef[icoef])
   end
 
-  #for icoef in coef
-  #  @printf("%5.10f\n",icoef)
-  #end
-  #println("")
+  for icoef in coef
+    @printf("%5.10f\n",icoef)
+  end
+  println("")
 
   return create_static_vector_large(coef)
 end

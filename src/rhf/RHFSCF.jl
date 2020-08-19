@@ -680,8 +680,8 @@ end
 end
 
 @inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64, 
-  μsh::Shell, νsh::Shell, 
-  λsh::Shell, σsh::Shell,
+  μsh::JCModules.Shell, νsh::JCModules.Shell, 
+  λsh::JCModules.Shell, σsh::JCModules.Shell,
   eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
 
@@ -745,8 +745,8 @@ end
 @inline function contract_eris(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64, 
-  μsh::Shell, νsh::Shell, 
-  λsh::Shell, σsh::Shell,
+  μsh::JCModules.Shell, νsh::JCModules.Shell, 
+  λsh::JCModules.Shell, σsh::JCModules.Shell,
   debug::Bool)
 
   norb = size(D,1)

@@ -39,10 +39,16 @@ double set_z(libint2::Atom& atom, double new_z) {
   return get_z(atom); 
 }
 
+//---------------------------------//
+//-- Map libint2::Shell to Julia --// 
+//---------------------------------//
+template<> struct jlcxx::IsMirroredType<libint2::Shell> : std::false_type { };
+
 //------------------------------------//
 //-- Map libint2::BasisSet to Julia --// 
 //------------------------------------//
 template<> struct jlcxx::IsMirroredType<std::vector<libint2::Atom> > : std::false_type { };
+template<> struct jlcxx::IsMirroredType<std::vector<libint2::Shell> > : std::false_type { };
 template<> struct jlcxx::IsMirroredType<libint2::BasisSet> : std::false_type { };
 
 //------------------------------------------------------------------------//
@@ -62,10 +68,20 @@ public:
     : m_basis_set(basis, t_atoms) 
   { 
     initialize();
- 
+    
+    //std::cout << "I SLEEP" << std::endl;
+    //sleep(15);
+    //std::cout << "REAL SHIT" << std::endl;
+    //const auto precision = std::numeric_limits<double>::epsilon();
+  
+    for ( auto shell : m_basis_set) std::cout << shell << std::endl;
+
+    std::cout << m_basis_set.max_nprim() << std::endl;
+    std::cout << m_basis_set.max_l() << std::endl;
+
     m_overlap_eng = libint2::Engine(libint2::Operator::overlap, 
       m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
-    //m_overlap_eng.set_params();
+    //m_overlap_eng.set_params(precision);
 
     m_kinetic_eng = libint2::Engine(libint2::Operator::kinetic, 
       m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
@@ -138,8 +154,11 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   mod.method("z",&get_z);
   mod.method("z",&set_z);
 
+  //-- shell information --//
+  mod.add_type<libint2::Shell>("Shell");
+  jlcxx::stl::apply_stl<libint2::Shell>(mod);
+
   //-- basis set information --//
-  //mod.add_type<std::vector<libint2::Atom> >("Atoms");
   mod.add_type<libint2::BasisSet>("BasisSet");
 
   //-- engine information --//

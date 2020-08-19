@@ -10,7 +10,7 @@ function minimal_rhf(input_file)
   try
     #== read in input file ==#
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file;       
-      output="verbose")       
+      output="none")       
     
     #== generate basis set ==#
     mol, basis, jeri_engine = JuliaChem.JCBasis.run(molecule, model; 
@@ -20,7 +20,7 @@ function minimal_rhf(input_file)
 
     #== perform scf calculation ==#
     rhf_energy = JuliaChem.JCRHF.run(mol, basis, jeri_engine, keywords["scf"]; 
-      output="verbose") 
+      output="minimal") 
  
     #== perform gradient ==#
     rhf_gradient = JuliaChem.JCGrad.run(mol, basis; output="verbose")
