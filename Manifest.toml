@@ -56,12 +56,6 @@ git-tree-sha1 = "c5714d9bcdba66389612dc4c47ed827c64112997"
 uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 version = "0.8.2"
 
-[[FileIO]]
-deps = ["Pkg"]
-git-tree-sha1 = "f354b2087a3b01c1d7152c19f45886c8a036fa5e"
-uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.4.0"
-
 [[Formatting]]
 deps = ["Printf"]
 git-tree-sha1 = "a0c901c29c0e7c763342751c0a94211d56c0de5c"
@@ -89,20 +83,6 @@ git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
 uuid = "82899510-4779-5014-852e-03e436cf321d"
 version = "1.0.0"
 
-[[JCModules]]
-deps = ["BinDeps", "StaticArrays", "Test"]
-git-tree-sha1 = "b3b46c4b913cf4a224ff9b56a2c0dc28e1155120"
-repo-rev = "master"
-repo-url = "https://github.com/davpoolechem/JCModules.jl.git"
-uuid = "825a225a-aa46-11e9-32ce-a5f5c03ee8dd"
-version = "0.1.0"
-
-[[JLD]]
-deps = ["FileIO", "HDF5", "Printf"]
-git-tree-sha1 = "f6cf928214ae7c0e7550b2424a57f11875d7e49a"
-uuid = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"
-version = "0.10.0"
-
 [[JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
 git-tree-sha1 = "b34d7cef7b337321e97d22242c3c2b91f476748e"
@@ -128,14 +108,6 @@ deps = ["Libdl", "Pkg"]
 git-tree-sha1 = "51b1db0732bbdcfabb60e36095cc3ed9c0016932"
 uuid = "5ced341a-0733-55b8-9ab6-a4889d929147"
 version = "1.9.2+2"
-
-[[MATH]]
-deps = ["LinearAlgebra", "Test"]
-git-tree-sha1 = "6a76f019246caf3873983fd8cfad7aa0a3ab12ed"
-repo-rev = "master"
-repo-url = "https://github.com/davpoolechem/MATH.jl.git"
-uuid = "175a8a3e-c02e-11e9-3701-6726ac2668a8"
-version = "0.1.0"
 
 [[MPI]]
 deps = ["Distributed", "DocStringExtensions", "Libdl", "MPICH_jll", "MicrosoftMPI_jll", "OpenMPI_jll", "Pkg", "Random", "Requires", "Serialization", "Sockets"]

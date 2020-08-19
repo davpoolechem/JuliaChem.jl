@@ -8,8 +8,7 @@ Import this module into the script when you need to process an input file
 """
 module JCBasis
 
-using JCModules.BasisStructs
-using JCModules.MolStructs
+using JuliaChem.JCModules
 
 using MPI
 using Base.Threads
@@ -61,7 +60,7 @@ function run(molecule, model; output="none")
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
-  mol = MolStructs.Molecule([])
+  mol = Molecule([])
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")

@@ -1,15 +1,12 @@
 module JuliaChem
 
-import JCModules
+Base.include(@__MODULE__, "modules/JCModules.jl")
+Base.include(@__MODULE__, "../deps/src/simint.jl")
 
 Base.include(@__MODULE__, "basis/JCBasis.jl")
-
 Base.include(@__MODULE__, "io/JCInput.jl")
-
 Base.include(@__MODULE__, "molecule/JCMolecule.jl")
-
 Base.include(@__MODULE__, "rhf/JCRHF.jl")
-
 Base.include(@__MODULE__, "runtime/JCRuntime.jl")
 
 end
@@ -42,16 +39,8 @@ if (isfile("../snoop/precompile_HDF5.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_HDF5.jl")
     _precompile_()
 end
-if (isfile("../snoop/precompile_JLD.jl"))
-    include("../snoop/precompile_JLD.jl")
-    _precompile_()
-end
 if (isfile("../snoop/precompile_Libdl.jl"))
     include("../snoop/precompile_Libdl.jl")
-    _precompile_()
-end
-if (isfile("../snoop/precompile_MATH.jl"))
-    Base.include(@__MODULE__, "../snoop/precompile_MATH.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_MPI.jl"))
