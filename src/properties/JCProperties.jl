@@ -7,7 +7,7 @@ module is not strictly necessary for every calculation.
 """
 module JCProperties
 
-Base.include(@__MODULE__,"OrbitalEnergies.jl")
+#Base.include(@__MODULE__,"OrbitalEnergies.jl")
 
 using MPI
 

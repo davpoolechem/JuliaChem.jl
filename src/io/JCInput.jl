@@ -9,8 +9,6 @@ module JCInput
 using MPI
 using JSON
 using Base.Threads
-#using Distributed
-using JLD
 
 """
   run(args::String)

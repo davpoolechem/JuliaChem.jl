@@ -1,6 +1,3 @@
-using MATH
-using JCModules.Globals
-
 using Base.Threads
 using LinearAlgebra
 using HDF5
@@ -9,7 +6,7 @@ using PrettyTables
 const do_continue_print = false 
 const print_eri = false 
 
-function rhf_energy(mol::MolStructs.Molecule, basis::BasisStructs.Basis,
+function rhf_energy(mol::Molecule, basis::Basis,
   jeri_engine, scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
   
   debug::Bool = scf_flags["debug"]
@@ -43,8 +40,8 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(mol::MolStructs.Molecule, 
-  basis::BasisStructs.Basis, jeri_engine; 
+function rhf_kernel(mol::Molecule, 
+  basis::Basis, jeri_engine; 
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
@@ -206,7 +203,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   F_evec::Matrix{Float64},  F_old::Matrix{Float64},
   workspace_a::Matrix{Float64}, workspace_b::Matrix{Float64}, 
   workspace_c::Vector{Matrix{Float64}}, E_nuc::Float64, E_elec::Float64, 
-  E_old::Float64, basis::BasisStructs.Basis;
+  E_old::Float64, basis::Basis;
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
@@ -282,7 +279,7 @@ end
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, 
   ortho::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
-  E_elec::Float64, E_old::Float64, basis::BasisStructs.Basis,
+  E_elec::Float64, E_old::Float64, basis::Basis,
   F_array::Vector{Matrix{Float64}}, 
   e_array::Vector{Matrix{Float64}}, e_array_old::Vector{Matrix{Float64}},
   F_array_old::Vector{Matrix{Float64}}, 
@@ -414,7 +411,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== check for convergence ==#
     ΔD .= D .- D_old
-    D_rms = √(@∑ ΔD ΔD)
+    D_rms = √(LinearAlgebra.dot(ΔD,ΔD))
 
     E = E_elec+E_nuc
     ΔE = E - E_old
@@ -456,7 +453,7 @@ H = One-electron Hamiltonian Matrix
 =#
 
 @inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
-  H::Matrix{Float64}, basis::BasisStructs.Basis, 
+  H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
   debug::Bool, load::String)
 
@@ -478,10 +475,7 @@ H = One-electron Hamiltonian Matrix
     mutex = Base.Threads.ReentrantLock()
     thread_index_counter = Threads.Atomic{Int64}(top_index)
     Threads.@threads for thread in 1:Threads.nthreads() 
-      max_am = 0
-      for shell in basis.shells
-        max_am = shell.am > max_am ? shell.am : max_am
-      end 
+      max_am = max_ang_mom(basis) 
       eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
       simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
     
@@ -559,10 +553,7 @@ H = One-electron Hamiltonian Matrix
         recv_mesg = [ 0 ]
         send_mesg = [ 0 ]
 
-        max_am = 0
-        for shell in basis.shells
-          max_am = shell.am > max_am ? shell.am : max_am
-        end 
+        max_am = max_ang_mom(basis) 
         eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
         simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
     
@@ -623,7 +614,7 @@ H = One-electron Hamiltonian Matrix
 end
 
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
-  H::Matrix{Float64}, basis::BasisStructs.Basis, 
+  H::Matrix{Float64}, basis::Basis, 
   eri_quartet_batch::Vector{Float64}, 
   ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
@@ -689,8 +680,8 @@ end
 end
 
 @inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64, 
-  μsh::BasisStructs.Shell, νsh::BasisStructs.Shell, 
-  λsh::BasisStructs.Shell, σsh::BasisStructs.Shell,
+  μsh::Shell, νsh::Shell, 
+  λsh::Shell, σsh::Shell,
   eri_quartet_batch::Vector{Float64},
   simint_workspace::Vector{Float64})
 
@@ -754,8 +745,8 @@ end
 @inline function contract_eris(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64, 
-  μsh::BasisStructs.Shell, νsh::BasisStructs.Shell, 
-  λsh::BasisStructs.Shell, σsh::BasisStructs.Shell,
+  μsh::Shell, νsh::Shell, 
+  λsh::Shell, σsh::Shell,
   debug::Bool)
 
   norb = size(D,1)
@@ -876,7 +867,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   C::Matrix{Float64}, H::Matrix{Float64}, F_eval::Vector{Float64},
   F_evec::Matrix{Float64}, workspace_a::Matrix{Float64}, 
   workspace_b::Matrix{Float64}, ortho::Matrix{Float64}, 
-  basis::BasisStructs.Basis, iter::Int, debug::Bool)
+  basis::Basis, iter::Int, debug::Bool)
 
   comm=MPI.COMM_WORLD
  
@@ -907,16 +898,14 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
 
   fill!(D, 0.0)
   for i in 1:basis.norb, j in 1:basis.norb
-    #@views D[i,j] = @∑ C[i,1:nocc] C[j,1:nocc]
     for iocc in 1:nocc
       D[i,j] += 2 * C[i, iocc] * C[j, iocc]
     end
-    #D[i,j] = @∑ C[1:nocc,i] C[1:nocc,j]
   end
  
   #== compute new SCF energy ==#
-  EHF1 = @∑ D F_μν
-  EHF2 = @∑ D H
+  EHF1 = LinearAlgebra.dot(D, F_μν)
+  EHF2 = LinearAlgebra.dot(D, H)
   E_elec = (EHF1 + EHF2)/2.0
   
   if debug && MPI.Comm_rank(comm) == 0

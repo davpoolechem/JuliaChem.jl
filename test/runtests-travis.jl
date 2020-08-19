@@ -20,7 +20,7 @@ Test.@testset "S22 accuracy test" begin
 #  Test.@test scf[4] ≈ -151.5637222519 
 
   scf = minimal_rhf(inputs[3])
-  Test.@test scf["Energy"] ≈ -377.543116732 
+  Test.@test scf["Energy"] ≈ -377.5889420312
 
 #  scf = minimal_rhf(inputs[4])
 #  Test.@test scf[4] ≈ -336.8722288570 

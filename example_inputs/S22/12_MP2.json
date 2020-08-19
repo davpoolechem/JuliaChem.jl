@@ -28,7 +28,7 @@
   "driver": "energy",
   "model": {
     "method": "RHF",
-    "basis": "6-31G*"
+    "basis": "6-31G(2df,p)"
   },
   "keywords": {
     "scf":{

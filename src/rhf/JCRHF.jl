@@ -1,5 +1,3 @@
-#Base.include(@__MODULE__,"../basis/BasisStructs.jl")
-
 """
   module JCRHF
 The module required for computation of the wave function using the *Restricted
@@ -9,7 +7,8 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-using JCModules.SIMINT
+using JuliaChem.SIMINT
+using JuliaChem.JCModules
 using JuliaChem.JERI
 
 using MPI
@@ -50,7 +49,7 @@ Thus, proper use of the RHF.run() function would look like this:
 scf = RHF.run(input_info, basis)
 ```
 """
-function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis, 
+function run(mol::Molecule, basis::Basis, 
   jeri_engine, scf_flags; output="none")
   
   comm=MPI.COMM_WORLD
