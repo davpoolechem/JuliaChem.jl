@@ -43,7 +43,7 @@ endif()
 
 link_directories(${SIMINT_LIB_PATH})
 
-add_library(jeri SHARED src/simint.c)
-target_link_libraries(jeri ${SIMINT_LIB_PATH}/libsimint.a)
+add_library(simint SHARED src/simint.c)
+target_link_libraries(simint ${SIMINT_LIB_PATH}/libsimint.a)
 
-install(TARGETS jeri DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}) 
+install(TARGETS simint DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}) 

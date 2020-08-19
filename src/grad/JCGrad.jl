@@ -5,14 +5,13 @@
 """
 module JCGrad
 
-using JCModules.SIMINT
-using JCModules.MolStructs
-using JCModules.BasisStructs
+using JuliaChem.SIMINT
+using JuliaChem.JCModules
 
 using MPI
 using JSON
 
-function run(mol::MolStructs.Molecule, basis::BasisStructs.Basis; 
+function run(mol::Molecule, basis::Basis; 
   output="none")
   
   comm=MPI.COMM_WORLD

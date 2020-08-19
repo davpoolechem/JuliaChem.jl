@@ -1,6 +1,6 @@
 function write_simint_jl(directory)
   source_directory = joinpath(directory,"src/")                                      
-  libjeri = joinpath(directory,"libjeri.so")                                                                            
+  libjeri = joinpath(directory,"libsimint.so")                                                                            
   open(source_directory*"simint.jl", "w") do io                                
     write(io, "module SIMINT\n")
     write(io, "\n") 
@@ -160,10 +160,10 @@ function build_simint()
   write_simint_jl(directory)
 end
 
-#function build_jeri()
-#  cd(joinpath(@__DIR__,"src"))
-#  run(`make`)
-#end
+function build_jeri()
+  cd(joinpath(@__DIR__,"src"))
+  run(`make`)
+end
 
 build_simint()
-#build_jeri()
+build_jeri()

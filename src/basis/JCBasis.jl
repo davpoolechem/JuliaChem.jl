@@ -86,7 +86,7 @@ function run(molecule, model; output="none")
       atomic_number::Int64 = atomic_number_mapping[symbol]
 
       #== create atom objects ==#
-      push!(mol.atoms, MolStructs.Atom(atomic_number, symbol, atom_center))
+      push!(mol.atoms, JCModules.Atom(atomic_number, symbol, atom_center))
       
       atom_cxx = JERI.Atom()
       JERI.atomic_number(atom_cxx, atomic_number)

@@ -62,9 +62,9 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
     apos = basis.shells[ash].pos
     bpos = basis.shells[bsh].pos
        
-    #S_block_SIMINT = zeros(Float64,(abas*bbas,))
-    #SIMINT.compute_overlap(ash, bsh, S_block_SIMINT)
-    #axial_normalization_factor(S_block_SIMINT, basis.shells[ash], basis.shells[bsh])
+    S_block_SIMINT = zeros(Float64,(abas*bbas,))
+    SIMINT.compute_overlap(ash, bsh, S_block_SIMINT)
+    axial_normalization_factor(S_block_SIMINT, basis.shells[ash], basis.shells[bsh])
     
     S_block_JERI = zeros(Float64,(abas*bbas,))
     JERI.compute_overlap_block(jeri_engine, S_block_JERI, ash, bsh, 
@@ -76,7 +76,7 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
       iorb = apos + ibas
       jorb = bpos + jbas
      
-      S[max(iorb,jorb),min(iorb,jorb)] = S_block_JERI[idx]
+      S[max(iorb,jorb),min(iorb,jorb)] = S_block_SIMINT[idx]
       
       idx += 1 
     end
@@ -99,10 +99,10 @@ function compute_ke(T::Matrix{Float64}, basis::Basis,
     apos = basis.shells[ash].pos
     bpos = basis.shells[bsh].pos
        
-    #T_block_SIMINT = zeros(Float64, (abas*bbas,))
-    #SIMINT.compute_ke(ash, bsh, T_block_SIMINT)
-    #axial_normalization_factor(T_block_SIMINT, basis.shells[ash], 
-    #  basis.shells[bsh])
+    T_block_SIMINT = zeros(Float64, (abas*bbas,))
+    SIMINT.compute_ke(ash, bsh, T_block_SIMINT)
+    axial_normalization_factor(T_block_SIMINT, basis.shells[ash], 
+      basis.shells[bsh])
     
     T_block_JERI = zeros(Float64,(abas*bbas,))
     JERI.compute_kinetic_block(jeri_engine, T_block_JERI, ash, bsh, 
@@ -115,7 +115,7 @@ function compute_ke(T::Matrix{Float64}, basis::Basis,
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      T[max(iorb,jorb),min(iorb,jorb)] = T_block_JERI[idx]
+      T[max(iorb,jorb),min(iorb,jorb)] = T_block_SIMINT[idx]
       
       idx += 1 
     end
@@ -153,10 +153,10 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
     apos = basis.shells[ash].pos
     bpos = basis.shells[bsh].pos
        
-    #V_block_SIMINT = zeros(Float64, (abas*bbas,))
-    #SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block_SIMINT)
-    #axial_normalization_factor(V_block_SIMINT, basis.shells[ash], 
-    #  basis.shells[bsh])
+    V_block_SIMINT = zeros(Float64, (abas*bbas,))
+    SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block_SIMINT)
+    axial_normalization_factor(V_block_SIMINT, basis.shells[ash], 
+      basis.shells[bsh])
   
     V_block_JERI = zeros(Float64,(abas*bbas,))
     JERI.compute_nuc_attr_block(jeri_engine, V_block_JERI, ash, bsh, 
@@ -169,7 +169,7 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      V[max(iorb,jorb),min(iorb,jorb)] = V_block_JERI[idx]
+      V[max(iorb,jorb),min(iorb,jorb)] = V_block_SIMINT[idx]
       
       idx += 1 
     end
