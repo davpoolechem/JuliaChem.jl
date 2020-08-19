@@ -8,6 +8,6 @@ tar -xzvf openmpi-2.1.6.tar.gz
 #== build openmpi ==# 
 cd openmpi-2.1.6
 ./configure --prefix=/home/travis/openmpi
-make -j4
-make -j4 install
+make -j2
+make -j2 install
 

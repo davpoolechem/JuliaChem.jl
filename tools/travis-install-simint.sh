@@ -18,7 +18,7 @@ cd /home/travis/simint
 mkdir build
 cd build
 cmake -DSIMINT_VECTOR=scalar-sse -DCMAKE_INSTALL_PREFIX=/home/travis/simint-install -DCMAKE_C_FLAGS=-fPIC ../
-make -j4
-make -j4 install
+make -j2
+make -j2 install
 
-export SIMINT=/home/travis/simint-install 
+#export SIMINT=/home/travis/simint-install 
