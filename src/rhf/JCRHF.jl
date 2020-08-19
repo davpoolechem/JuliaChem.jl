@@ -68,7 +68,7 @@ function run(mol::Molecule, basis::Basis,
   #  set_up_eri_database(basis)
   #else
     nshell_simint = SIMINT.allocate_shell_array(basis)
-    for shell in basis.shells
+    for shell in basis
       SIMINT.add_shell(shell)
     end
 

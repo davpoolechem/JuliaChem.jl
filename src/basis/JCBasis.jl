@@ -84,7 +84,7 @@ function run(molecule, model; output="none")
       atomic_number::Int64 = atomic_number_mapping[symbol]
 
       #atom = Atom(atomic_number, symbol, atom_center)
-      push!(mol.atoms, Atom(atomic_number, symbol, atom_center))
+      push!(mol, Atom(atomic_number, symbol, atom_center))
  
       basis_set_nels += atomic_number
 
