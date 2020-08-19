@@ -31,6 +31,7 @@ function print_xyz(mol::Molecule)
   println() 
 end
 
+#=
 function analyze_bond_lengths(mol::Molecule)
   #== determine some pre-information ==#
   natoms = length(mol.atoms)
@@ -106,7 +107,7 @@ function analyze_bond_angles(mol::Molecule,
     end
     ijatom += 1
   end
-  
+  =#
   #= 
   for ijkatom in 1:natoms*natoms*natoms
       iatom::Int64 = ceil(ijkatom/(natoms*natoms))
@@ -131,7 +132,7 @@ function analyze_bond_angles(mol::Molecule,
       end
   end
   =#
-
+  #=
   #== print bond angles ==#
   if (MPI.Comm_rank(comm) == 0)
       println("----------------------------------------          ")
@@ -162,7 +163,7 @@ function analyze_bond_angles(mol::Molecule,
 
   return bond_lengths
 end
-
+=#
 #=
 function test(ijkatom::Int64)
     natoms = 3
