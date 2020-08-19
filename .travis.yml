@@ -22,6 +22,7 @@ install:
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
+- julia -E "using Pkg; Pkg.build(\"JuliaChem\")"
 #- cd deps && julia build.jl && cd ../
 - julia --code-coverage test/runtests-travis.jl
 
