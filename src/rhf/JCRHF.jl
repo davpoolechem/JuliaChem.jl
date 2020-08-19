@@ -66,7 +66,7 @@ function run(mol::Molecule, basis::Basis,
   #== set up eris ==#
   if scf_flags["direct"] == true
     nshell_simint = SIMINT.allocate_shell_array(basis)
-    for shell in basis.shells
+    for shell in basis
       SIMINT.add_shell(shell)
     end
 

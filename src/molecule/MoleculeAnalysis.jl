@@ -6,7 +6,7 @@ using LinearAlgebra
 
 function print_xyz(mol::Molecule)
   #== determine some pre-information ==#
-  natoms = length(mol.atoms)
+  natoms = length(mol)
   comm = MPI.COMM_WORLD
   comm = MPI.COMM_WORLD
 
@@ -21,7 +21,7 @@ function print_xyz(mol::Molecule)
   println(natoms) 
   println() 
 
-  for iatom in mol.atoms
+  for iatom in mol
     if (MPI.Comm_rank(comm) == 0)
       println(iatom.symbol,"         ",iatom.atom_center[1],"     ",
         iatom.atom_center[2],"     ",iatom.atom_center[3])
@@ -34,7 +34,7 @@ end
 #=
 function analyze_bond_lengths(mol::Molecule)
   #== determine some pre-information ==#
-  natoms = length(mol.atoms)
+  natoms = length(mol)
   natoms_length = floor(Int64,natoms*(natoms+1)/2)
   comm = MPI.COMM_WORLD
 
@@ -43,7 +43,7 @@ function analyze_bond_lengths(mol::Molecule)
   
   ijatom = 1
   for iatom in 1:natoms, jatom in 1:(iatom-1)
-    diff = (mol.atoms[iatom].atom_center .- mol.atoms[jatom].atom_center).^2  
+    diff = (mol[iatom].atom_center .- mol[jatom].atom_center).^2  
     bond_lengths[ijatom] = 0.52917724924*sqrt(reduce(+,diff))
     ijatom += 1
   end
@@ -77,7 +77,7 @@ function analyze_bond_angles(mol::Molecule,
   bond_lengths::Vector{Float64})
   
   #== determine some pre-information ==#
-  natoms = length(mol.atoms)
+  natoms = length(mol)
   natoms_length = floor(Int64,natoms*(natoms+1)*(natoms+2)/6)
   comm=MPI.COMM_WORLD
 
@@ -90,11 +90,11 @@ function analyze_bond_angles(mol::Molecule,
     jkatom = 1
     for jatom in 1:(iatom-1), katom in 1:(jatom-1)
       if bond_lengths[ijatom] < 4.0 && bond_lengths[jkatom] < 4.0
-        e_ji = Vector{Float64}(-(mol.atoms[jatom].atom_center .- 
-          mol.atoms[iatom].atom_center) ./ bond_lengths[ijatom])
+        e_ji = Vector{Float64}(-(mol[jatom].atom_center .- 
+          mol[iatom].atom_center) ./ bond_lengths[ijatom])
 
-        e_jk = Vector{Float64}(-(mol.atoms[jatom].atom_center .- 
-          mol.atoms[katom].atom_center) ./ bond_lengths[jkatom])
+        e_jk = Vector{Float64}(-(mol[jatom].atom_center .- 
+          mol[katom].atom_center) ./ bond_lengths[jkatom])
      
         e_ji ./= LinearAlgebra.norm(e_ji)
         e_jk ./= LinearAlgebra.norm(e_jk)

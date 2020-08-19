@@ -86,7 +86,7 @@ function run(molecule, model; output="none")
       atomic_number::Int64 = atomic_number_mapping[symbol]
 
       #== create atom objects ==#
-      push!(mol.atoms, JCModules.Atom(atomic_number, symbol, atom_center))
+      push!(mol, JCModules.Atom(atomic_number, symbol, atom_center))
       
       atom_cxx = JERI.Atom()
       JERI.atomic_number(atom_cxx, atomic_number)
@@ -124,7 +124,7 @@ function run(molecule, model; output="none")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,1]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatter = ft_printf("%5.6f", [2,3]) )
+              formatters = ft_printf("%5.6f", [2,3]) )
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
@@ -144,7 +144,7 @@ function run(molecule, model; output="none")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,2]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatter = ft_printf("%5.6f", [2,3]) )
+              formatters = ft_printf("%5.6f", [2,3]) )
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
@@ -164,7 +164,7 @@ function run(molecule, model; output="none")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatter = ft_printf("%5.6f", [2,3]) )
+              formatters = ft_printf("%5.6f", [2,3]) )
           end 
 
           new_shell_nprim = size(new_shell_exp)[1]
