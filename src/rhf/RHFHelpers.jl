@@ -75,8 +75,12 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
     for ibas in 0:abas-1, jbas in 0:bbas-1
       iorb = apos + ibas
       jorb = bpos + jbas
-     
+      
+      println(S_block_SIMINT[idx], ", ", S_block_JERI[idx])
+      @assert isapprox(S_block_SIMINT[idx], S_block_JERI[idx]) 
+
       S[max(iorb,jorb),min(iorb,jorb)] = S_block_SIMINT[idx]
+      #S[max(iorb,jorb),min(iorb,jorb)] = S_block_JERI[idx]
       
       idx += 1 
     end
@@ -116,6 +120,7 @@ function compute_ke(T::Matrix{Float64}, basis::Basis,
       jorb = bpos + jbas
       
       T[max(iorb,jorb),min(iorb,jorb)] = T_block_SIMINT[idx]
+      #T[max(iorb,jorb),min(iorb,jorb)] = T_block_JERI[idx]
       
       idx += 1 
     end
@@ -170,6 +175,7 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
       jorb = bpos + jbas
       
       V[max(iorb,jorb),min(iorb,jorb)] = V_block_SIMINT[idx]
+      #V[max(iorb,jorb),min(iorb,jorb)] = V_block_JERI[idx]
       
       idx += 1 
     end
