@@ -191,3 +191,14 @@ function Base.getindex(basis_set::Basis, index)
   return basis_set.shells[index]
 end
 
+function Base.length(basis_set::Basis)
+  return length(basis_set.shells)
+end
+
+function Base.iterate(basis_set::Basis)
+  return iterate(basis_set.shells)
+end
+
+function Base.iterate(basis_set::Basis, state)
+  return iterate(basis_set.shells, state)
+end

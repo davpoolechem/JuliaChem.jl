@@ -14,7 +14,6 @@ end
 #================================================#
 #== we want to precompile all involved modules ==#
 #================================================#
-#=
 if (isfile("../snoop/precompile_Base.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Base.jl")
     _precompile_()
@@ -23,24 +22,32 @@ if (isfile("../snoop/precompile_Blosc.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Blosc.jl")
     _precompile_()
 end
-if (isfile("../snoop/precompile_Compat.jl"))
-    Base.include(@__MODULE__, "../snoop/precompile_Compat.jl")
+if (isfile("../snoop/precompile_Blosc_jll.jl"))
+    Base.include(@__MODULE__, "../snoop/precompile_Blosc_jll.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_Core.jl"))
-    include("../snoop/precompile_Core.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_Core.jl")
     _precompile_()
 end
-if (isfile("../snoop/precompile_Crayons.jl"))
-    include("../snoop/precompile_Core.jl")
+if (isfile("../snoop/precompile_DocStringExtensions.jl"))
+    Base.include(@__MODULE__, "../snoop/precompile_DocStringExtensions.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_HDF5.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_HDF5.jl")
     _precompile_()
 end
+if (isfile("../snoop/precompile_HDF5_jll.jl"))
+    Base.include(@__MODULE__, "../snoop/precompile_HDF5_jll.jl")
+    _precompile_()
+end
 if (isfile("../snoop/precompile_Libdl.jl"))
-    include("../snoop/precompile_Libdl.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_Libdl.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_Lz4_jll.jl"))
+    Base.include(@__MODULE__, "../snoop/precompile_Lz4_jll.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_MPI.jl"))
@@ -51,12 +58,23 @@ if (isfile("../snoop/precompile_Parsers.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Parsers.jl")
     _precompile_()
 end
+if (isfile("../snoop/precompile_Pkg.jl"))
+    Base.include(@__MODULE__, "../snoop/precompile_Pkg.jl")
+    _precompile_()
+end
 if (isfile("../snoop/precompile_Requires.jl"))
-    include("../snoop/precompile_Requires.jl")
+    Base.include(@__MODULE__, "../snoop/precompile_Requires.jl")
     _precompile_()
 end
 if (isfile("../snoop/precompile_unknown.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_unknown.jl")
     _precompile_()
 end
-=#
+if (isfile("../snoop/precompile_Zlib_jll.jl"))
+    Base.include(@__MODULE__, "../snoop/precompile_Zlib_jll.jl")
+    _precompile_()
+end
+if (isfile("../snoop/precompile_Zstd_jll.jl"))
+    Base.include(@__MODULE__, "../snoop/precompile_Zstd_jll.jl")
+    _precompile_()
+end

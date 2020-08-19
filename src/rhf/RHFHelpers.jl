@@ -34,7 +34,7 @@ end
 
 function compute_enuc(mol::Molecule)
   E_nuc = 0.0
-  for iatom in 1:length(mol.atoms), jatom in 1:(iatom-1)
+  for iatom in 1:length(mol), jatom in 1:(iatom-1)
     ix = mol[iatom].atom_center[1] 
     jx = mol[jatom].atom_center[1] 
 
@@ -53,17 +53,17 @@ function compute_enuc(mol::Molecule)
 end
  
 function compute_overlap(S::Matrix{Float64}, basis::Basis)
-  for ash in 1:length(basis.shells), bsh in 1:ash
-    abas = basis.shells[ash].nbas
-    bbas = basis.shells[bsh].nbas
+  for ash in 1:length(basis), bsh in 1:ash
+    abas = basis[ash].nbas
+    bbas = basis[bsh].nbas
     
-    apos = basis.shells[ash].pos
-    bpos = basis.shells[bsh].pos
+    apos = basis[ash].pos
+    bpos = basis[bsh].pos
        
     S_block = zeros(abas*bbas)
     SIMINT.compute_overlap(ash, bsh, S_block)
     
-    axial_normalization_factor(S_block, basis.shells[ash], basis.shells[bsh])
+    axial_normalization_factor(S_block, basis[ash], basis[bsh])
 
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
@@ -84,17 +84,17 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis)
 end
 
 function compute_ke(T::Matrix{Float64}, basis::Basis)
-  for ash in 1:length(basis.shells), bsh in 1:ash
-    abas = basis.shells[ash].nbas
-    bbas = basis.shells[bsh].nbas
+  for ash in 1:length(basis), bsh in 1:ash
+    abas = basis[ash].nbas
+    bbas = basis[bsh].nbas
     
-    apos = basis.shells[ash].pos
-    bpos = basis.shells[bsh].pos
+    apos = basis[ash].pos
+    bpos = basis[bsh].pos
        
     T_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_ke(ash, bsh, T_block)
     
-    axial_normalization_factor(T_block, basis.shells[ash], basis.shells[bsh])
+    axial_normalization_factor(T_block, basis[ash], basis[bsh])
     
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1
@@ -118,31 +118,31 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
   basis::Basis)
   
   #== define ncenter ==#
-  ncenter::Int64 = length(mol.atoms)
+  ncenter::Int64 = length(mol)
   
   Z = Vector{Float64}([])
   x = Vector{Float64}([])
   y = Vector{Float64}([])
   z = Vector{Float64}([])
 
-  for atom in mol.atoms 
+  for atom in mol 
     push!(Z, convert(Float64,atom.atom_id))  
     push!(x, atom.atom_center[1])  
     push!(y, atom.atom_center[2])  
     push!(z, atom.atom_center[3])  
   end
 
-  for ash in 1:length(basis.shells), bsh in 1:ash
-    abas = basis.shells[ash].nbas
-    bbas = basis.shells[bsh].nbas
+  for ash in 1:length(basis), bsh in 1:ash
+    abas = basis[ash].nbas
+    bbas = basis[bsh].nbas
     
-    apos = basis.shells[ash].pos
-    bpos = basis.shells[bsh].pos
+    apos = basis[ash].pos
+    bpos = basis[bsh].pos
        
     V_block = zeros(Float64, (abas*bbas,))
     SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block)
     
-    axial_normalization_factor(V_block, basis.shells[ash], basis.shells[bsh])
+    axial_normalization_factor(V_block, basis[ash], basis[bsh])
     
     idx = 1
     for ibas in 0:abas-1, jbas in 0:bbas-1

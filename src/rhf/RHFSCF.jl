@@ -207,7 +207,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
   #== read in some more variables from scf flags input ==#
-  nsh = length(basis.shells)
+  nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
 
   #== build DIIS arrays ==#
@@ -330,7 +330,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     workspace_b .= fdiff ? ΔF : F
 
     #== compress D into shells in Dsh ==#
-    for ish in 1:length(basis.shells), jsh in 1:ish
+    for ish in 1:length(basis), jsh in 1:ish
       ipos = basis[ish].pos
       ibas = basis[ish].nbas
 
@@ -341,7 +341,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       for i in ipos:(ipos+ibas-1), j in jpos:(jpos+jbas-1) 
         max_value = max(max_value, abs(D_input[i,j]))
       end
-      Dsh[ish,jsh] = max_value
+      Dsh[ish, jsh] = max_value
       Dsh[jsh, ish] = Dsh[ish, jsh] 
     end
   
@@ -460,7 +460,7 @@ H = One-electron Hamiltonian Matrix
   
   fill!(F,zero(Float64))
 
-  nsh = length(basis.shells)
+  nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
  
   #mutex = Base.Threads.ReentrantLock()
