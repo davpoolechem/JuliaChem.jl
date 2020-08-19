@@ -35,18 +35,18 @@ end
 function compute_enuc(mol::Molecule)
   E_nuc = 0.0
   for iatom in 1:length(mol.atoms), jatom in 1:(iatom-1)
-    ix = mol.atoms[iatom].atom_center[1] 
-    jx = mol.atoms[jatom].atom_center[1] 
+    ix = mol[iatom].atom_center[1] 
+    jx = mol[jatom].atom_center[1] 
 
-    iy = mol.atoms[iatom].atom_center[2] 
-    jy = mol.atoms[jatom].atom_center[2] 
+    iy = mol[iatom].atom_center[2] 
+    jy = mol[jatom].atom_center[2] 
 
-    iz = mol.atoms[iatom].atom_center[3]
-    jz = mol.atoms[jatom].atom_center[3]
+    iz = mol[iatom].atom_center[3]
+    jz = mol[jatom].atom_center[3]
   
     distance = √((jx-ix)^2 + (jy-iy)^2 + (jz-iz)^2) 
     
-    E_nuc += mol.atoms[iatom].atom_id*mol.atoms[jatom].atom_id/distance
+    E_nuc += mol[iatom].atom_id*mol[jatom].atom_id/distance
   end 
   
   return E_nuc
@@ -165,11 +165,7 @@ end
 function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, 
   basis::Basis, nsh::Int64)
 
-  max_am = 0
-  for shell in basis.shells
-    max_am = shell.am > max_am ? shell.am : max_am
-  end
-  
+  max_am = max_ang_mom(basis) 
   eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
   simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am-1))
  

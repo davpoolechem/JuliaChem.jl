@@ -122,6 +122,7 @@ function shell_class(am)
   return pointer(sh_class)
 end
 
+#=
 struct ShPair
   sh_a::Shell
   sh_b::Shell
@@ -167,7 +168,7 @@ struct ShQuartet
   ket::ShPair
 end
 export ShQuartet
-
+=#
 struct Basis
   shells::Vector{Shell}
 
@@ -177,14 +178,14 @@ struct Basis
 end
 export Basis
 
-function max_am(basis_set::Basis)
+function max_ang_mom(basis_set::Basis)
   max_am = 0
-  for shell in basis_set
-    max_am = shell.am > max_am ? shell_am : max_am
+  for shell in basis_set.shells
+    max_am = shell.am > max_am ? shell.am : max_am
   end
   return max_am
 end
-export max_am
+export max_ang_mom
 
 function Base.getindex(basis_set::Basis, index)
   return basis_set.shells[index]

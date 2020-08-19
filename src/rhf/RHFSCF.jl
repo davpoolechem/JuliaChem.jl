@@ -474,10 +474,7 @@ H = One-electron Hamiltonian Matrix
     mutex = Base.Threads.ReentrantLock()
     thread_index_counter = Threads.Atomic{Int64}(top_index)
     Threads.@threads for thread in 1:Threads.nthreads() 
-      max_am = 0
-      for shell in basis.shells
-        max_am = shell.am > max_am ? shell.am : max_am
-      end 
+      max_am = max_ang_mom(basis) 
       eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
       simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
     
@@ -555,10 +552,7 @@ H = One-electron Hamiltonian Matrix
         recv_mesg = [ 0 ]
         send_mesg = [ 0 ]
 
-        max_am = 0
-        for shell in basis.shells
-          max_am = shell.am > max_am ? shell.am : max_am
-        end 
+        max_am = max_ang_mom(basis) 
         eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
         simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
     
