@@ -13,6 +13,11 @@ typedef int64_t julia_int;
 //--------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::Atom> : std::false_type { };
 
+libint2::Atom create_atom(julia_int t_atomic_number, double coords[3]) {
+  return libint2::Atom{ t_atomic_number, coords[0], coords[1], coords[2] };
+}
+
+/*
 julia_int get_atomic_number(const libint2::Atom& atom) { 
   return atom.atomic_number; 
 }
@@ -38,11 +43,22 @@ double set_z(libint2::Atom& atom, double new_z) {
   atom.z = new_z; 
   return get_z(atom); 
 }
-
+*/
 //---------------------------------//
 //-- Map libint2::Shell to Julia --// 
 //---------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::Shell> : std::false_type { };
+
+libint2::Shell create_shell(julia_int ang_mom, jlcxx::ArrayRef<double> t_exps,
+  jlcxx::ArrayRef<double> t_coeffs, double atom_center[3]) {
+  libint2::Shell new_shell{
+                            { exps },
+                            { ang_mom, false, {coeffs} },
+                            { atom_center[0], atom_center[1], atom_center[2] }
+                          };
+  return new_shell; 
+}
+
 
 //------------------------------------//
 //-- Map libint2::BasisSet to Julia --// 
@@ -139,9 +155,11 @@ private:
 
 JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   //-- atom information --//
-  mod.add_type<libint2::Atom>("Atom");
+  mod.add_type<libint2::Atom>("Atom")
+    .method("create_atom", &create_atom);
   jlcxx::stl::apply_stl<libint2::Atom>(mod);
 
+  /*
   mod.method("atomic_number", &get_atomic_number);
   mod.method("atomic_number", &set_atomic_number);
 
@@ -153,10 +171,15 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
 
   mod.method("z",&get_z);
   mod.method("z",&set_z);
-
+  */
   //-- shell information --//
   mod.add_type<libint2::Shell>("Shell");
+  //  .constructor()
+  //  .constructor<svector<double>, svector<libint2::Shell::Contraction>, 
+  //    std::array<double,3> >();
   jlcxx::stl::apply_stl<libint2::Shell>(mod);
+
+  mod.add_type<libint2::Shell::Contraction>("Contraction");
 
   //-- basis set information --//
   mod.add_type<libint2::BasisSet>("BasisSet");

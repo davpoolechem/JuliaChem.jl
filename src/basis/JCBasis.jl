@@ -62,7 +62,6 @@ function run(molecule, model; output="none")
 
   mol = Molecule([])
   mol_cxx = StdVector{JERI.Atom}()
-  shells_cxx = StdVector{JERI.Shell}()
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
@@ -71,6 +70,8 @@ function run(molecule, model; output="none")
   end
 
   basis_set_shells = Vector{JCModules.Shell}([])
+  shells_cxx = StdVector{JERI.Shell}()
+  
   basis_set_nels = -charge 
   basis_set_norb = 0
   pos = 1
@@ -88,14 +89,7 @@ function run(molecule, model; output="none")
 
       #== create atom objects ==#
       push!(mol, JCModules.Atom(atomic_number, symbol, atom_center))
-      
-      atom_cxx = JERI.Atom()
-      JERI.atomic_number(atom_cxx, atomic_number)
-      JERI.x(atom_cxx, atom_center[1])
-      JERI.y(atom_cxx, atom_center[2])
-      JERI.z(atom_cxx, atom_center[3])
-      
-      push!(mol_cxx, atom_cxx) 
+      push!(mol_cxx, JERI.create_atom(atomic_number, atom_center)) 
        
       basis_set_nels += atomic_number
 
@@ -133,8 +127,10 @@ function run(molecule, model; output="none")
           new_shell = JCModules.Shell(shell_id, atom_idx, new_shell_exp, 
             new_shell_coeff[:,1],
             atom_center, 1, size(new_shell_exp)[1], pos, true)
-          push!(basis_set_shells,new_shell)
-        
+          push!(basis_set_shells, new_shell)
+          push!(shells_cxx, JERI.create_shell(0, new_shell_exp,
+            new_shell_coeff[:,1], atom_center))
+
           basis_set_norb += 1 
           shell_id += 1
           pos += new_shell.nbas
@@ -154,6 +150,9 @@ function run(molecule, model; output="none")
             new_shell_coeff[:,2],
             atom_center, 2, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
+          push!(shells_cxx, JERI.create_shell(1, new_shell_exp,
+            new_shell_coeff[:,1], atom_center))
+
 
           basis_set_norb += 3 
           shell_id += 1
@@ -176,6 +175,8 @@ function run(molecule, model; output="none")
             new_shell_coeff_array,
             atom_center, new_shell_am, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
+          push!(shells_cxx, JERI.create_shell(new_shell_am-1, new_shell_exp,
+            new_shell_coeff[:,1], atom_center))
 
           basis_set_norb += new_shell.nbas
           shell_id += 1

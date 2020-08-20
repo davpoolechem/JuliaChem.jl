@@ -9,8 +9,8 @@ module JERI
     @initcxx
   end
 
-  export Atom, atomic_number, x, y, z
-  export Shell 
+  export Atom, create_atom 
+  export Shell, Contraction 
   export BasisSet 
   export Engine, basis, compute_overlap_block, compute_kinetic_block, compute_nuc_attr_block
 end
