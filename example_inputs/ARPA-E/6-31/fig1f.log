@@ -1,0 +1,46 @@
+--------------------------------------------------------------------------------
+                       ========================================                 
+                                READING INPUT DATA FILE                         
+                       ========================================                 
+ 
+ 
+Number of worker processes: 1
+Number of threads per process: 1
+Number of threads in total: 1
+SystemError: opening file "example_inputs/ARPA-E/6-31/fig1f.json": No such file or directory
+Stacktrace:
+ [1] systemerror(::String, ::Int32; extrainfo::Nothing) at ./error.jl:168
+ [2] #systemerror#48 at ./error.jl:167 [inlined]
+ [3] systemerror at ./error.jl:167 [inlined]
+ [4] open(::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing) at ./iostream.jl:284
+ [5] open at ./iostream.jl:273 [inlined]
+ [6] run(::String; output::String) at /export/home/david/projects/Julia/JuliaChem.jl/src/io/JCInput.jl:54
+ [7] minimal_rhf(::String) at /home/david/projects/Julia/JuliaChem.jl/example_scripts/minimal-rhf-repl.jl:12
+ [8] top-level scope at /home/david/projects/Julia/JuliaChem.jl/example_scripts/minimal-rhf.jl:12
+ [9] include(::Function, ::Module, ::String) at ./Base.jl:380
+ [10] include(::Module, ::String) at ./Base.jl:368
+ [11] exec_options(::Base.JLOptions) at ./client.jl:296
+ [12] _start() at ./client.jl:506
+--------------------------------------------------------------------------
+mpirun has exited due to process rank 0 with PID 19418 on
+node compute-0-5 exiting improperly. There are three reasons this could occur:
+
+1. this process did not call "init" before exiting, but others in
+the job did. This can cause a job to hang indefinitely while it waits
+for all processes to call "init". By rule, if one process calls "init",
+then ALL processes must call "init" prior to termination.
+
+2. this process called "init", but exited without calling "finalize".
+By rule, all processes that call "init" MUST call "finalize" prior to
+exiting or it will be considered an "abnormal termination"
+
+3. this process called "MPI_Abort" or "orte_abort" and the mca parameter
+orte_create_session_dirs is set to false. In this case, the run-time cannot
+detect that the abort call was an abnormal termination. Hence, the only
+error message you will receive is this one.
+
+This may have caused other processes in the application to be
+terminated by signals sent by mpirun (as reported here).
+
+You can avoid this message by specifying -quiet on the mpirun command line.
+--------------------------------------------------------------------------
