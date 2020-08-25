@@ -8,6 +8,17 @@
 
 typedef int64_t julia_int;
 
+//-----------------------------------//
+//-- initialize/finalize functions --//
+//-----------------------------------//
+void initialize() {
+  libint2::initialize(); 
+}
+
+void finalize() {
+  libint2::finalize();
+}
+
 //--------------------------------//
 //-- Map libint2::Atom to Julia --// 
 //--------------------------------//
@@ -65,12 +76,9 @@ class OEIEngine {
 
 public:
   //-- ctors and dtors --//
-  OEIEngine() { initialize(); };
   OEIEngine(const std::vector<libint2::Atom> t_atoms, 
     const std::vector<std::vector<libint2::Shell> > t_shells) 
   { 
-    initialize();
-
   /*  
     std::cout << "ANALYZE ELEMENT BASES" << std::endl;
     for (libint2::Atom atom : t_atoms) {
@@ -118,7 +126,7 @@ public:
     m_nuc_attr_eng.set_params(libint2::make_point_charges(t_atoms));
   }
 
-  ~OEIEngine() { finalize(); };
+  ~OEIEngine() { };
 
   //-- setters and getters --//
   libint2::BasisSet basis() { return m_basis_set; }
@@ -154,19 +162,13 @@ public:
       V_block[i] = m_nuc_attr_eng.results()[0][i];
     }
   }
-
-private:
-  //-- private member functions --//
-  void initialize() {
-    libint2::initialize(); 
-  }
-
-  void finalize() {
-    libint2::finalize();
-  }
 };
 
 JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
+  //-- initialize/finalize functions --//
+  mod.method("initialize", &initialize);
+  mod.method("finalize", &finalize);
+
   //-- atom information --//
   mod.add_type<libint2::Atom>("Atom")
     .method("create_atom", &create_atom);

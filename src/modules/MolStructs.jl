@@ -10,6 +10,7 @@ export Atom
 #== structure representing a molecule ==#
 struct Molecule
   atoms::Vector{Atom}
+  mol_cxx
 end
 export Molecule 
 

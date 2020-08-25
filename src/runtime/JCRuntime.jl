@@ -1,11 +1,13 @@
 using MPI
 using JuliaChem.SIMINT
+using JuliaChem.JERI
 
 #== initialize JuliaChem runtime ==#
 function initialize()
   if(!MPI.Initialized())
     MPI.Init()
     SIMINT.initialize()
+    JERI.initialize()
   else
     println("JuliaChem has already been initialized!")
   end
@@ -22,6 +24,7 @@ function finalize()
   if(!MPI.Finalized())
     MPI.Finalize()
     SIMINT.finalize()
+    JERI.finalize()
   else
     println("JuliaChem has already been finalized!")
   end

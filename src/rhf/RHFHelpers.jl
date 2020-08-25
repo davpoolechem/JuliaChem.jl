@@ -53,7 +53,7 @@ function compute_enuc(mol::Molecule)
 end
  
 function compute_overlap(S::Matrix{Float64}, basis::Basis,
-  jeri_engine)
+  jeri_oei_engine)
 
   for ash in 1:length(basis), bsh in 1:ash
     abas = basis[ash].nbas
@@ -67,7 +67,7 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
     #axial_normalization_factor(S_block_SIMINT, basis[ash], basis[bsh])
     
     S_block_JERI = zeros(Float64,(abas*bbas,))
-    JERI.compute_overlap_block(jeri_engine, S_block_JERI, ash, bsh, 
+    JERI.compute_overlap_block(jeri_oei_engine, S_block_JERI, ash, bsh, 
       length(S_block_JERI))
     axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
 
@@ -94,7 +94,7 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
 end
 
 function compute_ke(T::Matrix{Float64}, basis::Basis, 
-  jeri_engine)
+  jeri_oei_engine)
 
   for ash in 1:length(basis), bsh in 1:ash
     abas = basis[ash].nbas
@@ -109,7 +109,7 @@ function compute_ke(T::Matrix{Float64}, basis::Basis,
     #  basis[bsh])
     
     T_block_JERI = zeros(Float64,(abas*bbas,))
-    JERI.compute_kinetic_block(jeri_engine, T_block_JERI, ash, bsh, 
+    JERI.compute_kinetic_block(jeri_oei_engine, T_block_JERI, ash, bsh, 
       length(T_block_JERI))
     axial_normalization_factor(T_block_JERI, basis[ash], 
       basis[bsh])
@@ -136,7 +136,7 @@ function compute_ke(T::Matrix{Float64}, basis::Basis,
 end
 
 function compute_nah(V::Matrix{Float64}, mol::Molecule, 
-  basis::Basis, jeri_engine)
+  basis::Basis, jeri_oei_engine)
   
   #== define ncenter ==#
   #=
@@ -167,7 +167,7 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
     #  basis[bsh])
   
     V_block_JERI = zeros(Float64,(abas*bbas,))
-    JERI.compute_nuc_attr_block(jeri_engine, V_block_JERI, ash, bsh, 
+    JERI.compute_nuc_attr_block(jeri_oei_engine, V_block_JERI, ash, bsh, 
       length(V_block_JERI))
     axial_normalization_factor(V_block_JERI, basis[ash], 
       basis[bsh])

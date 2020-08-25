@@ -18,11 +18,11 @@ make[1]: Leaving directory `/export/home/david/projects/Julia/JuliaChem.jl/deps'
 /shared/cmake/3.13.4/bin/cmake -E cmake_progress_start /export/home/david/projects/Julia/JuliaChem.jl/deps/CMakeFiles 0
 g++ -std=c++1z -O0 -g -I/shared/eigen/3.3.4 -I/shared/boost/1.67.0/include -I'/export/home/david/programs/install/julia-1.5.0/include/julia' -fPIC -L'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,--export-dynamic -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib/julia' -ljulia -I/export/home/david/programs/install/cxxwrap-julia/include -L/export/home/david/programs/install/cxxwrap-julia/lib -lcxxwrap_julia -L/export/home/david/programs/install/libint/lib -lint2 -shared -fPIC -c jeri.cpp 
 jeri.cpp: In function ‘libint2::Atom create_atom(julia_int, double*)’:
-jeri.cpp:19:74: warning: narrowing conversion of ‘t_atomic_number’ from ‘julia_int {aka long int}’ to ‘int’ inside { } [-Wnarrowing]
+jeri.cpp:30:74: warning: narrowing conversion of ‘t_atomic_number’ from ‘julia_int {aka long int}’ to ‘int’ inside { } [-Wnarrowing]
    return libint2::Atom{ t_atomic_number, coords[0], coords[1], coords[2] };
                                                                           ^
 jeri.cpp: In function ‘libint2::Shell create_shell(julia_int, jlcxx::ArrayRef<double>, jlcxx::ArrayRef<double>, double*)’:
-jeri.cpp:41:74: warning: narrowing conversion of ‘ang_mom’ from ‘julia_int {aka long int}’ to ‘int’ inside { } [-Wnarrowing]
+jeri.cpp:52:74: warning: narrowing conversion of ‘ang_mom’ from ‘julia_int {aka long int}’ to ‘int’ inside { } [-Wnarrowing]
    libint2::Shell::Contraction shell_contract{ ang_mom, false, { coeffs } };
                                                                           ^
 g++ -std=c++1z -O0 -g -I/shared/eigen/3.3.4 -I/shared/boost/1.67.0/include -I'/export/home/david/programs/install/julia-1.5.0/include/julia' -fPIC -L'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,--export-dynamic -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib/julia' -ljulia -I/export/home/david/programs/install/cxxwrap-julia/include -L/export/home/david/programs/install/cxxwrap-julia/lib -lcxxwrap_julia -L/export/home/david/programs/install/libint/lib -lint2 -shared -fPIC jeri.o -o libjeri.so

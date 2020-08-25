@@ -60,8 +60,7 @@ function run(molecule, model; output="none")
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
-  mol = Molecule([])
-  mol_cxx = StdVector{JERI.Atom}()
+  mol = Molecule([], StdVector{JERI.Atom}())
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
@@ -90,7 +89,7 @@ function run(molecule, model; output="none")
 
       #== create atom objects ==#
       push!(mol, JCModules.Atom(atomic_number, symbol, atom_center))
-      push!(mol_cxx, JERI.create_atom(atomic_number, atom_center)) 
+      push!(mol.mol_cxx, JERI.create_atom(atomic_number, atom_center)) 
        
       basis_set_nels += atomic_number
 
@@ -207,12 +206,8 @@ function run(molecule, model; output="none")
   #sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
   #sort!(basis_set_shells, by = x->(x.atomic_number,x.atom_id))
   
-  basis_set::Basis = Basis(basis_set_shells, basis, 
+  basis_set::Basis = Basis(basis_set_shells, shells_cxx, basis, 
     basis_set_norb, basis_set_nels)                                       
-
-  #== create integral engine ==#
-  #display(shells_cxx); println()
-  jeri_engine = JERI.OEIEngine(mol_cxx, shells_cxx) 
 
   #== set up shell pair ordering ==#
   #for ish in 1:length(basis_set.shells), jsh in 1:ish
@@ -242,7 +237,7 @@ function run(molecule, model; output="none")
     println("                       ========================================                 ")
   end
 
-  return mol, basis_set, jeri_engine
+  return mol, basis_set
 end
 export run
 

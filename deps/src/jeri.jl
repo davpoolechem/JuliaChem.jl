@@ -9,6 +9,7 @@ module JERI
     @initcxx
   end
 
+  export initialize, finalize 
   export Atom, create_atom 
   export Shell, create_shell 
   export BasisSet 
