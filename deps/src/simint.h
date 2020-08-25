@@ -8,6 +8,7 @@ extern struct simint_multi_shellpair right_pair;  //ket SIMINT shell pair struct
 extern struct shell {
   long long int shell_id;
   long long int atom_id;
+  long long int atomic_number;
 
   double exponents[MAX_CONTRACTION];
   double coefficients[2*MAX_CONTRACTION];

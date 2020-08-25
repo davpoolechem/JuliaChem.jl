@@ -62,9 +62,9 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
     apos = basis[ash].pos
     bpos = basis[bsh].pos
        
-    S_block_SIMINT = zeros(Float64,(abas*bbas,))
-    SIMINT.compute_overlap(ash, bsh, S_block_SIMINT)
-    axial_normalization_factor(S_block_SIMINT, basis[ash], basis[bsh])
+    #S_block_SIMINT = zeros(Float64,(abas*bbas,))
+    #SIMINT.compute_overlap(ash, bsh, S_block_SIMINT)
+    #axial_normalization_factor(S_block_SIMINT, basis[ash], basis[bsh])
     
     S_block_JERI = zeros(Float64,(abas*bbas,))
     JERI.compute_overlap_block(jeri_engine, S_block_JERI, ash, bsh, 
@@ -76,8 +76,8 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      println(iorb,", ", jorb,": ", S_block_SIMINT[idx], ", ", S_block_JERI[idx])
-      @assert isapprox(S_block_SIMINT[idx], S_block_JERI[idx]) 
+      #println(iorb,", ", jorb,": ", S_block_SIMINT[idx], ", ", S_block_JERI[idx])
+      #@assert isapprox(S_block_SIMINT[idx], S_block_JERI[idx]) 
 
       #S[max(iorb,jorb),min(iorb,jorb)] = S_block_SIMINT[idx]
       S[max(iorb,jorb),min(iorb,jorb)] = S_block_JERI[idx]
@@ -103,10 +103,10 @@ function compute_ke(T::Matrix{Float64}, basis::Basis,
     apos = basis[ash].pos
     bpos = basis[bsh].pos
        
-    T_block_SIMINT = zeros(Float64, (abas*bbas,))
-    SIMINT.compute_ke(ash, bsh, T_block_SIMINT)
-    axial_normalization_factor(T_block_SIMINT, basis[ash], 
-      basis[bsh])
+    #T_block_SIMINT = zeros(Float64, (abas*bbas,))
+    #SIMINT.compute_ke(ash, bsh, T_block_SIMINT)
+    #axial_normalization_factor(T_block_SIMINT, basis[ash], 
+    #  basis[bsh])
     
     T_block_JERI = zeros(Float64,(abas*bbas,))
     JERI.compute_kinetic_block(jeri_engine, T_block_JERI, ash, bsh, 
@@ -119,7 +119,8 @@ function compute_ke(T::Matrix{Float64}, basis::Basis,
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      @assert isapprox(T_block_SIMINT[idx], T_block_JERI[idx]) 
+      #println(iorb,", ", jorb,": ", T_block_SIMINT[idx], ", ", T_block_JERI[idx])
+      #@assert isapprox(T_block_SIMINT[idx], T_block_JERI[idx],atol=1E-6) 
       #T[max(iorb,jorb),min(iorb,jorb)] = T_block_SIMINT[idx]
       T[max(iorb,jorb),min(iorb,jorb)] = T_block_JERI[idx]
       
@@ -159,10 +160,10 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
     apos = basis[ash].pos
     bpos = basis[bsh].pos
        
-    V_block_SIMINT = zeros(Float64, (abas*bbas,))
-    SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block_SIMINT)
-    axial_normalization_factor(V_block_SIMINT, basis[ash], 
-      basis[bsh])
+    #V_block_SIMINT = zeros(Float64, (abas*bbas,))
+    #SIMINT.compute_nah(ncenter, Z, x, y, z, ash, bsh, V_block_SIMINT)
+    #axial_normalization_factor(V_block_SIMINT, basis[ash], 
+    #  basis[bsh])
   
     V_block_JERI = zeros(Float64,(abas*bbas,))
     JERI.compute_nuc_attr_block(jeri_engine, V_block_JERI, ash, bsh, 
@@ -175,7 +176,8 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      @assert isapprox(V_block_SIMINT[idx], V_block_JERI[idx]) 
+      #println(iorb,", ", jorb,": ", V_block_SIMINT[idx], ", ", V_block_JERI[idx])
+      #@assert isapprox(V_block_SIMINT[idx], V_block_JERI[idx]) 
       #V[max(iorb,jorb),min(iorb,jorb)] = V_block_SIMINT[idx]
       V[max(iorb,jorb),min(iorb,jorb)] = V_block_JERI[idx]
       

@@ -71,7 +71,8 @@ function run(molecule, model; output="none")
 
   basis_set_shells = Vector{JCModules.Shell}([])
   shells_cxx = StdVector([ StdVector{JERI.Shell}() for i in 1:55 ]) 
-  
+  shells_cxx_added = [ false for i in 1:55 ]
+
   basis_set_nels = -charge 
   basis_set_norb = 0
   pos = 1
@@ -122,13 +123,16 @@ function run(molecule, model; output="none")
 
           new_shell_nprim = size(new_shell_exp)[1]
 
-          new_shell = JCModules.Shell(shell_id, atom_idx, new_shell_exp, 
-            new_shell_coeff[:,1],
+          new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number, 
+            new_shell_exp, new_shell_coeff[:,1],
             atom_center, 1, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells, new_shell)
           #display(new_shell_coeff[:,1])
-          push!(shells_cxx[atomic_number+1], JERI.create_shell(0, StdVector(new_shell_exp),
-            StdVector(new_shell_coeff[:,1]), atom_center))
+          if !shells_cxx_added[atomic_number+1]
+            push!(shells_cxx[atomic_number+1], JERI.create_shell(0, 
+              StdVector(new_shell_exp),
+              StdVector(new_shell_coeff[:,1]), atom_center))
+          end
 
           basis_set_norb += 1 
           shell_id += 1
@@ -145,13 +149,16 @@ function run(molecule, model; output="none")
 
           new_shell_nprim = size(new_shell_exp)[1]
 
-          new_shell = JCModules.Shell(shell_id, atom_idx, new_shell_exp, 
-            new_shell_coeff[:,2],
+          new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
+            new_shell_exp, new_shell_coeff[:,2],
             atom_center, 2, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
           #display(new_shell_coeff[:,2])
-          push!(shells_cxx[atomic_number+1], JERI.create_shell(1, StdVector(new_shell_exp),
-            StdVector(new_shell_coeff[:,2]), atom_center))
+          if !shells_cxx_added[atomic_number+1]
+            push!(shells_cxx[atomic_number+1], JERI.create_shell(1, 
+              StdVector(new_shell_exp),
+              StdVector(new_shell_coeff[:,2]), atom_center))
+          end
 
           basis_set_norb += 3 
           shell_id += 1
@@ -170,22 +177,27 @@ function run(molecule, model; output="none")
           new_shell_coeff_array = reshape(new_shell_coeff,
             (length(new_shell_coeff),))       
 
-          new_shell = JCModules.Shell(shell_id, atom_idx, new_shell_exp, 
-            deepcopy(new_shell_coeff_array),
+          new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
+            new_shell_exp, deepcopy(new_shell_coeff_array),
             atom_center, new_shell_am, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
-          push!(shells_cxx[atomic_number+1], JERI.create_shell(new_shell_am-1, StdVector(new_shell_exp),
-            StdVector(new_shell_coeff_array), atom_center))
+          if !shells_cxx_added[atomic_number+1]
+            push!(shells_cxx[atomic_number+1], JERI.create_shell(new_shell_am-1, 
+              StdVector(new_shell_exp),
+              StdVector(new_shell_coeff_array), atom_center))
+          end 
 
           basis_set_norb += new_shell.nbas
           shell_id += 1
           pos += new_shell.nbas
         end
+
         if MPI.Comm_rank(comm) == 0 && output == "verbose"
           println(" ")
         end
       end
       
+      shells_cxx_added[atomic_number+1] = true 
       #display(shells_cxx)
 
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -196,6 +208,7 @@ function run(molecule, model; output="none")
   end
 
   #sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
+  #sort!(basis_set_shells, by = x->(x.atomic_number,x.atom_id))
   
   basis_set::Basis = Basis(basis_set_shells, basis, 
     basis_set_norb, basis_set_nels)                                       

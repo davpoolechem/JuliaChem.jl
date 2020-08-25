@@ -108,7 +108,16 @@ public:
       }
     }
     */
-
+    /*
+    std::cout << "ANALYZE ATOMS" << std::endl;
+    for ( auto atom : t_atoms ) {
+      std::cout << "{" << std::endl;
+      std::cout << "  " << atom.atomic_number << std::endl;
+      std::cout << "  " << atom.x << ", " << atom.y << ", " << atom.z << std::endl;
+      std::cout << "}" << std::endl << std::endl;
+      //std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
+    }
+    */
     std::cout << "ANALYZE BASIS SET" << std::endl;
     m_basis_set = libint2::BasisSet(t_atoms, t_shells, "", true);
     for ( auto shell : m_basis_set ) {
@@ -142,6 +151,10 @@ public:
   void compute_overlap_block(jlcxx::ArrayRef<double> S_block, julia_int ash, 
     julia_int bsh, julia_int absize) 
   {
+    //std::cout << ash << std::endl;
+    //std::cout << m_basis_set[ash-1] << std::endl;
+    //std::cout << bsh << std::endl;
+    //std::cout << m_basis_set[bsh-1] << std::endl;
     m_overlap_eng.compute(m_basis_set[ash-1], m_basis_set[bsh-1]);
     for (int i = 0; i != absize; ++i) {
       S_block[i] = m_overlap_eng.results()[0][i];
