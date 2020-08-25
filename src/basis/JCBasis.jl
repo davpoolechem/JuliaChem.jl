@@ -212,7 +212,7 @@ function run(molecule, model; output="none")
 
   #== create integral engine ==#
   #display(shells_cxx); println()
-  jeri_engine = JERI.Engine(mol_cxx, shells_cxx) 
+  jeri_engine = JERI.OEIEngine(mol_cxx, shells_cxx) 
 
   #== set up shell pair ordering ==#
   #for ish in 1:length(basis_set.shells), jsh in 1:ish

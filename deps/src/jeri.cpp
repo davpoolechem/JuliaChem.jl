@@ -12,6 +12,8 @@ typedef int64_t julia_int;
 //-- Map libint2::Atom to Julia --// 
 //--------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::Atom> : std::false_type { };
+template<> struct jlcxx::IsMirroredType<std::vector<libint2::Atom> > : 
+  std::false_type { };
 
 libint2::Atom create_atom(julia_int t_atomic_number, double coords[3]) {
   return libint2::Atom{ t_atomic_number, coords[0], coords[1], coords[2] };
@@ -21,9 +23,8 @@ libint2::Atom create_atom(julia_int t_atomic_number, double coords[3]) {
 //-- Map libint2::Shell to Julia --// 
 //---------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::Shell> : std::false_type { };
-
-//libint2::Shell create_shell(julia_int ang_mom, const std::vector<double>& t_exps,
-//  const std::vector<double>& t_coeffs, double t_atom_center[3]) {
+template<> struct jlcxx::IsMirroredType<std::vector<libint2::Shell> > : 
+  std::false_type { };
 
 libint2::Shell create_shell(julia_int ang_mom, 
   const jlcxx::ArrayRef<double> t_exps,
@@ -50,14 +51,12 @@ libint2::Shell create_shell(julia_int ang_mom,
 //------------------------------------//
 //-- Map libint2::BasisSet to Julia --// 
 //------------------------------------//
-template<> struct jlcxx::IsMirroredType<std::vector<libint2::Atom> > : std::false_type { };
-template<> struct jlcxx::IsMirroredType<std::vector<libint2::Shell> > : std::false_type { };
 template<> struct jlcxx::IsMirroredType<libint2::BasisSet> : std::false_type { };
 
 //------------------------------------------------------------------------//
 //-- C++ JERI engine: small wrapper allowing LibInt to be used in Julia --//
 //------------------------------------------------------------------------//
-class Engine {
+class OEIEngine {
   libint2::BasisSet m_basis_set;
   
   libint2::Engine m_kinetic_eng;
@@ -66,8 +65,8 @@ class Engine {
 
 public:
   //-- ctors and dtors --//
-  Engine() { initialize(); };
-  Engine(const std::vector<libint2::Atom> t_atoms, 
+  OEIEngine() { initialize(); };
+  OEIEngine(const std::vector<libint2::Atom> t_atoms, 
     const std::vector<std::vector<libint2::Shell> > t_shells) 
   { 
     initialize();
@@ -119,7 +118,7 @@ public:
     m_nuc_attr_eng.set_params(libint2::make_point_charges(t_atoms));
   }
 
-  ~Engine() { finalize(); };
+  ~OEIEngine() { finalize(); };
 
   //-- setters and getters --//
   libint2::BasisSet basis() { return m_basis_set; }
@@ -173,36 +172,21 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
     .method("create_atom", &create_atom);
   jlcxx::stl::apply_stl<libint2::Atom>(mod);
 
-  /*
-  mod.method("atomic_number", &get_atomic_number);
-  mod.method("atomic_number", &set_atomic_number);
-
-  mod.method("x",&get_x);
-  mod.method("x",&set_x);
-
-  mod.method("y",&get_y);
-  mod.method("y",&set_y);
-
-  mod.method("z",&get_z);
-  mod.method("z",&set_z);
-  */
   //-- shell information --//
   mod.add_type<libint2::Shell>("Shell")
     .method("create_shell", &create_shell);
   jlcxx::stl::apply_stl<libint2::Shell>(mod);
 
-  //mod.add_type<libint2::Shell::Contraction>("Contraction");
-
   //-- basis set information --//
   mod.add_type<libint2::BasisSet>("BasisSet");
 
   //-- engine information --//
-  mod.add_type<libint2::Engine>("LibIntEngine");
-  mod.add_type<Engine>("Engine")
+  //mod.add_type<libint2::Engine>("LibIntEngine");
+  mod.add_type<OEIEngine>("OEIEngine")
     .constructor<const std::vector<libint2::Atom>&, 
       const std::vector<std::vector<libint2::Shell> >& >()
-    .method("basis", &Engine::basis)
-    .method("compute_overlap_block", &Engine::compute_overlap_block)
-    .method("compute_kinetic_block", &Engine::compute_kinetic_block)
-    .method("compute_nuc_attr_block", &Engine::compute_nuc_attr_block);
+    .method("basis", &OEIEngine::basis)
+    .method("compute_overlap_block", &OEIEngine::compute_overlap_block)
+    .method("compute_kinetic_block", &OEIEngine::compute_kinetic_block)
+    .method("compute_nuc_attr_block", &OEIEngine::compute_nuc_attr_block);
 } 
