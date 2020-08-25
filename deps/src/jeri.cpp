@@ -1,5 +1,6 @@
 #include "jeri-core.hpp"
 #include "jeri-oei.hpp"
+//#include "jeri-tei.hpp"
 
 JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   //-- initialize/finalize functions --//
@@ -24,6 +25,8 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   mod.add_type<OEIEngine>("OEIEngine")
     .constructor<const std::vector<libint2::Atom>&, 
       const std::vector<std::vector<libint2::Shell> >& >()
+    .constructor<const std::vector<libint2::Atom>&,
+      const libint2::BasisSet&>() 
     .method("basis", &OEIEngine::basis)
     .method("compute_overlap_block", &OEIEngine::compute_overlap_block)
     .method("compute_kinetic_block", &OEIEngine::compute_kinetic_block)

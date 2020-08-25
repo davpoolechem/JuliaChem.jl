@@ -21,9 +21,25 @@ class OEIEngine {
   libint2::Engine m_nuc_attr_eng;
 
 public:
-  //-- ctors and dtors --//
-  OEIEngine(const std::vector<libint2::Atom> t_atoms, 
-    const std::vector<std::vector<libint2::Shell> > t_shells) 
+ //-- ctors and dtors --//
+  OEIEngine(const std::vector<libint2::Atom>& t_atoms, 
+    const libint2::BasisSet& t_basis_set) 
+    : m_basis_set(t_basis_set)
+  { 
+    m_overlap_eng = libint2::Engine(libint2::Operator::overlap, 
+      m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
+
+    m_kinetic_eng = libint2::Engine(libint2::Operator::kinetic, 
+      m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
+
+    m_nuc_attr_eng = libint2::Engine(libint2::Operator::nuclear, 
+      m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
+    m_nuc_attr_eng.set_params(libint2::make_point_charges(t_atoms));
+  }
+
+  OEIEngine(const std::vector<libint2::Atom>& t_atoms, 
+    const std::vector<std::vector<libint2::Shell> >& t_shells) 
+    : m_basis_set(t_atoms, t_shells, "", true)
   { 
   /*  
     std::cout << "ANALYZE ELEMENT BASES" << std::endl;
@@ -47,7 +63,6 @@ public:
       //std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
     }
     */
-    m_basis_set = libint2::BasisSet(t_atoms, t_shells, "", true);
     /*
     std::cout << "ANALYZE BASIS SET" << std::endl;
     for ( auto shell : m_basis_set ) {

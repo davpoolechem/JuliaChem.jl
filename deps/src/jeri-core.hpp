@@ -28,7 +28,7 @@ template<> struct jlcxx::IsMirroredType<std::vector<libint2::Atom> > :
   std::false_type { };
 
 libint2::Atom create_atom(julia_int t_atomic_number, double coords[3]) {
-  return libint2::Atom{ t_atomic_number, coords[0], coords[1], coords[2] };
+  return libint2::Atom{ static_cast<int>(t_atomic_number), coords[0], coords[1], coords[2] };
 }
 
 //---------------------------------//
@@ -50,7 +50,7 @@ libint2::Shell create_shell(julia_int ang_mom,
   for (int icoeff = 0; icoeff != t_coeffs.size(); ++icoeff)
     coeffs[icoeff] = t_coeffs[icoeff];
 
-  libint2::Shell::Contraction shell_contract{ ang_mom, false, { coeffs } };
+  libint2::Shell::Contraction shell_contract{ static_cast<int>(ang_mom), false, { coeffs } };
   libint2::svector<libint2::Shell::Contraction> shell_contract_vec(1);
   shell_contract_vec[0] = std::move(shell_contract);
 
