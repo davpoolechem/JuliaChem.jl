@@ -70,7 +70,7 @@ function run(molecule, model; output="none")
   end
 
   basis_set_shells = Vector{JCModules.Shell}([])
-  shells_cxx = StdVector{JERI.Shell}()
+  shells_cxx = StdVector([ StdVector{JERI.Shell}() for i in 1:55 ]) 
   
   basis_set_nels = -charge 
   basis_set_norb = 0
@@ -128,8 +128,8 @@ function run(molecule, model; output="none")
             new_shell_coeff[:,1],
             atom_center, 1, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells, new_shell)
-          push!(shells_cxx, JERI.create_shell(0, new_shell_exp,
-            new_shell_coeff[:,1], atom_center))
+          push!(shells_cxx[atomic_number+1], JERI.create_shell(0, StdVector(new_shell_exp),
+            StdVector(new_shell_coeff[:,1]), atom_center))
 
           basis_set_norb += 1 
           shell_id += 1
@@ -150,9 +150,8 @@ function run(molecule, model; output="none")
             new_shell_coeff[:,2],
             atom_center, 2, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
-          push!(shells_cxx, JERI.create_shell(1, new_shell_exp,
-            new_shell_coeff[:,1], atom_center))
-
+          push!(shells_cxx[atomic_number+1], JERI.create_shell(1, StdVector(new_shell_exp),
+            StdVector(new_shell_coeff[:,1]), atom_center))
 
           basis_set_norb += 3 
           shell_id += 1
@@ -175,8 +174,8 @@ function run(molecule, model; output="none")
             new_shell_coeff_array,
             atom_center, new_shell_am, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
-          push!(shells_cxx, JERI.create_shell(new_shell_am-1, new_shell_exp,
-            new_shell_coeff[:,1], atom_center))
+          push!(shells_cxx[atomic_number+1], JERI.create_shell(new_shell_am-1, StdVector(new_shell_exp),
+            StdVector(new_shell_coeff[:,1]), atom_center))
 
           basis_set_norb += new_shell.nbas
           shell_id += 1
@@ -186,6 +185,9 @@ function run(molecule, model; output="none")
           println(" ")
         end
       end
+      
+      #display(shells_cxx)
+
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
         println(" ")
         println(" ")
@@ -199,7 +201,8 @@ function run(molecule, model; output="none")
     basis_set_norb, basis_set_nels)                                       
 
   #== create integral engine ==#
-  jeri_engine = JERI.Engine(mol_cxx, model["basis"])
+  #display(shells_cxx); println()
+  jeri_engine = JERI.Engine(mol_cxx, shells_cxx) 
 
   #== set up shell pair ordering ==#
   #for ish in 1:length(basis_set.shells), jsh in 1:ish

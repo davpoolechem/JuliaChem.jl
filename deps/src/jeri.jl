@@ -10,7 +10,7 @@ module JERI
   end
 
   export Atom, create_atom 
-  export Shell, Contraction 
+  export Shell, create_shell 
   export BasisSet 
   export Engine, basis, compute_overlap_block, compute_kinetic_block, compute_nuc_attr_block
 end

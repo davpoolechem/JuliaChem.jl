@@ -49,16 +49,27 @@ double set_z(libint2::Atom& atom, double new_z) {
 //---------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::Shell> : std::false_type { };
 
-libint2::Shell create_shell(julia_int ang_mom, jlcxx::ArrayRef<double> t_exps,
-  jlcxx::ArrayRef<double> t_coeffs, double atom_center[3]) {
-  libint2::Shell new_shell{
-                            { exps },
-                            { ang_mom, false, {coeffs} },
-                            { atom_center[0], atom_center[1], atom_center[2] }
-                          };
+libint2::Shell create_shell(julia_int ang_mom, const std::vector<double>& t_exps,
+  const std::vector<double>& t_coeffs, double t_atom_center[3]) {
+
+  libint2::svector<double> exps(t_exps.size());
+  for (int iexp = 0; iexp != t_exps.size(); ++iexp)
+    exps[iexp] = t_exps[iexp];
+
+  libint2::svector<double> coeffs(t_coeffs.size());
+  for (int icoeff = 0; icoeff != t_coeffs.size(); ++icoeff)
+    coeffs[icoeff] = t_coeffs[icoeff];
+
+  libint2::Shell::Contraction shell_contract{ ang_mom, false, { coeffs } };
+  libint2::svector<libint2::Shell::Contraction> shell_contract_vec(1);
+  shell_contract_vec[0] = shell_contract;
+
+  std::array<double, 3> atom_center = { t_atom_center[0], t_atom_center[1],
+    t_atom_center[2] };
+
+  libint2::Shell new_shell(exps, shell_contract_vec, atom_center);
   return new_shell; 
 }
-
 
 //------------------------------------//
 //-- Map libint2::BasisSet to Julia --// 
@@ -80,20 +91,33 @@ class Engine {
 public:
   //-- ctors and dtors --//
   Engine() { initialize(); };
-  Engine(const std::vector<libint2::Atom>& t_atoms, const std::string& basis) 
-    : m_basis_set(basis, t_atoms) 
+  Engine(const std::vector<libint2::Atom>& t_atoms, 
+    const std::vector<std::vector<libint2::Shell> >& t_shells) 
   { 
     initialize();
     
-    //std::cout << "I SLEEP" << std::endl;
-    //sleep(15);
-    //std::cout << "REAL SHIT" << std::endl;
-    //const auto precision = std::numeric_limits<double>::epsilon();
-  
-    for ( auto shell : m_basis_set) std::cout << shell << std::endl;
+    /*
+    std::cout << "ANALYZE ELEMENT BASES" << std::endl;
+    for (libint2::Atom atom : t_atoms) {
+      auto Z = atom.atomic_number;
+      std::cout << "ATOMIC NUMBER: " << Z << std::endl;
+      std::cout << "SIZE: " << t_shells[Z].size() << std::endl;
+      
+      for (libint2::Shell shell : t_shells[Z]) {
+        std::cout << shell << std::endl;
+      }
+    }
+    */
 
-    std::cout << m_basis_set.max_nprim() << std::endl;
-    std::cout << m_basis_set.max_l() << std::endl;
+    std::cout << "ANALYZE BASIS SET" << std::endl;
+    m_basis_set = libint2::BasisSet(t_atoms, t_shells, "", true);
+    for ( auto shell : m_basis_set ) {
+      std::cout << shell << std::endl;
+    //  std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
+    }
+
+    //std::cout << m_basis_set.max_nprim() << std::endl;
+    //std::cout << m_basis_set.max_l() << std::endl;
 
     m_overlap_eng = libint2::Engine(libint2::Operator::overlap, 
       m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
@@ -173,13 +197,11 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   mod.method("z",&set_z);
   */
   //-- shell information --//
-  mod.add_type<libint2::Shell>("Shell");
-  //  .constructor()
-  //  .constructor<svector<double>, svector<libint2::Shell::Contraction>, 
-  //    std::array<double,3> >();
+  mod.add_type<libint2::Shell>("Shell")
+    .method("create_shell", &create_shell);
   jlcxx::stl::apply_stl<libint2::Shell>(mod);
 
-  mod.add_type<libint2::Shell::Contraction>("Contraction");
+  //mod.add_type<libint2::Shell::Contraction>("Contraction");
 
   //-- basis set information --//
   mod.add_type<libint2::BasisSet>("BasisSet");
@@ -187,7 +209,8 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   //-- engine information --//
   mod.add_type<libint2::Engine>("LibIntEngine");
   mod.add_type<Engine>("Engine")
-    .constructor<const std::vector<libint2::Atom>&, const std::string& >()
+    .constructor<const std::vector<libint2::Atom>&, 
+      const std::vector<std::vector<libint2::Shell> >& >()
     .method("basis", &Engine::basis)
     .method("compute_overlap_block", &Engine::compute_overlap_block)
     .method("compute_kinetic_block", &Engine::compute_kinetic_block)
