@@ -76,7 +76,7 @@ function compute_overlap(S::Matrix{Float64}, basis::Basis,
       iorb = apos + ibas
       jorb = bpos + jbas
       
-      println(S_block_SIMINT[idx], ", ", S_block_JERI[idx])
+      println(iorb,", ", jorb,": ", S_block_SIMINT[idx], ", ", S_block_JERI[idx])
       @assert isapprox(S_block_SIMINT[idx], S_block_JERI[idx]) 
 
       #S[max(iorb,jorb),min(iorb,jorb)] = S_block_SIMINT[idx]

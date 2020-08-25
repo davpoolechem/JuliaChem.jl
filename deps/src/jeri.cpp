@@ -91,11 +91,12 @@ class Engine {
 public:
   //-- ctors and dtors --//
   Engine() { initialize(); };
-  Engine(const std::vector<libint2::Atom>& t_atoms, 
-    const std::vector<std::vector<libint2::Shell> >& t_shells) 
+  Engine(const std::vector<libint2::Atom> t_atoms, 
+    const std::vector<std::vector<libint2::Shell> > t_shells) 
   { 
     initialize();
-    
+
+  /*  
     std::cout << "ANALYZE ELEMENT BASES" << std::endl;
     for (libint2::Atom atom : t_atoms) {
       auto Z = atom.atomic_number;
@@ -106,14 +107,15 @@ public:
         std::cout << shell << std::endl;
       }
     }
-/*
+    */
+
     std::cout << "ANALYZE BASIS SET" << std::endl;
     m_basis_set = libint2::BasisSet(t_atoms, t_shells, "", true);
     for ( auto shell : m_basis_set ) {
       std::cout << shell << std::endl;
       //std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
     }
-*/
+
     //std::cout << m_basis_set.max_nprim() << std::endl;
     //std::cout << m_basis_set.max_l() << std::endl;
 

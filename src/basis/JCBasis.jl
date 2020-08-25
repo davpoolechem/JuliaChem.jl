@@ -109,8 +109,6 @@ function run(molecule, model; output="none")
         new_shell_exp::Vector{Float64} = new_shell_dict["Exponents"]
         new_shell_coeff::Array{Float64} = new_shell_dict["Coefficients"]
 
-        #display(new_shell_coeff)
-
         #== if L shell, divide up ==# 
         if new_shell_am == -1
           #== s component ==#
@@ -128,6 +126,7 @@ function run(molecule, model; output="none")
             new_shell_coeff[:,1],
             atom_center, 1, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells, new_shell)
+          #display(new_shell_coeff[:,1])
           push!(shells_cxx[atomic_number+1], JERI.create_shell(0, StdVector(new_shell_exp),
             StdVector(new_shell_coeff[:,1]), atom_center))
 
@@ -150,8 +149,9 @@ function run(molecule, model; output="none")
             new_shell_coeff[:,2],
             atom_center, 2, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
+          #display(new_shell_coeff[:,2])
           push!(shells_cxx[atomic_number+1], JERI.create_shell(1, StdVector(new_shell_exp),
-            StdVector(new_shell_coeff[:,1]), atom_center))
+            StdVector(new_shell_coeff[:,2]), atom_center))
 
           basis_set_norb += 3 
           shell_id += 1
@@ -171,11 +171,11 @@ function run(molecule, model; output="none")
             (length(new_shell_coeff),))       
 
           new_shell = JCModules.Shell(shell_id, atom_idx, new_shell_exp, 
-            new_shell_coeff_array,
+            deepcopy(new_shell_coeff_array),
             atom_center, new_shell_am, size(new_shell_exp)[1], pos, true)
           push!(basis_set_shells,new_shell)
           push!(shells_cxx[atomic_number+1], JERI.create_shell(new_shell_am-1, StdVector(new_shell_exp),
-            StdVector(new_shell_coeff[:,1]), atom_center))
+            StdVector(new_shell_coeff_array), atom_center))
 
           basis_set_norb += new_shell.nbas
           shell_id += 1
