@@ -130,8 +130,7 @@ function run(molecule, model; output="none")
           #display(new_shell_coeff[:,1])
           if !shells_cxx_added[atomic_number+1]
             push!(shells_cxx[atomic_number+1], JERI.create_shell(0, 
-              StdVector(new_shell_exp),
-              StdVector(new_shell_coeff[:,1]), atom_center))
+              new_shell_exp, new_shell_coeff[:,1], atom_center))
           end
 
           basis_set_norb += 1 
@@ -156,8 +155,7 @@ function run(molecule, model; output="none")
           #display(new_shell_coeff[:,2])
           if !shells_cxx_added[atomic_number+1]
             push!(shells_cxx[atomic_number+1], JERI.create_shell(1, 
-              StdVector(new_shell_exp),
-              StdVector(new_shell_coeff[:,2]), atom_center))
+              new_shell_exp, new_shell_coeff[:,2], atom_center))
           end
 
           basis_set_norb += 3 
@@ -183,8 +181,7 @@ function run(molecule, model; output="none")
           push!(basis_set_shells,new_shell)
           if !shells_cxx_added[atomic_number+1]
             push!(shells_cxx[atomic_number+1], JERI.create_shell(new_shell_am-1, 
-              StdVector(new_shell_exp),
-              StdVector(new_shell_coeff_array), atom_center))
+              new_shell_exp, new_shell_coeff_array, atom_center))
           end 
 
           basis_set_norb += new_shell.nbas

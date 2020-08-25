@@ -22,8 +22,12 @@ libint2::Atom create_atom(julia_int t_atomic_number, double coords[3]) {
 //---------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::Shell> : std::false_type { };
 
-libint2::Shell create_shell(julia_int ang_mom, const std::vector<double>& t_exps,
-  const std::vector<double>& t_coeffs, double t_atom_center[3]) {
+//libint2::Shell create_shell(julia_int ang_mom, const std::vector<double>& t_exps,
+//  const std::vector<double>& t_coeffs, double t_atom_center[3]) {
+
+libint2::Shell create_shell(julia_int ang_mom, 
+  const jlcxx::ArrayRef<double> t_exps,
+  const jlcxx::ArrayRef<double> t_coeffs, double t_atom_center[3]) {
 
   libint2::svector<double> exps(t_exps.size());
   for (int iexp = 0; iexp != t_exps.size(); ++iexp)
