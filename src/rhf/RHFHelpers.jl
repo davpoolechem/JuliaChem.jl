@@ -139,6 +139,7 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
   basis::Basis, jeri_engine)
   
   #== define ncenter ==#
+  #=
   ncenter::Int64 = length(mol)
   
   Z = Vector{Float64}([])
@@ -152,7 +153,7 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
     push!(y, atom.atom_center[2])  
     push!(z, atom.atom_center[3])  
   end
-
+  =#
   for ash in 1:length(basis), bsh in 1:ash
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas

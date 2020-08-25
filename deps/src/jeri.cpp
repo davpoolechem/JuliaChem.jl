@@ -17,33 +17,6 @@ libint2::Atom create_atom(julia_int t_atomic_number, double coords[3]) {
   return libint2::Atom{ t_atomic_number, coords[0], coords[1], coords[2] };
 }
 
-/*
-julia_int get_atomic_number(const libint2::Atom& atom) { 
-  return atom.atomic_number; 
-}
-julia_int set_atomic_number(libint2::Atom& atom, julia_int new_an) { 
-  atom.atomic_number = new_an;
-  return get_atomic_number(atom); 
-}
-
-double get_x(const libint2::Atom& atom) { return atom.x; }
-double set_x(libint2::Atom& atom, double new_x) {
-  atom.x = new_x; 
-  return get_x(atom); 
-}
-
-double get_y(const libint2::Atom& atom) { return atom.y; }
-double set_y(libint2::Atom& atom, double new_y) {
-  atom.y = new_y; 
-  return get_y(atom); 
-}
-
-double get_z(const libint2::Atom& atom) { return atom.z; }
-double set_z(libint2::Atom& atom, double new_z) {
-  atom.z = new_z; 
-  return get_z(atom); 
-}
-*/
 //---------------------------------//
 //-- Map libint2::Shell to Julia --// 
 //---------------------------------//
@@ -62,13 +35,12 @@ libint2::Shell create_shell(julia_int ang_mom, const std::vector<double>& t_exps
 
   libint2::Shell::Contraction shell_contract{ ang_mom, false, { coeffs } };
   libint2::svector<libint2::Shell::Contraction> shell_contract_vec(1);
-  shell_contract_vec[0] = shell_contract;
+  shell_contract_vec[0] = std::move(shell_contract);
 
   std::array<double, 3> atom_center = { t_atom_center[0], t_atom_center[1],
     t_atom_center[2] };
 
-  libint2::Shell new_shell(exps, shell_contract_vec, atom_center);
-  return new_shell; 
+  return libint2::Shell(exps, shell_contract_vec, atom_center); 
 }
 
 //------------------------------------//
@@ -118,13 +90,15 @@ public:
       //std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
     }
     */
-    std::cout << "ANALYZE BASIS SET" << std::endl;
     m_basis_set = libint2::BasisSet(t_atoms, t_shells, "", true);
+    /*
+    std::cout << "ANALYZE BASIS SET" << std::endl;
     for ( auto shell : m_basis_set ) {
       std::cout << shell << std::endl;
       //std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
     }
-
+    */
+    
     //std::cout << m_basis_set.max_nprim() << std::endl;
     //std::cout << m_basis_set.max_l() << std::endl;
 
@@ -145,7 +119,6 @@ public:
 
   //-- setters and getters --//
   libint2::BasisSet basis() { return m_basis_set; }
-  //libint2::Engine engine() { return m_engine; }
 
   //-- member functions --//
   void compute_overlap_block(jlcxx::ArrayRef<double> S_block, julia_int ash, 
