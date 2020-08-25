@@ -16,32 +16,36 @@ typedef int64_t julia_int;
 class OEIEngine {
   libint2::BasisSet m_basis_set;
   
-  libint2::Engine m_kinetic_eng;
   libint2::Engine m_overlap_eng;
+  libint2::Engine m_kinetic_eng;
   libint2::Engine m_nuc_attr_eng;
 
 public:
- //-- ctors and dtors --//
+  //-- ctors and dtors --//
   OEIEngine(const std::vector<libint2::Atom>& t_atoms, 
     const libint2::BasisSet& t_basis_set) 
-    : m_basis_set(t_basis_set)
+    : m_basis_set(t_basis_set), 
+      m_overlap_eng(libint2::Operator::overlap, 
+        m_basis_set.max_nprim(),
+        m_basis_set.max_l(),
+        0),
+      m_kinetic_eng(libint2::Operator::kinetic, 
+        m_basis_set.max_nprim(),
+        m_basis_set.max_l(),
+        0),
+      m_nuc_attr_eng(libint2::Operator::nuclear, 
+        m_basis_set.max_nprim(),
+        m_basis_set.max_l(),
+        0)
   { 
-    m_overlap_eng = libint2::Engine(libint2::Operator::overlap, 
-      m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
-
-    m_kinetic_eng = libint2::Engine(libint2::Operator::kinetic, 
-      m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
-
-    m_nuc_attr_eng = libint2::Engine(libint2::Operator::nuclear, 
-      m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
-    m_nuc_attr_eng.set_params(libint2::make_point_charges(t_atoms));
+    m_nuc_attr_eng.set_params(libint2::make_point_charges(t_atoms)); 
   }
 
+  /*
   OEIEngine(const std::vector<libint2::Atom>& t_atoms, 
     const std::vector<std::vector<libint2::Shell> >& t_shells) 
     : m_basis_set(t_atoms, t_shells, "", true)
   { 
-  /*  
     std::cout << "ANALYZE ELEMENT BASES" << std::endl;
     for (libint2::Atom atom : t_atoms) {
       auto Z = atom.atomic_number;
@@ -52,8 +56,6 @@ public:
         std::cout << shell << std::endl;
       }
     }
-    */
-    /*
     std::cout << "ANALYZE ATOMS" << std::endl;
     for ( auto atom : t_atoms ) {
       std::cout << "{" << std::endl;
@@ -62,14 +64,11 @@ public:
       std::cout << "}" << std::endl << std::endl;
       //std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
     }
-    */
-    /*
     std::cout << "ANALYZE BASIS SET" << std::endl;
     for ( auto shell : m_basis_set ) {
       std::cout << shell << std::endl;
       //std::cout << "SHELL CONTRACT: " << shell.ncontr() << std::endl;
     }
-    */
     
     //std::cout << m_basis_set.max_nprim() << std::endl;
     //std::cout << m_basis_set.max_l() << std::endl;
@@ -86,11 +85,11 @@ public:
       m_basis_set.max_nprim(), m_basis_set.max_l(), 0);
     m_nuc_attr_eng.set_params(libint2::make_point_charges(t_atoms));
   }
+  */
 
   ~OEIEngine() { };
 
   //-- setters and getters --//
-  libint2::BasisSet basis() { return m_basis_set; }
 
   //-- member functions --//
   void compute_overlap_block(jlcxx::ArrayRef<double> S_block, julia_int ash, 

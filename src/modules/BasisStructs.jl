@@ -175,7 +175,7 @@ export ShQuartet
 =#
 struct Basis
   shells::Vector{Shell}
-  shells_cxx::StdVector{StdVector{JERI.Shell}}
+  basis_cxx::JERI.BasisSet
 
   model::String
   norb::Int64

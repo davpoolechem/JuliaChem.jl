@@ -205,8 +205,9 @@ function run(molecule, model; output="none")
 
   #sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
   #sort!(basis_set_shells, by = x->(x.atomic_number,x.atom_id))
-  
-  basis_set::Basis = Basis(basis_set_shells, shells_cxx, basis, 
+ 
+  basis_set_cxx = JERI.BasisSet(mol.mol_cxx, shells_cxx)
+  basis_set::Basis = Basis(basis_set_shells, basis_set_cxx, basis, 
     basis_set_norb, basis_set_nels)                                       
 
   #== set up shell pair ordering ==#

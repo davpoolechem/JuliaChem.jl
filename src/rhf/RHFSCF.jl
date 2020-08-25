@@ -54,7 +54,7 @@ function rhf_kernel(mol::Molecule,
   #== compute nuclear repulsion energy ==# 
   E_nuc = compute_enuc(mol)
   
-  jeri_oei_engine = JERI.OEIEngine(mol.mol_cxx, basis.shells_cxx) 
+  jeri_oei_engine = JERI.OEIEngine(mol.mol_cxx, basis.basis_cxx) 
   
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))
