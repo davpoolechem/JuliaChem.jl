@@ -113,7 +113,7 @@ function parse_all()
                       "6-311+G"        , "6-311+G*"          , "6-311+G**"    , "6-311+G*-J"  ,
                       "6-311++G"       , "6-311++G*"         , "6-311++G**"   , "6-311++G**-J",
                       "6-311G(d,p)"    , "6-311G(2df,2pd)"   , "6-311+G(2d,p)", 
-                      "6-311++G(2d,2p)" ] #pople family
+                      "6-311++G(2d,2p)", "6-311++G(3df,3pd)" ] #pople family
 
         for basis::String in basis_sets
             println("Basis: $basis")

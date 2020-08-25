@@ -299,6 +299,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   B_dim = 1
   D_rms = 1.0
   ΔE = 1.0 
+  cutoff = fdiff ? 5E-11 : 1E-10
 
   #length_eri_sizes = length(eri_sizes)
 
@@ -348,7 +349,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     workspace_a .= fock_build(workspace_b, D_input, H, basis, schwarz_bounds, Dsh, 
-      debug, load)
+      cutoff, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -455,7 +456,7 @@ H = One-electron Hamiltonian Matrix
 @inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  debug::Bool, load::String)
+  cutoff::Float64, debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
@@ -488,7 +489,7 @@ H = One-electron Hamiltonian Matrix
         fock_build_thread_kernel(F_priv, D,
           H, basis, eri_quartet_batch_priv, #mutex,
           ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
-          debug)
+          cutoff, debug)
       end
 
       lock(mutex)
@@ -585,7 +586,7 @@ H = One-electron Hamiltonian Matrix
             fock_build_thread_kernel(F_priv, D,
               H, basis, eri_quartet_batch_priv, #mutex,
               ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
-              debug)
+              cutoff, debug)
           end
 
           lock(mutex_mpi)
@@ -618,7 +619,7 @@ end
   eri_quartet_batch::Vector{Float64}, 
   ijkl_index::Int64,
   simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
-  Dsh::Matrix{Float64}, debug::Bool)
+  Dsh::Matrix{Float64}, cutoff::Float64, debug::Bool)
 
   comm=MPI.COMM_WORLD
   
@@ -667,7 +668,7 @@ end
   bound *= maxden
 
   #== fock build for significant shell quartets ==# 
-  if abs(bound) >= 1.0E-10 
+  if abs(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
       eri_quartet_batch, simint_workspace)
