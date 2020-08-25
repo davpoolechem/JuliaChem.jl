@@ -20,7 +20,7 @@ function minimal_rhf(input_file)
 
     #== perform scf calculation ==#
     rhf_energy = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
-      output="minimal") 
+      output="verbose") 
  
     #== perform gradient ==#
     rhf_gradient = JuliaChem.JCGrad.run(mol, basis; output="verbose")

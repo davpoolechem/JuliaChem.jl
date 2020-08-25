@@ -10,7 +10,7 @@ export Atom
 #== structure representing a molecule ==#
 struct Molecule
   atoms::Vector{Atom}
-  mol_cxx
+  mol_cxx::StdVector{JERI.Atom}
 end
 export Molecule 
 
