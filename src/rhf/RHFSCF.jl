@@ -54,7 +54,8 @@ function rhf_kernel(mol::Molecule,
   #== compute nuclear repulsion energy ==# 
   E_nuc = compute_enuc(mol)
   
-  jeri_oei_engine = JERI.OEIEngine(mol.mol_cxx, basis.basis_cxx) 
+  jeri_oei_engine = JERI.OEIEngine(mol.mol_cxx, 
+    basis.basis_cxx) 
   
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))
@@ -481,7 +482,8 @@ H = One-electron Hamiltonian Matrix
       max_am = max_ang_mom(basis) 
       eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
       simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-    
+      jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx)
+
       F_priv = zeros(size(F))
       while true 
         ijkl = Threads.atomic_sub!(thread_index_counter, stride) 
@@ -490,7 +492,8 @@ H = One-electron Hamiltonian Matrix
         
         fock_build_thread_kernel(F_priv, D,
           H, basis, eri_quartet_batch_priv, #mutex,
-          ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
+          ijkl, simint_workspace_priv, jeri_tei_engine_priv,
+          schwarz_bounds, Dsh,
           cutoff, debug)
       end
 
@@ -559,6 +562,7 @@ H = One-electron Hamiltonian Matrix
         max_am = max_ang_mom(basis) 
         eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
         simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx)
     
         F_priv = zeros(size(F))
         while true 
@@ -587,7 +591,8 @@ H = One-electron Hamiltonian Matrix
 
             fock_build_thread_kernel(F_priv, D,
               H, basis, eri_quartet_batch_priv, #mutex,
-              ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
+              ijkl, simint_workspace_priv, jeri_tei_engine_priv,
+              schwarz_bounds, Dsh,
               cutoff, debug)
           end
 
@@ -619,8 +624,8 @@ end
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::Basis, 
   eri_quartet_batch::Vector{Float64}, 
-  ijkl_index::Int64,
-  simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
+  ijkl_index::Int64, simint_workspace::Vector{Float64}, 
+  jeri_tei_engine, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, cutoff::Float64, debug::Bool)
 
   comm=MPI.COMM_WORLD
@@ -673,7 +678,7 @@ end
   if abs(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
-      eri_quartet_batch, simint_workspace)
+      eri_quartet_batch, simint_workspace, jeri_tei_engine)
 
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
@@ -686,22 +691,8 @@ end
   μsh::JCModules.Shell, νsh::JCModules.Shell, 
   λsh::JCModules.Shell, σsh::JCModules.Shell,
   eri_quartet_batch::Vector{Float64},
-  simint_workspace::Vector{Float64})
-
-  amμ = μsh.am
-  amν = νsh.am
-  amλ = λsh.am
-  amσ = σsh.am
-
-  #fill!(eri_quartet_batch, 0.0)
-  #ish = μsh.shell_id
-  #jsh = νsh.shell_id
-  #ksh = λsh.shell_id
-  #lsh = σsh.shell_id
-
-  #= actually compute integrals =#
-  SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
-    simint_workspace)
+  simint_workspace::Vector{Float64},
+  jeri_tei_engine)
 
   amμ = μsh.am
   amν = νsh.am
@@ -713,6 +704,19 @@ end
   nλ = λsh.nbas
   nσ = σsh.nbas
 
+  #fill!(eri_quartet_batch, 0.0)
+  #ish = μsh.shell_id
+  #jsh = νsh.shell_id
+  #ksh = λsh.shell_id
+  #lsh = σsh.shell_id
+
+  #= actually compute integrals =#
+  #SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
+  #  simint_workspace)
+
+  JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
+    ish, jsh, ksh, lsh, nμ*nν, nλ*nσ)
+  
   μνλσ = 0 
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
     μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
@@ -729,6 +733,10 @@ end
       σnorm = axial_norm_fact[σsize+1,amσ]
     
       λσnorm = λnorm*σnorm 
+      
+      #println(eri_quartet_batch[μνλσ], ", ", eri_quartet_batch_jeri[μνλσ])
+      #@assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_jeri[μνλσ], atol=1E-6)
+      
       eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
     end 
   end
