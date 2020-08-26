@@ -648,6 +648,13 @@ end
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
 
+  #if ish == 160 && jsh == 160 && ksh == 159 && lsh == 153
+  #  SIMINT.get_simint_shell_info(ish-1)
+  #  SIMINT.get_simint_shell_info(jsh-1)
+  #  SIMINT.get_simint_shell_info(ksh-1)
+  #  SIMINT.get_simint_shell_info(lsh-1)
+  #end
+
   μsh = basis[ish] 
   νsh = basis[jsh] 
   λsh = basis[ksh] 
@@ -675,7 +682,7 @@ end
   bound *= maxden
 
   #== fock build for significant shell quartets ==# 
-  if abs(bound) >= cutoff 
+  #if abs(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
       eri_quartet_batch, simint_workspace, jeri_tei_engine)
@@ -683,7 +690,7 @@ end
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
       μsh, νsh, λsh, σsh, debug)
-  end
+  #end
     #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
@@ -694,6 +701,9 @@ end
   simint_workspace::Vector{Float64},
   jeri_tei_engine)
 
+  #eri_quartet_batch_simint = deepcopy(eri_quartet_batch)
+
+  #println(ish, ",", jsh, ",", ksh, ",", lsh)
   amμ = μsh.am
   amν = νsh.am
   amλ = λsh.am
@@ -704,14 +714,14 @@ end
   nλ = λsh.nbas
   nσ = σsh.nbas
 
-  #fill!(eri_quartet_batch, 0.0)
+  fill!(eri_quartet_batch, 0.0)
   #ish = μsh.shell_id
   #jsh = νsh.shell_id
   #ksh = λsh.shell_id
   #lsh = σsh.shell_id
 
   #= actually compute integrals =#
-  #SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
+  #SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch_simint, 
   #  simint_workspace)
 
   JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
@@ -734,9 +744,12 @@ end
     
       λσnorm = λnorm*σnorm 
       
-      #println(eri_quartet_batch[μνλσ], ", ", eri_quartet_batch_jeri[μνλσ])
-      #@assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_jeri[μνλσ], atol=1E-6)
-      
+      #if ish == 160 && jsh == 160 && ksh == 159 && lsh == 153
+      #  println(eri_quartet_batch[μνλσ],",", eri_quartet_batch_simint[μνλσ])
+      #else 
+      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-6)
+      #end
+
       eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
     end 
   end
