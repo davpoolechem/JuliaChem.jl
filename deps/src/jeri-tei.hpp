@@ -38,8 +38,10 @@ public:
     m_coulomb_eng.compute2<libint2::Operator::coulomb, 
       libint2::BraKet::xx_xx, 0>(m_basis_set[ash-1], m_basis_set[bsh-1],
       m_basis_set[csh-1], m_basis_set[dsh-1]);
-    for (int i = 0; i != absize*cdsize; ++i) {
-      eri_block[i] = m_coulomb_eng.results()[0][i];
+    if (m_coulomb_eng.results()[0] != nullptr) {
+      for (int i = 0; i != absize*cdsize; ++i) {
+        eri_block[i] = m_coulomb_eng.results()[0][i];
+      }
     }
   }
 };

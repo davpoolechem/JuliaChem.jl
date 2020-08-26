@@ -16,18 +16,18 @@ function minimal_rhf(input_file)
     mol, basis = JuliaChem.JCBasis.run(molecule, model; 
       output="verbose")          
 
-    JuliaChem.JCMolecule.run(mol)
+    #JuliaChem.JCMolecule.run(mol)
 
     #== perform scf calculation ==#
     rhf_energy = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
       output="verbose") 
  
     #== perform gradient ==#
-    rhf_gradient = JuliaChem.JCGrad.run(mol, basis; output="verbose")
+    #rhf_gradient = JuliaChem.JCGrad.run(mol, basis; output="verbose")
 
     #== reset JuliaChem runtime ==#
     JuliaChem.reset()
-    return rhf_energy, rhf_gradient
+    return rhf_energy
   catch e                                                                       
     bt = catch_backtrace()                                                      
     msg = sprint(showerror, e, bt)                                              
