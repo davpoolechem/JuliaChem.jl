@@ -150,11 +150,11 @@ end
 
 function build_simint()
   directory = @__DIR__
-  SIMINT = ENV["SIMINT"] 
+  SIMINT = ENV["SIMINT_ROOT"] 
   CC = ENV["CC"] 
   CXX = ENV["CXX"] 
   run(`cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX 
-    -DSIMINT_PATH=$SIMINT $directory`)
+    -DSIMINT_ROOT=$SIMINT $directory`)
   run(`make`)  
 
   write_simint_jl(directory)

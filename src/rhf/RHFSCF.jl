@@ -648,7 +648,7 @@ end
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
 
-  #if ish == 160 && jsh == 160 && ksh == 159 && lsh == 153
+  #if ish == 40 && jsh == 26 && ksh == 8 && lsh == 8
   #  SIMINT.get_simint_shell_info(ish-1)
   #  SIMINT.get_simint_shell_info(jsh-1)
   #  SIMINT.get_simint_shell_info(ksh-1)
@@ -682,15 +682,15 @@ end
   bound *= maxden
 
   #== fock build for significant shell quartets ==# 
-  #if abs(bound) >= cutoff 
+  if abs(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
       eri_quartet_batch, simint_workspace, jeri_tei_engine)
 
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
-      μsh, νsh, λsh, σsh, debug)
-  #end
+      μsh, νsh, λsh, σsh, cutoff, debug)
+  end
     #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
@@ -701,8 +701,7 @@ end
   simint_workspace::Vector{Float64},
   jeri_tei_engine)
 
-  #eri_quartet_batch_simint = deepcopy(eri_quartet_batch)
-
+  #eri_quartet_batch_simint = similar(eri_quartet_batch)
   #println(ish, ",", jsh, ",", ksh, ",", lsh)
   amμ = μsh.am
   amν = νsh.am
@@ -714,7 +713,7 @@ end
   nλ = λsh.nbas
   nσ = σsh.nbas
 
-  fill!(eri_quartet_batch, 0.0)
+  #fill!(eri_quartet_batch, 0.0)
   #ish = μsh.shell_id
   #jsh = νsh.shell_id
   #ksh = λsh.shell_id
@@ -744,10 +743,11 @@ end
     
       λσnorm = λnorm*σnorm 
       
-      #if ish == 160 && jsh == 160 && ksh == 159 && lsh == 153
+      #if ish == 40 && jsh == 26 && ksh == 8 && lsh == 8
       #  println(eri_quartet_batch[μνλσ],",", eri_quartet_batch_simint[μνλσ])
+      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
       #else 
-      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-6)
+      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
       #end
 
       eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
@@ -771,7 +771,7 @@ end
   ksh::Int64, lsh::Int64, 
   μsh::JCModules.Shell, νsh::JCModules.Shell, 
   λsh::JCModules.Shell, σsh::JCModules.Shell,
-  debug::Bool)
+  cutoff::Float64, debug::Bool)
 
   norb = size(D,1)
   
@@ -822,7 +822,7 @@ end
   
       eri = eri_batch[μνλσ] 
    
-      if abs(eri) < 1.0E-10
+      if abs(eri) < cutoff
         #if do_continue_print println("CONTINUE SCREEN") end
         continue 
       end

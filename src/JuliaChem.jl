@@ -16,6 +16,7 @@ end
 #================================================#
 #== we want to precompile all involved modules ==#
 #================================================#
+#=
 if (isfile("../snoop/precompile_Base.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Base.jl")
     _precompile_()
@@ -80,3 +81,4 @@ if (isfile("../snoop/precompile_Zstd_jll.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Zstd_jll.jl")
     _precompile_()
 end
+=#

@@ -1,13 +1,6 @@
 CXX=g++
 
-EIGENROOT=/shared/eigen/3.3.4
-BOOSTROOT=/shared/boost/1.67.0
-LIBINTROOT=/export/home/david/programs/install/libint
-
-JULIAROOT=/export/home/david/programs/install/julia-1.5.0
-JLCXXROOT=/export/home/david/programs/install/cxxwrap-julia
-
-CXXFLAGS=-std=c++1z -O0 -g -I${EIGENROOT} -I${BOOSTROOT}/include -I'${JULIAROOT}/include/julia' -fPIC -L'${JULIAROOT}/lib' -Wl,--export-dynamic -Wl,-rpath,'${JULIAROOT}/lib' -Wl,-rpath,'${JULIAROOT}/lib/julia' -ljulia -I${JLCXXROOT}/include -L${JLCXXROOT}/lib -lcxxwrap_julia -L${LIBINTROOT}/lib -lint2 -shared -fPIC
+CXXFLAGS=-std=c++1z -O0 -g -I${EIGEN_ROOT} -I${BOOST_ROOT}/include -I'${JULIA_ROOT}/include/julia' -fPIC -L'${JULIA_ROOT}/lib' -Wl,--export-dynamic -Wl,-rpath,'${JULIA_ROOT}/lib' -Wl,-rpath,'${JULIA_ROOT}/lib/julia' -ljulia -I${JLCXX_ROOT}/include -L${JLCXX_ROOT}/lib -lcxxwrap_julia -L${LIBINT_ROOT}/lib -lint2 -shared -fPIC
 
 EXE=jeri
 

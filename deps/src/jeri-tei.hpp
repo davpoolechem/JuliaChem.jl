@@ -35,15 +35,15 @@ public:
     julia_int ash, julia_int bsh, julia_int csh, julia_int dsh, 
     julia_int absize, julia_int cdsize) 
   {
-    //if (ash == 160 && bsh == 160) {
-    //  if (csh == 159 && dsh == 153) {
+    //if (ash == 40 && bsh == 26) {
+    //  if (csh == 8 && dsh == 8) {
     //    std::cout << m_basis_set[ash-1] << std::endl;
     //    std::cout << m_basis_set[bsh-1] << std::endl;
     //    std::cout << m_basis_set[csh-1] << std::endl;
     //    std::cout << m_basis_set[dsh-1] << std::endl;
     //  }
-    //}
- 
+   // }
+
     m_coulomb_eng.compute2<libint2::Operator::coulomb, 
       libint2::BraKet::xx_xx, 0>(m_basis_set[ash-1], m_basis_set[bsh-1],
       m_basis_set[csh-1], m_basis_set[dsh-1]);

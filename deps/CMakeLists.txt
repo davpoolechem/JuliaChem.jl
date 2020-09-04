@@ -19,26 +19,22 @@ enable_language(C)
 ###################
 #= general flags =#
 ###################
-set(OPT "-Ofast -funroll-loops") 
+set(OPT "-O2") 
 if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
   set(OPT " -g -O0")
 endif(CMAKE_BUILD_TYPE STREQUAL DEBUG)
 
 set(CMAKE_C_FLAGS "${OPT} -std=c99 -fPIC")
 
-if(NOT DEFINED SIMINT_PATH)
-  set(SIMINT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/usr)
-endif()
-
 #################################
 #= set up actual build process =#
 #################################
-include_directories(${SIMINT_PATH}/include)
+include_directories(${SIMINT_ROOT}/include)
 
-if(EXISTS ${SIMINT_PATH}/lib64/libsimint.a)
-  set(SIMINT_LIB_PATH ${SIMINT_PATH}/lib64)
+if(EXISTS ${SIMINT_ROOT}/lib64/libsimint.a)
+  set(SIMINT_LIB_PATH ${SIMINT_ROOT}/lib64)
 else()
-  set(SIMINT_LIB_PATH ${SIMINT_PATH}/lib)
+  set(SIMINT_LIB_PATH ${SIMINT_ROOT}/lib)
 endif()
 
 link_directories(${SIMINT_LIB_PATH})
