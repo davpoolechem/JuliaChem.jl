@@ -482,7 +482,7 @@ H = One-electron Hamiltonian Matrix
       max_am = max_ang_mom(basis) 
       eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
       #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-      jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx)
+      jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
       F_priv = zeros(size(F))
       while true 
@@ -562,7 +562,8 @@ H = One-electron Hamiltonian Matrix
         max_am = max_ang_mom(basis) 
         eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
         #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx)
+        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
+          basis.shpdata_cxx)
     
         F_priv = zeros(size(F))
         while true 

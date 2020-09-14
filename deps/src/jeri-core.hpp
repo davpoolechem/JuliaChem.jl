@@ -65,4 +65,26 @@ libint2::Shell create_shell(julia_int ang_mom,
 //------------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::BasisSet> : std::false_type { };
 
+//-------------------------------------//
+//-- Map libint2::ShellPair to Julia --// 
+//-------------------------------------//
+template<> struct jlcxx::IsMirroredType<libint2::ShellPair> : 
+  std::false_type { };
+template<> struct jlcxx::IsMirroredType<std::vector<libint2::ShellPair> > : 
+  std::false_type { };
+
+void precompute_shell_pair_data(std::vector<libint2::ShellPair>& shpdata,
+  const libint2::BasisSet& basis_set) {
+
+  int nshells = basis_set.size();
+
+  for (int ash = 0; ash != nshells; ++ash) {
+    for (int bsh = 0; bsh <= ash; ++bsh) {
+      shpdata.emplace_back(libint2::ShellPair(
+        basis_set[ash], basis_set[bsh],
+        std::log(std::numeric_limits<double>::epsilon()/1e10)));
+    }
+  }
+}
+
 #endif /* JERI_CORE_H */

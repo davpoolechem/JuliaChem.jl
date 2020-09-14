@@ -176,6 +176,7 @@ export ShQuartet
 struct Basis
   shells::Vector{Shell}
   basis_cxx::JERI.BasisSet
+  shpdata_cxx::StdVector{JERI.ShellPair}
 
   model::String
   norb::Int64

@@ -21,7 +21,12 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   mod.add_type<libint2::BasisSet>("BasisSet")
     .constructor<const std::vector<libint2::Atom>&, 
       const std::vector<std::vector<libint2::Shell> >& >();
-    
+   
+  //-- shell pair information --//
+  mod.add_type<libint2::ShellPair>("ShellPair");
+  jlcxx::stl::apply_stl<libint2::ShellPair>(mod);
+  mod.method("precompute_shell_pair_data", &precompute_shell_pair_data);
+ 
   //-- oei engine information --//
   //mod.add_type<libint2::Engine>("LibIntEngine");
   mod.add_type<OEIEngine>("OEIEngine")
@@ -36,7 +41,8 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
 
   //-- tei engine information --//
   mod.add_type<TEIEngine>("TEIEngine")
-    .constructor<libint2::BasisSet&>() 
+    .constructor<const libint2::BasisSet&, 
+      const std::vector<libint2::ShellPair>& >() 
     .method("compute_eri_block", &TEIEngine::compute_eri_block);
 } 
 
