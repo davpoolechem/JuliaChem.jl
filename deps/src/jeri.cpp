@@ -36,7 +36,7 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
 
   //-- tei engine information --//
   mod.add_type<TEIEngine>("TEIEngine")
-    .constructor<const libint2::BasisSet&>() 
+    .constructor<libint2::BasisSet&>() 
     .method("compute_eri_block", &TEIEngine::compute_eri_block);
 } 
 

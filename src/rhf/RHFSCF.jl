@@ -481,7 +481,7 @@ H = One-electron Hamiltonian Matrix
     Threads.@threads for thread in 1:Threads.nthreads() 
       max_am = max_ang_mom(basis) 
       eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-      simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+      #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
       jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx)
 
       F_priv = zeros(size(F))
@@ -492,7 +492,7 @@ H = One-electron Hamiltonian Matrix
         
         fock_build_thread_kernel(F_priv, D,
           H, basis, eri_quartet_batch_priv, #mutex,
-          ijkl, simint_workspace_priv, jeri_tei_engine_priv,
+          ijkl, jeri_tei_engine_priv,
           schwarz_bounds, Dsh,
           cutoff, debug)
       end
@@ -561,7 +561,7 @@ H = One-electron Hamiltonian Matrix
 
         max_am = max_ang_mom(basis) 
         eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-        simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+        #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
         jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx)
     
         F_priv = zeros(size(F))
@@ -591,7 +591,7 @@ H = One-electron Hamiltonian Matrix
 
             fock_build_thread_kernel(F_priv, D,
               H, basis, eri_quartet_batch_priv, #mutex,
-              ijkl, simint_workspace_priv, jeri_tei_engine_priv,
+              ijkl, jeri_tei_engine_priv,
               schwarz_bounds, Dsh,
               cutoff, debug)
           end
@@ -624,7 +624,7 @@ end
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::Basis, 
   eri_quartet_batch::Vector{Float64}, 
-  ijkl_index::Int64, simint_workspace::Vector{Float64}, 
+  ijkl_index::Int64, 
   jeri_tei_engine, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, cutoff::Float64, debug::Bool)
 
@@ -685,7 +685,7 @@ end
   if abs(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
-      eri_quartet_batch, simint_workspace, jeri_tei_engine)
+      eri_quartet_batch, jeri_tei_engine)
 
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
@@ -698,7 +698,6 @@ end
   μsh::JCModules.Shell, νsh::JCModules.Shell, 
   λsh::JCModules.Shell, σsh::JCModules.Shell,
   eri_quartet_batch::Vector{Float64},
-  simint_workspace::Vector{Float64},
   jeri_tei_engine)
 
   #eri_quartet_batch_simint = similar(eri_quartet_batch)
