@@ -198,7 +198,6 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
 
   max_am = max_ang_mom(basis) 
   eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-  #simint_workspace = Vector{Float64}(undef,get_workmem(0,max_am-1))
   jeri_schwarz_engine = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
   for ash in 1:nsh, bsh in 1:ash
@@ -206,9 +205,10 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
-  
+    abshp = triangular_index(ash, bsh)
+ 
     JERI.compute_eri_block(jeri_schwarz_engine, eri_quartet_batch, 
-      ash, bsh, ash, bsh, abas*bbas, abas*bbas)
+      ash, bsh, ash, bsh, abshp, abshp, abas*bbas, abas*bbas)
  
     schwarz_bounds[ash, bsh] = sqrt(maximum(abs.(eri_quartet_batch)) )
   end

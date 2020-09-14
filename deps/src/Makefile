@@ -1,6 +1,6 @@
 CXX=g++
 
-CXXFLAGS=-std=c++1z -O0 -g -I${EIGEN_ROOT} -I${BOOST_ROOT}/include -I'${JULIA_ROOT}/include/julia' -fPIC -L'${JULIA_ROOT}/lib' -Wl,--export-dynamic -Wl,-rpath,'${JULIA_ROOT}/lib' -Wl,-rpath,'${JULIA_ROOT}/lib/julia' -ljulia -I${JLCXX_ROOT}/include -L${JLCXX_ROOT}/lib -lcxxwrap_julia -L${LIBINT_ROOT}/lib -lint2 -shared -fPIC
+CXXFLAGS=-std=c++1z -O3 -ffast-math -I${EIGEN_ROOT} -I${BOOST_ROOT}/include -I'${JULIA_ROOT}/include/julia' -fPIC -L'${JULIA_ROOT}/lib' -Wl,--export-dynamic -Wl,-rpath,'${JULIA_ROOT}/lib' -Wl,-rpath,'${JULIA_ROOT}/lib/julia' -ljulia -I${JLCXX_ROOT}/include -L${JLCXX_ROOT}/lib -lcxxwrap_julia -L${LIBINT_ROOT}/lib -lint2 -shared -fPIC
 
 EXE=jeri
 

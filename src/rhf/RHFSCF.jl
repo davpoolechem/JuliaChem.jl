@@ -685,7 +685,7 @@ end
   #== fock build for significant shell quartets ==# 
   if abs(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
-    compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
+    compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, μsh, νsh, λsh, σsh,
       eri_quartet_batch, jeri_tei_engine)
 
     #== contract ERIs into Fock matrix ==#
@@ -696,6 +696,7 @@ end
 end
 
 @inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64, 
+  bra_pair::Int64, ket_pair::Int64, 
   μsh::JCModules.Shell, νsh::JCModules.Shell, 
   λsh::JCModules.Shell, σsh::JCModules.Shell,
   eri_quartet_batch::Vector{Float64},
@@ -724,7 +725,7 @@ end
   #  simint_workspace)
 
   JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
-    ish, jsh, ksh, lsh, nμ*nν, nλ*nσ)
+    ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ*nν, nλ*nσ)
   
   μνλσ = 0 
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)

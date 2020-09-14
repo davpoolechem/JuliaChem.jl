@@ -43,6 +43,7 @@ public:
   //-- member functions --//
   void compute_eri_block(jlcxx::ArrayRef<double> eri_block, 
     julia_int ash, julia_int bsh, julia_int csh, julia_int dsh, 
+    julia_int bra_idx, julia_int ket_idx,
     julia_int absize, julia_int cdsize) 
   {
     //if (ash == 40 && bsh == 26) {
@@ -54,9 +55,6 @@ public:
     //  }
    // }
 
-    int ab_idx = (ash*(ash-1)/2) + (bsh-1);
-    int cd_idx = (csh*(csh-1)/2) + (dsh-1);
-
     //assert(ash >= bsh);
     //assert(csh >= dsh);
     //assert(ab_idx >= cd_idx);
@@ -67,7 +65,7 @@ public:
     m_coulomb_eng.compute2<libint2::Operator::coulomb, 
       libint2::BraKet::xx_xx, 0>((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1],
       (*m_basis_set)[csh-1], (*m_basis_set)[dsh-1],
-      &m_shellpair_data[ab_idx], &m_shellpair_data[cd_idx]);
+      &m_shellpair_data[bra_idx-1], &m_shellpair_data[ket_idx-1]);
       
     //assert(m_coulomb_eng.results()[0] != nullptr); 
     if (m_coulomb_eng.results()[0] != nullptr) {
