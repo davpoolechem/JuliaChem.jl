@@ -24,6 +24,8 @@ install:
 - export BOOST_ROOT=/home/travis/boost-install
 - ./tools/travis-install-libint.sh
 - export LIBINT_ROOT=/home/travis/libint-install
+#- ./tools/travis-install-jlcxx.sh
+#- export LIBINT_ROOT=/home/travis/libint-install
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
