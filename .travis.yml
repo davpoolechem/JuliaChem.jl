@@ -6,6 +6,8 @@ codecov: true
 coveralls: true 
 
 install: 
+- export CC=gcc
+- export CXX=g++
 - export JULIA_NUM_THREADS=2
 #- ./tools/travis-install-openmpi.sh
 #- export MPIROOT=/home/travis/openmpi
@@ -16,10 +18,10 @@ install:
 #- export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
 #- export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
 #- export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
-- ./tools/travis-install-simint.sh
-- export SIMINT=/home/travis/simint-install
-- export CC=gcc
-- export CXX=g++
+- ./tools/travis-install-libint.sh
+- export EIGEN_ROOT=/home/travis/eigen-install/include/eigen3
+- export BOOST_ROOT=/home/travis/boost-install
+- export LIBINT_ROOT=/home/travis/libint-install
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
