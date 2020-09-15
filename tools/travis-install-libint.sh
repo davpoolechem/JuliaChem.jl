@@ -6,6 +6,9 @@ git clone --quiet https://github.com/evaleev/libint.git
 
 #== install libint ==#
 cd libint
-./configure CPPFLAGS="-I$EIGEN_ROOT/include" --with-boost=$BOOST_ROOT --enable-shared=yes --prefix=/home/travis/libint-install
+./configure \
+  --enable-shared=yes --prefix=/home/travis/libint-install \
+  --enable-1body=0 --enable-eri=0 --with-max-am=3
 make -j2 -s
-make -j2 install
+sed -i "s/install_cmake //g" Makefile
+make -j2 -s install

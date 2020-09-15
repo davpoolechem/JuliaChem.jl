@@ -27,12 +27,36 @@ install:
 #- export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
 - ./tools/travis-install-eigen.sh
 - export EIGEN_ROOT=/home/travis/eigen-install/include/eigen3
+- export PATH=$EIGEN_ROOT/bin:$PATH
+- export LIBRARY_PATH=$EIGEN_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$EIGEN_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$EIGEN_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$EIGEN_ROOT:$CPATH
+- export INCLUDEPATH=$EIGEN_ROOT:$INCLUDEPATH
 - ./tools/travis-install-boost.sh
 - export BOOST_ROOT=/home/travis/boost-install
+- export PATH=$BOOST_ROOT/bin:$PATH
+- export LIBRARY_PATH=$BOOST_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$BOOST_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$BOOST_ROOT/include:$CPATH
+- export INCLUDEPATH=$BOOST_ROOT/include:$INCLUDEPATH
 - ./tools/travis-install-libint.sh
 - export LIBINT_ROOT=/home/travis/libint-install
+- export PATH=$LIBINT_ROOT/bin:$PATH
+- export LIBRARY_PATH=$LIBINT_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$LIBINT_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$LIBINT_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$LIBINT_ROOT/include:$CPATH
+- export INCLUDEPATH=$LIBINT_ROOT/include:$INCLUDEPATH
 - ./tools/travis-install-jlcxx.sh
 - export JLCXX_ROOT=/home/travis/jlcxx-install
+- export PATH=$JLCXX_ROOT/bin:$PATH
+- export LIBRARY_PATH=$JLCXX_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$JLCXX_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$JLCXX_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$JLCXX_ROOT/include:$CPATH
+- export INCLUDEPATH=$JLCXX_ROOT/include:$INCLUDEPATH
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
