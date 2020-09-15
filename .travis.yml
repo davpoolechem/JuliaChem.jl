@@ -18,9 +18,11 @@ install:
 #- export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
 #- export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
 #- export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
-- ./tools/travis-install-libint.sh
+- ./tools/travis-install-eigen.sh
 - export EIGEN_ROOT=/home/travis/eigen-install/include/eigen3
+- ./tools/travis-install-boost.sh
 - export BOOST_ROOT=/home/travis/boost-install
+- ./tools/travis-install-libint.sh
 - export LIBINT_ROOT=/home/travis/libint-install
 
 script:
