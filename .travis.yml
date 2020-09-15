@@ -33,7 +33,7 @@ install:
 - export LD_RUN_PATH=$EIGEN_ROOT/lib:$LD_RUN_PATH
 - export CPATH=$EIGEN_ROOT:$CPATH
 - export INCLUDEPATH=$EIGEN_ROOT:$INCLUDEPATH
-- ./tools/travis-install-boost.sh
+- travis_wait 20 ./tools/travis-install-boost.sh
 - export BOOST_ROOT=/home/travis/boost-install
 - export PATH=$BOOST_ROOT/bin:$PATH
 - export LIBRARY_PATH=$BOOST_ROOT/lib:$LIBRARY_PATH
