@@ -3,7 +3,7 @@
 #== download eigen ==#
 cd /home/travis 
 wget https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
-tar -xzvf eigen-3.3.7.tar.gz
+tar -xzf eigen-3.3.7.tar.gz
 
 #== install eigen ==#
 cd eigen-3.3.7
@@ -15,7 +15,7 @@ make -j2 install
 #== download boost ==#
 cd /home/travis
 wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.gz
-tar -xzvf boost_1_74_0.tar.gz
+tar -xzf boost_1_74_0.tar.gz
 
 #== install boost ==#
 cd boost_1_74_0
