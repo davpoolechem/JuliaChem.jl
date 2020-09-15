@@ -14,7 +14,7 @@ make -j2 install
 
 #== download boost ==#
 cd /home/travis
-get https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.gz
+wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.gz
 tar -xzvf boost_1_74_0.tar.gz
 
 #== install boost ==#
