@@ -5,20 +5,14 @@ julia:
 codecov: true 
 coveralls: true 
 
-matrix:
-  include:
-  - os: linux
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        packages:
-        - gcc-7
-  
-install: 
+before_install:
+- sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test" 
+- sudo -E apt-get -yq --no-install-suggests --no-install-recommends $(travis_apt_get_options) install gcc-7 
+
+install:
 - export JULIA_ROOT=/home/travis/julia
-- export CC=gcc
-- export CXX=g++
+- export CC=gcc-7
+- export CXX=g++-7
 - export JULIA_NUM_THREADS=2
 #- ./tools/travis-install-openmpi.sh
 #- export MPIROOT=/home/travis/openmpi
