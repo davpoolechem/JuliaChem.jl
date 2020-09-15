@@ -6,8 +6,10 @@ codecov: true
 coveralls: true 
 
 before_install:
-- sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test" 
-- sudo -E apt-get -yq --no-install-suggests --no-install-recommends $(travis_apt_get_options) install gcc-7 
+- sudo apt-get install -y software-properties-common
+- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- sudo apt update
+- sudo apt install g++-7 -y
 
 install:
 - export JULIA_ROOT=/home/travis/julia
