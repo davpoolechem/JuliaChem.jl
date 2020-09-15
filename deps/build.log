@@ -1,2 +1,38 @@
-g++ -std=c++1z -O3 -ffast-math -I/shared/eigen/3.3.4 -I/shared/boost/1.67.0/include -I'/export/home/david/programs/install/julia-1.5.0/include/julia' -fPIC -L'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,--export-dynamic -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib/julia' -ljulia -I/export/home/david/programs/install/cxxwrap-julia/include -L/export/home/david/programs/install/cxxwrap-julia/lib -lcxxwrap_julia -L/export/home/david/programs/install/libint/lib -lint2 -shared -fPIC -c src/jeri.cpp 
-g++ -std=c++1z -O3 -ffast-math -I/shared/eigen/3.3.4 -I/shared/boost/1.67.0/include -I'/export/home/david/programs/install/julia-1.5.0/include/julia' -fPIC -L'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,--export-dynamic -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib' -Wl,-rpath,'/export/home/david/programs/install/julia-1.5.0/lib/julia' -ljulia -I/export/home/david/programs/install/cxxwrap-julia/include -L/export/home/david/programs/install/cxxwrap-julia/lib -lcxxwrap_julia -L/export/home/david/programs/install/libint/lib -lint2 -shared -fPIC src/jeri.o -o libjeri.so
+clang++ -std=c++1z -O3 -ffast-math -fPIC  -c src/jeri.cpp 
+In file included from src/jeri.cpp:1:
+In file included from src/jeri-core.hpp:4:
+In file included from /export/home/david/programs/install/libint/include/libint2.hpp:24:
+In file included from /export/home/david/programs/install/libint/include/libint2/cxxapi.h:38:
+/export/home/david/programs/install/libint/include/libint2/basis.h:377:14: error: no type named 'error_code' in namespace 'std'
+        std::error_code ec;
+        ~~~~~^
+/export/home/david/programs/install/libint/include/libint2/basis.h:384:25: error: no member named 'error_code' in namespace 'std'
+              ec = std::error_code(errno, std::generic_category());
+                   ~~~~~^
+/export/home/david/programs/install/libint/include/libint2/basis.h:384:48: error: no member named 'generic_category' in namespace 'std'
+              ec = std::error_code(errno, std::generic_category());
+                                          ~~~~~^
+/export/home/david/programs/install/libint/include/libint2/basis.h:394:22: error: no member named 'system_error' in namespace 'std'
+          throw std::system_error(ec, oss.str());
+                ~~~~~^
+In file included from src/jeri.cpp:1:
+In file included from src/jeri-core.hpp:4:
+In file included from /export/home/david/programs/install/libint/include/libint2.hpp:24:
+In file included from /export/home/david/programs/install/libint/include/libint2/cxxapi.h:41:
+In file included from /export/home/david/programs/install/libint/include/libint2/engine.h:53:
+/export/home/david/programs/install/libint/include/libint2/util/any.h:47:11: fatal error: 'any' file not found
+# include <any>
+          ^~~~~
+5 errors generated.
+make: *** [jeri] Error 1
+ERROR: LoadError: failed process: Process(`make`, ProcessExited(2)) [2]
+
+Stacktrace:
+ [1] pipeline_error at ./process.jl:525 [inlined]
+ [2] run(::Cmd; wait::Bool) at ./process.jl:440
+ [3] run at ./process.jl:438 [inlined]
+ [4] build_jeri() at /export/home/david/projects/Julia/JuliaChem.jl/deps/build.jl:3
+ [5] top-level scope at /export/home/david/projects/Julia/JuliaChem.jl/deps/build.jl:6
+ [6] include(::String) at ./client.jl:457
+ [7] top-level scope at none:5
+in expression starting at /export/home/david/projects/Julia/JuliaChem.jl/deps/build.jl:6

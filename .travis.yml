@@ -67,6 +67,7 @@ install:
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
 - julia -E "using Pkg; Pkg.build(\"JuliaChem\")"
+- cat /home/travis/build/davpoolechem/JuliaChem.jl/deps/build.log
 #- cat ~/.julia/packages/MPI/z1lDn/deps/build.log
 #- cd deps && julia build.jl && cd ../
 - julia --code-coverage test/runtests-travis.jl
