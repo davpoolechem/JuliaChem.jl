@@ -25,8 +25,6 @@ function minimal_rhf(input_file)
     #== perform gradient ==#
     #rhf_gradient = JuliaChem.JCGrad.run(mol, basis; output="verbose")
 
-    #== reset JuliaChem runtime ==#
-    JuliaChem.reset()
     return rhf_energy
   catch e                                                                       
     bt = catch_backtrace()                                                      

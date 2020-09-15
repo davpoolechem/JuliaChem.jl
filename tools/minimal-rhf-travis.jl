@@ -20,8 +20,6 @@ function travis_rhf(input_file)
     #== perform scf calculation ==#
     scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; output="verbose") 
   
-    #== reset JuliaChem runtime ==#
-    JuliaChem.reset()
     return scf
   catch e                                                                       
     bt = catch_backtrace()                                                      

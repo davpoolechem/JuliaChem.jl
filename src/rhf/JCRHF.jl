@@ -7,7 +7,6 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-using JuliaChem.SIMINT
 using JuliaChem.JCModules
 using JuliaChem.JERI
 
@@ -61,23 +60,6 @@ function run(mol::Molecule, basis::Basis,
     println("                                  HARTREE-FOCK ENERGY                           ")
     println("                       ========================================                 ")
     println("")
-  end
-
-  #== set up eris ==#
-  if scf_flags["direct"] == true
-    nshell_simint = SIMINT.allocate_shell_array(basis)
-    for shell in basis
-      SIMINT.add_shell(shell)
-    end
-
-    SIMINT.precompute_shell_pair_data()
-
-    #for ishell::Int64 in 0:(nshell_simint-1)
-    #  SIMINT.get_simint_shell_info(ishell)
-    #end
-  else
-    println("Reading integrals from disk is not implemented yet!")
-    throw()
   end
 
   #== actually perform scf calculation ==#

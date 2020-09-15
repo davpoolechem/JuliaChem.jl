@@ -5,7 +5,6 @@
 """
 module JCGrad
 
-using JuliaChem.SIMINT
 using JuliaChem.JCModules
 
 using MPI

@@ -649,13 +649,6 @@ end
   ksh = decompose(ket_pair)
   lsh = ket_pair - triangular_index(ksh)
 
-  #if ish == 40 && jsh == 26 && ksh == 8 && lsh == 8
-  #  SIMINT.get_simint_shell_info(ish-1)
-  #  SIMINT.get_simint_shell_info(jsh-1)
-  #  SIMINT.get_simint_shell_info(ksh-1)
-  #  SIMINT.get_simint_shell_info(lsh-1)
-  #end
-
   μsh = basis[ish] 
   νsh = basis[jsh] 
   λsh = basis[ksh] 
@@ -721,9 +714,6 @@ end
   #lsh = σsh.shell_id
 
   #= actually compute integrals =#
-  #SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch_simint, 
-  #  simint_workspace)
-
   JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
     ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ*nν, nλ*nσ)
   

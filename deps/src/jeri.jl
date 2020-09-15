@@ -3,7 +3,7 @@ using CxxWrap
 module JERI
   using CxxWrap
 
-  @wrapmodule joinpath(@__DIR__,"libjeri.so") :define_jeri
+  @wrapmodule joinpath(@__DIR__,"../libjeri.so") :define_jeri
 
   function __init__()
     @initcxx
