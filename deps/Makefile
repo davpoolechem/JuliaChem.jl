@@ -8,6 +8,7 @@ all: $(EXE)
 
 jeri: src/jeri.cpp
 	$(CXX) $(CXXFLAGS) -c src/jeri.cpp 
+	mv jeri.o src/
 	$(CXX) $(CXXFLAGS) src/jeri.o -o libjeri.so
 
 .PHONY: clean
