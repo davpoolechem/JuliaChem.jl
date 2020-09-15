@@ -5,7 +5,18 @@ julia:
 codecov: true 
 coveralls: true 
 
+matrix:
+  include:
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - gcc-7
+  
 install: 
+- export JULIA_ROOT=/home/travis/julia
 - export CC=gcc
 - export CXX=g++
 - export JULIA_NUM_THREADS=2
@@ -24,8 +35,8 @@ install:
 - export BOOST_ROOT=/home/travis/boost-install
 - ./tools/travis-install-libint.sh
 - export LIBINT_ROOT=/home/travis/libint-install
-#- ./tools/travis-install-jlcxx.sh
-#- export LIBINT_ROOT=/home/travis/libint-install
+- ./tools/travis-install-jlcxx.sh
+- export JLCXX_ROOT=/home/travis/jlcxx-install
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
