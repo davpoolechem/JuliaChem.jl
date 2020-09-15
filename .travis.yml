@@ -13,6 +13,12 @@ before_install:
 
 install:
 - export JULIA_ROOT=/home/travis/julia
+- export PATH=$JULIA_ROOT/bin:$PATH
+- export LIBRARY_PATH=$JULIA_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$JULIA_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$JULIA_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$JULIA_ROOT/include/julia:$CPATH
+- export INCLUDEPATH=$JULIA_ROOT/include/julia:$INCLUDEPATH
 - export CC=gcc-7
 - export CXX=g++-7
 - export JULIA_NUM_THREADS=2

@@ -15,8 +15,8 @@ echo "< endif" >> Makefile.patch
 echo "< " >> Makefile.patch
 echo "< ifdef cmakedir" >> Makefile.patch
 echo "< install_cmake::" >> Makefile.patch
-echo "<   \$(INSTALL) \$(INSTALLDIROPT) \$(DESTDIR)\$(cmakedir)" >> Makefile.patch
-echo "<   \$(INSTALL) \$(INSTALLLIBOPT) \$(SRCTOPDIR)/FindLibint2.cmake \$(DESTDIR)\$(cmakedir)" >> Makefile.patch
+echo -e "< \t\$(INSTALL) \$(INSTALLDIROPT) \$(DESTDIR)\$(cmakedir)" >> Makefile.patch
+echo -e "< \t\$(INSTALL) \$(INSTALLLIBOPT) \$(SRCTOPDIR)/FindLibint2.cmake \$(DESTDIR)\$(cmakedir)" >> Makefile.patch
 patch Makefile Makefile.patch
 
 cd src/lib
@@ -33,8 +33,8 @@ echo "< endif" >> MakeRules.in.patch
 echo "< " >> MakeRules.in.patch
 echo "< ifdef cmakedir" >> MakeRules.in.patch
 echo "< install_cmake::" >> MakeRules.in.patch
-echo "<       \$(INSTALL) \$(INSTALLDIROPT) \$(DESTDIR)\$(cmakedir)" >> MakeRules.in.patch
-echo "<       \$(INSTALL) \$(INSTALLLIBOPT) \$(SRCTOPDIR)/FindLibint2.cmake \$(DESTDIR)\$(cmakedir)" >> MakeRules.in.patch
+echo -e "< \t\$(INSTALL) \$(INSTALLDIROPT) \$(DESTDIR)\$(cmakedir)" >> MakeRules.in.patch
+echo -e "< \t\$(INSTALL) \$(INSTALLLIBOPT) \$(SRCTOPDIR)/FindLibint2.cmake \$(DESTDIR)\$(cmakedir)" >> MakeRules.in.patch
 patch MakeRules.in MakeRules.in.patch
 
 #== install libint ==#
