@@ -1,0 +1,7 @@
+ARPA-libint-vs-simint: Benchmark data comparing libint and simint 
+  implementations; unused in formal work as of now
+S22-GAMESS-vs-JuliaChem-Original-Paper: Benchmark data used for
+  original JCTC paper
+S22-GAMESS-vs-JuliaChem-Scaling: Benchmark data used for SC20 paper/June 2020 
+  group meeting
+
