@@ -13,11 +13,10 @@ If you are simply interested in using JuliaChem.jl for your calculations, you
 can build JuliaChem.jl as follows.
 
 1. Install the dependencies. There are four external dependencies upon which JuliaChem.jl relies:
-
-a. Eigen
-b. Boost
-c. LibInt
-d. libcxxwrap-julia
+  1. Eigen
+  2. Boost
+  3. LibInt
+  4. libcxxwrap-julia
 
 2. Define the following environmental variables:
 
