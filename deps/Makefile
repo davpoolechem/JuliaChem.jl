@@ -1,5 +1,5 @@
 CXXFLAGS=-std=c++1z -O3 -ffast-math -fPIC 
-LDFLAGS=-${CXXFLAGS} -L${JULIA_ROOT}/lib -Wl,--export-dynamic -Wl,-rpath,'${JULIA_ROOT}/lib' -Wl,-rpath,'${JULIA_ROOT}/lib/julia' -ljulia -Wl,-rpath,${JLCXX_ROOT}/lib -lcxxwrap_julia -Wl,-rpath,${LIBINT_ROOT}/lib -lint2 -shared -fPIC
+LDFLAGS=-${CXXFLAGS} -Wl,--export-dynamic -Wl,--no-as-needed -Wl,-rpath,'${JULIA_ROOT}/lib' -Wl,-rpath,'${JULIA_ROOT}/lib/julia' -ljulia -Wl,-rpath,${JLCXX_ROOT}/lib -lcxxwrap_julia -Wl,-rpath,${LIBINT_ROOT}/lib -lint2 -shared -fPIC
 
 EXE=jeri
 
