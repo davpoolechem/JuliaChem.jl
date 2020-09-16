@@ -13,12 +13,14 @@ If you are simply interested in using JuliaChem.jl for your calculations, you
 can build JuliaChem.jl as follows.
 
 1. Install the dependencies. There are four external dependencies upon which JuliaChem.jl relies:
+
   - Eigen
   - Boost
   - LibInt
   - libcxxwrap-julia
 
 2. Define the following environmental variables:
+
   - EIGEN_ROOT=/path/to/eigen/directory
   - BOOST_ROOT=/path/to/boost/directory
   - LIBINT_ROOT=/path/to/libint/directory
