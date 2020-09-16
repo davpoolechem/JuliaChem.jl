@@ -69,7 +69,8 @@ script:
 - julia -E "using Pkg; Pkg.build(\"JuliaChem\")"
 - cat /home/travis/build/davpoolechem/JuliaChem.jl/deps/build.log
 - ldd /home/travis/build/davpoolechem/JuliaChem.jl/deps/src/../libjeri.so
-- nm /home/travis/libint-install/lib/libint2-beta.6.so.2 | grep "libint2_build"
+- nm /home/travis/libint-install/lib/libint2.so | grep "libint2_build"
+- echo $LIBRARY_PATH
 - julia -E "using Pkg; Pkg.update()"
 #- cat ~/.julia/packages/MPI/z1lDn/deps/build.log
 #- cd deps && julia build.jl && cd ../
