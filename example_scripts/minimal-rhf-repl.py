@@ -21,8 +21,6 @@ def minimal_rhf(input_file):
     #== perform scf calculation ==#
     scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"], output="minimal")
 
-    #== reset JuliaChem runtime ==#
-    JuliaChem.reset()
     return scf
   except Exception as e:                                                        
     bt = Base.catch_backtrace()                                                 
