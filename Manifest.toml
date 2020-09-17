@@ -32,6 +32,12 @@ git-tree-sha1 = "c437a9c2114c7ba19322712e58942b383ffbd6c0"
 uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 version = "4.0.3"
 
+[[CxxWrap]]
+deps = ["Libdl", "MacroTools", "libcxxwrap_julia_jll"]
+git-tree-sha1 = "762359626941f45b21238eb373a0bcedf6b61dd7"
+uuid = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
+version = "0.11.0"
+
 [[DataAPI]]
 git-tree-sha1 = "176e23402d80e7743fc26c19c681bfb11246af32"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
@@ -120,6 +126,12 @@ deps = ["CompilerSupportLibraries_jll", "Libdl", "Pkg"]
 git-tree-sha1 = "4d37f1e07b4e2a74462eebf9ee48c626d15ffdac"
 uuid = "7cb0a576-ebde-5e09-9194-50597f1243b4"
 version = "3.3.2+10"
+
+[[MacroTools]]
+deps = ["Markdown", "Random"]
+git-tree-sha1 = "f7d2e3f654af75f01ec49be82c231c382214223a"
+uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+version = "0.5.5"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -259,3 +271,9 @@ deps = ["Libdl", "Pkg"]
 git-tree-sha1 = "b25b0fb10176c42e9a5a20e1f40d570ac0288d4e"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
 version = "1.4.5+0"
+
+[[libcxxwrap_julia_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "1b2520ea0c1d5cbc12e8a97c15427133d726f743"
+uuid = "3eaa8342-bff7-56a5-9981-c04077f7cee7"
+version = "0.8.0+0"

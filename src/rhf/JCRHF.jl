@@ -7,8 +7,8 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-using JuliaChem.SIMINT
 using JuliaChem.JCModules
+using JuliaChem.JERI
 
 using MPI
 using JSON
@@ -29,7 +29,6 @@ const axial_norm_fact = [ 1.0 1.0    1.0        1.0   ;
 
 Base.include(@__MODULE__,"RHFHelpers.jl")
 Base.include(@__MODULE__,"RHFSCF.jl")
-
 
 """
   run(input_info::Dict{String,Dict{String,Any}}, basis::Basis)
@@ -55,50 +54,26 @@ function run(mol::Molecule, basis::Basis,
   comm=MPI.COMM_WORLD
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
-      println("--------------------------------------------------------------------------------")
-      println("                       ========================================                 ")
-      println("                          RESTRICTED CLOSED-SHELL HARTREE-FOCK                  ")
-      println("                       ========================================                 ")
-      println("")
-  end
-
-  #== set up eris ==#
-  #if MPI.Comm_rank(comm) == 0 && Threads.threadid() == 1
-  if scf_flags["direct"] == true
-  #  set_up_eri_database(basis)
-  #else
-    nshell_simint = SIMINT.allocate_shell_array(basis)
-    for shell in basis
-      SIMINT.add_shell(shell)
-    end
-
-    #SIMINT.normalize_shells()
-    SIMINT.precompute_shell_pair_data()
-
-    #for ishell::Int64 in 0:(nshell_simint-1)
-    #  SIMINT.get_simint_shell_info(ishell)
-    #end
-
-    #end
-  else
-    println("Reading integrals from disk is not implemented yet!")
-    throw()
+    println("--------------------------------------------------------------------------------")
+    println("                       ========================================                 ")
+    println("                                RESTRICTED CLOSED-SHELL                         ")
+    println("                                  HARTREE-FOCK ENERGY                           ")
+    println("                       ========================================                 ")
+    println("")
   end
 
   #== actually perform scf calculation ==#
-  #GC.enable(false)
-  scf = rhf_energy(mol, basis, scf_flags; output=output)
-  #GC.enable(true)
-  #GC.gc()
+  rhfenergy = rhf_energy(mol, basis, scf_flags; output=output)
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
-    println("                             END RESTRICTED CLOSED-SHELL                 ")
-    println("                                     HARTREE-FOCK                        ")
+    println("                              END RESTRICTED CLOSED-SHELL                       ")
+    println("                                  HARTREE-FOCK ENERGY                           ")
     println("                       ========================================                 ")
+    println("--------------------------------------------------------------------------------")
   end
 
-  return scf
+  return rhfenergy 
 end
 export run
 

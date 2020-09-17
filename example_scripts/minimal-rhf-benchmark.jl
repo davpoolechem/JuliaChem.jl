@@ -57,7 +57,6 @@ function script(input_file)
         #scf_time1_t2 = time_ns()/1e9
         #scf_time1 = scf_time1_t2 - scf_time1_t1 
 
-        #JuliaChem.reset()
       
         #for index in 1:3
         for index in 1:1
@@ -71,13 +70,10 @@ function script(input_file)
           scf = BenchmarkTools.@benchmark begin
             JuliaChem.JCRHF.run($mol, $basis, $(keywords["scf"]); 
               output="none") #initial run
-            JuliaChem.reset()
           end
           display(scf)
           scf_timeof_t2 = time_ns()/1e9
           push!(timeof, scf_timeof_t2 - scf_timeof_t1) 
-        
-          JuliaChem.reset()
         end
       end
     end

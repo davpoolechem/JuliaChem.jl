@@ -5,7 +5,22 @@ julia:
 codecov: true 
 coveralls: true 
 
-install: 
+before_install:
+- sudo apt-get install -y software-properties-common
+- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- sudo apt update
+- sudo apt install g++-7 -y
+
+install:
+- export JULIA_ROOT=/home/travis/julia
+- export PATH=$JULIA_ROOT/bin:$PATH
+- export LIBRARY_PATH=$JULIA_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$JULIA_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$JULIA_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$JULIA_ROOT/include/julia:$CPATH
+- export INCLUDEPATH=$JULIA_ROOT/include/julia:$INCLUDEPATH
+- export CC=gcc-7
+- export CXX=g++-7
 - export JULIA_NUM_THREADS=2
 #- ./tools/travis-install-openmpi.sh
 #- export MPIROOT=/home/travis/openmpi
@@ -16,14 +31,47 @@ install:
 #- export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
 #- export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
 #- export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
-- ./tools/travis-install-simint.sh
-- export SIMINT=/home/travis/simint-install
-- export CC=gcc
-- export CXX=g++
+- ./tools/travis-install-eigen.sh
+- export EIGEN_ROOT=/home/travis/eigen-install/include/eigen3
+- export PATH=$EIGEN_ROOT/bin:$PATH
+- export LIBRARY_PATH=$EIGEN_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$EIGEN_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$EIGEN_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$EIGEN_ROOT:$CPATH
+- export INCLUDEPATH=$EIGEN_ROOT:$INCLUDEPATH
+- travis_wait 20 ./tools/travis-install-boost.sh
+- export BOOST_ROOT=/home/travis/boost-install
+- export PATH=$BOOST_ROOT/bin:$PATH
+- export LIBRARY_PATH=$BOOST_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$BOOST_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$BOOST_ROOT/include:$CPATH
+- export INCLUDEPATH=$BOOST_ROOT/include:$INCLUDEPATH
+- ./tools/travis-install-libint.sh
+- export LIBINT_ROOT=/home/travis/libint-install
+- export PATH=$LIBINT_ROOT/bin:$PATH
+- export LIBRARY_PATH=$LIBINT_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$LIBINT_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$LIBINT_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$LIBINT_ROOT/include:$CPATH
+- export INCLUDEPATH=$LIBINT_ROOT/include:$INCLUDEPATH
+- ./tools/travis-install-jlcxx.sh
+- export JLCXX_ROOT=/home/travis/jlcxx-install
+- export PATH=$JLCXX_ROOT/bin:$PATH
+- export LIBRARY_PATH=$JLCXX_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$JLCXX_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$JLCXX_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$JLCXX_ROOT/include:$CPATH
+- export INCLUDEPATH=$JLCXX_ROOT/include:$INCLUDEPATH
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
 - julia -E "using Pkg; Pkg.build(\"JuliaChem\")"
+- cat /home/travis/build/davpoolechem/JuliaChem.jl/deps/build.log
+- ldd /home/travis/build/davpoolechem/JuliaChem.jl/deps/src/../libjeri.so
+- nm /home/travis/libint-install/lib/libint2.so | grep "libint2_build"
+- echo $LD_LIBRARY_PATH
+- julia -E "using Pkg; Pkg.update()"
 #- cat ~/.julia/packages/MPI/z1lDn/deps/build.log
 #- cd deps && julia build.jl && cd ../
 - julia --code-coverage test/runtests-travis.jl

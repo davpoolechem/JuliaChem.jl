@@ -1,9 +1,10 @@
 module JuliaChem
 
+Base.include(@__MODULE__,"../deps/src/jeri.jl")
 Base.include(@__MODULE__, "modules/JCModules.jl")
-Base.include(@__MODULE__, "../deps/src/simint.jl")
 
 Base.include(@__MODULE__, "basis/JCBasis.jl")
+Base.include(@__MODULE__, "grad/JCGrad.jl")
 Base.include(@__MODULE__, "io/JCInput.jl")
 Base.include(@__MODULE__, "molecule/JCMolecule.jl")
 Base.include(@__MODULE__, "rhf/JCRHF.jl")
@@ -14,6 +15,7 @@ end
 #================================================#
 #== we want to precompile all involved modules ==#
 #================================================#
+#=
 if (isfile("../snoop/precompile_Base.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Base.jl")
     _precompile_()
@@ -78,3 +80,4 @@ if (isfile("../snoop/precompile_Zstd_jll.jl"))
     Base.include(@__MODULE__, "../snoop/precompile_Zstd_jll.jl")
     _precompile_()
 end
+=#

@@ -1,6 +1,8 @@
 module JCModules
 
-using StaticArrays 
+using StaticArrays
+using CxxWrap
+using JuliaChem.JERI
 
 Base.include(@__MODULE__,"Globals.jl")
 

@@ -6,33 +6,33 @@ Julia's dynamic and interactive nature with its high-performance capabilities to
 
 If you would like to read more about JuliaChem.jl, refer to the following paper:
 
-Poole, D.; Galvez Vallejo, J. L.; and Gordon, M. S. "A New Kid on the Block: Application of Julia to Hartree-Fock Calculations". *J. Chem. Theory Comput.* in press.
+Poole, D.; Galvez Vallejo, J. L.; and Gordon, M. S. "A New Kid on the Block: Application of Julia to Hartree-Fock Calculations". *J. Chem. Theory Comput.* **2020**, *16*(8), 5006-5013.
 
 # Building JuliaChem (for Users)
 If you are simply interested in using JuliaChem.jl for your calculations, you
 can build JuliaChem.jl as follows.
 
-The first step to building JuliaChem.jl is setting up SIMINT. This is needed to
-form the JuliaChem/SIMINT interface, currently called Julia Electron Repulsion 
-Integrals (JERI). This is done as follows:
+1. Install the dependencies. There are four external dependencies upon which JuliaChem.jl relies:
 
-1. Download and install SIMINT. Note that SIMINT must be compiled with the 
-`-DSIMINT_C_FLAGS=-fPIC` flag as one of the flag options. Also note that you must
-compile SIMINT yourself - the pregenerated version of SIMINT is not compatible with 
-JuliaChem.jl. Since JuliaChem.jl only supports up to L shells, though,
-you can build SIMINT with only the smaller-AM shells, which greatly speeds
-up the process.
+  - Eigen
+  - Boost
+  - LibInt
+  - libcxxwrap-julia
 
-2. Define the environmental variable SIMINT as the directory of your
-SIMINT installation.
+2. Define the following environmental variables:
 
-3. Finally, JuliaChem.jl itself can be downloaded and installed:
+  - EIGEN_ROOT=/path/to/eigen/directory
+  - BOOST_ROOT=/path/to/boost/directory
+  - LIBINT_ROOT=/path/to/libint/directory
+  - JLCXX_ROOT=/path/to/libcxxwrap-julia/directory
+
+3. Install JuliaChem.jl:
 
 ```julia
 Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
 ```
 
-This will download the JuliaChem.jl package to your computer and build JERI.
+This will download the JuliaChem.jl package to your computer and build the Libint/JuliaChem.jl interface.
 If all goes well, this should be all that is needed. Now, you can use 
 JuliaChem.jl in any script you wish simply by importing the JuliaChem.jl module:
 
@@ -42,8 +42,7 @@ using JuliaChem
 If you are interested in actively developing JuliaChem.jl, you will want to build and 
 install JuliaChem.jl as follows.
 
-1. As with above, you will need to build and install SIMINT. This follows the 
-first two steps as above.
+1. As with above, you will need to build and install the external dependencies, and define their corresponding environmental variables.
 
 2. Git clone the JuliaChem.jl repo into your directory and cd into it.
 
@@ -62,7 +61,7 @@ command into the Julia REPL:
 build JuliaChem
 ```
 
-This will build both the JuliaChem.jl package and JERI.
+This will build both the JuliaChem.jl package and the corresponding Libint/JuliaChem.jl interface.
 If all goes well, this should be all that is needed. Now, you can use 
 JuliaChem.jl in any script you wish simply by importing the JuliaChem.jl module:
 

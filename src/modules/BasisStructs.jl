@@ -1,6 +1,9 @@
+#using Printf
+
 struct Shell
   shell_id::Int64
   atom_id::Int64
+  atomic_number::Int64 
 
   exponents::SVector{MAX_CONTRACTION,Float64}
   coefficients::SVector{2*MAX_CONTRACTION,Float64}
@@ -16,8 +19,9 @@ struct Shell
 end
 export Shell
 
-Shell(shell_id, atom_id, exponents, coefficients, atom_center, am, nprim, 
-  pos, unnormalize) = Shell(shell_id, atom_id, 
+Shell(shell_id, atom_id, atomic_number, exponents, 
+  coefficients, atom_center, am, nprim, 
+  pos, unnormalize) = Shell(shell_id, atom_id, atomic_number,
   create_static_vector_small(exponents), 
   calculate_coefficients(coefficients,exponents,am,nprim,
   am_to_nbas_cart(am),unnormalize), 
@@ -171,6 +175,8 @@ export ShQuartet
 =#
 struct Basis
   shells::Vector{Shell}
+  basis_cxx::JERI.BasisSet
+  shpdata_cxx::StdVector{JERI.ShellPair}
 
   model::String
   norb::Int64

@@ -18,8 +18,8 @@ function rhf_energy(mol::Molecule, basis::Basis,
   load::String = scf_flags["load"]
   fdiff::Bool = scf_flags["fdiff"]
 
-  return rhf_kernel(mol,basis; output=output, debug=debug, niter=niter,
-    ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, fdiff=fdiff)
+  return rhf_kernel(mol,basis; output=output, debug=debug, 
+    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, fdiff=fdiff)
 end
 
 
@@ -40,7 +40,8 @@ read_in = file required to read in from input file
 
 type = Precision of variables in calculation
 """
-function rhf_kernel(mol::Molecule, basis::Basis; 
+function rhf_kernel(mol::Molecule, 
+  basis::Basis; 
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
@@ -53,19 +54,22 @@ function rhf_kernel(mol::Molecule, basis::Basis;
   #== compute nuclear repulsion energy ==# 
   E_nuc = compute_enuc(mol)
   
+  jeri_oei_engine = JERI.OEIEngine(mol.mol_cxx, 
+    basis.basis_cxx) 
+  
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))
-  compute_overlap(S, basis)
+  compute_overlap(S, basis, jeri_oei_engine)
  
   #for i in 1:basis.norb, j in 1:i
   #  println("OVR($i,$j): ", S[i,j])
   #end
   
   T = zeros(Float64, (basis.norb, basis.norb))
-  compute_ke(T, basis)
+  compute_ke(T, basis, jeri_oei_engine)
  
   V = zeros(Float64, (basis.norb, basis.norb))
-  compute_nah(V, mol, basis)
+  compute_nah(V, mol, basis, jeri_oei_engine)
 
   H = T .+ V
   
@@ -477,8 +481,9 @@ H = One-electron Hamiltonian Matrix
     Threads.@threads for thread in 1:Threads.nthreads() 
       max_am = max_ang_mom(basis) 
       eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-      simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-    
+      #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+      jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
+
       F_priv = zeros(size(F))
       while true 
         ijkl = Threads.atomic_sub!(thread_index_counter, stride) 
@@ -487,7 +492,8 @@ H = One-electron Hamiltonian Matrix
         
         fock_build_thread_kernel(F_priv, D,
           H, basis, eri_quartet_batch_priv, #mutex,
-          ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
+          ijkl, jeri_tei_engine_priv,
+          schwarz_bounds, Dsh,
           cutoff, debug)
       end
 
@@ -555,7 +561,9 @@ H = One-electron Hamiltonian Matrix
 
         max_am = max_ang_mom(basis) 
         eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-        simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+        #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
+        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
+          basis.shpdata_cxx)
     
         F_priv = zeros(size(F))
         while true 
@@ -584,7 +592,8 @@ H = One-electron Hamiltonian Matrix
 
             fock_build_thread_kernel(F_priv, D,
               H, basis, eri_quartet_batch_priv, #mutex,
-              ijkl, simint_workspace_priv, schwarz_bounds, Dsh,
+              ijkl, jeri_tei_engine_priv,
+              schwarz_bounds, Dsh,
               cutoff, debug)
           end
 
@@ -616,8 +625,8 @@ end
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::Basis, 
   eri_quartet_batch::Vector{Float64}, 
-  ijkl_index::Int64,
-  simint_workspace::Vector{Float64}, schwarz_bounds::Matrix{Float64}, 
+  ijkl_index::Int64, 
+  jeri_tei_engine, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, cutoff::Float64, debug::Bool)
 
   comm=MPI.COMM_WORLD
@@ -669,37 +678,25 @@ end
   #== fock build for significant shell quartets ==# 
   if abs(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
-    compute_eris(ish, jsh, ksh, lsh, μsh, νsh, λsh, σsh,
-      eri_quartet_batch, simint_workspace)
+    compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, μsh, νsh, λsh, σsh,
+      eri_quartet_batch, jeri_tei_engine)
 
     #== contract ERIs into Fock matrix ==#
     contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
-      μsh, νsh, λsh, σsh, debug)
+      μsh, νsh, λsh, σsh, cutoff, debug)
   end
     #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
 @inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64, 
-  μsh::Shell, νsh::Shell, 
-  λsh::Shell, σsh::Shell,
+  bra_pair::Int64, ket_pair::Int64, 
+  μsh::JCModules.Shell, νsh::JCModules.Shell, 
+  λsh::JCModules.Shell, σsh::JCModules.Shell,
   eri_quartet_batch::Vector{Float64},
-  simint_workspace::Vector{Float64})
+  jeri_tei_engine)
 
-  amμ = μsh.am
-  amν = νsh.am
-  amλ = λsh.am
-  amσ = σsh.am
-
-  #fill!(eri_quartet_batch, 0.0)
-  #ish = μsh.shell_id
-  #jsh = νsh.shell_id
-  #ksh = λsh.shell_id
-  #lsh = σsh.shell_id
-
-  #= actually compute integrals =#
-  SIMINT.compute_eris(ish, jsh, ksh, lsh, eri_quartet_batch, 
-    simint_workspace)
-
+  #eri_quartet_batch_simint = similar(eri_quartet_batch)
+  #println(ish, ",", jsh, ",", ksh, ",", lsh)
   amμ = μsh.am
   amν = νsh.am
   amλ = λsh.am
@@ -710,6 +707,16 @@ end
   nλ = λsh.nbas
   nσ = σsh.nbas
 
+  #fill!(eri_quartet_batch, 0.0)
+  #ish = μsh.shell_id
+  #jsh = νsh.shell_id
+  #ksh = λsh.shell_id
+  #lsh = σsh.shell_id
+
+  #= actually compute integrals =#
+  JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
+    ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ*nν, nλ*nσ)
+  
   μνλσ = 0 
   for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
     μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
@@ -726,6 +733,14 @@ end
       σnorm = axial_norm_fact[σsize+1,amσ]
     
       λσnorm = λnorm*σnorm 
+      
+      #if ish == 40 && jsh == 26 && ksh == 8 && lsh == 8
+      #  println(eri_quartet_batch[μνλσ],",", eri_quartet_batch_simint[μνλσ])
+      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
+      #else 
+      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
+      #end
+
       eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
     end 
   end
@@ -745,9 +760,9 @@ end
 @inline function contract_eris(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64, 
-  μsh::Shell, νsh::Shell, 
-  λsh::Shell, σsh::Shell,
-  debug::Bool)
+  μsh::JCModules.Shell, νsh::JCModules.Shell, 
+  λsh::JCModules.Shell, σsh::JCModules.Shell,
+  cutoff::Float64, debug::Bool)
 
   norb = size(D,1)
   
@@ -798,7 +813,7 @@ end
   
       eri = eri_batch[μνλσ] 
    
-      if abs(eri) < 1.0E-10
+      if abs(eri) < cutoff
         #if do_continue_print println("CONTINUE SCREEN") end
         continue 
       end
