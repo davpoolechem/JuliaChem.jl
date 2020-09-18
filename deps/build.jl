@@ -3,9 +3,9 @@ using boost_jll
 using libcxxwrap_julia_jll
 
 function build_jeri()
-  eigen_root = Eigen_jll.LIBPATH
-  boost_root = boost_jll.LIBPATH
-  jlcxx_root = libcxxwrap_julia_jll.LIBPATH
+  eigen_root = Eigen_jll.artifact_dir
+  boost_root = boost_jll.artifact_dir
+  jlcxx_root = libcxxwrap_julia_jll.artifact_dir
   libint_root = ENV["LIBINT_ROOT"] 
 
   if !ispath("build") mkdir("build") end
