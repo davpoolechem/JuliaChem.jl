@@ -42,7 +42,8 @@ cd /home/travis/libint
 ./configure \
   --enable-shared=yes --prefix=/home/travis/libint-install \
   --enable-1body=0 --enable-eri=0 --with-max-am=3 \
-  --with-multipole-max-order=3
+  --with-multipole-max-order=3 \
+  --with-boost=${BOOST_ROOT}
 
 make -j2 -s
 make -j2 -s install
