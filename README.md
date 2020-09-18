@@ -12,19 +12,11 @@ Poole, D.; Galvez Vallejo, J. L.; and Gordon, M. S. "A New Kid on the Block: App
 If you are simply interested in using JuliaChem.jl for your calculations, you
 can build JuliaChem.jl as follows.
 
-1. Install the dependencies. There are four external dependencies upon which JuliaChem.jl relies:
-
-  - Eigen
-  - Boost
-  - LibInt
-  - libcxxwrap-julia
+1. Install the Libint integral computation library. JuliaChem.jl uses Libint as a backend for computing electron repulsion integrals.
 
 2. Define the following environmental variables:
 
-  - EIGEN_ROOT=/path/to/eigen/directory
-  - BOOST_ROOT=/path/to/boost/directory
   - LIBINT_ROOT=/path/to/libint/directory
-  - JLCXX_ROOT=/path/to/libcxxwrap-julia/directory
 
 3. Install JuliaChem.jl:
 
@@ -36,7 +28,9 @@ This will download the JuliaChem.jl package to your computer and build the Libin
 If all goes well, this should be all that is needed. Now, you can use 
 JuliaChem.jl in any script you wish simply by importing the JuliaChem.jl module:
 
+```julia
 using JuliaChem
+```
 
 # Building JuliaChem (for Developers)
 If you are interested in actively developing JuliaChem.jl, you will want to build and 
