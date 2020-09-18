@@ -55,6 +55,6 @@ LINK_DIRECTORIES( SYSTEM
 #   build and install library   # 
 #################################
 add_library(jeri SHARED src/jeri.cpp)
-target_link_libraries(jeri PUBLIC -ljulia -lcxxwrap_julia -lint2)
+target_link_libraries(jeri PUBLIC -lcxxwrap_julia -lint2)
 
 install (TARGETS jeri DESTINATION ${PROJECT_SOURCE_DIR}) 

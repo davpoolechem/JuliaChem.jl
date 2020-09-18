@@ -11,7 +11,7 @@ function build_jeri()
   if !ispath("build") mkdir("build") end
   cd("build")
   run(`cmake -DEIGEN_INPUT=$eigen_root -DBOOST_INPUT=$boost_root 
-    -DJLCXX_INPUT=$jlcxx_root -DJLCXX_INPUT=$libint_root ../`)
+    -DJLCXX_INPUT=$jlcxx_root -DLIBINT_INPUT=$libint_root ../`)
   run(`make`)
   run(`make install`)
 end
