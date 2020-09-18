@@ -5,12 +5,15 @@
 """
 module JCGrad
 
+include("GradHelpers.jl")
+
 using JuliaChem.JCModules
+using JuliaChem.JERI
 
 using MPI
 using JSON
 
-function run(mol::Molecule, basis::Basis; 
+function run(mol::Molecule, basis::Basis, rhf_energy; 
   output="none")
   
   comm=MPI.COMM_WORLD
@@ -24,31 +27,21 @@ function run(mol::Molecule, basis::Basis;
       println("")
   end
 
-  nuc_grad = zeros(Float64,(length(mol.atoms),3))
-  for iatom in 1:length(mol.atoms), jatom in 1:length(mol.atoms)
-    if iatom != jatom
-      ix = mol.atoms[iatom].atom_center[1] 
-      jx = mol.atoms[jatom].atom_center[1] 
+  #== initial setup ==#
+  jeri_oei_grad_engine = JERI.OEIEngine(mol.mol_cxx, 
+    basis.basis_cxx, 1) 
 
-      iy = mol.atoms[iatom].atom_center[2] 
-      jy = mol.atoms[jatom].atom_center[2] 
+  #== compute nuclear gradient ==#
+  nuc_grad = compute_nuc_grad(mol) 
+  println("NUC GRAD")
+  display(nuc_grad); println()
 
-      iz = mol.atoms[iatom].atom_center[3]
-      jz = mol.atoms[jatom].atom_center[3]
+  #== compute one-electron gradient ==#
+  S_grad = zeros(Float64, (basis.norb, basis.norb))
+  compute_overlap_grad(S_grad, basis, jeri_oei_grad_engine) 
+  println("S GRAD")
+  display(S_grad); println()
  
-      iatm = mol.atoms[iatom].atom_id
-      jatm = mol.atoms[jatom].atom_id
-    
-      distance = √((jx-ix)^2 + (jy-iy)^2 + (jz-iz)^2) 
-    
-      nuc_grad[jatom,1] -= iatm*jatm*(jx-ix)/(distance^3)
-      nuc_grad[jatom,2] -= iatm*jatm*(jy-iy)/(distance^3)
-      nuc_grad[jatom,3] -= iatm*jatm*(jz-iz)/(distance^3)
-    end
-  end 
-  
-  display(nuc_grad)
-
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
