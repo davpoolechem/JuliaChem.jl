@@ -38,7 +38,7 @@ endif()
 #   setup library directories   # 
 #################################
 INCLUDE_DIRECTORIES( SYSTEM
-  ${EIGEN_PATH} ${BOOST_PATH}/include 
+  ${EIGEN_PATH}/include/eigen3 ${BOOST_PATH}/include 
   ${JLCXX_PATH}/include ${LIBINT_PATH}/include
 )
 
