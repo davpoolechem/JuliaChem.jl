@@ -8,10 +8,11 @@ function build_jeri()
   jlcxx_root = libcxxwrap_julia_jll.artifact_dir
   libint_root = ENV["LIBINT_ROOT"] 
 
-  if !ispath("build") mkdir("build") end
+  if ispath("build") rm("build", recursive=true) end
+  mkdir("build")
   cd("build")
-  run(`cmake -DEIGEN_INPUT=$eigen_root -DBOOST_INPUT=$boost_root 
-    -DJLCXX_INPUT=$jlcxx_root -DLIBINT_INPUT=$libint_root ../`)
+  run(`cmake -DEIGEN_PATH=$eigen_root -DBOOST_PATH=$boost_root 
+    -DJLCXX_PATH=$jlcxx_root -DLIBINT_PATH=$libint_root ../`)
   run(`make`)
   run(`make install`)
 end

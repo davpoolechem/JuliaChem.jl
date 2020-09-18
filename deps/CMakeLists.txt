@@ -37,19 +37,19 @@ endif()
 #################################
 #   setup library directories   # 
 #################################
-set(EIGEN_DIR ${EIGEN_INPUT})
-set(BOOST_DIR ${BOOST_INPUT})
-set(JLCXX_DIR ${JLCXX_INPUT})
-set(LIBINT_DIR ${LIBINT_INPUT})
-
 INCLUDE_DIRECTORIES( SYSTEM
-  ${EIGEN_DIR} ${BOOST_DIR}/include 
-  ${JLCXX_DIR}/include ${LIBINT_DIR}/include
+  ${EIGEN_PATH} ${BOOST_PATH}/include 
+  ${JLCXX_PATH}/include ${LIBINT_PATH}/include
 )
 
 LINK_DIRECTORIES( SYSTEM
-  ${JLCXX_DIR}/lib ${LIBINT_DIR}/lib
+  ${JLCXX_PATH}/lib ${LIBINT_PATH}/lib
 )
+
+message("-- Found Eigen at ${EIGEN_PATH}")
+message("-- Found Boost at ${BOOST_PATH}")
+message("-- Found JLCxx at ${JLCXX_PATH}")
+message("-- Found Libint at ${LIBINT_PATH}")
 
 #################################
 #   build and install library   # 
