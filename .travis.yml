@@ -6,6 +6,7 @@ codecov: true
 coveralls: true 
 
 before_install:
+- sudo apt-cache search cmake
 - sudo apt-get install -y software-properties-common
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo apt update
@@ -21,15 +22,6 @@ install:
 - export CC=gcc-7
 - export CXX=g++-7
 - export JULIA_NUM_THREADS=2
-#- ./tools/travis-install-openmpi.sh
-#- export MPIROOT=/home/travis/openmpi
-#- export LD_LIBRARY_PATH=$MPIROOT/lib:$LD_LIBRARY_PATH                          
-#- export LD_RUN_PATH=$MPIROOT/lib:$LD_RUN_PATH                                    
-#- export PATH=$MPIROOT/bin:$PATH                                            
-#- export CPATH=$MPIROOT/include:$CPATH                                            
-#- export C_INCLUDE_PATH=$MPIROOT/include:$C_INCLUDE_PATH                          
-#- export CPLUS_INCLUDE_PATH=$MPIROOT/include:$CPLUS_INCLUDE_PATH                  
-#- export OBJC_INCLUDE_PATH=$MPIROOT/include:$OBJC_INCLUDE_PATH   
 - ./tools/travis-install-eigen.sh
 - export EIGEN_ROOT=/home/travis/eigen-install/include/eigen3
 - export PATH=$EIGEN_ROOT/bin:$PATH
@@ -56,11 +48,11 @@ install:
 script:
 - julia -E "using Pkg; Pkg.instantiate()"
 - julia -E "using Pkg; Pkg.build(\"JuliaChem\")"
-- cat /home/travis/build/davpoolechem/JuliaChem.jl/deps/build.log
-- ldd /home/travis/build/davpoolechem/JuliaChem.jl/deps/src/../libjeri.so
-- nm /home/travis/libint-install/lib/libint2.so | grep "libint2_build"
-- echo $LD_LIBRARY_PATH
-- julia -E "using Pkg; Pkg.update()"
+#- cat /home/travis/build/davpoolechem/JuliaChem.jl/deps/build.log
+#- ldd /home/travis/build/davpoolechem/JuliaChem.jl/deps/src/../libjeri.so
+#- nm /home/travis/libint-install/lib/libint2.so | grep "libint2_build"
+#- echo $LD_LIBRARY_PATH
+#- julia -E "using Pkg; Pkg.update()"
 #- cat ~/.julia/packages/MPI/z1lDn/deps/build.log
 #- cd deps && julia build.jl && cd ../
 - julia --code-coverage test/runtests-travis.jl
