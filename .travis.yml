@@ -29,14 +29,14 @@ install:
 #- export LD_RUN_PATH=$EIGEN_ROOT/lib:$LD_RUN_PATH
 #- export CPATH=$EIGEN_ROOT:$CPATH
 #- export INCLUDEPATH=$EIGEN_ROOT:$INCLUDEPATH
-#- travis_wait 20 ./tools/travis-install-boost.sh
-#- export BOOST_ROOT=/home/travis/boost-install
-#- export PATH=$BOOST_ROOT/bin:$PATH
-#- export LIBRARY_PATH=$BOOST_ROOT/lib:$LIBRARY_PATH
-#- export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
-#- export LD_RUN_PATH=$BOOST_ROOT/lib:$LD_RUN_PATH
-#- export CPATH=$BOOST_ROOT/include:$CPATH
-#- export INCLUDEPATH=$BOOST_ROOT/include:$INCLUDEPATH
+- travis_wait 20 ./tools/travis-install-boost.sh
+- export BOOST_ROOT=/home/travis/boost-install
+- export PATH=$BOOST_ROOT/bin:$PATH
+- export LIBRARY_PATH=$BOOST_ROOT/lib:$LIBRARY_PATH
+- export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+- export LD_RUN_PATH=$BOOST_ROOT/lib:$LD_RUN_PATH
+- export CPATH=$BOOST_ROOT/include:$CPATH
+- export INCLUDEPATH=$BOOST_ROOT/include:$INCLUDEPATH
 - ./tools/travis-install-libint.sh
 - export LIBINT_ROOT=/home/travis/libint-install
 - export PATH=$LIBINT_ROOT/bin:$PATH
