@@ -55,7 +55,7 @@ function rhf_kernel(mol::Molecule,
   E_nuc = compute_enuc(mol)
   
   jeri_oei_engine = JERI.OEIEngine(mol.mol_cxx, 
-    basis.basis_cxx) 
+    basis.basis_cxx, 0) 
   
   #== compute one-electron integrals and Hamiltonian ==#
   S = zeros(Float64, (basis.norb, basis.norb))

@@ -33,7 +33,7 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
     //.constructor<const std::vector<libint2::Atom>&, 
     //  const std::vector<std::vector<libint2::Shell> >& >()
     .constructor<const std::vector<libint2::Atom>&,
-      const libint2::BasisSet&>() 
+      const libint2::BasisSet&, julia_int>() 
     //.method("basis", &OEIEngine::basis)
     .method("compute_overlap_block", &OEIEngine::compute_overlap_block)
     .method("compute_kinetic_block", &OEIEngine::compute_kinetic_block)
