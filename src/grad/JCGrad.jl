@@ -30,17 +30,21 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   #== initial setup ==#
   jeri_oei_grad_engine = JERI.OEIEngine(mol.mol_cxx, 
     basis.basis_cxx, 1) 
+  W = rhf_energy["Energy-Weighted Density"] 
 
-  #== compute nuclear gradient ==#
-  nuc_grad = compute_nuc_grad(mol) 
-  println("NUC GRAD")
-  display(nuc_grad); println()
+  #== compute nuclear gradient contribution==#
+  nuclear_gradient = compute_nuc_grad(mol) 
+  println("NUCLEAR REPULSION: ")
+  display(nuclear_gradient); println()
 
-  #== compute one-electron gradient ==#
-  S_grad = zeros(Float64, (basis.norb, basis.norb))
-  compute_overlap_grad(S_grad, basis, jeri_oei_grad_engine) 
-  println("S GRAD")
-  display(S_grad); println()
+  #== compute overlap gradient contribution ==#
+  overlap_gradient = compute_overlap_grad(mol, basis, W, jeri_oei_grad_engine) 
+  println("OVERLAP GRADIENT: ")
+  display(overlap_gradient); println()
+  
+  total_gradient = nuclear_gradient .+ overlap_gradient
+  println("TOTAL GRADIENT: ")
+  display(total_gradient); println()
  
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
@@ -50,7 +54,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
     println("--------------------------------------------------------------------------------")
   end
 
-  return nuc_grad 
+  return nuclear_gradient 
 end
 export run
 

@@ -91,6 +91,8 @@ function rhf_kernel(mol::Molecule,
   F_evec = similar(F)
 
   D = similar(F)
+  W = similar(F)
+  
   C = similar(F)
 
   #== allocate workspace matrices ==#
@@ -122,7 +124,7 @@ function rhf_kernel(mol::Molecule,
   end
 
   E_elec = 0.0
-  E_elec = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
+  E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
     workspace_b, ortho, basis, 0, debug)
   
   F_old = deepcopy(F)
@@ -137,7 +139,7 @@ function rhf_kernel(mol::Molecule,
   #=============================#
   #== start scf cycles: #7-10 ==#
   #=============================#
-  F, D, C, E, converged = scf_cycles(F, D, C, E, H, ortho, S, 
+  F, D, W, C, E, converged = scf_cycles(F, D, W, C, E, H, ortho, S, 
     F_eval, F_evec, F_old, workspace_a, workspace_b, workspace_c,
     E_nuc, E_elec, E_old, basis; 
     output=output, debug=debug, niter=niter, ndiis=ndiis, dele=dele,
@@ -192,6 +194,7 @@ function rhf_kernel(mol::Molecule,
 
   scf = Dict("Fock" => F,                                                       
              "Density" => D,                                                    
+             "Energy-Weighted Density" => W,                                                    
              "MO Coeff" => C,                                                   
              "Energy" => E,                                                     
              "Converged?" => converged                                      
@@ -200,7 +203,8 @@ function rhf_kernel(mol::Molecule,
   return scf 
 end
 
-function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
+function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, 
+  W::Matrix{Float64}, C::Matrix{Float64},
   E::Float64, H::Matrix{Float64}, ortho::Matrix{Float64}, 
   S::Matrix{Float64}, F_eval::Vector{Float64}, 
   F_evec::Matrix{Float64},  F_old::Matrix{Float64},
@@ -258,7 +262,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
   #== execute convergence procedure ==#
   scf_converged = true
 
-  E = scf_cycles_kernel(F, D, C, E, H, ortho, S, E_nuc,
+  E = scf_cycles_kernel(F, D, W, C, E, H, ortho, S, E_nuc,
     E_elec, E_old, basis, F_array, e_array, e_array_old,
     F_array_old, F_eval, F_evec, F_old, workspace_a, 
     workspace_b, workspace_c, ΔF, F_cumul, 
@@ -276,11 +280,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64}, C::Matrix{Float64},
     h5write("debug.h5","SCF/Iteration-Final/converged", scf_converged)
   end
 
-  return F, D, C, E, scf_converged
+  return F, D, W, C, E, scf_converged
 end
 
 function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
-  C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, 
+  W::Matrix{Float64}, C::Matrix{Float64}, E::Float64, H::Matrix{Float64}, 
   ortho::Matrix{Float64}, S::Matrix{Float64}, E_nuc::Float64, 
   E_elec::Float64, E_old::Float64, basis::Basis,
   F_array::Vector{Matrix{Float64}}, 
@@ -410,7 +414,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #== obtain new F,D,C matrices ==#
     D_old .= D
 
-    E_elec = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
+    E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
       workspace_b, ortho, basis, iter, debug)
 
     #== check for convergence ==#
@@ -435,8 +439,21 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     E_old = E
   end
 
+  #== build energy-weighted density matrix ==#
+  fill!(W, 0.0)
+  
+  nocc = basis.nels >> 1
+  for i in 1:basis.norb, j in 1:basis.norb
+    for iocc in 1:nocc
+      W[i,j] += 2 * F_eval[iocc] * C[i, iocc] * C[j, iocc]
+    end
+  end
+ 
+  display(F_eval); println();
+
   return E
 end
+
 #=
 """
 	 fock_build(F::Array{Float64}, D::Array{Float64}, tei::Array{Float64}, H::Array{Float64})
@@ -930,5 +947,5 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
     h5write("debug.h5","SCF/Iteration-$iter/E/EHF", E_elec)
   end
 
-  return E_elec
+  return E_elec, F_eval
 end

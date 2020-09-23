@@ -36,6 +36,7 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
       const libint2::BasisSet&, julia_int>() 
     //.method("basis", &OEIEngine::basis)
     .method("compute_overlap_block", &OEIEngine::compute_overlap_block)
+    .method("compute_overlap_grad_block", &OEIEngine::compute_overlap_grad_block)
     .method("compute_kinetic_block", &OEIEngine::compute_kinetic_block)
     .method("compute_nuc_attr_block", &OEIEngine::compute_nuc_attr_block);
 
