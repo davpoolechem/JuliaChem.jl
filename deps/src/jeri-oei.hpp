@@ -98,7 +98,6 @@ public:
           std::cout << c << ", " << xyz << " => " 
             << op << ", " << shellset_idx << std::endl;
             
-          m_overlap_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
           for (int idx = 0; idx != absize; ++idx) {
             S_grad_block[absize*op + idx] += m_overlap_eng.results().at(shellset_idx)[idx];
           }   
