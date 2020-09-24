@@ -1,6 +1,7 @@
 using JuliaChem.JCModules
 
 using Base.Threads
+using LinearAlgebra
 
 #=
 """
@@ -65,10 +66,12 @@ function compute_overlap_grad(mol::Molecule,
   basis::Basis, W::Matrix{Float64}, jeri_oei_grad_engine)
 
   #== define initial variables ==#
-  ws_grad = zeros(Float64,(length(mol.atoms),3))
+  natoms = length(mol.atoms)
+  ws_grad = zeros(Float64,(natoms,3))
   
   ncoord = length(ws_grad) 
- 
+  shell_set = 2
+
   #== generate S derivative matrices ==#
   S_deriv = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
   for ash in 1:length(basis), bsh in 1:ash
@@ -79,50 +82,59 @@ function compute_overlap_grad(mol::Molecule,
  
     apos = basis[ash].pos
     bpos = basis[bsh].pos
-   
+  
+    iatom = basis[ash].atom_id
+    jatom = basis[bsh].atom_id
+ 
     S_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
     
     JERI.compute_overlap_grad_block(jeri_oei_grad_engine, S_block_JERI, ash, bsh, 
       abas*bbas)
 
-    #for ideriv in S_deriv
-    #  axial_normalization_factor(ideriv, basis[ash], basis[bsh])
-    #end
+    #axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
+    
+    println("Julia Shells: $ash, $bsh")
+    println("Julia Atoms: $iatom, $jatom")
 
-    idx = 1
-    for ibas in 0:abas-1, jbas in 0:bbas-1
-      iorb = apos + ibas
-      jorb = bpos + jbas
+    shlset_idx = 1
+    for ishlset in 1:shell_set
+      atom = ishlset == 1 ? iatom : jatom
 
-      for ideriv in 1:ncoord
-        S_deriv[ideriv][max(iorb,jorb),min(iorb,jorb)] += S_block_JERI[abas*bbas*(ideriv-1) + idx]
+      for icoord in 1:3
+        idx = 1
+        op = 3*(atom-1) + icoord 
+
+        println("$ishlset, $icoord => $op, $shlset_idx")
+        
+        for ibas in 0:abas-1, jbas in 0:bbas-1
+          iorb = apos + ibas
+          jorb = bpos + jbas
+
+          S_deriv[op][max(iorb,jorb),min(iorb,jorb)] += S_block_JERI[abas*bbas*(op-1) + idx]
+          idx += 1
+        end
+        shlset_idx += 1
       end
-
-      idx += 1 
     end
   end
 
-  for iorb in 1:basis.norb, jorb in 1:iorb
-    if iorb != jorb
-      for ideriv in S_deriv
-        ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
-      end
-    end
-  end
-  
   for ideriv in S_deriv
+    for iorb in 1:basis.norb, jorb in 1:(iorb-1)
+      ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
+    end
     display(ideriv); println()
   end
-
+  
   #== contract with energy-weighted density ==#
-  deriv_idx = 1
-  for iatom in 1:length(mol.atoms)
-    for ash in 1:length(basis), bsh in 1:(ash-1)
-      ws_grad[iatom,1] -= W[ash,bsh]*S_deriv[deriv_idx][ash,bsh]
-      ws_grad[iatom,2] -= W[ash,bsh]*S_deriv[deriv_idx+1][ash,bsh]
-      ws_grad[iatom,3] -= W[ash,bsh]*S_deriv[deriv_idx+2][ash,bsh]
+  for iatom in 1:natoms
+    for icoord in 1:3
+      deriv_idx = 3*(iatom-1)  + icoord
+      ws_grad[iatom,icoord] = -(LinearAlgebra.dot(W, S_deriv[deriv_idx]))
+
+      #for ash in 1:length(basis), bsh in 1:length(basis)
+      #  ws_grad[iatom,icoord] += W[ash,bsh]*S_deriv[deriv_idx][ash,bsh]
+      #end
     end
-    deriv_idx += 3
   end
   return ws_grad
 end
