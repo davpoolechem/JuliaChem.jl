@@ -67,16 +67,14 @@ function compute_overlap_grad(mol::Molecule,
 
   #== define initial variables ==#
   natoms = length(mol.atoms)
-  ws_grad = zeros(Float64,(natoms,3))
+  WS_grad = zeros(Float64,(natoms,3))
   
-  ncoord = length(ws_grad) 
+  ncoord = length(WS_grad) 
   shell_set = 2
 
   #== generate S derivative matrices ==#
   S_deriv = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
   for ash in 1:length(basis), bsh in 1:ash
-    #println("Shell: $ash, $bsh")
-
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
  
@@ -93,8 +91,8 @@ function compute_overlap_grad(mol::Molecule,
 
     #axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
     
-    println("Julia Shells: $ash, $bsh")
-    println("Julia Atoms: $iatom, $jatom")
+    #println("Julia Shells: $ash, $bsh")
+    #println("Julia Atoms: $iatom, $jatom")
 
     shlset_idx = 1
     for ishlset in 1:shell_set
@@ -104,7 +102,7 @@ function compute_overlap_grad(mol::Molecule,
         idx = 1
         op = 3*(atom-1) + icoord 
 
-        println("$ishlset, $icoord => $op, $shlset_idx")
+        #println("$ishlset, $icoord => $op, $shlset_idx")
         
         for ibas in 0:abas-1, jbas in 0:bbas-1
           iorb = apos + ibas
@@ -122,21 +120,159 @@ function compute_overlap_grad(mol::Molecule,
     for iorb in 1:basis.norb, jorb in 1:(iorb-1)
       ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
     end
-    display(ideriv); println()
+    #display(ideriv); println()
   end
   
   #== contract with energy-weighted density ==#
   for iatom in 1:natoms
     for icoord in 1:3
       deriv_idx = 3*(iatom-1)  + icoord
-      ws_grad[iatom,icoord] = -(LinearAlgebra.dot(W, S_deriv[deriv_idx]))
-
-      #for ash in 1:length(basis), bsh in 1:length(basis)
-      #  ws_grad[iatom,icoord] += W[ash,bsh]*S_deriv[deriv_idx][ash,bsh]
-      #end
+      WS_grad[iatom,icoord] = -(LinearAlgebra.dot(W, S_deriv[deriv_idx]))
     end
   end
-  return ws_grad
+  return WS_grad
+end
+
+function compute_kinetic_grad(mol::Molecule, 
+  basis::Basis, P::Matrix{Float64}, jeri_oei_grad_engine)
+
+  #== define initial variables ==#
+  natoms = length(mol.atoms)
+  PT_grad = zeros(Float64,(natoms,3))
+  
+  ncoord = length(PT_grad) 
+  shell_set = 2
+
+  #== generate T derivative matrices ==#
+  T_deriv = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
+  for ash in 1:length(basis), bsh in 1:ash
+    abas = basis[ash].nbas
+    bbas = basis[bsh].nbas
+ 
+    apos = basis[ash].pos
+    bpos = basis[bsh].pos
+  
+    iatom = basis[ash].atom_id
+    jatom = basis[bsh].atom_id
+ 
+    T_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
+    
+    JERI.compute_kinetic_grad_block(jeri_oei_grad_engine, T_block_JERI, ash, bsh, 
+      abas*bbas)
+
+    #axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
+    
+    #println("Julia Shells: $ash, $bsh")
+    #println("Julia Atoms: $iatom, $jatom")
+
+    shlset_idx = 1
+    for ishlset in 1:shell_set
+      atom = ishlset == 1 ? iatom : jatom
+
+      for icoord in 1:3
+        idx = 1
+        op = 3*(atom-1) + icoord 
+
+        #println("$ishlset, $icoord => $op, $shlset_idx")
+        
+        for ibas in 0:abas-1, jbas in 0:bbas-1
+          iorb = apos + ibas
+          jorb = bpos + jbas
+
+          T_deriv[op][max(iorb,jorb),min(iorb,jorb)] += T_block_JERI[abas*bbas*(op-1) + idx]
+          idx += 1
+        end
+        shlset_idx += 1
+      end
+    end
+  end
+
+  for ideriv in T_deriv
+    for iorb in 1:basis.norb, jorb in 1:(iorb-1)
+      ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
+    end
+    #display(ideriv); println()
+  end
+  
+  #== contract with energy-weighted density ==#
+  for iatom in 1:natoms
+    for icoord in 1:3
+      deriv_idx = 3*(iatom-1)  + icoord
+      PT_grad[iatom,icoord] = LinearAlgebra.dot(P, T_deriv[deriv_idx])
+    end
+  end
+  return PT_grad
+end
+
+function compute_nuc_attr_grad(mol::Molecule, 
+  basis::Basis, P::Matrix{Float64}, jeri_oei_grad_engine)
+
+  #== define initial variables ==#
+  natoms = length(mol.atoms)
+  PV_grad = zeros(Float64,(natoms,3))
+  
+  ncoord = length(PV_grad) 
+  shell_set = 2 + length(mol.atoms)
+
+  #== generate T derivative matrices ==#
+  V_deriv = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
+  for ash in 1:length(basis), bsh in 1:ash
+    abas = basis[ash].nbas
+    bbas = basis[bsh].nbas
+ 
+    apos = basis[ash].pos
+    bpos = basis[bsh].pos
+  
+    iatom = basis[ash].atom_id
+    jatom = basis[bsh].atom_id
+ 
+    V_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
+    
+    JERI.compute_nuc_attr_grad_block(jeri_oei_grad_engine, V_block_JERI, ash, bsh, 
+      abas*bbas)
+
+    #axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
+    
+    #println("Julia Shells: $ash, $bsh")
+    #println("Julia Atoms: $iatom, $jatom")
+
+    shlset_idx = 1
+    for ishlset in 1:shell_set
+      atom = ishlset%2 != 0 ? iatom : jatom
+
+      for icoord in 1:3
+        idx = 1
+        op = 3*(atom-1) + icoord 
+
+        #println("$ishlset, $icoord => $op, $shlset_idx")
+        
+        for ibas in 0:abas-1, jbas in 0:bbas-1
+          iorb = apos + ibas
+          jorb = bpos + jbas
+
+          V_deriv[op][max(iorb,jorb),min(iorb,jorb)] += V_block_JERI[abas*bbas*(op-1) + idx]
+          idx += 1
+        end
+        shlset_idx += 1
+      end
+    end
+  end
+
+  for ideriv in V_deriv
+    for iorb in 1:basis.norb, jorb in 1:(iorb-1)
+      ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
+    end
+    #display(ideriv); println()
+  end
+  
+  #== contract with energy-weighted density ==#
+  for iatom in 1:natoms
+    for icoord in 1:3
+      deriv_idx = 3*(iatom-1)  + icoord
+      PV_grad[iatom,icoord] = LinearAlgebra.dot(P, V_deriv[deriv_idx])
+    end
+  end
+  return PV_grad
 end
 
 function compute_ke(T::Matrix{Float64}, basis::Basis, 

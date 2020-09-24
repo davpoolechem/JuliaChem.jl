@@ -54,7 +54,7 @@ public:
 
   //-- setters and getters --//
 
-  //-- member functions --//
+  //-- overlap integral member functions --// 
   void compute_overlap_block(jlcxx::ArrayRef<double> S_block, julia_int ash, 
     julia_int bsh, julia_int absize)
   {
@@ -78,11 +78,6 @@ public:
     auto atom1 = m_shell2atom[ash-1]; 
     auto atom2 = m_shell2atom[bsh-1]; 
 
-    std::cout << "Shells: " << ash-1 << ", " << bsh-1 << std::endl;
-    std::cout << "Atoms: " << atom1 << ", " << atom2 << std::endl; 
-    std::cout << "nopers: " << nopers << ", " << nresults << std::endl;
-    std::cout << "shset: " << nderivcenters_shset << std::endl; 
-
     m_overlap_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
     
     std::size_t shellset_idx = 0; 
@@ -95,8 +90,8 @@ public:
         for (unsigned int op = op_start; op != op_fence;
           ++op, ++shellset_idx) {
       
-          std::cout << c << ", " << xyz << " => " 
-            << op << ", " << shellset_idx << std::endl;
+          //std::cout << c << ", " << xyz << " => " 
+          //  << op << ", " << shellset_idx << std::endl;
             
           for (int idx = 0; idx != absize; ++idx) {
             S_grad_block[absize*op + idx] += m_overlap_eng.results().at(shellset_idx)[idx];
@@ -106,6 +101,7 @@ public:
     }
   }
 
+  //-- kinetic energy integral member functions --// 
   void compute_kinetic_block(jlcxx::ArrayRef<double> T_block, julia_int ash, 
     julia_int bsh, julia_int absize) 
   {
@@ -115,6 +111,42 @@ public:
     }
   }
 
+  void compute_kinetic_grad_block(jlcxx::ArrayRef<double> T_grad_block, 
+    julia_int ash, julia_int bsh, julia_int absize)
+  {
+    constexpr auto nopers = libint2::operator_traits<libint2::Operator::kinetic>::nopers; 
+    const auto nresults =
+      nopers * libint2::num_geometrical_derivatives(m_atoms->size(), m_deriv_order);        
+    const auto nderivcenters_shset =
+      2 + ((libint2::Operator::kinetic == libint2::Operator::nuclear) ? m_atoms->size() : 0);    
+
+    auto atom1 = m_shell2atom[ash-1]; 
+    auto atom2 = m_shell2atom[bsh-1]; 
+
+    m_kinetic_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
+    
+    std::size_t shellset_idx = 0; 
+    for (auto c = 0; c != nderivcenters_shset; ++c) {
+      auto atom = (c == 0) ? atom1 : ((c == 1) ? atom2 : c - 2);
+      auto op_start = 3 * atom * nopers;
+      auto op_fence = op_start + nopers;
+      for (auto xyz = 0; xyz != 3;
+        ++xyz, op_start += nopers, op_fence += nopers) {
+        for (unsigned int op = op_start; op != op_fence;
+          ++op, ++shellset_idx) {
+      
+          //std::cout << c << ", " << xyz << " => " 
+          //  << op << ", " << shellset_idx << std::endl;
+            
+          for (int idx = 0; idx != absize; ++idx) {
+            T_grad_block[absize*op + idx] += m_kinetic_eng.results().at(shellset_idx)[idx];
+          }   
+        }
+      }
+    }
+  }
+
+  //-- nuclear attraction integral member functions --// 
   void compute_nuc_attr_block(jlcxx::ArrayRef<double> V_block, julia_int ash, 
     julia_int bsh, julia_int absize) 
   {
@@ -123,6 +155,43 @@ public:
       V_block[i] = m_nuc_attr_eng.results()[0][i];
     }
   }
+
+  void compute_nuc_attr_grad_block(jlcxx::ArrayRef<double> V_grad_block, 
+    julia_int ash, julia_int bsh, julia_int absize)
+  {
+    constexpr auto nopers = libint2::operator_traits<libint2::Operator::nuclear>::nopers; 
+    const auto nresults =
+      nopers * libint2::num_geometrical_derivatives(m_atoms->size(), m_deriv_order);        
+    const auto nderivcenters_shset =
+      2 + ((libint2::Operator::nuclear == libint2::Operator::nuclear) ? m_atoms->size() : 0);    
+
+    auto atom1 = m_shell2atom[ash-1]; 
+    auto atom2 = m_shell2atom[bsh-1]; 
+
+    m_nuc_attr_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
+    
+    std::size_t shellset_idx = 0; 
+    for (auto c = 0; c != nderivcenters_shset; ++c) {
+      auto atom = (c == 0) ? atom1 : ((c == 1) ? atom2 : c - 2);
+      auto op_start = 3 * atom * nopers;
+      auto op_fence = op_start + nopers;
+      for (auto xyz = 0; xyz != 3;
+        ++xyz, op_start += nopers, op_fence += nopers) {
+        for (unsigned int op = op_start; op != op_fence;
+          ++op, ++shellset_idx) {
+      
+          //std::cout << c << ", " << xyz << " => " 
+          //  << op << ", " << shellset_idx << std::endl;
+            
+          for (int idx = 0; idx != absize; ++idx) {
+            V_grad_block[absize*op + idx] += m_nuc_attr_eng.results().at(shellset_idx)[idx];
+          }   
+        }
+      }
+    }
+  }
+
+
 };
 
 #endif /* JERI_OEI_H */

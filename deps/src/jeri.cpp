@@ -38,7 +38,9 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
     .method("compute_overlap_block", &OEIEngine::compute_overlap_block)
     .method("compute_overlap_grad_block", &OEIEngine::compute_overlap_grad_block)
     .method("compute_kinetic_block", &OEIEngine::compute_kinetic_block)
-    .method("compute_nuc_attr_block", &OEIEngine::compute_nuc_attr_block);
+    .method("compute_kinetic_grad_block", &OEIEngine::compute_kinetic_grad_block)
+    .method("compute_nuc_attr_block", &OEIEngine::compute_nuc_attr_block)
+    .method("compute_nuc_attr_grad_block", &OEIEngine::compute_nuc_attr_grad_block);
 
   //-- tei engine information --//
   mod.add_type<TEIEngine>("TEIEngine")
