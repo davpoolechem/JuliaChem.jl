@@ -58,8 +58,6 @@ public:
   void compute_overlap_block(jlcxx::ArrayRef<double> S_block, julia_int ash, 
     julia_int bsh, julia_int absize)
   {
-    assert(m_deriv_order == 0);
-
     m_overlap_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
     for (int i = 0; i != absize; ++i) {
       S_block[i] = m_overlap_eng.results()[0][i];
@@ -123,6 +121,10 @@ public:
     auto atom1 = m_shell2atom[ash-1]; 
     auto atom2 = m_shell2atom[bsh-1]; 
 
+    //std::cout << "Shells: " << ash-1 << ", " << bsh-1 << std::endl; 
+    //std::cout << "Atoms: " << atom1 << ", " << atom2 << std::endl; 
+    //std::cout << "nopers: " << nopers << ", " << nresults << std::endl; 
+
     m_kinetic_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
     
     std::size_t shellset_idx = 0; 
@@ -167,6 +169,10 @@ public:
 
     auto atom1 = m_shell2atom[ash-1]; 
     auto atom2 = m_shell2atom[bsh-1]; 
+
+    //std::cout << "Shells: " << ash-1 << ", " << bsh-1 << std::endl; 
+    //std::cout << "Atoms: " << atom1 << ", " << atom2 << std::endl; 
+    //std::cout << "nopers: " << nopers << ", " << nresults << std::endl; 
 
     m_nuc_attr_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
     
