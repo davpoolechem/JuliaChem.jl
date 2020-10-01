@@ -89,7 +89,7 @@ function compute_overlap_grad(mol::Molecule,
     JERI.compute_overlap_grad_block(jeri_oei_grad_engine, S_block_JERI, ash, bsh, 
       abas*bbas)
 
-    #axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
+    axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh], ncoord)
     
     #println("Julia Shells: $ash, $bsh")
     #println("Julia Atoms: $iatom, $jatom")
@@ -164,7 +164,7 @@ function compute_kinetic_grad(mol::Molecule,
     JERI.compute_kinetic_grad_block(jeri_oei_grad_engine, T_block_JERI, ash, bsh, 
       abas*bbas)
 
-    #axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
+    axial_normalization_factor(T_block_JERI, basis[ash], basis[bsh], ncoord)
     
     #println("Julia Shells: $ash, $bsh")
     #println("Julia Atoms: $iatom, $jatom")
@@ -239,23 +239,25 @@ function compute_nuc_attr_grad(mol::Molecule,
     JERI.compute_nuc_attr_grad_block(jeri_oei_grad_engine, V_block_JERI, ash, bsh, 
       abas*bbas)
 
-    #axial_normalization_factor(S_block_JERI, basis[ash], basis[bsh])
+    axial_normalization_factor(V_block_JERI, basis[ash], basis[bsh], ncoord)
     
-    #println("Julia Shells: $ash, $bsh")
-    #println("Julia Atoms: $iatom, $jatom")
+    println("Julia Shells:", ash-1, ", ", bsh-1)
+    #println("Julia Atoms:", iatom-1, ", ", jatom-1)
 
     shlset_idx = 1
     for ishlset in 1:shell_set
       atom = ishlset == 1 ? iatom : (ishlset == 2 ? jatom : ishlset-2)
-      
+       
       for icoord in 1:3
         idx = 1
         op = 3*(atom-1) + icoord 
-        #println("$ishlset, $icoord => $op, $shlset_idx")
+        println(ishlset-1, ", ", icoord-1, " => ", op-1, ", ", shlset_idx-1)
         
         for ibas in 0:abas-1, jbas in 0:bbas-1
           iorb = apos + ibas
           jorb = bpos + jbas
+
+          #println(abas*bbas*(op-1) + idx - 1)
 
           V_deriv[op][max(iorb,jorb),min(iorb,jorb)] += V_block_JERI[abas*bbas*(op-1) + idx]
           idx += 1
@@ -278,7 +280,7 @@ function compute_nuc_attr_grad(mol::Molecule,
       deriv_idx = 3*(iatom-1)  + icoord
 
       for ibas in 1:basis.norb, jbas in 1:basis.norb
-        scale = ibas == jbas ? 0.5 : 1.0
+        scale = ibas == jbas ? 0.5 : 1.0 
         
         PV_grad[iatom,icoord] += scale * P[ibas,jbas] * V_deriv[deriv_idx][ibas, jbas]  
       end
@@ -366,22 +368,24 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   end
 end
 
-function axial_normalization_factor(oei, ash, bsh)
+function axial_normalization_factor(oei, ash, bsh, ncoord)
   ama = ash.am
   amb = bsh.am
 
   na = ash.nbas
   nb = bsh.nbas
 
-  ab = 0 
-  for asize::Int64 in 0:(na-1), bsize::Int64 in 0:(nb-1)
-    ab += 1 
+  for icoord in 1:ncoord
+    ab = (icoord-1)*na*nb 
+    for asize::Int64 in 0:(na-1), bsize::Int64 in 0:(nb-1)
+      ab += 1 
    
-    anorm = axial_norm_fact[asize+1,ama]
-    bnorm = axial_norm_fact[bsize+1,amb]
+      anorm = axial_norm_fact[asize+1,ama]
+      bnorm = axial_norm_fact[bsize+1,amb]
     
-    abnorm = anorm*bnorm 
-    oei[ab] *= abnorm
+      abnorm = anorm*bnorm 
+      oei[ab] *= abnorm
+    end
   end
 end
 

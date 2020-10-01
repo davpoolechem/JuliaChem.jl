@@ -170,8 +170,8 @@ public:
     auto atom1 = m_shell2atom[ash-1]; 
     auto atom2 = m_shell2atom[bsh-1]; 
 
-    //std::cout << "Shells: " << ash-1 << ", " << bsh-1 << std::endl; 
-    //std::cout << "Atoms: " << atom1 << ", " << atom2 << std::endl; 
+    std::cout << "Libint Shells: " << ash-1 << ", " << bsh-1 << std::endl; 
+    //std::cout << "Libint Atoms: " << atom1 << ", " << atom2 << std::endl; 
     //std::cout << "nopers: " << nopers << ", " << nresults << std::endl; 
 
     m_nuc_attr_eng.compute((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1]);
@@ -186,10 +186,11 @@ public:
         for (unsigned int op = op_start; op != op_fence;
           ++op, ++shellset_idx) {
       
-          //std::cout << c << ", " << xyz << " => " 
-          //  << op << ", " << shellset_idx << std::endl;
+          std::cout << c << ", " << xyz << " => " 
+            << op << ", " << shellset_idx << std::endl;
             
           for (int idx = 0; idx != absize; ++idx) {
+            //std::cout << absize*op + idx << std::endl;
             V_grad_block[absize*op + idx] += m_nuc_attr_eng.results().at(shellset_idx)[idx];
           }   
         }

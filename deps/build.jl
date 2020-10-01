@@ -11,7 +11,7 @@ function build_jeri()
   if ispath("build") rm("build", recursive=true) end
   mkdir("build")
   cd("build")
-  run(`cmake -DCMAKE_BUILD_TYPE=Debug 
+  run(`cmake -DCMAKE_BUILD_TYPE=Release 
     -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ 
     -DEIGEN_PATH=$eigen_root -DBOOST_PATH=$boost_root 
     -DJLCXX_PATH=$jlcxx_root -DLIBINT_PATH=$libint_root ../`)
