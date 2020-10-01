@@ -30,8 +30,12 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   #== initial setup ==#
   jeri_oei_grad_engine = JERI.OEIEngine(mol.mol_cxx, 
     basis.basis_cxx, 1) 
+  
   W = rhf_energy["Energy-Weighted Density"] 
   P = rhf_energy["Density"] 
+
+  #display(W); println()
+  #display(P); println()
 
   #== compute nuclear repulsion gradient contribution==#
   nuclear_gradient = compute_nuc_grad(mol) 
@@ -44,18 +48,18 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   display(overlap_gradient); println()
  
   #== compute kinetic gradient contribution ==#
-  #kinetic_gradient = compute_kinetic_grad(mol, basis, P, jeri_oei_grad_engine) 
-  #println("KINETIC GRADIENT: ")
-  #display(kinetic_gradient); println()
+  kinetic_gradient = compute_kinetic_grad(mol, basis, P, jeri_oei_grad_engine) 
+  println("KINETIC GRADIENT: ")
+  display(kinetic_gradient); println()
  
   #== compute nuclear attraction gradient contribution ==#
-  #nuc_attr_gradient = compute_nuc_attr_grad(mol, basis, P, jeri_oei_grad_engine) 
-  #println("NUC. ATTR. GRADIENT: ")
-  #display(nuc_attr_gradient); println()
+  nuc_attr_gradient = compute_nuc_attr_grad(mol, basis, P, jeri_oei_grad_engine) 
+  println("NUC. ATTR. GRADIENT: ")
+  display(nuc_attr_gradient); println()
  
   #== comput total gradient ==# 
-  #total_gradient = nuclear_gradient .+ overlap_gradient .+ kinetic_gradient .+ nuc_attr_gradient
-  total_gradient = nuclear_gradient .+ overlap_gradient 
+  total_gradient = nuclear_gradient .+ overlap_gradient .+ kinetic_gradient .+ nuc_attr_gradient
+  #total_gradient = nuclear_gradient .+ overlap_gradient 
   println("TOTAL GRADIENT: ")
   display(total_gradient); println()
  

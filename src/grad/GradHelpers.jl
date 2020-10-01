@@ -96,7 +96,7 @@ function compute_overlap_grad(mol::Molecule,
 
     shlset_idx = 1
     for ishlset in 1:shell_set
-      atom = ishlset == 1 ? iatom : jatom
+      atom = ishlset == 1 ? iatom : (ishlset == 2 ? jatom : ishlset-2)
 
       for icoord in 1:3
         idx = 1
@@ -127,7 +127,11 @@ function compute_overlap_grad(mol::Molecule,
   for iatom in 1:natoms
     for icoord in 1:3
       deriv_idx = 3*(iatom-1)  + icoord
-      WS_grad[iatom,icoord] = -(LinearAlgebra.dot(W, S_deriv[deriv_idx]))
+      for ibas in 1:basis.norb, jbas in 1:basis.norb
+        scale = ibas == jbas ? 0.5 : 1.0
+        
+        WS_grad[iatom,icoord] -= scale * W[ibas,jbas] * S_deriv[deriv_idx][ibas, jbas]  
+      end
     end
   end
   return WS_grad
@@ -167,7 +171,7 @@ function compute_kinetic_grad(mol::Molecule,
 
     shlset_idx = 1
     for ishlset in 1:shell_set
-      atom = ishlset == 1 ? iatom : jatom
+      atom = ishlset == 1 ? iatom : (ishlset == 2 ? jatom : ishlset-2)
 
       for icoord in 1:3
         idx = 1
@@ -198,7 +202,11 @@ function compute_kinetic_grad(mol::Molecule,
   for iatom in 1:natoms
     for icoord in 1:3
       deriv_idx = 3*(iatom-1)  + icoord
-      PT_grad[iatom,icoord] = LinearAlgebra.dot(P, T_deriv[deriv_idx])
+      for ibas in 1:basis.norb, jbas in 1:basis.norb
+        scale = ibas == jbas ? 0.5 : 1.0
+        
+        PT_grad[iatom,icoord] += scale * P[ibas,jbas] * T_deriv[deriv_idx][ibas, jbas]  
+      end
     end
   end
   return PT_grad
@@ -238,11 +246,11 @@ function compute_nuc_attr_grad(mol::Molecule,
 
     shlset_idx = 1
     for ishlset in 1:shell_set
-      atom = ishlset%2 != 0 ? iatom : jatom
-      op = 3*(atom-1) + icoord 
+      atom = ishlset == 1 ? iatom : (ishlset == 2 ? jatom : ishlset-2)
       
       for icoord in 1:3
         idx = 1
+        op = 3*(atom-1) + icoord 
         #println("$ishlset, $icoord => $op, $shlset_idx")
         
         for ibas in 0:abas-1, jbas in 0:bbas-1
@@ -268,7 +276,12 @@ function compute_nuc_attr_grad(mol::Molecule,
   for iatom in 1:natoms
     for icoord in 1:3
       deriv_idx = 3*(iatom-1)  + icoord
-      PV_grad[iatom,icoord] = LinearAlgebra.dot(P, V_deriv[deriv_idx])
+
+      for ibas in 1:basis.norb, jbas in 1:basis.norb
+        scale = ibas == jbas ? 0.5 : 1.0
+        
+        PV_grad[iatom,icoord] += scale * P[ibas,jbas] * V_deriv[deriv_idx][ibas, jbas]  
+      end
     end
   end
   return PV_grad
