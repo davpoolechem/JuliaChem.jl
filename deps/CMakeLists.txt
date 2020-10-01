@@ -37,15 +37,20 @@ endif()
 #################################
 #   setup library directories   # 
 #################################
+find_path(JULIA_PATH | NAMES julia | HINTS ${JULIA_ROOT} REQUIRED) 
+find_path(LIBINT_PATH | NAMES libint | HINTS ${LIBINT_ROOT} REQUIRED) 
+
 INCLUDE_DIRECTORIES( SYSTEM
+  ${JULIA_PATH}/include/julia 
   ${EIGEN_PATH}/include/eigen3 ${BOOST_PATH}/include 
   ${JLCXX_PATH}/include ${LIBINT_PATH}/include
 )
 
 LINK_DIRECTORIES( SYSTEM
-  ${JLCXX_PATH}/lib ${LIBINT_PATH}/lib
+  ${JULIA_PATH}/lib ${JLCXX_PATH}/lib ${LIBINT_PATH}/lib
 )
 
+message("-- Found Julia at ${JULIA_PATH}") 
 message("-- Found Eigen at ${EIGEN_PATH}")
 message("-- Found Boost at ${BOOST_PATH}")
 message("-- Found JLCxx at ${JLCXX_PATH}")
