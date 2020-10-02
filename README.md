@@ -12,7 +12,7 @@ Poole, D.; Galvez Vallejo, J. L.; and Gordon, M. S. "A New Kid on the Block: App
 If you are simply interested in using JuliaChem.jl for your calculations, you
 can build JuliaChem.jl as follows.
 
-1. Install the Libint integral computation library. JuliaChem.jl uses Libint as a backend for computing electron repulsion integrals.
+1. Install the Libint integral computation library. JuliaChem.jl uses Libint as a backend for computing electron repulsion integrals. Note that the Libint instance must be built with position-independent code in order to work with the JuliaChem.jl interface; you must specify either "--enable shared" as a flag in the Libint install to enable construction of a Libint shared library, or you must specify "-fPIC" as one of the CXX flags for the construction of the Libint static library.
 
 2. Define the following environmental variables:
 
