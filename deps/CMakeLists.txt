@@ -39,10 +39,10 @@ endif()
 #################################
 find_path(JULIA_INCLUDE_PATH | NAMES julia | HINTS ENV JULIA_ROOT PATH_SUFFIXES include REQUIRED) 
 find_path(LIBINT_INCLUDE_PATH | NAME libint2.h | HINTS ENV LIBINT_ROOT PATH_SUFFIXES include REQUIRED) 
-find_path(LIBINT_LIB_PATH | NAMES libint2.so libint2.a | HINTS ENV LIBINT_ROOT PATH_SUFFIXES lib REQUIRED) 
+find_path(LIBINT_LIB_PATH | NAMES libint2.a | HINTS ENV LIBINT_ROOT PATH_SUFFIXES lib REQUIRED) 
 
 INCLUDE_DIRECTORIES( SYSTEM
-  ${JULIA_INCLUDE_PATH}/julia 
+  ${JULIA_INCLUDE_PATH}/../include/julia 
   ${EIGEN_PATH}/include/eigen3 ${BOOST_PATH}/include 
   ${JLCXX_PATH}/include ${LIBINT_INCLUDE_PATH}
 )
