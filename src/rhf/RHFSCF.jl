@@ -519,7 +519,7 @@ H = One-electron Hamiltonian Matrix
       while initial_task < MPI.Comm_size(comm)
         for thread in 1:Threads.nthreads()
           #println("Sending task $task to rank $initial_task")
-          sreq = MPI.Isend(task, initial_task, thread, comm)
+          sreq = MPI.Send(task, initial_task, thread, comm)
           #println("Task $task sent to rank $initial_task") 
         
           task[1] -= batch_size 
@@ -533,7 +533,7 @@ H = One-electron Hamiltonian Matrix
       while task[1] > 0 
         status = MPI.Probe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, 
           comm) 
-        rreq = MPI.Irecv!(recv_mesg_master, status.source, status.tag, 
+        rreq = MPI.Recv!(recv_mesg_master, status.source, status.tag, 
           comm)  
         #println("Sending task $task to rank ", status.source)
         sreq = MPI.Send(task, status.source, status.tag, comm)  
@@ -573,7 +573,7 @@ H = One-electron Hamiltonian Matrix
       
           lock(mutex_mpi)
             status = MPI.Probe(0, thread, comm)
-            rreq = MPI.Irecv!(recv_mesg, status.source, status.tag, comm)
+            rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
             ijkl_index = recv_mesg[1]
           unlock(mutex_mpi)
 
@@ -599,7 +599,7 @@ H = One-electron Hamiltonian Matrix
 
           lock(mutex_mpi)
             send_mesg[1] = MPI.Comm_rank(comm)
-            MPI.Isend(send_mesg, 0, thread, comm)
+            MPI.Send(send_mesg, 0, thread, comm)
           unlock(mutex_mpi)
         end
       
