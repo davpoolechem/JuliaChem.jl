@@ -37,24 +37,26 @@ endif()
 #################################
 #   setup library directories   # 
 #################################
-find_path(JULIA_PATH | NAMES julia | HINTS ${JULIA_ROOT} REQUIRED) 
-find_path(LIBINT_PATH | NAMES libint | HINTS ${LIBINT_ROOT} REQUIRED) 
+find_path(JULIA_INCLUDE_PATH | NAMES julia | HINTS ENV JULIA_ROOT PATH_SUFFIXES include REQUIRED) 
+find_path(LIBINT_INCLUDE_PATH | NAME libint2.h | HINTS ENV LIBINT_ROOT PATH_SUFFIXES include REQUIRED) 
+find_path(LIBINT_LIB_PATH | NAME libint2.so | HINTS ENV LIBINT_ROOT PATH_SUFFIXES lib REQUIRED) 
 
 INCLUDE_DIRECTORIES( SYSTEM
-  ${JULIA_PATH}/include/julia 
+  ${JULIA_INCLUDE_PATH}/julia 
   ${EIGEN_PATH}/include/eigen3 ${BOOST_PATH}/include 
-  ${JLCXX_PATH}/include ${LIBINT_PATH}/include
+  ${JLCXX_PATH}/include ${LIBINT_INCLUDE_PATH}
 )
 
 LINK_DIRECTORIES( SYSTEM
-  ${JULIA_PATH}/lib ${JLCXX_PATH}/lib ${LIBINT_PATH}/lib
+  ${JLCXX_PATH}/lib ${LIBINT_LIB_PATH}
 )
 
-message("-- Found Julia at ${JULIA_PATH}") 
 message("-- Found Eigen at ${EIGEN_PATH}")
 message("-- Found Boost at ${BOOST_PATH}")
 message("-- Found JLCxx at ${JLCXX_PATH}")
-message("-- Found Libint at ${LIBINT_PATH}")
+message("-- Found julia include directory at ${JULIA_INCLUDE_PATH}") 
+message("-- Found libint2.h at ${LIBINT_INCLUDE_PATH}")
+message("-- Found libint2.so at ${LIBINT_LIB_PATH}")
 
 #################################
 #   build and install library   # 
