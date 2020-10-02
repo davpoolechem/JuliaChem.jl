@@ -552,7 +552,8 @@ H = One-electron Hamiltonian Matrix
       #println("Done sending out enders") 
     #== slave ranks perform actual computations on quartets ==#
     elseif MPI.Comm_rank(comm) > 0
-      mutex_mpi = Base.Threads.ReentrantLock()
+      mutex_mpi_send = Base.Threads.ReentrantLock()
+      mutex_mpi_recv = Base.Threads.ReentrantLock()
       mutex_reduce = Base.Threads.ReentrantLock()
       
       Threads.@threads for thread in 1:Threads.nthreads() 
@@ -571,11 +572,11 @@ H = One-electron Hamiltonian Matrix
           #status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
           #println("About to recieve task from master")
       
-          lock(mutex_mpi)
+          lock(mutex_mpi_recv)
             status = MPI.Probe(0, thread, comm)
             rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
             ijkl_index = recv_mesg[1]
-          unlock(mutex_mpi)
+          unlock(mutex_mpi_recv)
 
           #println(ijkl_index)
           if ijkl_index < 0 break end
@@ -597,10 +598,10 @@ H = One-electron Hamiltonian Matrix
               cutoff, debug)
           end
 
-          lock(mutex_mpi)
+          lock(mutex_mpi_send)
             send_mesg[1] = MPI.Comm_rank(comm)
             MPI.Send(send_mesg, 0, thread, comm)
-          unlock(mutex_mpi)
+          unlock(mutex_mpi_send)
         end
       
         lock(mutex_reduce)
