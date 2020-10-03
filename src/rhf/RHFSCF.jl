@@ -468,40 +468,43 @@ H = One-electron Hamiltonian Matrix
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
  
-  #mutex = Base.Threads.ReentrantLock()
-  #thread_index_counter = Threads.Atomic{Int64}(nindices)
+  F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
+      
+  max_am = max_ang_mom(basis) 
+  eri_quartet_batch_thread = [ Vector{Float64}(undef,
+    eri_quartet_batch_size(max_am)) 
+    for thread in 1:Threads.nthreads() ]
   
   #== simply do calculation for serial runs ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
     top_index = nindices - (MPI.Comm_rank(comm))
     stride = MPI.Comm_size(comm) 
-    
-    mutex = Base.Threads.ReentrantLock()
     thread_index_counter = Threads.Atomic{Int64}(top_index)
-    Threads.@threads for thread in 1:Threads.nthreads() 
-      max_am = max_ang_mom(basis) 
-      eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-      #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-      jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
-      F_priv = zeros(size(F))
-      while true 
-        ijkl = Threads.atomic_sub!(thread_index_counter, stride) 
+    wait.([ 
+      Threads.@spawn begin 
+        eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread])
+        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
-        if ijkl < 1 break end
+        F_priv = $(F_thread[thread]) 
+        while true 
+          ijkl = Threads.atomic_sub!($thread_index_counter, stride) 
+
+          if ijkl < 1 break end
         
-        fock_build_thread_kernel(F_priv, D,
-          H, basis, eri_quartet_batch_priv, #mutex,
-          ijkl, jeri_tei_engine_priv,
-          schwarz_bounds, Dsh,
-          cutoff, debug)
+          fock_build_thread_kernel(F_priv, D,
+            H, basis, eri_quartet_batch_priv, #mutex,
+            ijkl, jeri_tei_engine_priv,
+            schwarz_bounds, Dsh,
+            cutoff, debug)
+        end
       end
-
-      lock(mutex)
-        F .+= F_priv
-      unlock(mutex)
+      for thread in 1:Threads.nthreads()
+    ])
+      
+    for ithread_fock in F_thread 
+      F += ithread_fock
     end
-    #MPI.Barrier()
   #== use static task distribution for multirank runs if selected ==#
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
     batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
@@ -555,17 +558,6 @@ H = One-electron Hamiltonian Matrix
       mutex_mpi_send = Base.Threads.ReentrantLock()
       mutex_mpi_recv = Base.Threads.ReentrantLock()
       
-      #== get shell quartet ==#
-      #status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
-      #println("About to recieve task from master")
-   
-      F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
-      
-      max_am = max_ang_mom(basis) 
-      eri_quartet_batch_thread = [ Vector{Float64}(undef,
-        eri_quartet_batch_size(max_am)) 
-        for thread in 1:Threads.nthreads() ]
-          
       wait.([ 
         Threads.@spawn begin 
           recv_mesg = [ 0 ] 
@@ -609,8 +601,6 @@ H = One-electron Hamiltonian Matrix
               MPI.Send(send_mesg, 0, $thread, comm)
             unlock($mutex_mpi_send)
           end
-            
-          return 
         end
         for thread in 1:Threads.nthreads()
       ])
