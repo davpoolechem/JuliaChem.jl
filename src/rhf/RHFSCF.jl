@@ -312,6 +312,12 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   iter = 1
   iter_converged = false
   
+  max_am = max_ang_mom(basis) 
+  eri_quartet_batch_thread = [ Vector{Float64}(undef,
+    eri_quartet_batch_size(max_am)) 
+    for thread in 1:Threads.nthreads() ]
+ 
+  F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
   while !iter_converged
     #== reset eri arrays ==#
     #if quartet_batch_num_old != 1 && iter != 1
@@ -351,8 +357,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
   
     #== build new Fock matrix ==#
-    workspace_a .= fock_build(workspace_b, D_input, H, basis, schwarz_bounds, Dsh, 
-      cutoff, debug, load)
+    workspace_a .= fock_build(workspace_b, F_thread, D_input, H, basis, 
+      schwarz_bounds, Dsh, eri_quartet_batch_thread, cutoff, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -456,31 +462,31 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-@inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
+@inline function fock_build(F::Matrix{Float64}, 
+  F_thread::Vector{Matrix{Float64}}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  cutoff::Float64, debug::Bool, load::String)
+  eri_quartet_batch_thread::Vector{Vector{Float64}}, cutoff::Float64, 
+  debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
   fill!(F,zero(Float64))
+  fill!.(F_thread,zero(Float64)) 
 
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
- 
-  F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
-      
-  max_am = max_ang_mom(basis) 
-  eri_quartet_batch_thread = [ Vector{Float64}(undef,
-    eri_quartet_batch_size(max_am)) 
-    for thread in 1:Threads.nthreads() ]
-  
-  #== simply do calculation for serial runs ==#
+  batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
+    Threads.nthreads()*1000)) 
+
+  #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
+    #== set up initial indices ==# 
     top_index = nindices - (MPI.Comm_rank(comm))
     stride = MPI.Comm_size(comm) 
     thread_index_counter = Threads.Atomic{Int64}(top_index)
 
+    #== execute kernel of calculation ==#
     wait.([ 
       Threads.@spawn begin 
         eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread])
@@ -501,15 +507,13 @@ H = One-electron Hamiltonian Matrix
       end
       for thread in 1:Threads.nthreads()
     ])
-      
+     
+    #== reduce into Fock matrix ==# 
     for ithread_fock in F_thread 
       F += ithread_fock
     end
-  #== use static task distribution for multirank runs if selected ==#
+  #== ..else use dynamic task distribution ==# 
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
-    batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-      Threads.nthreads()*1000)) 
-
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
       #== send out initial tasks to slaves ==#
@@ -553,11 +557,13 @@ H = One-electron Hamiltonian Matrix
         end
       end      
       #println("Done sending out enders") 
-    #== slave ranks perform actual computations on quartets ==#
+    #== worker ranks perform actual computations on quartets ==#
     elseif MPI.Comm_rank(comm) > 0
+      #== create needed mutices ==#
       mutex_mpi_send = Base.Threads.ReentrantLock()
       mutex_mpi_recv = Base.Threads.ReentrantLock()
-      
+     
+      #== execute kernel ==# 
       wait.([ 
         Threads.@spawn begin 
           recv_mesg = [ 0 ] 
@@ -605,6 +611,7 @@ H = One-electron Hamiltonian Matrix
         for thread in 1:Threads.nthreads()
       ])
 
+      #== reduce into Fock matrix ==#
       for ithread_fock in F_thread 
         F += ithread_fock
       end
