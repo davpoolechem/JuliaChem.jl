@@ -554,30 +554,31 @@ H = One-electron Hamiltonian Matrix
     elseif MPI.Comm_rank(comm) > 0
       mutex_mpi_send = Base.Threads.ReentrantLock()
       mutex_mpi_recv = Base.Threads.ReentrantLock()
-      mutex_reduce = Base.Threads.ReentrantLock()
       
       #== get shell quartet ==#
       #status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
       #println("About to recieve task from master")
    
-      #F_priv =  [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
-      thread_tasks = fetch.([ 
+      F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
+      
+      max_am = max_ang_mom(basis) 
+      eri_quartet_batch_thread = [ Vector{Float64}(undef,
+        eri_quartet_batch_size(max_am)) 
+        for thread in 1:Threads.nthreads() ]
+          
+      wait.([ 
         Threads.@spawn begin 
-          thread = Threads.threadid()
- 
           recv_mesg = [ 0 ] 
           send_mesg = [ 0 ] 
  
-          max_am = max_ang_mom(basis) 
-          eri_quartet_batch_priv = Vector{Float64}(undef,
-            eri_quartet_batch_size(max_am)) 
+          eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread]) 
           jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
             basis.shpdata_cxx) 
     
-          F_priv = zeros(size(F)) 
+          F_priv = $(F_thread[thread]) 
           while true
             lock($mutex_mpi_recv)
-              status = MPI.Probe(0, thread, comm)
+              status = MPI.Probe(0, $thread, comm)
               rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
               ijkl_index = recv_mesg[1]
             unlock($mutex_mpi_recv)
@@ -605,16 +606,16 @@ H = One-electron Hamiltonian Matrix
 
             lock($mutex_mpi_send)
               send_mesg[1] = MPI.Comm_rank(comm)
-              MPI.Send(send_mesg, 0, thread, comm)
+              MPI.Send(send_mesg, 0, $thread, comm)
             unlock($mutex_mpi_send)
           end
             
-          return F_priv
+          return 
         end
         for thread in 1:Threads.nthreads()
       ])
 
-      for ithread_fock in thread_tasks
+      for ithread_fock in F_thread 
         F += ithread_fock
       end
     end
