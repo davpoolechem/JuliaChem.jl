@@ -556,60 +556,68 @@ H = One-electron Hamiltonian Matrix
       mutex_mpi_recv = Base.Threads.ReentrantLock()
       mutex_reduce = Base.Threads.ReentrantLock()
       
-      Threads.@threads for thread in 1:Threads.nthreads() 
-        recv_mesg = [ 0 ]
-        send_mesg = [ 0 ]
-
-        max_am = max_ang_mom(basis) 
-        eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-        #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
-          basis.shpdata_cxx)
-    
-        F_priv = zeros(size(F))
-        while true 
-          #== get shell quartet ==#
-          #status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
-          #println("About to recieve task from master")
-      
-          lock(mutex_mpi_recv)
-            status = MPI.Probe(0, thread, comm)
-            rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
-            ijkl_index = recv_mesg[1]
-          unlock(mutex_mpi_recv)
-
-          #println(ijkl_index)
-          if ijkl_index < 0 break end
-          #println("Thread $thread ecieved task $ijkl_index from master")
+      #== get shell quartet ==#
+      #status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
+      #println("About to recieve task from master")
+   
+      #F_priv =  [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
+      thread_tasks = fetch.([ 
+        Threads.@spawn begin 
+          thread = Threads.threadid()
  
-          #for rank in 1:MPI.Comm_size(comm)
-          #  if MPI.Comm_rank(comm) == rank
-          #    println("IJKL_INDEX: ", ijkl_index)
-          #  end
-          #end
-          #println("NEW BATCH")
-          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
-            #println("IJKL: $ijkl")
+          recv_mesg = [ 0 ] 
+          send_mesg = [ 0 ] 
+ 
+          max_am = max_ang_mom(basis) 
+          eri_quartet_batch_priv = Vector{Float64}(undef,
+            eri_quartet_batch_size(max_am)) 
+          jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
+            basis.shpdata_cxx) 
+    
+          F_priv = zeros(size(F)) 
+          while true
+            lock($mutex_mpi_recv)
+              status = MPI.Probe(0, thread, comm)
+              rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+              ijkl_index = recv_mesg[1]
+            unlock($mutex_mpi_recv)
 
-            fock_build_thread_kernel(F_priv, D,
-              H, basis, eri_quartet_batch_priv, #mutex,
-              ijkl, jeri_tei_engine_priv,
-              schwarz_bounds, Dsh,
-              cutoff, debug)
+            #println(ijkl_index)
+            if ijkl_index < 0 break end
+            #println("Thread $thread ecieved task $ijkl_index from master")
+
+            #for rank in 1:MPI.Comm_size(comm)
+            #  if MPI.Comm_rank(comm) == rank
+            #    #println("NEW BATCH")
+            #    println("IJKL_INDEX: ", ijkl_index)
+            #  end
+            #end
+            #prinitln("NEW BATCH")
+            for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+              #println("IJKL: $ijkl")
+
+              fock_build_thread_kernel(F_priv, D,
+                H, basis, eri_quartet_batch_priv, #mutex,
+                ijkl, jeri_tei_engine_priv,
+                schwarz_bounds, Dsh,
+                cutoff, debug)
+            end
+
+            lock($mutex_mpi_send)
+              send_mesg[1] = MPI.Comm_rank(comm)
+              MPI.Send(send_mesg, 0, thread, comm)
+            unlock($mutex_mpi_send)
           end
-
-          lock(mutex_mpi_send)
-            send_mesg[1] = MPI.Comm_rank(comm)
-            MPI.Send(send_mesg, 0, thread, comm)
-          unlock(mutex_mpi_send)
+            
+          return F_priv
         end
-      
-        lock(mutex_reduce)
-          F .+= F_priv
-        unlock(mutex_reduce)
+        for thread in 1:Threads.nthreads()
+      ])
+
+      for ithread_fock in thread_tasks
+        F += ithread_fock
       end
     end
-    #MPI.Barrier(comm)
   end
   MPI.Barrier(comm)
 
