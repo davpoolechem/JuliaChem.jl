@@ -1,6 +1,7 @@
 using Base.Threads
-using LinearAlgebra
+using Distributed
 using HDF5
+using LinearAlgebra
 using PrettyTables
 
 const do_continue_print = false 
@@ -45,7 +46,6 @@ function rhf_kernel(mol::Molecule,
   output::String, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
-  comm=MPI.COMM_WORLD
   calculation_status = Dict([])
 
   #== read in some variables from scf input ==#
@@ -77,7 +77,7 @@ function rhf_kernel(mol::Molecule,
   #  println("HAMIL($i,$j): ", H[i,j])
   #end
  
-  if debug && MPI.Comm_rank(comm) == 0
+  if debug 
     h5write("debug.h5","SCF/Iteration-None/E_nuc", E_nuc)
     h5write("debug.h5","SCF/Iteration-None/S", S)
     h5write("debug.h5","SCF/Iteration-None/T", T)
@@ -109,11 +109,11 @@ function rhf_kernel(mol::Molecule,
   
   ortho = workspace_a*(LinearAlgebra.Diagonal(workspace_b)^-0.5)*transpose(workspace_a)
   
-  if debug && MPI.Comm_rank(comm) == 0
+  if debug 
     h5write("debug.h5","SCF/Iteration-None/Ortho", ortho)
   end
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println("----------------------------------------          ")
     println("       Starting RHF iterations...                 ")
     println("----------------------------------------          ")
@@ -130,7 +130,7 @@ function rhf_kernel(mol::Molecule,
   E = E_elec + E_nuc
   E_old = E
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println(0,"     ", E)
   end
 
@@ -144,7 +144,7 @@ function rhf_kernel(mol::Molecule,
     rmsd=rmsd, load=load, fdiff=fdiff)
 
   if !converged
-    if MPI.Comm_rank(comm) == 0 && output != "none"
+    if output != "none"
       println(" ")
       println("----------------------------------------")
       println(" The SCF calculation did not converge.  ")
@@ -165,7 +165,7 @@ function rhf_kernel(mol::Molecule,
     merge!(calculation_status, calculation_fail)
 
   else
-    if MPI.Comm_rank(comm) == 0 && output != "none" 
+    if output != "none" 
       println(" ")
       println("----------------------------------------")
       println("   The SCF calculation has converged!   ")
@@ -297,8 +297,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   output, debug, niter, ndiis, dele, rmsd, load, fdiff)
 
   #== initialize a few more variables ==#
-  comm=MPI.COMM_WORLD
-
+  comm = MPI.COMM_WORLD
   B_dim = 1
   D_rms = 1.0
   ΔE = 1.0 
@@ -363,7 +362,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
 
-    if debug && MPI.Comm_rank(comm) == 0
+    if debug 
       h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F_input)
     end
  
@@ -375,7 +374,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       F .= workspace_b .+ H
     end
 
-    if debug && MPI.Comm_rank(comm) == 0
+    if debug 
       h5write("debug.h5","SCF/Iteration-$iter/F/Total", F)
     end
 
@@ -426,7 +425,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     E = E_elec+E_nuc
     ΔE = E - E_old
 
-    if MPI.Comm_rank(comm) == 0 && output == "verbose"
+    if output == "verbose"
       println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
     end
 
@@ -480,7 +479,7 @@ H = One-electron Hamiltonian Matrix
     Threads.nthreads()*1000)) 
 
   #== use static task distribution for multirank runs if selected... ==#
-  if MPI.Comm_size(comm) == 1  || load == "static"
+  if load == "static"
     #== set up initial indices ==# 
     top_index = nindices - (MPI.Comm_rank(comm))
     stride = MPI.Comm_size(comm) 
@@ -513,7 +512,7 @@ H = One-electron Hamiltonian Matrix
       F += ithread_fock
     end
   #== ..else use dynamic task distribution ==# 
-  elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
+  elseif oad == "dynamic"
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
       #== send out initial tasks to slaves ==#
@@ -636,8 +635,6 @@ end
   jeri_tei_engine, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, cutoff::Float64, debug::Bool)
 
-  comm=MPI.COMM_WORLD
-  
   #== determine shells==# 
   bra_pair = decompose(ijkl_index)
   ket_pair = ijkl_index - triangular_index(bra_pair)
@@ -891,8 +888,6 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   workspace_b::Matrix{Float64}, ortho::Matrix{Float64}, 
   basis::Basis, iter::Int, debug::Bool)
 
-  comm=MPI.COMM_WORLD
- 
   transpose!(workspace_b, LinearAlgebra.Hermitian(ortho)) 
 
   #== obtain new orbital coefficients ==#
@@ -903,14 +898,14 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
-  if debug && MPI.Comm_rank(comm) == 0
+  if debug 
     h5write("debug.h5","SCF/Iteration-$iter/F_evec/Sorted", F_mo)
   end
 
   #C .= ortho*F_evec
   BLAS.symm!('L', 'U', 1.0, ortho, F_evec, 0.0, C)
   
-  if debug && MPI.Comm_rank(comm) == 0
+  if debug 
     h5write("debug.h5","SCF/Iteration-$iter/C", C)
   end
 
@@ -930,7 +925,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   EHF2 = LinearAlgebra.dot(D, H)
   E_elec = (EHF1 + EHF2)/2.0
   
-  if debug && MPI.Comm_rank(comm) == 0
+  if debug 
     h5write("debug.h5","SCF/Iteration-$iter/D", D)
     h5write("debug.h5","SCF/Iteration-$iter/E/EHF1", EHF1)
     h5write("debug.h5","SCF/Iteration-$iter/E/EHF2", EHF2)

@@ -10,7 +10,7 @@ module JCRHF
 using JuliaChem.JCModules
 using JuliaChem.JERI
 
-using MPI
+using Distributed
 using JSON
 
 #                        | s | p |    d     |    f    |
@@ -51,9 +51,7 @@ scf = RHF.run(input_info, basis)
 function run(mol::Molecule, basis::Basis, 
   scf_flags; output="none")
   
-  comm=MPI.COMM_WORLD
-
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                RESTRICTED CLOSED-SHELL                         ")
@@ -65,7 +63,7 @@ function run(mol::Molecule, basis::Basis,
   #== actually perform scf calculation ==#
   rhfenergy = rhf_energy(mol, basis, scf_flags; output=output)
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
     println("                                  HARTREE-FOCK ENERGY                           ")
