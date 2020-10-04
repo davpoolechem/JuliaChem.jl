@@ -1,7 +1,9 @@
+using MPI
 using JuliaChem.JERI
 
 #== initialize JuliaChem runtime ==#
 function initialize()
+  MPI.Init()
   JERI.initialize()
 
   #==set up scratch directory==#
@@ -13,6 +15,7 @@ export initialize
 function finalize() 
   
   #== finalize MPI ==#
+  MPI.Finalize()
   JERI.finalize()
   
   #==clean scratch directory==#

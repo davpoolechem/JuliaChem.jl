@@ -2,6 +2,7 @@ using Base.Threads
 using Distributed
 using HDF5
 using LinearAlgebra
+using MPI
 using PrettyTables
 
 const do_continue_print = false 
