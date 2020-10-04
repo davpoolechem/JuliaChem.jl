@@ -11,7 +11,6 @@ using JuliaChem.JCModules
 using JuliaChem.JERI
 
 using CxxWrap
-using MPI
 using Base.Threads
 using HDF5
 using PrettyTables
@@ -37,9 +36,7 @@ input_info, basis = Input.run(args)
 ```
 """
 function run(molecule, model; output="none")
-  comm=MPI.COMM_WORLD
-
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                GENERATING BASIS SET                            ")
@@ -62,7 +59,7 @@ function run(molecule, model; output="none")
 
   mol = Molecule([], StdVector{JERI.Atom}())
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println("----------------------------------------          ")
     println("        Basis Set Information...                  ")
     println("----------------------------------------          ")
@@ -98,7 +95,7 @@ function run(molecule, model; output="none")
         bsed["$symbol/$basis"])
 
       #== process basis set values into shell objects ==#
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      if output == "verbose"
         println("ATOM #$atom_idx ($symbol):") 
       end
       
@@ -112,7 +109,7 @@ function run(molecule, model; output="none")
         #== if L shell, divide up ==# 
         if new_shell_am == -1
           #== s component ==#
-          if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          if output == "verbose"
             println("L (s)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,1]), 
@@ -137,7 +134,7 @@ function run(molecule, model; output="none")
           pos += new_shell.nbas
 
           #== p component ==#
-          if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          if output == "verbose"
             println("L (p)")
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff[:,2]), 
@@ -162,7 +159,7 @@ function run(molecule, model; output="none")
           pos += new_shell.nbas
         #== otherwise accept shell as is ==#
         else 
-          if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          if output == "verbose"
             println(new_shell_dict["Shell Type"])
             pretty_table(hcat(collect(1:length(new_shell_exp)),new_shell_exp, 
               new_shell_coeff), 
@@ -188,7 +185,7 @@ function run(molecule, model; output="none")
           pos += new_shell.nbas
         end
 
-        if MPI.Comm_rank(comm) == 0 && output == "verbose"
+        if output == "verbose"
           println(" ")
         end
       end
@@ -196,7 +193,7 @@ function run(molecule, model; output="none")
       shells_cxx_added[atomic_number+1] = true 
       #display(shells_cxx)
 
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      if output == "verbose"
         println(" ")
         println(" ")
       end
@@ -234,7 +231,7 @@ function run(molecule, model; output="none")
   #delete first row, as it is simply zeroes
   #basis_set.shpair_ordering = basis_set.shpair_ordering[setdiff(1:end, 1),:]
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println(" ")
     println("                       ========================================                 ")
     println("                                       END BASIS                                ")

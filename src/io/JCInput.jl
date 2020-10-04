@@ -6,9 +6,9 @@ Import this module into the script when you need to process an input file
 """
 module JCInput
 
-using MPI
-using JSON
 using Base.Threads
+using Distributed
+using JSON
 
 """
   run(args::String)
@@ -29,9 +29,8 @@ input_info, basis = Input.run(args)
 ```
 """
 function run(args; output="none")
-  comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                READING INPUT DATA FILE                         ")
@@ -42,12 +41,12 @@ function run(args; output="none")
   #== output parallelization information ==#
   directory = pwd()
   #println("Input file: ", directory*"/"*input_file)
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println(" ")
-    println("Number of worker processes: ", MPI.Comm_size(comm))
+    println("Number of worker processes: ", nworkers())
     println("Number of threads per process: ", Threads.nthreads())
     println("Number of threads in total: ",
-    MPI.Comm_size(comm)*Threads.nthreads())
+    nworkers()*Threads.nthreads())
   end
 
   #== read in input file ==#
@@ -68,7 +67,7 @@ function run(args; output="none")
   merge!(molecule,Dict("symbols" => json_parse["molecule"]["symbols"]))
   merge!(molecule,Dict("molecular_charge" => json_parse["molecule"]["molecular_charge"]))
 
-  #if (MPI.Comm_rank(comm) == 0) && (Threads.threadid() == 1)
+  #if Threads.threadid() == 1
   #  jldopen("tei_all.jld", "w") do file
   #    eri_array::Vector{Float64} = json_parse["molecule"]["tei"]
   #    write(file, "Integrals/All",eri_array)
@@ -79,7 +78,7 @@ function run(args; output="none")
   merge!(model,json_parse["model"])
   merge!(keywords,json_parse["keywords"])
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if output == "verbose"
     println(" ")
     println("                       ========================================                 ")
     println("                                       END INPUT                                ")

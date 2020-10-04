@@ -1,14 +1,8 @@
-using MPI
 using JuliaChem.JERI
 
 #== initialize JuliaChem runtime ==#
 function initialize()
-  if(!MPI.Initialized())
-    MPI.Init()
-    JERI.initialize()
-  else
-    println("JuliaChem has already been initialized!")
-  end
+  JERI.initialize()
 
   #==set up scratch directory==#
   
@@ -19,12 +13,7 @@ export initialize
 function finalize() 
   
   #== finalize MPI ==#
-  if(!MPI.Finalized())
-    MPI.Finalize()
-    JERI.finalize()
-  else
-    println("JuliaChem has already been finalized!")
-  end
+  JERI.finalize()
   
   #==clean scratch directory==#
 end
