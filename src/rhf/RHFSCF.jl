@@ -312,6 +312,12 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   iter = 1
   iter_converged = false
   
+  max_am = max_ang_mom(basis) 
+  eri_quartet_batch_thread = [ Vector{Float64}(undef,
+    eri_quartet_batch_size(max_am)) 
+    for thread in 1:Threads.nthreads() ]
+ 
+  F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
   while !iter_converged
     #== reset eri arrays ==#
     #if quartet_batch_num_old != 1 && iter != 1
@@ -351,8 +357,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
   
     #== build new Fock matrix ==#
-    workspace_a .= fock_build(workspace_b, D_input, H, basis, schwarz_bounds, Dsh, 
-      cutoff, debug, load)
+    workspace_a .= fock_build(workspace_b, F_thread, D_input, H, basis, 
+      schwarz_bounds, Dsh, eri_quartet_batch_thread, cutoff, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -456,64 +462,65 @@ H = One-electron Hamiltonian Matrix
 """
 =#
 
-@inline function fock_build(F::Matrix{Float64}, D::Matrix{Float64}, 
+@inline function fock_build(F::Matrix{Float64}, 
+  F_thread::Vector{Matrix{Float64}}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  cutoff::Float64, debug::Bool, load::String)
+  eri_quartet_batch_thread::Vector{Vector{Float64}}, cutoff::Float64, 
+  debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
   fill!(F,zero(Float64))
+  fill!.(F_thread,zero(Float64)) 
 
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
- 
-  #mutex = Base.Threads.ReentrantLock()
-  #thread_index_counter = Threads.Atomic{Int64}(nindices)
-  
-  #== simply do calculation for serial runs ==#
+  batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
+    Threads.nthreads()*1000)) 
+
+  #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
+    #== set up initial indices ==# 
     top_index = nindices - (MPI.Comm_rank(comm))
     stride = MPI.Comm_size(comm) 
-    
-    mutex = Base.Threads.ReentrantLock()
     thread_index_counter = Threads.Atomic{Int64}(top_index)
-    Threads.@threads for thread in 1:Threads.nthreads() 
-      max_am = max_ang_mom(basis) 
-      eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-      #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-      jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
-      F_priv = zeros(size(F))
-      while true 
-        ijkl = Threads.atomic_sub!(thread_index_counter, stride) 
+    #== execute kernel of calculation ==#
+    wait.([ 
+      Threads.@spawn begin 
+        eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread])
+        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
-        if ijkl < 1 break end
+        F_priv = $(F_thread[thread]) 
+        while true 
+          ijkl = Threads.atomic_sub!($thread_index_counter, stride) 
+
+          if ijkl < 1 break end
         
-        fock_build_thread_kernel(F_priv, D,
-          H, basis, eri_quartet_batch_priv, #mutex,
-          ijkl, jeri_tei_engine_priv,
-          schwarz_bounds, Dsh,
-          cutoff, debug)
+          fock_build_thread_kernel(F_priv, D,
+            H, basis, eri_quartet_batch_priv, #mutex,
+            ijkl, jeri_tei_engine_priv,
+            schwarz_bounds, Dsh,
+            cutoff, debug)
+        end
       end
-
-      lock(mutex)
-        F .+= F_priv
-      unlock(mutex)
+      for thread in 1:Threads.nthreads()
+    ])
+     
+    #== reduce into Fock matrix ==# 
+    for ithread_fock in F_thread 
+      F += ithread_fock
     end
-    #MPI.Barrier()
-  #== use static task distribution for multirank runs if selected ==#
+  #== ..else use dynamic task distribution ==# 
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
-    batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-      Threads.nthreads()*1000)) 
-
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
       #== send out initial tasks to slaves ==#
       task = [ nindices ]
       initial_task = 1
   
-      recv_mesg = [ 0 ]
+      recv_mesg_master = [ 0 ]
      
       #println("Start sending out initial tasks") 
       while initial_task < MPI.Comm_size(comm)
@@ -533,7 +540,7 @@ H = One-electron Hamiltonian Matrix
       while task[1] > 0 
         status = MPI.Probe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, 
           comm) 
-        rreq = MPI.Recv!(recv_mesg, status.source, status.tag, 
+        rreq = MPI.Recv!(recv_mesg_master, status.source, status.tag, 
           comm)  
         #println("Sending task $task to rank ", status.source)
         sreq = MPI.Send(task, status.source, status.tag, comm)  
@@ -550,65 +557,65 @@ H = One-electron Hamiltonian Matrix
         end
       end      
       #println("Done sending out enders") 
-    #== slave ranks perform actual computations on quartets ==#
+    #== worker ranks perform actual computations on quartets ==#
     elseif MPI.Comm_rank(comm) > 0
-      mutex_mpi = Base.Threads.ReentrantLock()
-      mutex_reduce = Base.Threads.ReentrantLock()
-      
-      Threads.@threads for thread in 1:Threads.nthreads() 
-        recv_mesg = [ 0 ]
-        send_mesg = [ 0 ]
-
-        max_am = max_ang_mom(basis) 
-        eri_quartet_batch_priv = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
-        #simint_workspace_priv = Vector{Float64}(undef,get_workmem(0,max_am-1))
-        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
-          basis.shpdata_cxx)
-    
-        F_priv = zeros(size(F))
-        while true 
-          #== get shell quartet ==#
-          #status = MPI.Probe(0, MPI.MPI_ANY_TAG, comm)
-          #println("About to recieve task from master")
-      
-          lock(mutex_mpi)
-            status = MPI.Probe(0, thread, comm)
-            rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
-            ijkl_index = recv_mesg[1]
-          unlock(mutex_mpi)
-
-          #println(ijkl_index)
-          if ijkl_index < 0 break end
-          #println("Thread $thread ecieved task $ijkl_index from master")
+      #== create needed mutices ==#
+      mutex_mpi_send = Base.Threads.ReentrantLock()
+      mutex_mpi_recv = Base.Threads.ReentrantLock()
+     
+      #== execute kernel ==# 
+      wait.([ 
+        Threads.@spawn begin 
+          recv_mesg = [ 0 ] 
+          send_mesg = [ 0 ] 
  
-          #for rank in 1:MPI.Comm_size(comm)
-          #  if MPI.Comm_rank(comm) == rank
-          #    println("IJKL_INDEX: ", ijkl_index)
-          #  end
-          #end
-          #println("NEW BATCH")
-          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
-            #println("IJKL: $ijkl")
+          eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread]) 
+          jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
+            basis.shpdata_cxx) 
+    
+          F_priv = $(F_thread[thread]) 
+          while true
+            lock($mutex_mpi_recv)
+              status = MPI.Probe(0, $thread, comm)
+              rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+              ijkl_index = recv_mesg[1]
+            unlock($mutex_mpi_recv)
 
-            fock_build_thread_kernel(F_priv, D,
-              H, basis, eri_quartet_batch_priv, #mutex,
-              ijkl, jeri_tei_engine_priv,
-              schwarz_bounds, Dsh,
-              cutoff, debug)
+            #println(ijkl_index)
+            if ijkl_index < 0 break end
+            #println("Thread $thread ecieved task $ijkl_index from master")
+
+            #for rank in 1:MPI.Comm_size(comm)
+            #  if MPI.Comm_rank(comm) == rank
+            #    #println("NEW BATCH")
+            #    println("IJKL_INDEX: ", ijkl_index)
+            #  end
+            #end
+            #prinitln("NEW BATCH")
+            for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+              #println("IJKL: $ijkl")
+
+              fock_build_thread_kernel(F_priv, D,
+                H, basis, eri_quartet_batch_priv, #mutex,
+                ijkl, jeri_tei_engine_priv,
+                schwarz_bounds, Dsh,
+                cutoff, debug)
+            end
+
+            lock($mutex_mpi_send)
+              send_mesg[1] = MPI.Comm_rank(comm)
+              MPI.Send(send_mesg, 0, $thread, comm)
+            unlock($mutex_mpi_send)
           end
-
-          lock(mutex_mpi)
-            send_mesg[1] = MPI.Comm_rank(comm)
-            MPI.Send(send_mesg, 0, thread, comm)
-          unlock(mutex_mpi)
         end
-      
-        lock(mutex_reduce)
-          F .+= F_priv
-        unlock(mutex_reduce)
+        for thread in 1:Threads.nthreads()
+      ])
+
+      #== reduce into Fock matrix ==#
+      for ithread_fock in F_thread 
+        F += ithread_fock
       end
     end
-    #MPI.Barrier(comm)
   end
   MPI.Barrier(comm)
 
