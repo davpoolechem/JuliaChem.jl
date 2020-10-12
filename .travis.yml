@@ -13,7 +13,7 @@ before_install:
 - sudo apt install g++-7 -y
 
 install:
-- julia -E 'using Pkg; Pkg.add("Boost_jll"); Pkg.add("Eigen_jll")' 
+- julia -E 'using Pkg; Pkg.add("boost_jll"); Pkg.add("Eigen_jll")' 
 - export JULIA_ROOT=/home/travis/julia
 - export PATH=$JULIA_ROOT/bin:$PATH
 #- export LD_LIBRARY_PATH=$JULIA_ROOT/lib:$LD_LIBRARY_PATH
