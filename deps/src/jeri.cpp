@@ -48,7 +48,7 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
     .constructor<const std::vector<libint2::Atom>&,
       const libint2::BasisSet&>() 
     .method("compute_dipole_block", &PropEngine::compute_dipole_block);
-}
+
   //-- tei engine information --//
   mod.add_type<TEIEngine>("TEIEngine")
     .constructor<const libint2::BasisSet&, 

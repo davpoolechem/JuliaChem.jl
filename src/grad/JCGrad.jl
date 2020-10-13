@@ -30,7 +30,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   #== initial setup ==#
   jeri_oei_grad_engine = JERI.OEIEngine(mol.mol_cxx, 
     basis.basis_cxx, 1) 
-  
+  jeri_prop_engine = JERI.PropEngine(mol.mol_cxx, 
+    basis.basis_cxx) 
+
   W = rhf_energy["Energy-Weighted Density"] 
   P = rhf_energy["Density"] 
 
@@ -62,6 +64,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   #total_gradient = nuclear_gradient .+ overlap_gradient 
   println("TOTAL GRADIENT: ")
   display(total_gradient); println()
+
+  #== compute dipole moment ==#
+  dipole = compute_dipole_moment(mol, basis, P, jeri_prop_engine)
  
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
