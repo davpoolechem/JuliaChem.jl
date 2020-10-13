@@ -1,5 +1,6 @@
 #include "jeri-core.hpp"
 #include "jeri-oei.hpp"
+#include "jeri-prop.hpp"
 #include "jeri-tei.hpp"
 
 JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
@@ -42,6 +43,12 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
     .method("compute_nuc_attr_block", &OEIEngine::compute_nuc_attr_block)
     .method("compute_nuc_attr_grad_block", &OEIEngine::compute_nuc_attr_grad_block);
 
+  //-- prop engine information --//
+  mod.add_type<PropEngine>("PropEngine")
+    .constructor<const std::vector<libint2::Atom>&,
+      const libint2::BasisSet&>() 
+    .method("compute_dipole_block", &PropEngine::compute_dipole_block);
+}
   //-- tei engine information --//
   mod.add_type<TEIEngine>("TEIEngine")
     .constructor<const libint2::BasisSet&, 
