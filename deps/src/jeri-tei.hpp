@@ -18,8 +18,8 @@ typedef int64_t julia_int;
 //-- C++ JERI engine: small wrapper allowing LibInt to be used in Julia --//
 //------------------------------------------------------------------------//
 class TEIEngine {
-  const libint2::BasisSet* m_basis_set;
-  const libint2::ShellPair* m_shellpair_data;
+  const libint2::BasisSet m_basis_set;
+  const std::vector<libint2::ShellPair> m_shellpair_data;
   
   libint2::Engine m_coulomb_eng;
 
@@ -27,11 +27,11 @@ public:
  //-- ctors and dtors --//
   TEIEngine(const libint2::BasisSet& t_basis_set, 
     const std::vector<libint2::ShellPair>& t_shellpair_data)
-    : m_basis_set(&t_basis_set),
-      m_shellpair_data(t_shellpair_data.data()),
+    : m_basis_set(t_basis_set),
+      m_shellpair_data(t_shellpair_data),
       m_coulomb_eng(libint2::Operator::coulomb,
-        m_basis_set->max_nprim(),
-        m_basis_set->max_l(),
+        m_basis_set.max_nprim(),
+        m_basis_set.max_l(),
         0)
   {
     //-- no screening done in engine --// 
@@ -63,9 +63,9 @@ public:
     //std::cout << csh-1 << "," << dsh-1 << ";" << cd_idx << std::endl << std::endl;
 
     m_coulomb_eng.compute2<libint2::Operator::coulomb, 
-      libint2::BraKet::xx_xx, 0>((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1],
-      (*m_basis_set)[csh-1], (*m_basis_set)[dsh-1],
-      &m_shellpair_data[bra_idx-1], &m_shellpair_data[ket_idx-1]);
+      libint2::BraKet::xx_xx, 0>(m_basis_set[ash-1], m_basis_set[bsh-1],
+      m_basis_set[csh-1], m_basis_set[dsh-1],
+      &m_shellpair_data[bra_idx-1], &m_shellpair_data.data()[ket_idx-1]);
       
     //assert(m_coulomb_eng.results()[0] != nullptr); 
     if (m_coulomb_eng.results()[0] != nullptr) {

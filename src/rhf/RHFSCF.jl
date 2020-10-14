@@ -5,6 +5,8 @@ using LinearAlgebra
 using MPI
 using PrettyTables
 
+@everywhere using CxxWrap
+
 const do_continue_print = false 
 const print_eri = false 
 
@@ -340,6 +342,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     D_input .= fdiff ? ΔD : D
     workspace_b .= fdiff ? ΔF : F
 
+    F_worker = [ zeros(size(F)) for worker in workers() ] 
     #== compress D into shells in Dsh ==#
     for ish in 1:length(basis), jsh in 1:ish
       ipos = basis[ish].pos
@@ -357,8 +360,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
   
     #== build new Fock matrix ==#
-    workspace_a .= fock_build(workspace_b, F_thread, D_input, H, basis, 
-      schwarz_bounds, Dsh, eri_quartet_batch_thread, cutoff, debug, load)
+    workspace_a .= fock_build(workspace_b, F_worker, D_input, H, basis, 
+      schwarz_bounds, Dsh, cutoff, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -463,16 +466,15 @@ H = One-electron Hamiltonian Matrix
 =#
 
 @inline function fock_build(F::Matrix{Float64}, 
-  F_thread::Vector{Matrix{Float64}}, D::Matrix{Float64}, 
+  F_worker::Vector{Matrix{Float64}}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  eri_quartet_batch_thread::Vector{Vector{Float64}}, cutoff::Float64, 
-  debug::Bool, load::String)
+  cutoff::Float64, debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
   fill!(F,zero(Float64))
-  fill!.(F_thread,zero(Float64)) 
+  fill!.(F_worker,zero(Float64))
 
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
@@ -481,39 +483,57 @@ H = One-electron Hamiltonian Matrix
 
   #== use static task distribution for multirank runs if selected... ==#
   if load == "static"
-    #== set up initial indices ==# 
-    top_index = nindices - (MPI.Comm_rank(comm))
-    stride = MPI.Comm_size(comm) 
-    thread_index_counter = Threads.Atomic{Int64}(top_index)
+    @sync wait.([
+      @spawnat worker begin
+        #== set up initial indices ==#
+        worker_basis = Basis(basis.shells, JERI.copy_basis(basis.basis_cxx),
+          StdVector{JERI.ShellPair}(), basis.model,
+          basis.norb, basis.nels)
 
-    #== execute kernel of calculation ==#
-    wait.([ 
-      Threads.@spawn begin 
-        eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread])
-        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
-
-        F_priv = $(F_thread[thread]) 
-        while true 
-          ijkl = Threads.atomic_sub!($thread_index_counter, stride) 
-
-          if ijkl < 1 break end
+        precompute_shell_pair_data(worker_basis.shpdata_cxx, worker_basis.basis_cxx)
         
-          fock_build_thread_kernel(F_priv, D,
-            H, basis, eri_quartet_batch_priv, #mutex,
-            ijkl, jeri_tei_engine_priv,
-            schwarz_bounds, Dsh,
-            cutoff, debug)
+        top_index = nindices - (worker-2)
+        stride = nworkers()
+        thread_index_counter = Threads.Atomic{Int64}(top_index)
+        
+        #== execute kernel of calculation ==#
+        F_thread = [ zeros(Float64, (worker_basis.norb, worker_basis.norb)) 
+          for thread in 1:Threads.nthreads() ]
+        @sync wait.([ 
+          Threads.@spawn begin 
+            max_am = max_ang_mom(basis) 
+            eri_quartet_batch_priv = Vector{Float64}(undef, eri_quartet_batch_size(max_am)) 
+            jeri_tei_engine_priv = JERI.TEIEngine(worker_basis.basis_cxx, worker_basis.shpdata_cxx)
+
+            F_priv = $(F_thread[thread]) 
+            while true 
+              ijkl = Threads.atomic_sub!($thread_index_counter, stride) 
+
+              if ijkl < 1 break end
+        
+              fock_build_thread_kernel(F_priv, D,
+                H, worker_basis, eri_quartet_batch_priv, #mutex,
+                ijkl, jeri_tei_engine_priv,
+                schwarz_bounds, Dsh,
+                cutoff, debug)
+            end
+          end
+          for thread in 1:Threads.nthreads()
+        ])
+        
+        for ithread_fock in F_thread 
+          F_worker[worker - 1] += ithread_fock
         end
       end
-      for thread in 1:Threads.nthreads()
-    ])
+      for worker in workers()
+    ]) 
      
     #== reduce into Fock matrix ==# 
-    for ithread_fock in F_thread 
-      F += ithread_fock
+    for iworker_fock in F_worker
+      F += iworker_fock
     end
   #== ..else use dynamic task distribution ==# 
-  elseif oad == "dynamic"
+  elseif load == "dynamic"
     #== master rank ==#
     if MPI.Comm_rank(comm) == 0 
       #== send out initial tasks to slaves ==#

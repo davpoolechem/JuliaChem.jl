@@ -65,6 +65,11 @@ libint2::Shell create_shell(julia_int ang_mom,
 //------------------------------------//
 template<> struct jlcxx::IsMirroredType<libint2::BasisSet> : std::false_type { };
 
+libint2::BasisSet copy_basis(const libint2::BasisSet& basis_set) {
+  libint2::BasisSet copy = basis_set;
+  return copy;
+}
+
 //-------------------------------------//
 //-- Map libint2::ShellPair to Julia --// 
 //-------------------------------------//

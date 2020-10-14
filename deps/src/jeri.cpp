@@ -20,8 +20,10 @@ JLCXX_MODULE define_jeri(jlcxx::Module& mod) {
   //-- basis set information --//
   mod.add_type<libint2::BasisSet>("BasisSet")
     .constructor<const std::vector<libint2::Atom>&, 
-      const std::vector<std::vector<libint2::Shell> >& >();
-   
+      const std::vector<std::vector<libint2::Shell> >& >()
+    .constructor<const libint2::BasisSet&>();
+  mod.method("copy_basis", &copy_basis);
+  
   //-- shell pair information --//
   mod.add_type<libint2::ShellPair>("ShellPair");
   jlcxx::stl::apply_stl<libint2::ShellPair>(mod);
