@@ -23,7 +23,7 @@ public:
   PropEngine(const std::vector<libint2::Atom>& t_atoms, 
     const libint2::BasisSet& t_basis_set) 
     : m_basis_set(&t_basis_set), 
-      m_dipole_eng(libint2::Operator::emultipole1, 
+      m_dipole_eng(libint2::Operator::emultipole3, 
         m_basis_set->max_nprim(),
         m_basis_set->max_l(),
         0)

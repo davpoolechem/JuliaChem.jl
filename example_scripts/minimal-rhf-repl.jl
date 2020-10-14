@@ -22,8 +22,8 @@ function minimal_rhf(input_file)
     rhf_energy = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
       output="verbose") 
 
-    display(rhf_energy["Density"]); println()
-    display(rhf_energy["Energy-Weighted Density"]); println()
+    #display(rhf_energy["Density"]); println()
+    #display(rhf_energy["Energy-Weighted Density"]); println()
 
     #== perform gradient ==#
     #rhf_gradient = JuliaChem.JCGrad.run(mol, basis; output="verbose")
