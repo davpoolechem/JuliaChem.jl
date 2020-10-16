@@ -1,7 +1,7 @@
 ####################
 #   initial info  ##
 ####################
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0.2)
 project(JuliaChem) 
 
 ######################
@@ -50,6 +50,7 @@ INCLUDE_DIRECTORIES( SYSTEM
 LINK_DIRECTORIES( SYSTEM
   ${JLCXX_PATH}/lib ${LIBINT_LIB_PATH}
 )
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 message("-- Found Eigen at ${EIGEN_PATH}")
 message("-- Found Boost at ${BOOST_PATH}")
