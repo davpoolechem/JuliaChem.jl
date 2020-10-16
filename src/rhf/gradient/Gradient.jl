@@ -1,9 +1,9 @@
 #Base.include(@__MODULE__,"../basis/BasisStructs.jl")
 
 """
-  module JCGrad
+  module Gradient 
 """
-module JCGrad
+module Gradient 
 
 include("GradHelpers.jl")
 

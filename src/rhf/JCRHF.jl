@@ -7,7 +7,12 @@ wave function for closed-shell systems.
 """
 module JCRHF
 
-Base.include(@__MODULE__,"Energy/Energy.jl")
+#== RHF energy module ==#
+Base.include(@__MODULE__,"energy/Energy.jl")
 export Energy
+
+#== RHF gradient module ==#
+Base.include(@__MODULE__,"gradient/Gradient.jl")
+export Gradient
 
 end
