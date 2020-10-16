@@ -7,7 +7,8 @@ function xyz_to_qc(ARGS)
   end
   
   #== write file ==#
-  output = open("qc.json", "w") do file
+  filename = splitext(ARGS[1])[1]
+  output = open("$filename.json", "w") do file
     #== print initial stuff ==#
     write(file, "{\n")
     write(file, "  \"molecule\": {\n")
