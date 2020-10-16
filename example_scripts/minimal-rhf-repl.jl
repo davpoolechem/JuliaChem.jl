@@ -19,7 +19,7 @@ function minimal_rhf(input_file)
     #JuliaChem.JCMolecule.run(mol)
 
     #== perform scf calculation ==#
-    rhf_energy = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
+    rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"]; 
       output="verbose") 
 
     #display(rhf_energy["Density"]); println()
