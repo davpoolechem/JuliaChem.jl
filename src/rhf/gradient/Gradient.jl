@@ -28,6 +28,10 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   end
 
   #== initial setup ==#
+  if true
+    throw("JuliaChem.jl does not yet support RHF gradients!")
+  else
+  
   jeri_oei_grad_engine = JERI.OEIEngine(mol.mol_cxx, 
     basis.basis_cxx, 1) 
   jeri_prop_engine = JERI.PropEngine(mol.mol_cxx, 
@@ -73,6 +77,8 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   println("DIPOLE MOMENT:")
   display(sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)); println()
 
+  end
+
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
@@ -81,7 +87,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
     println("--------------------------------------------------------------------------------")
   end
 
-  return nuclear_gradient 
+  #return nuclear_gradient 
 end
 export run
 
