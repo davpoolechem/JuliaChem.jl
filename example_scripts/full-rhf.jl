@@ -7,6 +7,25 @@ import JuliaChem
 #== JuliaChem execution script ==#
 #================================#
 function full_rhf(input_file)
+  println("--------------------------------------------------------------------------------")
+  println("                       ========================================                 ")
+  println("                               WELCOME TO JULIACHEM.JL!                         ")
+  println("                       ========================================                 ")
+  println("                                                                                ")
+  println("              JuliaChem.jl is an electronic structure theory package            ")
+  println("         developed by the Gordon group at Iowa State University. It is          ")
+  println("        designed to apply the strengths of the Julia programming language       ")
+  println("          (high-level semantics and low-level performance) to a quantum         ")
+  println("                                chemistry package.                              ")
+  println("                                                                                ")
+  println("         For more information, refer to the following paper: Poole, D.          ")
+  println("        Galvaz Vallejo, J. L.; Gordon, M. S. \"A New Kid on the Block:          ")
+  println("         Application of Julia to Hartree-Fock Calculations.\" J. Chem.          ") 
+  println("                     Theory Compute. 2020, 16, 8, 5006-5013.                    ")
+  println("                                                                                ")
+  println("       For questions on usage, email David Poole at davpoole@iastate.edu.       ")
+  println("--------------------------------------------------------------------------------")
+ 
   try
     #== initialize JuliaChem ==#
     JuliaChem.initialize()
@@ -42,7 +61,15 @@ function full_rhf(input_file)
                                                                                 
     JuliaChem.finalize()                                                        
     exit()                                                                      
-  end   
+  end 
+
+  println("--------------------------------------------------------------------------------")
+  println("                      Your calculation has run to completion!                   ")
+  println("                                                                                ")
+  println("                       ========================================                 ")
+  println("                                   HAVE A NICE DAY!                             ")
+  println("                       ========================================                 ")
+  println("--------------------------------------------------------------------------------")
 end
 
 full_rhf(ARGS[1])
