@@ -398,8 +398,16 @@ function compute_dipole_moment(mol::Molecule,
   
   ncoord = length(dipole) 
 
-  #== generate T derivative matrices ==#
-  dipole_matrix = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
+  #== compute nuclear contribution to dipole ==#
+  nuc_dipole = similar(dipole)
+  for atom in mol  
+    nuc_dipole .+= atom.atom_id .* atom.atom_center
+  end
+
+  #== compute electronic contribution to dipole ==# 
+  elec_dipole = similar(dipole)
+  
+  elec_dipole_matrix = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
   for ash in 1:length(basis), bsh in 1:ash
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
@@ -410,12 +418,12 @@ function compute_dipole_moment(mol::Molecule,
     iatom = basis[ash].atom_id
     jatom = basis[bsh].atom_id
  
-    dipole_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
+    elec_dipole_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
     
-    JERI.compute_dipole_block(jeri_prop_engine, dipole_block_JERI, ash, bsh, 
+    JERI.compute_dipole_block(jeri_prop_engine, elec_dipole_block_JERI, ash, bsh, 
       abas*bbas)
 
-    #axial_normalization_factor(dipole_block_JERI, basis[ash], basis[bsh], ncoord)
+    axial_normalization_factor(elec_dipole_block_JERI, basis[ash], basis[bsh], ncoord)
     
     #println("Julia Shells: $ash, $bsh")
     #println("Julia Atoms: $iatom, $jatom")
@@ -429,13 +437,13 @@ function compute_dipole_moment(mol::Molecule,
         iorb = apos + ibas
         jorb = bpos + jbas
 
-        dipole_matrix[icoord][max(iorb,jorb),min(iorb,jorb)] += dipole_block_JERI[abas*bbas*(icoord-1) + idx]
+        elec_dipole_matrix[icoord][max(iorb,jorb),min(iorb,jorb)] += elec_dipole_block_JERI[abas*bbas*(icoord-1) + idx]
         idx += 1
       end
     end
   end
 
-  for imatrix in dipole_matrix
+  for imatrix in elec_dipole_matrix
     for iorb in 1:basis.norb, jorb in 1:(iorb-1)
       imatrix[min(iorb,jorb),max(iorb,jorb)] = imatrix[max(iorb,jorb),min(iorb,jorb)]
     end
@@ -445,12 +453,12 @@ function compute_dipole_moment(mol::Molecule,
   #== contract with energy-weighted density ==#
   for icoord in 1:ncoord
     for ibas in 1:basis.norb, jbas in 1:basis.norb
-      scale = ibas == jbas ? 0.5 : 1.0
-      
-      dipole[icoord] += scale * P[ibas,jbas] * dipole_matrix[icoord][ibas, jbas]  
+      elec_dipole[icoord] += P[ibas,jbas] * elec_dipole_matrix[icoord][ibas, jbas]  
     end
   end
-  return dipole 
+  
+  dipole .= 2.5417 .* (nuc_dipole .- elec_dipole)  
+  return dipole
 end
 
 

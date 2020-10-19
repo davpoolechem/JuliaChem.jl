@@ -70,6 +70,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   println("DIPOLE:")
   display(dipole); println()
    
+  println("DIPOLE MOMENT:")
+  display(sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)); println()
+
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
