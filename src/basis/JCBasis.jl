@@ -56,8 +56,10 @@ function run(molecule, model; output="none")
   num_atoms::Int64 = length(geometry_array)/3
   geometry_array_t::Matrix{Float64} = reshape(geometry_array,(3,num_atoms))
   geometry::Matrix{Float64} = transpose(geometry_array_t)
-
+  geometry .*= 1.0/0.52917724924 #switch from angs to bohr
+  
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
+  atomic_mass_mapping::Dict{String,Float64} = create_atomic_mass_mapping()
   shell_am_mapping::Dict{String,Int64} = create_shell_am_mapping()
 
   mol = Molecule([], StdVector{JERI.Atom}())
@@ -75,17 +77,36 @@ function run(molecule, model; output="none")
   basis_set_nels = -charge 
   basis_set_norb = 0
   pos = 1
+  
+  #== relocate center of mass of system to origin ==# 
+  center_of_mass = Vector{Float64}([0.0, 0.0, 0.0])
+  
+  atom_centers = Vector{Vector{Float64}}([])
+  atomic_masses = Vector{Float64}([])
+  for (atom_idx, symbol) in enumerate(symbols) 
+    push!(atom_centers, geometry[atom_idx,:])
+    push!(atomic_masses, atomic_mass_mapping[symbol])    
+   
+    center_of_mass .+= atomic_masses[atom_idx] .* atom_centers[atom_idx]
+    #for icoord in 1:3
+    #  center_of_mass[icoord] += atomic_masses[atom_idx]*
+    #    atom_centers[atom_idx][icoord]
+    #end
+  end
+  center_of_mass ./= sum(atomic_masses)
 
+  for icenter in atom_centers
+    icenter .-= center_of_mass
+  end
+  
   #== create basis set ==#
   h5open(joinpath(@__DIR__, "../../records/bsed.h5"),"r") do bsed
     shell_id = 1
-    for atom_idx::Int64 in 1:length(symbols)
+    
+    for (atom_idx, symbol) in enumerate(symbols)
       #== initialize variables needed for shell ==#
-      atom_center::Vector{Float64} = geometry[atom_idx,:]
-      atom_center[:] .*= 1.0/0.52917724924 #switch from angs to bohr
-
-      symbol::String = symbols[atom_idx]
-      atomic_number::Int64 = atomic_number_mapping[symbol]
+      atom_center = atom_centers[atom_idx] 
+      atomic_number = atomic_number_mapping[symbol]
 
       #== create atom objects ==#
       push!(mol, JCModules.Atom(atomic_number, symbol, atom_center))
