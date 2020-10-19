@@ -10,8 +10,9 @@ include("PropHelpers.jl")
 using JuliaChem.JCModules
 using JuliaChem.JERI
 
-using MPI
 using JSON
+using MPI
+using Printf
 
 function run(mol::Molecule, basis::Basis, rhf_energy, 
   keywords; output="none")
@@ -34,13 +35,19 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
   P = rhf_energy["Density"] 
 
   #== compute dipole moment ==#
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+    println("----------------------------------------          ")
+    println("     Computing multiple moments...                ")
+    println("----------------------------------------          ")
+    println(" ")
+    println("Dipole:       X           Y           Z         Tot. (D)        ") 
+  end  
+  
   dipole = compute_dipole(mol, basis, P, jeri_prop_engine)
-  println("DIPOLE:")
-  display(dipole); println()
-   
-  println("DIPOLE MOMENT:")
   dipole_moment = sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)
-  display(dipole_moment); println()
+  
+  @printf("          %.6f   %.6f    %.6f    %.6f     \n", 
+    dipole[1], dipole[2], dipole[3], dipole_moment)
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
