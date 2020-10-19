@@ -67,7 +67,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
 
   #== compute dipole moment ==#
   dipole = compute_dipole_moment(mol, basis, P, jeri_prop_engine)
- 
+  println("DIPOLE:")
+  display(dipole); println()
+   
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")

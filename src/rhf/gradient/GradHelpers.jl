@@ -241,7 +241,7 @@ function compute_nuc_attr_grad(mol::Molecule,
 
     axial_normalization_factor(V_block_JERI, basis[ash], basis[bsh], ncoord)
     
-    println("Julia Shells:", ash-1, ", ", bsh-1)
+    #println("Julia Shells:", ash-1, ", ", bsh-1)
     #println("Julia Atoms:", iatom-1, ", ", jatom-1)
 
     shlset_idx = 1
@@ -251,7 +251,7 @@ function compute_nuc_attr_grad(mol::Molecule,
       for icoord in 1:3
         idx = 1
         op = 3*(atom-1) + icoord 
-        println(ishlset-1, ", ", icoord-1, " => ", op-1, ", ", shlset_idx-1)
+        #println(ishlset-1, ", ", icoord-1, " => ", op-1, ", ", shlset_idx-1)
         
         for ibas in 0:abas-1, jbas in 0:bbas-1
           iorb = apos + ibas
@@ -394,13 +394,12 @@ function compute_dipole_moment(mol::Molecule,
 
   #== define initial variables ==#
   natoms = length(mol.atoms)
-  PT_grad = zeros(Float64,(natoms,3))
+  dipole = zeros(Float64,(3,))
   
-  ncoord = length(PT_grad) 
-  shell_set = 2
+  ncoord = length(dipole) 
 
   #== generate T derivative matrices ==#
-  T_deriv = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
+  dipole_matrix = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
   for ash in 1:length(basis), bsh in 1:ash
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
@@ -411,57 +410,47 @@ function compute_dipole_moment(mol::Molecule,
     iatom = basis[ash].atom_id
     jatom = basis[bsh].atom_id
  
-    T_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
+    dipole_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
     
-    JERI.compute_dipole_block(jeri_prop_engine, T_block_JERI, ash, bsh, 
+    JERI.compute_dipole_block(jeri_prop_engine, dipole_block_JERI, ash, bsh, 
       abas*bbas)
 
-    axial_normalization_factor(T_block_JERI, basis[ash], basis[bsh], ncoord)
+    #axial_normalization_factor(dipole_block_JERI, basis[ash], basis[bsh], ncoord)
     
     #println("Julia Shells: $ash, $bsh")
     #println("Julia Atoms: $iatom, $jatom")
 
-    shlset_idx = 1
-    for ishlset in 1:shell_set
-      atom = ishlset == 1 ? iatom : (ishlset == 2 ? jatom : ishlset-2)
+    for icoord in 1:ncoord
+      idx = 1
 
-      for icoord in 1:3
-        idx = 1
-        op = 3*(atom-1) + icoord 
-
-        #println("$ishlset, $icoord => $op, $shlset_idx")
+      #println("$ishlset, $icoord => $op, $shlset_idx")
         
-        for ibas in 0:abas-1, jbas in 0:bbas-1
-          iorb = apos + ibas
-          jorb = bpos + jbas
+      for ibas in 0:abas-1, jbas in 0:bbas-1
+        iorb = apos + ibas
+        jorb = bpos + jbas
 
-          T_deriv[op][max(iorb,jorb),min(iorb,jorb)] += T_block_JERI[abas*bbas*(op-1) + idx]
-          idx += 1
-        end
-        shlset_idx += 1
+        dipole_matrix[icoord][max(iorb,jorb),min(iorb,jorb)] += dipole_block_JERI[abas*bbas*(icoord-1) + idx]
+        idx += 1
       end
     end
   end
 
-  for ideriv in T_deriv
+  for imatrix in dipole_matrix
     for iorb in 1:basis.norb, jorb in 1:(iorb-1)
-      ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
+      imatrix[min(iorb,jorb),max(iorb,jorb)] = imatrix[max(iorb,jorb),min(iorb,jorb)]
     end
     #display(ideriv); println()
   end
   
   #== contract with energy-weighted density ==#
-  for iatom in 1:natoms
-    for icoord in 1:3
-      deriv_idx = 3*(iatom-1)  + icoord
-      for ibas in 1:basis.norb, jbas in 1:basis.norb
-        scale = ibas == jbas ? 0.5 : 1.0
-        
-        PT_grad[iatom,icoord] += scale * P[ibas,jbas] * T_deriv[deriv_idx][ibas, jbas]  
-      end
+  for icoord in 1:ncoord
+    for ibas in 1:basis.norb, jbas in 1:basis.norb
+      scale = ibas == jbas ? 0.5 : 1.0
+      
+      dipole[icoord] += scale * P[ibas,jbas] * dipole_matrix[icoord][ibas, jbas]  
     end
   end
-  return PT_grad
+  return dipole 
 end
 
 
