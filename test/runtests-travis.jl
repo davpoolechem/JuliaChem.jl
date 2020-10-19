@@ -1,7 +1,7 @@
 import Pkg; Pkg.add("Test")
 import Test
 
-include("../tools/minimal-rhf-travis.jl")
+include("../tools/travis-rhf.jl")
 
 #== select input files ==#
 directory = joinpath(@__DIR__, "../example_inputs/S22/")
@@ -13,8 +13,8 @@ JuliaChem.initialize()
 
 #== run S22 tests ==#
 Test.@testset "S22 accuracy test" begin
-  scf = travis_rhf(inputs[3])
-  Test.@test scf["Energy"] ≈ -377.5889420312
+  rhfenergy = travis_rhf(inputs[3])
+  Test.@test rhfenergy["Energy"] ≈ -377.5889420312
 
   #scf = travis_rhf(inputs[10])
   #Test.@test scf["Energy"] ≈ -270.9302743515 

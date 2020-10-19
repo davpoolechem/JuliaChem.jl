@@ -256,6 +256,7 @@ function run(molecule, model; output="none")
     println("                       ========================================                 ")
     println("                                       END BASIS                                ")
     println("                       ========================================                 ")
+    println("--------------------------------------------------------------------------------")
   end
 
   return mol, basis_set

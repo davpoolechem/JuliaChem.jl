@@ -455,8 +455,6 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
   end
  
-  display(F_eval); println();
-
   return E
 end
 

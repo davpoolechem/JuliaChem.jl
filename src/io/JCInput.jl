@@ -84,6 +84,7 @@ function run(args; output="none")
     println("                       ========================================                 ")
     println("                                       END INPUT                                ")
     println("                       ========================================                 ")
+    println("--------------------------------------------------------------------------------")
   end
 
   return molecule, driver, model, keywords
