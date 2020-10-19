@@ -88,10 +88,6 @@ function run(molecule, model; output="none")
     push!(atomic_masses, atomic_mass_mapping[symbol])    
    
     center_of_mass .+= atomic_masses[atom_idx] .* atom_centers[atom_idx]
-    #for icoord in 1:3
-    #  center_of_mass[icoord] += atomic_masses[atom_idx]*
-    #    atom_centers[atom_idx][icoord]
-    #end
   end
   center_of_mass ./= sum(atomic_masses)
 
