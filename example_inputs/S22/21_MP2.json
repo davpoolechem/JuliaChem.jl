@@ -49,6 +49,9 @@
       "debug":false,
       "load":"static",
       "fdiff":true
+    },
+    "prop":{
+      "multipole":"dipole"
     }
   }
 }

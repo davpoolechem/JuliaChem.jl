@@ -16,10 +16,11 @@ function travis_rhf(input_file)
     mol, basis = JuliaChem.JCBasis.run(molecule, model; output="verbose")          
 
     #== perform scf calculation ==#
-    rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"]; output="verbose") 
+    rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"]; 
+      output="verbose") 
  
     #== compute molecular properties ==# 
-    JuliaChem.JCProperties.run(mol, basis, rhf_energy, keywords,
+    JuliaChem.JCProperties.run(mol, basis, rhf_energy, keywords["prop"],
       output="verbose")  
 
     return rhf_energy 
