@@ -2,6 +2,7 @@ using Base.Threads
 using LinearAlgebra
 using HDF5
 using PrettyTables
+using Printf
 
 const do_continue_print = false 
 const print_eri = false 
@@ -120,7 +121,7 @@ function rhf_kernel(mol::Molecule,
     println("       Starting RHF iterations...                 ")
     println("----------------------------------------          ")
     println(" ")
-    println("Iter      Energy                   ΔE                   Drms")
+    println("Iter      Energy              ΔE              Drms")
   end
 
   E_elec = 0.0
@@ -133,7 +134,8 @@ function rhf_kernel(mol::Molecule,
   E_old = E
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
-    println(0,"     ", E)
+    #println(0,"     ", E)
+    @printf("0     %.8f\n", E)
   end
 
   #=============================#
@@ -172,7 +174,8 @@ function rhf_kernel(mol::Molecule,
       println("----------------------------------------")
       println("   The SCF calculation has converged!   ")
       println("----------------------------------------")
-      println("Total SCF Energy: ",E," h")
+      #println("Total SCF Energy: ",E," h")
+      @printf("Total SCF Energy: %.8f h\n",E)
       println(" ")
 
       calculation_success = Dict(
@@ -431,7 +434,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     ΔE = E - E_old
 
     if MPI.Comm_rank(comm) == 0 && output == "verbose"
-      println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+      #println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
+      @printf("%d      %.8f      %.8f      %.8f\n", iter, E, ΔE, D_rms)
     end
 
     iter_converged = abs(ΔE) <= dele && D_rms <= rmsd
