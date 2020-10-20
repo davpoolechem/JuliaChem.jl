@@ -10,7 +10,7 @@ function build_jeri()
   if ispath("build") rm("build", recursive=true) end
   mkdir("build")
   cd("build")
-  run(`cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ 
+  run(`cmake 
     -DEIGEN_PATH=$eigen_root -DBOOST_PATH=$boost_root 
     -DJLCXX_PATH=$jlcxx_root ../`)
   run(`make`)
