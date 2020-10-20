@@ -38,6 +38,9 @@ function full_rhf(input_file)
     mol, basis = JuliaChem.JCBasis.run(molecule, model; 
       output="verbose")          
 
+    #== molecule info ==#
+    JuliaChem.JCMolecule.run(mol)
+
     #== calculation driver ==# 
     if driver == "energy"
       if model["method"] == "RHF"
