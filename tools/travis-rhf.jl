@@ -23,10 +23,10 @@ function travis_rhf(input_file)
       output="verbose") 
 
     #== compute molecular properties ==# 
-    JuliaChem.JCProperties.run(mol, basis, rhf_energy, keywords["prop"],
+    properties = JuliaChem.JCProperties.run(mol, basis, rhf_energy, keywords["prop"],
       output="verbose")  
 
-    return rhf_energy 
+    return (rhf_energy, properties) 
   catch e                                                                       
     bt = catch_backtrace()                                                      
     msg = sprint(showerror, e, bt)                                              

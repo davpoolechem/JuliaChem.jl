@@ -27,7 +27,10 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
       println("                       ========================================                 ")
       println("")
   end
-
+  
+  #== create properties dict ==#
+  properties = Dict{String, Any}([])
+  
   #== compute dipole is selected ==#
   if keywords["multipole"] == "dipole"
     #== initial setup ==#
@@ -50,6 +53,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
   
     @printf("          %.6f   %.6f    %.6f    %.6f     \n", 
       dipole[1], dipole[2], dipole[3], dipole_moment)
+  
+    properties["Dipole"] = (x = dipole[1], y = dipole[2], z = dipole[3], 
+      moment = dipole_moment)  
   end
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -59,6 +65,8 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
     println("                       ========================================                 ")
     println("--------------------------------------------------------------------------------")
   end
+
+  return properties
 end
 export run
 

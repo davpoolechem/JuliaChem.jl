@@ -13,9 +13,10 @@ JuliaChem.initialize()
 
 #== run S22 tests ==#
 Test.@testset "S22 accuracy test" begin
-  rhfenergy = travis_rhf(inputs[3])
-  Test.@test rhfenergy["Energy"] ≈ -377.5889420312
-
+  rhf_energy, properties = travis_rhf(inputs[3])                                
+  Test.@test rhf_energy["Energy"] ≈ -377.5889420312                             
+  Test.@test properties["Dipole"][:moment] <= 1.0E-10 #approximately 0.0 
+ 
   #scf = travis_rhf(inputs[10])
   #Test.@test scf["Energy"] ≈ -270.9302743515 
 
