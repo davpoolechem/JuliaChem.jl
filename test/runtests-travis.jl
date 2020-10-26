@@ -15,14 +15,14 @@ JuliaChem.initialize()
 
 #== run S22 calculations ==#
 s22_test_results = Dict([]) 
-for imol in [ 3 ] 
+for imol in [ 2, 3 ] 
   s22_test_results[imol] = travis_rhf(inputs[imol])
 end
 
 #== check energies ==#
 Test.@testset "S22 Energy" begin
   #Test.@test s22_test_results[1][:Energy]["Energy"] ≈ -112.4047194144
-  #Test.@test s22_test_results[2][:Energy]["Energy"] ≈ -152.0671593526
+  Test.@test s22_test_results[2][:Energy]["Energy"] ≈ -152.0671593526
   Test.@test s22_test_results[3][:Energy]["Energy"] ≈ -377.5889420312
   #Test.@test s22_test_results[4][:Energy]["Energy"] ≈ -337.9245601137
   #Test.@test s22_test_results[5][:Energy]["Energy"] ≈ -825.0480089998
@@ -48,7 +48,7 @@ end
 #== check dipole moments ==#
 Test.@testset "S22 Dipoles" begin
   #Test.@test abs(s22_test_results[1][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
-  #Test.@test s22_test_results[2][:Properties]["Dipole"][:moment] ≈ 2.696653
+  Test.@test s22_test_results[2][:Properties]["Dipole"][:moment] ≈ 2.696653
   Test.@test abs(s22_test_results[3][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
   #Test.@test abs(s22_test_results[4][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
   #Test.@test abs(s22_test_results[5][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        

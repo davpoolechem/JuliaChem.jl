@@ -124,7 +124,7 @@ function compute_dipole(mol::Molecule,
     end
   end
   
-  dipole .= 2.5417 .* (nuc_dipole .- elec_dipole)  
+  dipole .= 2.54174623 .* (nuc_dipole .- elec_dipole)  
   return dipole
 end
 
