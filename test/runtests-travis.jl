@@ -47,17 +47,17 @@ end
 
 #== check dipole moments ==#
 Test.@testset "S22 Dipoles" begin
-  #Test.@test abs(s22_test_results[1][:Properties]["Dipole"][:moment]) <= 1.0E-10 #approximately 0.0        
+  #Test.@test abs(s22_test_results[1][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
   #Test.@test s22_test_results[2][:Properties]["Dipole"][:moment] ≈ 2.696653
-  Test.@test abs(s22_test_results[3][:Properties]["Dipole"][:moment]) <= 1.0E-10 #approximately 0.0        
-  #Test.@test abs(s22_test_results[4][:Properties]["Dipole"][:moment]) <= 1.0E-10 #approximately 0.0        
-  #Test.@test abs(s22_test_results[5][:Properties]["Dipole"][:moment]) <= 1.0E-10 #approximately 0.0        
+  Test.@test abs(s22_test_results[3][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
+  #Test.@test abs(s22_test_results[4][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
+  #Test.@test abs(s22_test_results[5][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
   #Test.@test s22_test_results[6][:Properties]["Dipole"][:moment] ≈ 3.239972 
   #Test.@test s22_test_results[7][:Properties]["Dipole"][:moment] ≈ 1.990013 
-  #Test.@test abs(s22_test_results[8][:Properties]["Dipole"][:moment]) <= 1.0E-10 #approximately 0.0        
-  #Test.@test abs(s22_test_results[9][:properties]["Dipole"][:moment]) <= 1.0E-10 #approximately 0.0        
+  #Test.@test abs(s22_test_results[8][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
+  #Test.@test abs(s22_test_results[9][:properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
   #Test.@test s22_test_results[10][:Properties]["Dipole"][:moment] ≈ 0.280546 
-  #Test.@test abs(s22_test_results[11][:Properties]["Dipole"][:moment]) <= 1.0E-10 #approximately 0.0        
+  #Test.@test abs(s22_test_results[11][:Properties]["Dipole"][:moment]) <= 1.0E-6 #approximately 0.0        
   #Test.@test s22_test_results[12][:Properties]["Dipole"][:moment] ≈ 0.280546 
   #Test.@test s22_test_results[13][:Properties]["Dipole"][:moment] ≈ 5.604885 
   #Test.@test s22_test_results[14][:Properties]["Dipole"][:moment] ≈ 1.860770 
