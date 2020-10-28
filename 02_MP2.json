@@ -14,7 +14,7 @@
   "driver": "energy",
   "model": {
     "method": "RHF",
-    "basis": "6-31G"
+    "basis": "6-31G*"
   },
   "keywords": {
     "scf":{
@@ -26,7 +26,7 @@
       "direct":true,
       "debug":false,
       "load":"static",
-      "fdiff":true
+      "fdiff":false
     },
     "prop":{
       "multipole":"dipole"
