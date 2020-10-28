@@ -67,15 +67,13 @@ function compute_dipole(mol::Molecule,
   ncoord = length(dipole) 
 
   #== compute nuclear contribution to dipole ==#
-  nuc_dipole = similar(dipole)
+  nuc_dipole = zeros(Float64,size(dipole))
   for atom in mol  
     nuc_dipole .+= atom.atom_id .* atom.atom_center
   end
 
   #== compute electronic contribution to dipole ==# 
-  elec_dipole = similar(dipole)
-  
-  elec_dipole_matrix = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
+  elec_dipole = zeros(Float64,size(dipole))
   for ash in 1:length(basis), bsh in 1:length(basis)
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
@@ -83,15 +81,13 @@ function compute_dipole(mol::Molecule,
     apos = basis[ash].pos
     bpos = basis[bsh].pos
   
-    iatom = basis[ash].atom_id
-    jatom = basis[bsh].atom_id
- 
     elec_dipole_block_JERI = zeros(Float64,(abas*bbas*ncoord)) 
     
-    JERI.compute_dipole_block(jeri_prop_engine, elec_dipole_block_JERI, ash, bsh, 
-      abas*bbas)
+    JERI.compute_dipole_block(jeri_prop_engine, elec_dipole_block_JERI, ash, 
+      bsh, abas*bbas)
 
-    axial_normalization_factor(elec_dipole_block_JERI, basis[ash], basis[bsh], ncoord)
+    axial_normalization_factor(elec_dipole_block_JERI, basis[ash], basis[bsh], 
+      ncoord)
     
     #println("Julia Shells: $ash, $bsh")
     #println("Julia Atoms: $iatom, $jatom")
@@ -102,21 +98,20 @@ function compute_dipole(mol::Molecule,
       #println("$ishlset, $icoord => $op, $shlset_idx")
         
       for ibas in 0:abas-1, jbas in 0:bbas-1
-        iorb = apos + ibas
-        jorb = bpos + jbas
+        aorb = apos + ibas
+        borb = bpos + jbas
 
-        #elec_dipole_matrix[icoord][iorb,jorb] += elec_dipole_block_JERI[abas*bbas*(icoord-1) + idx]
-        elec_dipole[icoord] += P[iorb,jorb] * elec_dipole_block_JERI[abas*bbas*(icoord-1) + idx]
+        #scale = iorb == jorb ? 2.0 : 1.0
+        scale = 1.0
+        elec_dipole[icoord] += scale * P[aorb,borb] * 
+          elec_dipole_block_JERI[abas*bbas*(icoord-1) + idx]
+        
         idx += 1
       end
     end
   end
   
-  @printf("          %.8f   %.8f    %.8f         \n",
-    nuc_dipole[1], nuc_dipole[2], nuc_dipole[3])
-  @printf("          %.8f   %.8f    %.8f         \n",
-    elec_dipole[1], elec_dipole[2], elec_dipole[3])
-
+  #== compute total dipole ==#
   dipole .= 2.54174623 .* (nuc_dipole .- elec_dipole)  
   return dipole
 end
