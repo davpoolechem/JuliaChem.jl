@@ -2,6 +2,7 @@ using JuliaChem.JCModules
 
 using Base.Threads
 using LinearAlgebra
+using Printf
 
 #=
 """
@@ -75,7 +76,7 @@ function compute_dipole(mol::Molecule,
   elec_dipole = similar(dipole)
   
   elec_dipole_matrix = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
-  for ash in 1:length(basis), bsh in 1:ash
+  for ash in 1:length(basis), bsh in 1:length(basis)
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
  
@@ -104,17 +105,10 @@ function compute_dipole(mol::Molecule,
         iorb = apos + ibas
         jorb = bpos + jbas
 
-        elec_dipole_matrix[icoord][max(iorb,jorb),min(iorb,jorb)] += elec_dipole_block_JERI[abas*bbas*(icoord-1) + idx]
+        elec_dipole_matrix[icoord][iorb,jorb] += elec_dipole_block_JERI[abas*bbas*(icoord-1) + idx]
         idx += 1
       end
     end
-  end
-
-  for imatrix in elec_dipole_matrix
-    for iorb in 1:basis.norb, jorb in 1:(iorb-1)
-      imatrix[min(iorb,jorb),max(iorb,jorb)] = imatrix[max(iorb,jorb),min(iorb,jorb)]
-    end
-    #display(ideriv); println()
   end
   
   #== contract with energy-weighted density ==#
@@ -123,7 +117,12 @@ function compute_dipole(mol::Molecule,
       elec_dipole[icoord] += P[ibas,jbas] * elec_dipole_matrix[icoord][ibas, jbas]  
     end
   end
-  
+ 
+  @printf("          %.8f   %.8f    %.8f         \n",
+    nuc_dipole[1], nuc_dipole[2], nuc_dipole[3])
+  @printf("          %.8f   %.8f    %.8f         \n",
+    elec_dipole[1], elec_dipole[2], elec_dipole[3])
+
   dipole .= 2.54174623 .* (nuc_dipole .- elec_dipole)  
   return dipole
 end

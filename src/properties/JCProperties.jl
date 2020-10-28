@@ -51,7 +51,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
     dipole = compute_dipole(mol, basis, P, jeri_prop_engine)
     dipole_moment = sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)
   
-    @printf("          %.6f   %.6f    %.6f    %.6f     \n", 
+    @printf("          %.8f   %.8f    %.8f    %.8f     \n", 
       dipole[1], dipole[2], dipole[3], dipole_moment)
   
     properties["Dipole"] = (x = dipole[1], y = dipole[2], z = dipole[3], 
