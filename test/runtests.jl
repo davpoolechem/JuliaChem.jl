@@ -1,84 +1,92 @@
 import Test
 
-include("../example_scripts/minimal-rhf-repl.jl")
+include("../tools/travis-rhf.jl")
 
-#== select input files ==#:w
+#== select input files ==#
 directory = joinpath(@__DIR__, "../example_inputs/S22/")
 inputs = readdir(directory)
 inputs .= directory .* inputs
 
 display(inputs)
 
+#== establish correct values for energies and dipoles ==#
+GAMESS_energies = Vector{Float64}([
+  -112.4047194144,
+  -152.0671593526,
+  -377.5889420312,
+  -337.9245601137,
+  -825.0480089998,
+  -623.3855095909,
+  -916.1413738989,
+  -80.4073036256,
+  -156.0878533332,
+  -270.9302743515,
+  -461.4497600413,
+  -525.4098675881,
+  -825.0271971388,
+  -592.2263255700,
+  -916.1246231957,
+  -154.8750579586,
+  -306.7601557517,
+  -286.9286565278,
+  -323.6144109921,
+  -461.4537798340,
+  -592.2351527581,
+  -611.1928406081
+])
+
+GAMESS_dipole_moments = Vector{Float64}([
+  1.0E-6, #approximately 0.0        
+  2.696653,
+  1.0E-6, #approximately 0.0        
+  1.0E-6, #approximately 0.0        
+  1.0E-6, #approximately 0.0        
+  3.239972, 
+  1.990013, 
+  1.0E-6, #approximately 0.0        
+  1.0E-6, #approximately 0.0        
+  0.280546, 
+  1.0E-6, #approximately 0.0        
+  0.227480, 
+  5.604885, 
+  1.860770, 
+  3.478761, 
+  0.493345, 
+  2.422111, 
+  1.770430, 
+  4.142949, 
+  0.651396, 
+  3.194881, 
+  3.486793 
+])
+
 #== initialize JuliaChem ==#
 JuliaChem.initialize()
 
-#== run S22 tests ==#
-Test.@testset "S22 accuracy test" begin
-  scf = minimal_rhf(inputs[1])
-  Test.@test scf["Energy"] ≈ -112.4047194144
+#== run S22 calculations ==#
+molecules = Vector{Int}([ idx for idx in 1:22 ])
 
-  scf = minimal_rhf(inputs[2])
-  Test.@test scf["Energy"] ≈ -152.0671593526
+s22_test_results = Dict([]) 
+for imol in molecules 
+  s22_test_results[imol] = travis_rhf(inputs[imol])
+end
 
-  scf = minimal_rhf(inputs[3])
-  Test.@test scf["Energy"] ≈ -377.5889420312
+#== check energies ==#
+Test.@testset "S22 Energy" begin
+  for imol in molecules 
+    Test.@test s22_test_results[imol][:Energy]["Energy"] ≈ GAMESS_energies[imol] 
+  end
+end
 
-  scf = minimal_rhf(inputs[4])
-  Test.@test scf["Energy"] ≈ -337.9245601137
-
-  scf = minimal_rhf(inputs[5])
-  Test.@test scf["Energy"] ≈ -825.0480089998
-
-  scf = minimal_rhf(inputs[6])
-  Test.@test scf["Energy"] ≈ -623.3855095909
-
-  scf = minimal_rhf(inputs[7])
-  Test.@test scf["Energy"] ≈ -916.1413738989
-
-  scf = minimal_rhf(inputs[8])
-  Test.@test scf["Energy"] ≈ -80.4073036256
-
-  scf = minimal_rhf(inputs[9])
-  Test.@test scf["Energy"] ≈ -156.0878533332
-
-  scf = minimal_rhf(inputs[10])
-  Test.@test scf["Energy"] ≈ -270.9302743515
-
-  scf = minimal_rhf(inputs[11])
-  Test.@test scf["Energy"] ≈ -461.4497600413
-
-  scf = minimal_rhf(inputs[12])
-  Test.@test scf["Energy"] ≈ -525.4098675881
-
-  scf = minimal_rhf(inputs[13])
-  Test.@test scf["Energy"] ≈ -825.0271971388
-
-  scf = minimal_rhf(inputs[14])
-  Test.@test scf["Energy"] ≈ -592.2263255700
-
-  scf = minimal_rhf(inputs[15])
-  Test.@test scf["Energy"] ≈ -916.1246231957
-
-  scf = minimal_rhf(inputs[16])
-  Test.@test scf["Energy"] ≈ -154.8750579586
-
-  scf = minimal_rhf(inputs[17])
-  Test.@test scf["Energy"] ≈ -306.7601557517
-
-  scf = minimal_rhf(inputs[18])
-  Test.@test scf["Energy"] ≈ -286.9286565278
-
-  scf = minimal_rhf(inputs[19])
-  Test.@test scf["Energy"] ≈ -323.6144109921
-
-  scf = minimal_rhf(inputs[20])
-  Test.@test scf["Energy"] ≈ -461.4537798340
-
-  scf = minimal_rhf(inputs[21])
-  Test.@test scf["Energy"] ≈ -592.2351527581
-
-  scf = minimal_rhf(inputs[22])
-  Test.@test scf["Energy"] ≈ -611.1928406081
+#== check dipole moments ==#
+Test.@testset "S22 Dipoles" begin
+  for imol in molecules 
+    if GAMESS_dipole_moments[imol] == 1.0E-6
+      Test.@test abs(s22_test_results[imol][:Properties]["Dipole"][:moment]) <= GAMESS_dipole_moments[imol] #check if approximately zero 
+    else
+      Test.@test s22_test_results[imol][:Properties]["Dipole"][:moment] ≈ GAMESS_dipole_moments[imol] atol=5.0E-5
+    end
+  end
 end
 
 #== finalize JuliaChem ==#

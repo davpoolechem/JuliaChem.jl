@@ -13,4 +13,4 @@
 export JULIA_NUM_THREADS=8
 export OMP_NUM_THREADS=8
 #
-mpirun -np 1 julia --check-bounds=no --math-mode=fast --optimize=3 --inline=yes --compiled-modules=yes example_scripts/minimal-rhf-benchmark.jl example_inputs/ARPA-E/6-31/fig1i.json
+mpirun -np 1 julia --check-bounds=no --math-mode=fast --optimize=3 --inline=yes --compiled-modules=yes example_scripts/minimal-rhf.jl example_inputs/ARPA-E/6-31/fig1i.json

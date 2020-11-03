@@ -1,56 +1,72 @@
-"""
-     module JCProperties
-The module required for computation of a variety of properties, including
-dipole moment, Mulliken charges, and orbital energies. Import this module
-into the script when you wish to determine such information. Note that this
-module is not strictly necessary for every calculation.
-"""
-module JCProperties
+#Base.include(@__MODULE__,"../basis/BasisStructs.jl")
 
-#Base.include(@__MODULE__,"OrbitalEnergies.jl")
+"""
+  module JCProperties
+"""
+module JCProperties 
 
+include("PropHelpers.jl")
+
+using JuliaChem.JCModules
+using JuliaChem.JERI
+
+using JSON
 using MPI
+using Printf
 
-"""
-     run(scf::Data,input_info::Dict{String,Dict{String,Any}})
-Compute the dipole moment, Mulliken charges, and orbital energies of the
-system in question.
+function run(mol::Molecule, basis::Basis, rhf_energy, 
+  keywords; output="none")
+  
+  comm=MPI.COMM_WORLD
 
-Two input variables are required:
-1. scf = Data saved from the SCF calculation.
-2. input_info = Information gathered from the input file.
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      println("--------------------------------------------------------------------------------")
+      println("                       ========================================                 ")
+      println("                                RESTRICTED CLOSED-SHELL                         ")
+      println("                                HARTREE-FOCK PROPERTIES                         ")
+      println("                       ========================================                 ")
+      println("")
+  end
+  
+  #== create properties dict ==#
+  properties = Dict{String, Any}([])
+  
+  #== compute dipole is selected ==#
+  if keywords["multipole"] == "dipole"
+    #== initial setup ==#
+    jeri_prop_engine = JERI.PropEngine(mol.mol_cxx, 
+      basis.basis_cxx) 
 
-No variables are output.
+    P = rhf_energy["Density"] 
 
-Thus, proper use of the Properties.run() function would look like this:
+    #== compute dipole moment ==#
+    if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      println("----------------------------------------          ")
+      println("     Computing multiple moments...                ")
+      println("----------------------------------------          ")
+      println(" ")
+      println("Dipole:       X           Y           Z         Tot. (D)        ") 
+    end  
+  
+    dipole = compute_dipole(mol, basis, P, jeri_prop_engine)
+    dipole_moment = sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)
+  
+    @printf("          %.6f   %.6f    %.6f    %.6f     \n", 
+      dipole[1], dipole[2], dipole[3], dipole_moment)
+  
+    properties["Dipole"] = (x = dipole[1], y = dipole[2], z = dipole[3], 
+      moment = dipole_moment)  
+  end
 
-```
-Properties.run(scf, input_info)
-```
-"""
-function run(scf::Data,input_info::Dict{String,Dict{String,Any}})
-    comm=MPI.COMM_WORLD
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+    println("                       ========================================                 ")
+    println("                              END RESTRICTED CLOSED-SHELL                       ")
+    println("                                HARTREE-FOCK PROPERTIES                         ")
+    println("                       ========================================                 ")
+    println("--------------------------------------------------------------------------------")
+  end
 
-    if (MPI.Comm_rank(comm) == 0)
-        println("--------------------------------------------------------------------------------------")
-        println("                       ========================================          ")
-        println("                                   SYSTEM PROPERTIES                     ")
-        println("                       ========================================          ")
-        println("")
-    end
-
-    #set up rhf flags
-    basis_info::Dict{String,Any} = input_info["Basis Flags"]
-    basis_flags::Basis_Flags = Basis_Flags(basis_info["norb"],
-      basis_info["nocc"])
-
-    orbital_energies(scf,basis_flags)
-
-    if (MPI.Comm_rank(comm) == 0)
-        println("                       ========================================          ")
-        println("                                 END SYSTEM PROPERTIES                   ")
-        println("                       ========================================          ")
-    end
+  return properties
 end
 export run
 
