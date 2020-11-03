@@ -47,7 +47,7 @@ GAMESS_dipole_moments = Vector{Float64}([
   1.0E-6, #approximately 0.0        
   0.280546, 
   1.0E-6, #approximately 0.0        
-  0.280546, 
+  0.227480, 
   5.604885, 
   1.860770, 
   3.478761, 
