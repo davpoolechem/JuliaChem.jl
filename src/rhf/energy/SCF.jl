@@ -496,7 +496,7 @@ H = One-electron Hamiltonian Matrix
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
   batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-    Threads.nthreads()*1000)) 
+    Threads.nthreads()*1000))
 
   #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
@@ -513,15 +513,19 @@ H = One-electron Hamiltonian Matrix
 
         F_priv = $(F_thread[thread]) 
         while true 
-          ijkl = Threads.atomic_sub!($thread_index_counter, stride) 
+          ijkl_index = Threads.atomic_sub!($thread_index_counter, stride*batch_size) 
 
-          if ijkl < 1 break end
-        
-          fock_build_thread_kernel(F_priv, D,
-            H, basis, eri_quartet_batch_priv, #mutex,
-            ijkl, jeri_tei_engine_priv,
-            schwarz_bounds, Dsh,
-            cutoff, debug)
+          if ijkl_index < 0 break end
+ 
+          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+            #println("IJKL: $ijkl")
+
+            fock_build_thread_kernel(F_priv, D,
+              H, basis, eri_quartet_batch_priv, #mutex,
+              ijkl, jeri_tei_engine_priv,
+              schwarz_bounds, Dsh,
+              cutoff, debug)
+          end
         end
       end
       for thread in 1:Threads.nthreads()
