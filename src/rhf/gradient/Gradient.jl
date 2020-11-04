@@ -28,9 +28,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   end
 
   #== initial setup ==#
-  if true
-    throw("JuliaChem.jl does not yet support RHF gradients!")
-  else
+  #if true
+  #  throw("JuliaChem.jl does not yet support RHF gradients!")
+  #else
   
   jeri_oei_grad_engine = JERI.OEIEngine(mol.mol_cxx, 
     basis.basis_cxx, 1) 
@@ -44,9 +44,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   #display(P); println()
 
   #== compute nuclear repulsion gradient contribution==#
-  nuclear_gradient = compute_nuc_grad(mol) 
+  nuc_repuls_gradient = compute_nuc_repuls_grad(mol) 
   println("NUCLEAR REPULSION: ")
-  display(nuclear_gradient); println()
+  display(nuc_repuls_gradient); println()
 
   #== compute overlap gradient contribution ==#
   overlap_gradient = compute_overlap_grad(mol, basis, W, jeri_oei_grad_engine) 
@@ -64,20 +64,10 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   display(nuc_attr_gradient); println()
  
   #== comput total gradient ==# 
-  total_gradient = nuclear_gradient .+ overlap_gradient .+ kinetic_gradient .+ nuc_attr_gradient
+  one_elec_gradient = nuc_repuls_gradient .+ overlap_gradient .+ kinetic_gradient .+ nuc_attr_gradient
   #total_gradient = nuclear_gradient .+ overlap_gradient 
-  println("TOTAL GRADIENT: ")
-  display(total_gradient); println()
-
-  #== compute dipole moment ==#
-  dipole = compute_dipole_moment(mol, basis, P, jeri_prop_engine)
-  println("DIPOLE:")
-  display(dipole); println()
-   
-  println("DIPOLE MOMENT:")
-  display(sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)); println()
-
-  end
+  println("ONE ELEC GRADIENT: ")
+  display(one_elec_gradient); println()
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
