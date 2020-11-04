@@ -38,31 +38,32 @@ endif()
 #   setup library directories   # 
 #################################
 find_path(JULIA_INCLUDE_PATH | NAMES julia | HINTS ENV JULIA_ROOT PATH_SUFFIXES include REQUIRED) 
-find_path(LIBINT_INCLUDE_PATH | NAME libint2.h | HINTS ENV LIBINT_ROOT PATH_SUFFIXES include REQUIRED) 
-find_path(LIBINT_LIB_PATH | NAMES libint2.a | HINTS ENV LIBINT_ROOT PATH_SUFFIXES lib REQUIRED) 
+#find_path(LIBINT_INCLUDE_PATH | NAME libint2.h | HINTS ENV LIBINT_ROOT PATH_SUFFIXES include REQUIRED) 
+#find_path(LIBINT_LIB_PATH | NAMES libint2.a | HINTS ENV LIBINT_ROOT PATH_SUFFIXES lib REQUIRED) 
 
 INCLUDE_DIRECTORIES( SYSTEM
   ${JULIA_INCLUDE_PATH}/../include/julia 
   ${EIGEN_PATH}/include/eigen3 ${BOOST_PATH}/include 
-  ${JLCXX_PATH}/include ${LIBINT_INCLUDE_PATH}
+  ${JLCXX_PATH}/include ${LIBINT_PATH}/include
 )
 
 LINK_DIRECTORIES( SYSTEM
-  ${JLCXX_PATH}/lib ${LIBINT_LIB_PATH}
+  ${JLCXX_PATH}/lib ${LIBINT_PATH}/lib
 )
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 message("-- Found Eigen at ${EIGEN_PATH}")
 message("-- Found Boost at ${BOOST_PATH}")
 message("-- Found JLCxx at ${JLCXX_PATH}")
+message("-- Found Libint at ${LIBINT_PATH}")
 message("-- Found julia include directory at ${JULIA_INCLUDE_PATH}") 
-message("-- Found libint2.h at ${LIBINT_INCLUDE_PATH}")
-message("-- Found libint2 library at ${LIBINT_LIB_PATH}")
+#message("-- Found libint2.h at ${LIBINT_INCLUDE_PATH}")
+#message("-- Found libint2 library at ${LIBINT_LIB_PATH}")
 
 #################################
 #   build and install library   # 
 #################################
 add_library(jeri SHARED src/jeri.cpp)
-target_link_libraries(jeri PUBLIC -lcxxwrap_julia -lint2)
+target_link_libraries(jeri PUBLIC -lcxxwrap_julia -llibint2)
 
 install (TARGETS jeri DESTINATION ${PROJECT_SOURCE_DIR}) 
