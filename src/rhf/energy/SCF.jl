@@ -496,7 +496,7 @@ H = One-electron Hamiltonian Matrix
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
   batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-    Threads.nthreads()*1000))
+    Threads.nthreads()*nsh*10))
 
   #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
