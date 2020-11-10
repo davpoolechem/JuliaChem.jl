@@ -1,0 +1,15 @@
+ERROR: LoadError: IOError: stat: file already exists (EEXIST) for file "/export/home/david/.julia/compiled/v1.5/JuliaChem/rfCM7_xeLyN.ji"
+Stacktrace:
+ [1] lstat(::String) at ./stat.jl:69
+ [2] islink at ./stat.jl:314 [inlined]
+ [3] rm(::String; force::Bool, recursive::Bool) at ./file.jl:260
+ [4] create_expr_cache(::String, ::String, ::Array{Pair{Base.PkgId,UInt64},1}, ::Base.UUID) at ./loading.jl:1166
+ [5] compilecache(::Base.PkgId, ::String) at ./loading.jl:1279
+ [6] _require(::Base.PkgId) at ./loading.jl:1030
+ [7] require(::Base.PkgId) at ./loading.jl:928
+ [8] require(::Module, ::Symbol) at ./loading.jl:923
+ [9] include(::Function, ::Module, ::String) at ./Base.jl:380
+ [10] include(::Module, ::String) at ./Base.jl:368
+ [11] exec_options(::Base.JLOptions) at ./client.jl:296
+ [12] _start() at ./client.jl:506
+in expression starting at /home/david/projects/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:4

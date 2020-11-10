@@ -13,7 +13,8 @@ before_install:
 - sudo apt install g++-7 -y
 
 install:
-- julia -E 'using Pkg; Pkg.add("boost_jll"); Pkg.add("Eigen_jll")' 
+- julia -E 'using Pkg; Pkg.add("boost_jll"); Pkg.add("Eigen_jll"); 
+    Pkg.add("libint_jll")' 
 - export JULIA_ROOT=/home/travis/julia
 - export PATH=$JULIA_ROOT/bin:$PATH
 # 
@@ -21,10 +22,10 @@ install:
 - export CXX=g++-7
 - export JULIA_NUM_THREADS=2
 #
-- export BOOST_ROOT=`find /home/travis/.julia/artifacts -name libboost_thread.so | xargs dirname | xargs dirname`
+#- export BOOST_ROOT=`find /home/travis/.julia/artifacts -name libboost_thread.so | xargs dirname | xargs dirname`
 #
-- ./tools/travis-install-libint.sh
-- export LIBINT_ROOT=/home/travis/libint-install
+#- ./tools/travis-install-libint.sh
+#- export LIBINT_ROOT=/home/travis/libint-install
 
 script:
 - julia -E "using Pkg; Pkg.instantiate()"

@@ -87,10 +87,10 @@ uuid = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 version = "0.13.6"
 
 [[HDF5_jll]]
-deps = ["Libdl", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "3dbc683172cb53428907485a4bb98a29d3874083"
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "bc9c3d43ffd4d8988bfa372b86d4bdbd26860e95"
 uuid = "0234f1f7-429e-5d53-9886-15a909be8d59"
-version = "1.10.5+6"
+version = "1.10.5+7"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -290,13 +290,19 @@ uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
 version = "1.4.5+2"
 
 [[boost_jll]]
-deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "4135c43c414bc32041148999f707f88544d810f2"
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "95bda308f7f69473c3c98b0cf4cf19e19a88cd49"
 uuid = "28df3c45-c428-5900-9ff8-a3135698ca75"
-version = "1.71.0+2"
+version = "1.71.0+3"
 
 [[libcxxwrap_julia_jll]]
 deps = ["Libdl", "Pkg"]
 git-tree-sha1 = "1b2520ea0c1d5cbc12e8a97c15427133d726f743"
 uuid = "3eaa8342-bff7-56a5-9981-c04077f7cee7"
 version = "0.8.0+0"
+
+[[libint_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "24f11873f724aa571e61a588fd57007f7512c7c7"
+uuid = "5fdff7f3-485e-5122-bc58-379aa217adcc"
+version = "2.7.0+0"
