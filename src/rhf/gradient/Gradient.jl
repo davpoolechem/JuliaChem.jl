@@ -5,7 +5,7 @@
 """
 module Gradient 
 
-include("GradHelpers.jl")
+include("OneElecGrad.jl")
 
 using JuliaChem.JCModules
 using JuliaChem.JERI

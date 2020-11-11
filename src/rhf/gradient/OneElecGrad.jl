@@ -35,7 +35,7 @@ end
   #  Int64, (Int64,), input)
 end
 
-function compute_nuc_grad(mol::Molecule)
+function compute_nuc_repuls_grad(mol::Molecule)
   nuc_grad = zeros(Float64,(length(mol.atoms),3))
   for iatom in 1:length(mol.atoms), jatom in 1:length(mol.atoms)
     if iatom != jatom
