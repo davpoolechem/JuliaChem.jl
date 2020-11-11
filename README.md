@@ -13,7 +13,7 @@ If you are simply interested in using JuliaChem.jl for your calculations, you
 can build JuliaChem.jl as follows:
 
 ```julia
-Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl"))
+Pkg.add(PackageSpec(url="https://github.com/davpoolechem/JuliaChem.jl.git"))
 ```
 
 This will download the JuliaChem.jl package to your computer and build the Libint/JuliaChem.jl interface.
