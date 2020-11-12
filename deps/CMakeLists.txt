@@ -64,6 +64,11 @@ message("-- Found julia include directory at ${JULIA_INCLUDE_PATH}")
 #   build and install library   # 
 #################################
 add_library(jeri SHARED src/jeri.cpp)
-target_link_libraries(jeri PUBLIC -lcxxwrap_julia -lint2)
+
+if(EXISTS "${LIBINT_PATH}/lib/libint2.so")
+  target_link_libraries(jeri PUBLIC -lcxxwrap_julia -lint2)
+else()  
+  target_link_libraries(jeri PUBLIC -lcxxwrap_julia -llibint2)
+endif()
 
 install (TARGETS jeri DESTINATION ${PROJECT_SOURCE_DIR}) 

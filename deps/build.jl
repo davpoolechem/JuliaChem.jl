@@ -7,7 +7,9 @@ function build_jeri()
   eigen_root = Eigen_jll.artifact_dir
   boost_root = boost_jll.artifact_dir
   jlcxx_root = libcxxwrap_julia_jll.artifact_dir
-  libint_root = "/export/home/david/programs/install/libint" 
+  libint_root = try ENV["LIBINT_ROOT"]
+                catch KeyError libint_jll.artifact_dir 
+                end
 
   if ispath("build") rm("build", recursive=true) end
   mkdir("build")
