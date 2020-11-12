@@ -74,7 +74,7 @@ function compute_overlap_grad(mol::Molecule,
 
   #== generate S derivative matrices ==#
   S_deriv = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
-  for ash in 1:length(basis), bsh in 1:ash
+  for ash in 1:length(basis), bsh in 1:length(basis)
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
  
@@ -108,7 +108,7 @@ function compute_overlap_grad(mol::Molecule,
           iorb = apos + ibas
           jorb = bpos + jbas
 
-          S_deriv[op][max(iorb,jorb),min(iorb,jorb)] += S_block_JERI[abas*bbas*(op-1) + idx]
+          S_deriv[op][iorb,jorb] += S_block_JERI[abas*bbas*(op-1) + idx]
           idx += 1
         end
         shlset_idx += 1
@@ -116,13 +116,6 @@ function compute_overlap_grad(mol::Molecule,
     end
   end
 
-  for ideriv in S_deriv
-    for iorb in 1:basis.norb, jorb in 1:(iorb-1)
-      ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
-    end
-    #display(ideriv); println()
-  end
-  
   #== contract with energy-weighted density ==#
   for iatom in 1:natoms
     for icoord in 1:3
