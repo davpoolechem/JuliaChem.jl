@@ -120,3 +120,9 @@ end
 function eri_quartet_batch_size(max_am)
   return am_to_nbas_cart(max_am)^4
 end
+#=
+3×3 Array{Float64,2}:
+ 17.7513    1.89471  -2.57513e-14
+ -2.6536   -5.11838   4.96059e-15
+ -3.64237   4.46359   3.15283e-15
+=#
