@@ -132,8 +132,7 @@ function compute_kinetic_grad(mol::Molecule,
   shell_set = 2
 
   #== generate T derivative matrices ==#
-  T_deriv = Vector{Matrix{Float64}}([ zeros(Float64,(basis.norb, basis.norb)) for i in 1:ncoord ])
-  for ash in 1:length(basis), bsh in 1:ash
+  for ash in 1:length(basis), bsh in 1:length(basis)
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
  
@@ -167,7 +166,10 @@ function compute_kinetic_grad(mol::Molecule,
           iorb = apos + ibas
           jorb = bpos + jbas
 
-          T_deriv[op][max(iorb,jorb),min(iorb,jorb)] += T_block_JERI[abas*bbas*(op-1) + idx]
+          #scale = ibas == jbas ? 0.5 : 1.0
+          scale = 1.0 
+          PT_grad[atom,icoord] += scale * P[iorb,jorb] * T_block_JERI[abas*bbas*(op-1) + idx]
+ 
           idx += 1
         end
         shlset_idx += 1
@@ -175,24 +177,6 @@ function compute_kinetic_grad(mol::Molecule,
     end
   end
 
-  for ideriv in T_deriv
-    for iorb in 1:basis.norb, jorb in 1:(iorb-1)
-      ideriv[min(iorb,jorb),max(iorb,jorb)] = ideriv[max(iorb,jorb),min(iorb,jorb)]
-    end
-    #display(ideriv); println()
-  end
-  
-  #== contract with energy-weighted density ==#
-  for iatom in 1:natoms
-    for icoord in 1:3
-      deriv_idx = 3*(iatom-1)  + icoord
-      for ibas in 1:basis.norb, jbas in 1:basis.norb
-        scale = ibas == jbas ? 0.5 : 1.0
-        
-        PT_grad[iatom,icoord] += scale * P[ibas,jbas] * T_deriv[deriv_idx][ibas, jbas]  
-      end
-    end
-  end
   return PT_grad
 end
 
