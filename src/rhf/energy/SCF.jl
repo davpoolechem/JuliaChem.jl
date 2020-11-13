@@ -504,7 +504,7 @@ H = One-electron Hamiltonian Matrix
     top_index = nindices - (MPI.Comm_rank(comm))
     stride = MPI.Comm_size(comm) 
     thread_index_counter = Threads.Atomic{Int64}(top_index)
-
+    
     #== execute kernel of calculation ==#
     wait.([ 
       Threads.@spawn begin 
@@ -530,11 +530,12 @@ H = One-electron Hamiltonian Matrix
       end
       for thread in 1:Threads.nthreads()
     ])
-     
-    #== reduce into Fock matrix ==# 
+ 
+    #== reduce into Fock matrix ==#
     for ithread_fock in F_thread 
-      F += ithread_fock
+      F .+= ithread_fock
     end
+ 
   #== ..else use dynamic task distribution ==# 
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
     #== master rank ==#
@@ -636,7 +637,7 @@ H = One-electron Hamiltonian Matrix
 
       #== reduce into Fock matrix ==#
       for ithread_fock in F_thread 
-        F += ithread_fock
+        F .+= ithread_fock
       end
     end
   end
