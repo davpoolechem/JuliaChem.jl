@@ -13,7 +13,7 @@ function print_xyz(mol::Molecule)
   #== print coordinates in xyz format ==#
   if (MPI.Comm_rank(comm) == 0)
     println("----------------------------------------          ")
-    println("      Printing coordinates (bohr)                 ")
+    println("         Printing coordinates                     ")
     println("            in xyz format...                      ")
     println("----------------------------------------          ")
     println(" ")
@@ -22,9 +22,11 @@ function print_xyz(mol::Molecule)
   println() 
 
   for iatom in mol
+    #fac = 0.52917724924 #switch from bohr to ang
+    fac = 1.0 
     if (MPI.Comm_rank(comm) == 0)
-      println(iatom.symbol,"         ",iatom.atom_center[1],"     ",
-        iatom.atom_center[2],"     ",iatom.atom_center[3])
+      println(iatom.symbol,"         ",fac*iatom.atom_center[1],"     ",
+        fac*iatom.atom_center[2],"     ",fac*iatom.atom_center[3])
     end 
   end
   

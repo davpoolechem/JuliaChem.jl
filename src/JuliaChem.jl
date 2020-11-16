@@ -4,9 +4,9 @@ Base.include(@__MODULE__,"../deps/src/jeri.jl")
 Base.include(@__MODULE__, "modules/JCModules.jl")
 
 Base.include(@__MODULE__, "basis/JCBasis.jl")
-Base.include(@__MODULE__, "grad/JCGrad.jl")
 Base.include(@__MODULE__, "io/JCInput.jl")
 Base.include(@__MODULE__, "molecule/JCMolecule.jl")
+Base.include(@__MODULE__, "properties/JCProperties.jl")
 Base.include(@__MODULE__, "rhf/JCRHF.jl")
 Base.include(@__MODULE__, "runtime/JCRuntime.jl")
 

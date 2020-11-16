@@ -1,12 +1,12 @@
 BenchmarkTools.Trial: 
   memory estimate:  1.02 GiB
-  allocs estimate:  42668
+  allocs estimate:  41716
   --------------
-  minimum time:     232.644 s (0.09% GC)
-  median time:      232.644 s (0.09% GC)
-  mean time:        232.644 s (0.09% GC)
-  maximum time:     232.644 s (0.09% GC)
+  minimum time:     211.764 s (0.13% GC)
+  median time:      211.764 s (0.13% GC)
+  mean time:        211.764 s (0.13% GC)
+  maximum time:     211.764 s (0.13% GC)
   --------------
   samples:          1
   evals/sample:     11-element Array{Float64,1}:
- 964.7928203600001
+ 854.4029770020001

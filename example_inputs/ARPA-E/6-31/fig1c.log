@@ -1,12 +1,11 @@
-BenchmarkTools.Trial: 
-  memory estimate:  93.85 MiB
-  allocs estimate:  13395
-  --------------
-  minimum time:     15.398 s (0.02% GC)
-  median time:      15.398 s (0.02% GC)
-  mean time:        15.398 s (0.02% GC)
-  maximum time:     15.398 s (0.02% GC)
-  --------------
-  samples:          1
-  evals/sample:     11-element Array{Float64,1}:
- 68.055139623
+-------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code.. Per user-direction, the job has been aborted.
+-------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[54213,1],0]
+  Exit code:    1
+--------------------------------------------------------------------------

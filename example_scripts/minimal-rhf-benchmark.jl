@@ -68,7 +68,7 @@ function script(input_file)
           #scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
           #  output="none")
           scf = BenchmarkTools.@benchmark begin
-            JuliaChem.JCRHF.run($mol, $basis, $(keywords["scf"]); 
+            JuliaChem.JCRHF.Energy.run($mol, $basis, $(keywords["scf"]); 
               output="none") #initial run
           end
           display(scf)
