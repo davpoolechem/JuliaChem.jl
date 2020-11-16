@@ -497,26 +497,24 @@ H = One-electron Hamiltonian Matrix
 
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
-  batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-    Threads.nthreads()*nsh*10))
+  batch_size = ceil(Int,nindices/(nworkers()*Threads.nthreads()*nsh*10))
 
   #== use static task distribution for multirank runs if selected... ==#
   if load == "static"
     @sync wait.([
       @spawnat worker begin
         #== set up initial indices ==#
-        worker_basis = Basis(basis.shells, JERI.copy_basis(basis.basis_cxx),
-          StdVector{JERI.ShellPair}(), basis.model,
-          basis.norb, basis.nels)
-
-        precompute_shell_pair_data(worker_basis.shpdata_cxx, worker_basis.basis_cxx)
-        
         top_index = nindices - (worker-2)
         stride = nworkers()
         thread_index_counter = Threads.Atomic{Int64}(top_index)
         
         #== execute kernel of calculation ==#
-        F_thread = [ zeros(Float64, (worker_basis.norb, worker_basis.norb)) 
+        max_am = max_ang_mom(basis) 
+        eri_quartet_batch_thread = [ Vector{Float64}(undef,
+          eri_quartet_batch_size(max_am)) 
+          for thread in 1:Threads.nthreads() ]
+
+        F_thread = [ zeros(Float64, (basis.norb, basis.norb)) 
           for thread in 1:Threads.nthreads() ]
         wait.([ 
           Threads.@spawn begin 
