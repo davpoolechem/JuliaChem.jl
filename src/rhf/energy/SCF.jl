@@ -318,13 +318,15 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   #=================================#
   iter = 1
   iter_converged = false
+
+  ntasks = Threads.nthreads()
   
   max_am = max_ang_mom(basis) 
   eri_quartet_batch_thread = [ Vector{Float64}(undef,
     eri_quartet_batch_size(max_am)) 
-    for thread in 1:Threads.nthreads() ]
+    for thread in 1:ntasks ]
  
-  F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
+  F_thread = [ zeros(size(F)) for thread in 1:ntasks ]
   while !iter_converged
     #== reset eri arrays ==#
     #if quartet_batch_num_old != 1 && iter != 1
@@ -365,7 +367,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     workspace_a .= fock_build(workspace_b, F_thread, D_input, H, basis, 
-      schwarz_bounds, Dsh, eri_quartet_batch_thread, cutoff, debug, load)
+      schwarz_bounds, Dsh, eri_quartet_batch_thread, ntasks, 
+      cutoff, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -485,8 +488,8 @@ H = One-electron Hamiltonian Matrix
   F_thread::Vector{Matrix{Float64}}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  eri_quartet_batch_thread::Vector{Vector{Float64}}, cutoff::Float64, 
-  debug::Bool, load::String)
+  eri_quartet_batch_thread::Vector{Vector{Float64}}, ntasks::Int,
+  cutoff::Float64, debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
@@ -496,7 +499,7 @@ H = One-electron Hamiltonian Matrix
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
   batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-    Threads.nthreads()*nsh*10))
+    ntasks*nsh*10))
 
   #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
@@ -528,7 +531,7 @@ H = One-electron Hamiltonian Matrix
           end
         end
       end
-      for thread in 1:Threads.nthreads()
+      for thread in 1:ntasks
     ])
  
     #== reduce into Fock matrix ==#
