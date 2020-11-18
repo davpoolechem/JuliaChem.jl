@@ -230,7 +230,8 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   
   B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
   for i in 1:B_dim, j in 1:B_dim
-    B[i,j] = LinearAlgebra.dot(e_array[i], e_array[j])
+    B[i,j] = LinearAlgebra.BLAS.dot(length(e_array[i]), e_array[i], 1, 
+      e_array[j], 1)
 
 	  B[i,B_dim+1] = -1
 	  B[B_dim+1,i] = -1
@@ -242,7 +243,8 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   #DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
   DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.sysv!('U', B, DIIS_coeff)
   
-  fill!(F, zero(Float64))
+  #fill!(F, zero(Float64))
+  LinearAlgebra.BLAS.scal!(length(F), 0.0, F, 1) 
   for index in 1:B_dim
     F .+= DIIS_coeff[index] .* F_array[index]
   end

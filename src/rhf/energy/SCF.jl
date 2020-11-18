@@ -102,10 +102,12 @@ function rhf_kernel(mol::Molecule,
   workspace_c = [ similar(F) ]
 
   #== build the orthogonalization matrix ==#
-  workspace_b .= S
-  S_eval_diag, workspace_a = eigen!(LinearAlgebra.Hermitian(workspace_b))
+  LinearAlgebra.BLAS.blascopy!(length(S), S, 1, workspace_b, 1)
+  #workspace_b .= S
+  S_eval_diag, workspace_a[:,:] = eigen!(LinearAlgebra.Hermitian(workspace_b))
 
-  fill!(workspace_b, 0.0)
+  #fill!(workspace_b, 0.0)
+  LinearAlgebra.BLAS.scal!(length(workspace_b), 0.0, workspace_b, 1) 
   for i in 1:basis.norb
     workspace_b[i,i] = S_eval_diag[i]
   end
@@ -346,9 +348,18 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== determine input D and F ==#
-    D_input .= fdiff ? ΔD : D
-    workspace_b .= fdiff ? ΔF : F
-
+    if fdiff
+      LinearAlgebra.BLAS.blascopy!(length(ΔD), ΔD, 1, D_input, 1)
+      LinearAlgebra.BLAS.blascopy!(length(ΔF), ΔF, 1, workspace_b, 1)
+      #D_input .= fdiff ? ΔD : D
+      #workspace_b .= fdiff ? ΔF : F
+    else
+      LinearAlgebra.BLAS.blascopy!(length(D), D, 1, D_input, 1)
+      LinearAlgebra.BLAS.blascopy!(length(F), F, 1, workspace_b, 1)
+      #D_input .= fdiff ? ΔD : D
+      #workspace_b .= fdiff ? ΔF : F
+    end
+     
     #== compress D into shells in Dsh ==#
     for ish in 1:length(basis), jsh in 1:ish
       ipos = basis[ish].pos
@@ -378,7 +389,6 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
  
     if fdiff 
-      
       ΔF .= workspace_b
       F_cumul .+= ΔF
       F .= F_cumul .+ H
@@ -427,7 +437,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== dynamic damping of Fock matrix ==#
     x = ΔE >= 1.0 ? 0.9/log(50,50*ΔE) : 0.9
-    F .= x.*F .+ (1.0-x).*F_old
+    LinearAlgebra.BLAS.axpby!(1.0-x, F_old, x, F)
 
     LinearAlgebra.BLAS.blascopy!(length(F), F, 1, 
       F_old, 1) 
@@ -467,7 +477,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   end
 
   #== build energy-weighted density matrix ==#
-  fill!(W, 0.0)
+  #fill!(W, 0.0)
+  LinearAlgebra.BLAS.scal!(length(W), 0.0, W, 1) 
   
   nocc = basis.nels >> 1
   for i in 1:basis.norb, j in 1:basis.norb
@@ -507,8 +518,12 @@ H = One-electron Hamiltonian Matrix
 
   comm = MPI.COMM_WORLD
   
-  fill!(F,zero(Float64))
-  fill!.(F_thread,zero(Float64)) 
+  #fill!(F,zero(Float64))
+  LinearAlgebra.BLAS.scal!(length(F), 0.0, F, 1) 
+  #fill!.(F_thread,zero(Float64)) 
+  for ithread_fock in F_thread
+    LinearAlgebra.BLAS.scal!(length(ithread_fock), 0.0, ithread_fock, 1) 
+  end
 
   nsh = length(basis)
   nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
@@ -940,7 +955,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   BLAS.symm!('L', 'U', 1.0, workspace_b, F_μν, 0.0, workspace_a)
   BLAS.gemm!('N', 'N', 1.0, workspace_a, ortho, 0.0, workspace_b)
  
-  F_eval, F_evec = eigen!(LinearAlgebra.Hermitian(workspace_b)) 
+  F_eval[:], F_evec[:,:] = eigen!(LinearAlgebra.Hermitian(workspace_b)) 
   
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
@@ -959,7 +974,8 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   nocc = basis.nels >> 1
   norb = basis.norb
 
-  fill!(D, 0.0)
+  #fill!(D, 0.0)
+  LinearAlgebra.BLAS.scal!(length(D), 0.0, D, 1) 
   for i in 1:basis.norb, j in 1:basis.norb
     for iocc in 1:nocc
       D[i,j] += 2 * C[i, iocc] * C[j, iocc]
