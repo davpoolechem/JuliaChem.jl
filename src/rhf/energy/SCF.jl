@@ -378,11 +378,16 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
  
     if fdiff 
+      
       ΔF .= workspace_b
       F_cumul .+= ΔF
       F .= F_cumul .+ H
     else
-      F .= workspace_b .+ H
+      LinearAlgebra.BLAS.axpy!(1.0, H, workspace_b) 
+      LinearAlgebra.BLAS.blascopy!(length(workspace_b), workspace_b, 1, 
+        F, 1) 
+  
+      #F .= workspace_b .+ H
     end
 
     if debug && MPI.Comm_rank(comm) == 0
@@ -395,8 +400,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       BLAS.gemm!('N', 'N', 1.0, workspace_a, S, 0.0, FDS)
       
       transpose!(workspace_b, FDS)
-      
-      workspace_a .= FDS .- workspace_b #error matrix 
+    
+      #== compute error vector ==# 
+      LinearAlgebra.BLAS.blascopy!(length(FDS), FDS, 1, 
+        workspace_a, 1) 
+      axpy!(-1.0, workspace_b, workspace_a)  
 
       e_array_old = view(e_array,1:(ndiis-1))                                   
       workspace_c[1] = deepcopy(workspace_a)
@@ -421,19 +429,25 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     x = ΔE >= 1.0 ? 0.9/log(50,50*ΔE) : 0.9
     F .= x.*F .+ (1.0-x).*F_old
 
-    F_old .= F
-
+    LinearAlgebra.BLAS.blascopy!(length(F), F, 1, 
+      F_old, 1) 
+  
     #== obtain new F,D,C matrices ==#
-    D_old .= D
-
+    LinearAlgebra.BLAS.blascopy!(length(D), D, 1, 
+      D_old, 1) 
+ 
     E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
       workspace_b, ortho, basis, iter, debug)
 
     #== check for convergence ==#
-    ΔD .= D .- D_old
-    D_rms = √(LinearAlgebra.dot(ΔD,ΔD))
+    #LinearAlgebra.BLAS.blascopy!(length(FDS), FDS, 1, 
+    #  workspace_a, 1) 
+    #axpy!(-1.0, workspace_b, workspace_a)  
 
-    E = E_elec+E_nuc
+    ΔD .= D .- D_old
+    D_rms = √(LinearAlgebra.BLAS.dot(length(ΔD), ΔD, 1, ΔD, 1))
+
+    E = E_elec + E_nuc
     ΔE = E - E_old
 
     if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -511,12 +525,12 @@ H = One-electron Hamiltonian Matrix
     #== execute kernel of calculation ==#
     wait.([ 
       Threads.@spawn begin 
-        eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread])
+        eri_quartet_batch_priv = eri_quartet_batch_thread[thread]
         jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
-        F_priv = $(F_thread[thread]) 
+        F_priv = F_thread[thread] 
         while true 
-          ijkl_index = Threads.atomic_sub!($thread_index_counter, stride*batch_size) 
+          ijkl_index = Threads.atomic_sub!(thread_index_counter, stride*batch_size) 
 
           if ijkl_index < 0 break end
  
@@ -536,7 +550,7 @@ H = One-electron Hamiltonian Matrix
  
     #== reduce into Fock matrix ==#
     for ithread_fock in F_thread 
-      F .+= ithread_fock
+      axpy!(1.0, ithread_fock, F) 
     end
  
   #== ..else use dynamic task distribution ==# 
@@ -640,7 +654,7 @@ H = One-electron Hamiltonian Matrix
 
       #== reduce into Fock matrix ==#
       for ithread_fock in F_thread 
-        F .+= ithread_fock
+        axpy!(1.0, ithread_fock, F)
       end
     end
   end
@@ -953,8 +967,10 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   end
  
   #== compute new SCF energy ==#
-  EHF1 = LinearAlgebra.dot(D, F_μν)
-  EHF2 = LinearAlgebra.dot(D, H)
+  #EHF1 = LinearAlgebra.dot(D, F_μν)
+  #EHF2 = LinearAlgebra.dot(D, H)
+  EHF1 = LinearAlgebra.BLAS.dot(length(D), D, 1, F_μν, 1)
+  EHF2 = LinearAlgebra.BLAS.dot(length(D), D, 1, H, 1)
   E_elec = (EHF1 + EHF2)/2.0
   
   if debug && MPI.Comm_rank(comm) == 0

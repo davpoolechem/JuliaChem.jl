@@ -1,16 +1,9 @@
 #!/bin/bash
 #
-#SBATCH --job-name=example_inputs/ARPA-E/6-311/fig1a
-#SBATCH --output=example_inputs/ARPA-E/6-311/fig1a.log
-#SBATCH --error=example_inputs/ARPA-E/6-311/fig1a.err
+source /etc/profile.d/modules.sh
+source ~/.bashrc
 #
-#SBATCH --partition=haswell
+export JULIA_NUM_THREADS=56
 #
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=8
-#
-export JULIA_NUM_THREADS=8
-export OMP_NUM_THREADS=8
-#
+cd /home/davpoolechem/shared/projects/Julia/JuliaChem.jl
 mpirun -np 1 julia --check-bounds=no --math-mode=fast --optimize=3 --inline=yes --compiled-modules=yes example_scripts/minimal-rhf-benchmark.jl example_inputs/ARPA-E/6-311/fig1a.json
