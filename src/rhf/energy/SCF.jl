@@ -111,7 +111,13 @@ function rhf_kernel(mol::Molecule,
   for i in 1:basis.norb
     workspace_b[i,i] = S_eval_diag[i]
   end
+ 
   
+  #ortho = similar(F)
+  #LinearAlgebra.BLAS.gemm!('N', 'T', 1.0, 
+  #  workspace_b, workspace_a, 0.0, ortho)
+  #LinearAlgebra.BLAS.gemm!('N', 'N', 1.0, workspace_a, ortho, 0.0, ortho) 
+ 
   ortho = workspace_a*(LinearAlgebra.Diagonal(workspace_b)^-0.5)*transpose(workspace_a)
   
   if debug && MPI.Comm_rank(comm) == 0
@@ -127,7 +133,7 @@ function rhf_kernel(mol::Molecule,
   end
 
   E_elec = 0.0
-  E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
+  E_elec, F_eval[:] = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
     workspace_b, ortho, basis, 0, debug)
   
   F_old = deepcopy(F)
@@ -446,7 +452,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     LinearAlgebra.BLAS.blascopy!(length(D), D, 1, 
       D_old, 1) 
  
-    E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
+    E_elec, F_eval[:] = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
       workspace_b, ortho, basis, iter, debug)
 
     #== check for convergence ==#
@@ -797,13 +803,6 @@ end
     
       λσnorm = λnorm*σnorm 
       
-      #if ish == 40 && jsh == 26 && ksh == 8 && lsh == 8
-      #  println(eri_quartet_batch[μνλσ],",", eri_quartet_batch_simint[μνλσ])
-      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
-      #else 
-      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
-      #end
-
       eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
     end 
   end

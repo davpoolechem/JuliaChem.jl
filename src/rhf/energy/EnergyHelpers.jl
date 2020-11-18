@@ -177,8 +177,7 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
   jeri_schwarz_engine = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
   for ash in 1:nsh, bsh in 1:ash
-    fill!(eri_quartet_batch, 0.0)
-    
+    #fill!(eri_quartet_batch, 0.0)
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
     abshp = triangular_index(ash, bsh)
@@ -186,7 +185,8 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     JERI.compute_eri_block(jeri_schwarz_engine, eri_quartet_batch, 
       ash, bsh, ash, bsh, abshp, abshp, abas*bbas, abas*bbas)
  
-    schwarz_bounds[ash, bsh] = sqrt(maximum(abs.(eri_quartet_batch)) )
+    schwarz_bounds[ash, bsh] = sqrt(BLAS.asum(abas*bbas*abas*bbas, 
+      eri_quartet_batch, 1))
   end
 
   for ash in 1:nsh, bsh in 1:ash
