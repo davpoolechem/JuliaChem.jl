@@ -15,9 +15,7 @@ b = column index
 """
 =#
 @inline function triangular_index(a::Int,b::Int)
-  index = (a*(a-1)) >> 1 #bitwise divide by 2
-  index += b
-  return index
+  return ((a*(a-1)) >> 1) + b
 end
 
 @inline function triangular_index(a::Int)
@@ -26,10 +24,16 @@ end
 
 @inline function decompose(input::Int)
   #return ceil(Int,(-1.0+√(1+8*input))/2.0)
-  return Base.fptosi(Int, Base.ceil_llvm((-1.0 + 
-    Base.Math.sqrt_llvm(float(1+8*input)))/2.0))
-    #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
-  #  Int64, (Int64,), input)
+  return Base.fptosi(
+    Int, 
+    Base.ceil_llvm(
+      0.5*( 
+        Base.Math.sqrt_llvm(
+          Base.sitofp(Float64, muladd(8,input,1))
+        ) - 1.0
+      )
+    )
+  )
 end
 
 function compute_enuc(mol::Molecule)
