@@ -489,7 +489,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   nocc = basis.nels >> 1
   for i in 1:basis.norb, j in 1:basis.norb
     for iocc in 1:nocc
-      W[i,j] += 2 * F_eval[iocc] * C[i, iocc] * C[j, iocc]
+      W[i,j] += 2.0 * F_eval[iocc] * C[i, iocc] * C[j, iocc]
     end
   end
  
@@ -967,7 +967,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   LinearAlgebra.BLAS.scal!(length(D), 0.0, D, 1) 
   for i in 1:basis.norb, j in 1:basis.norb
     for iocc in 1:nocc
-      D[i,j] += 2 * C[i, iocc] * C[j, iocc]
+      D[i,j] += 2.0 * C[i, iocc] * C[j, iocc]
     end
   end
  
