@@ -763,50 +763,21 @@ end
   λsh::JCModules.Shell, σsh::JCModules.Shell,
   eri_quartet_batch::Vector{Float64},
   jeri_tei_engine)
-
-  #eri_quartet_batch_simint = similar(eri_quartet_batch)
-  #println(ish, ",", jsh, ",", ksh, ",", lsh)
-  amμ = μsh.am
-  amν = νsh.am
-  amλ = λsh.am
-  amσ = σsh.am
-
+  
+  #= set up some variables =#
   nμ = μsh.nbas
   nν = νsh.nbas
   nλ = λsh.nbas
   nσ = σsh.nbas
 
-  #fill!(eri_quartet_batch, 0.0)
-  #ish = μsh.shell_id
-  #jsh = νsh.shell_id
-  #ksh = λsh.shell_id
-  #lsh = σsh.shell_id
-
   #= actually compute integrals =#
   JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
     ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ*nν, nλ*nσ)
   
-  μνλσ = 0 
-  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
-    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
-      
-    μnorm = axial_norm_fact[μsize+1,amμ]
-    νnorm = axial_norm_fact[νsize+1,amν]
-
-    μνnorm = μnorm*νnorm
-
-    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
-      μνλσ += 1 
-   
-      λnorm = axial_norm_fact[λsize+1,amλ]
-      σnorm = axial_norm_fact[σsize+1,amσ]
-    
-      λσnorm = λnorm*σnorm 
-      
-      eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
-    end 
-  end
-
+  #= axial normalization =#
+  axial_normalization_factor(eri_quartet_batch, μsh, νsh, λsh, σsh,
+    nμ, nν, nλ, nσ)
+ 
   #=
   if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
     for idx in 1:nμ*nν*nλ*nσ 
@@ -817,7 +788,6 @@ end
   end
   =#
 end
-
 
 @inline function contract_eris(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, ish::Int64, jsh::Int64,

@@ -269,6 +269,40 @@ function axial_normalization_factor(oei, ash, bsh)
   end
 end
 
+@inline function axial_normalization_factor(eri_quartet_batch::Vector{Float64},
+  μsh::JCModules.Shell, νsh::JCModules.Shell, 
+  λsh::JCModules.Shell, σsh::JCModules.Shell,
+  nμ::Int, nν::Int, nλ::Int, nσ::Int) 
+
+  #eri_quartet_batch_simint = similar(eri_quartet_batch)
+  #println(ish, ",", jsh, ",", ksh, ",", lsh)
+  amμ = μsh.am
+  amν = νsh.am
+  amλ = λsh.am
+  amσ = σsh.am
+
+  μνλσ = 0 
+  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
+    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
+      
+    μnorm = axial_norm_fact[μsize+1,amμ]
+    νnorm = axial_norm_fact[νsize+1,amν]
+
+    μνnorm = μnorm*νnorm
+
+    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
+      μνλσ += 1 
+   
+      λnorm = axial_norm_fact[λsize+1,amλ]
+      σnorm = axial_norm_fact[σsize+1,amσ]
+    
+      λσnorm = λnorm*σnorm 
+      
+      eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
+    end 
+  end
+end
+
 function eri_quartet_batch_size(max_am)
   return am_to_nbas_cart(max_am)^4
 end
