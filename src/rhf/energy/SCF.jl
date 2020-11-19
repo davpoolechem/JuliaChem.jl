@@ -855,9 +855,23 @@ end
         continue 
       end
   
-      μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-      λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-
+      
+      μ = μμ
+      ν = νν 
+      if μμ < νν 
+        μ = μ + ν
+        ν  = μ - ν
+        μ = μ - ν
+      end 
+      
+      λ = λλ
+      σ = σσ
+      if λλ < σσ 
+        λ = λ + σ
+        σ = λ - σ
+        λ = λ - σ
+      end 
+      
       μν = triangular_index(μ,ν)                                                    
       λσ = triangular_index(λ,σ)                                                    
        
@@ -866,7 +880,13 @@ end
           #if do_continue_print println("CONTINUE BRAKET") end
           continue 
         else
-          μ, ν, λ, σ = λ, σ, μ, ν
+          μ = μ + λ
+          λ = μ - λ
+          μ = μ - λ
+      
+          ν = ν + σ
+          σ = ν - σ
+          ν = ν - σ
         end
       end
 
