@@ -15,11 +15,11 @@ b = column index
 """
 =#
 @inline function triangular_index(a::Int,b::Int)
-  return ((a*(a-1)) >> 1) + b
+  return (muladd(a,a,-a) >> 1) + b
 end
 
 @inline function triangular_index(a::Int)
-  return (a*(a-1)) >> 1
+  return muladd(a,a,-a) >> 1
 end
 
 @inline function decompose(input::Int)
