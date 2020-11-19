@@ -227,7 +227,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64},
 
   #== read in some more variables from scf flags input ==#
   nsh = length(basis)
-  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
+  nindices = (muladd(nsh,nsh,nsh)*(muladd(nsh,nsh,nsh) + 2)) >> 3
 
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
@@ -376,7 +376,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       
       max_value = 0.0
       for i in ipos:(ipos+ibas-1), j in jpos:(jpos+jbas-1) 
-        max_value = max(max_value, abs(D_input[i,j]))
+        max_value = max(max_value, Base.abs_float(D_input[i,j]))
       end
       Dsh[ish, jsh] = max_value
       Dsh[jsh, ish] = Dsh[ish, jsh] 
@@ -471,7 +471,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       @printf("%d      %.10f      %.10f      %.10f\n", iter, E, ΔE, D_rms)
     end
 
-    iter_converged = abs(ΔE) <= dele && D_rms <= rmsd
+    iter_converged = Base.abs_float(ΔE) <= dele && D_rms <= rmsd
     iter += 1
     if iter > niter
       scf_converged = false
@@ -532,7 +532,7 @@ H = One-electron Hamiltonian Matrix
   end
 
   nsh = length(basis)
-  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
+  nindices = (muladd(nsh,nsh,nsh)*(muladd(nsh,nsh,nsh) + 2)) >> 3
   batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
     ntasks*nsh*10))
 
@@ -745,7 +745,7 @@ end
   bound *= maxden
 
   #== fock build for significant shell quartets ==# 
-  if abs(bound) >= cutoff 
+  if Base.abs_float(bound) >= cutoff 
     #== compute electron repulsion integrals ==#
     compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, μsh, νsh, λsh, σsh,
       eri_quartet_batch, jeri_tei_engine)
@@ -845,7 +845,7 @@ end
   
       eri = eri_batch[μνλσ] 
    
-      if abs(eri) < cutoff
+      if Base.abs_float(eri) < cutoff
         #if do_continue_print println("CONTINUE SCREEN") end
         continue 
       end
