@@ -69,13 +69,10 @@ public:
       
     //assert(m_coulomb_eng.results()[0] != nullptr); 
     if (m_coulomb_eng.results()[0] != nullptr) {
-      for (int i = 0; i != absize*cdsize; ++i) {
-        eri_block[i] = m_coulomb_eng.results()[0][i];
-      }
+      memcpy(eri_block.data(), m_coulomb_eng.results()[0],
+        absize*cdsize*sizeof(double));
     } else {
-      for (int i = 0; i != absize*cdsize; ++i) {
-        eri_block[i] = 0.0; 
-      }
+      memset(eri_block.data(), 0.0, absize*cdsize*sizeof(double)); 
     }
   }
 };
