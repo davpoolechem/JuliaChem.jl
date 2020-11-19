@@ -964,11 +964,8 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   norb = basis.norb
 
   #fill!(D, 0.0)
-  LinearAlgebra.BLAS.scal!(length(D), 0.0, D, 1) 
   for i in 1:basis.norb, j in 1:basis.norb
-    for iocc in 1:nocc
-      D[i,j] += 2.0 * C[i, iocc] * C[j, iocc]
-    end
+    D[i,j] = 2.0*BLAS.dot(nocc,pointer(C,i),norb,pointer(C,j),norb)
   end
  
   #== compute new SCF energy ==#

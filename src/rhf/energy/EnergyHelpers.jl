@@ -255,7 +255,8 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   #fill!(F, zero(Float64))
   LinearAlgebra.BLAS.scal!(length(F), 0.0, F, 1) 
   for index in 1:B_dim
-    F .+= DIIS_coeff[index] .* F_array[index]
+    #F .+= DIIS_coeff[index] .* F_array[index]
+    F .+= BLAS.scal(length(F), DIIS_coeff[index], F_array[index], 1) 
   end
 end
 
