@@ -185,6 +185,11 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     JERI.compute_eri_block(jeri_schwarz_engine, eri_quartet_batch, 
       ash, bsh, ash, bsh, abshp, abshp, abas*bbas, abas*bbas)
  
+    #= axial normalization =#
+    axial_normalization_factor(eri_quartet_batch, basis[ash], basis[bsh], 
+      basis[ash], basis[bsh], abas, bbas, abas, bbas)
+
+    #== compute schwarz bound ==# 
     schwarz_bounds[ash, bsh] = sqrt(BLAS.asum(abas*bbas*abas*bbas, 
       eri_quartet_batch, 1))
   end
