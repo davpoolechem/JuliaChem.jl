@@ -256,7 +256,7 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   LinearAlgebra.BLAS.scal!(length(F), 0.0, F, 1) 
   for index in 1:B_dim
     #F .+= DIIS_coeff[index] .* F_array[index]
-    F .+= BLAS.scal(length(F), DIIS_coeff[index], F_array[index], 1) 
+    F .+= DIIS_coeff[index] .* F_array[index]
   end
 end
 
@@ -291,24 +291,28 @@ end
   amλ = λsh.am
   amσ = σsh.am
 
-  μνλσ = 0 
-  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
-    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
+  if amμ < 3 && amν < 3 && amλ < 3 && amσ < 3
+    return
+  else
+    μνλσ = 0 
+    for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
+      μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
       
-    μnorm = axial_norm_fact[μsize+1,amμ]
-    νnorm = axial_norm_fact[νsize+1,amν]
+      μnorm = axial_norm_fact[μsize+1,amμ]
+      νnorm = axial_norm_fact[νsize+1,amν]
 
-    μνnorm = μnorm*νnorm
+      μνnorm = μnorm*νnorm
 
-    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
-      μνλσ += 1 
+      for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
+        μνλσ += 1 
    
-      λnorm = axial_norm_fact[λsize+1,amλ]
-      σnorm = axial_norm_fact[σsize+1,amσ]
+        λnorm = axial_norm_fact[λsize+1,amλ]
+        σnorm = axial_norm_fact[σsize+1,amσ]
     
-      λσnorm = λnorm*σnorm 
+        λσnorm = λnorm*σnorm 
       
-      eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
+        eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
+      end
     end 
   end
 end
