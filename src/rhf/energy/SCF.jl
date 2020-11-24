@@ -746,38 +746,40 @@ end
 
   #== fock build for significant shell quartets ==# 
   if Base.abs_float(bound) >= cutoff 
-    #== compute electron repulsion integrals ==#
-    compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, μsh, νsh, λsh, σsh,
-      eri_quartet_batch, jeri_tei_engine)
+    #= set up some variables =#
+    nμ = μsh.nbas
+    nν = νsh.nbas
+    nλ = λsh.nbas
+    nσ = σsh.nbas
 
-    #== contract ERIs into Fock matrix ==#
-    contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
-      μsh, νsh, λsh, σsh, cutoff, debug)
+    #== compute electron repulsion integrals ==#
+    screened = compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ, nν, 
+      nλ, nσ, eri_quartet_batch, jeri_tei_engine)
+  
+    if !screened
+      #= axial normalization =#
+      axial_normalization_factor(eri_quartet_batch, μsh, νsh, λsh, σsh,
+        nμ, nν, nλ, nσ)
+ 
+      #== contract ERIs into Fock matrix ==#
+      contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
+        μsh, νsh, λsh, σsh, cutoff, debug)
+    end
   end
-    #if debug println("END TWO-ELECTRON INTEGRALS") end
+  #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
-@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64, 
+@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
   bra_pair::Int64, ket_pair::Int64, 
-  μsh::JCModules.Shell, νsh::JCModules.Shell, 
-  λsh::JCModules.Shell, σsh::JCModules.Shell,
+  nμ::Int64, nν::Int64,
+  nλ::Int64, nσ::Int64,
   eri_quartet_batch::Vector{Float64},
   jeri_tei_engine)
-  
-  #= set up some variables =#
-  nμ = μsh.nbas
-  nν = νsh.nbas
-  nλ = λsh.nbas
-  nσ = σsh.nbas
 
   #= actually compute integrals =#
-  JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
+  return JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
     ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ*nν, nλ*nσ)
   
-  #= axial normalization =#
-  axial_normalization_factor(eri_quartet_batch, μsh, νsh, λsh, σsh,
-    nμ, nν, nλ, nσ)
- 
   #=
   if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
     for idx in 1:nμ*nν*nλ*nσ 
