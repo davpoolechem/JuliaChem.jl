@@ -844,6 +844,10 @@ end
 
       #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
       μνλσ += 1 
+      if λλ < σσ && ksh == lsh 
+        #if do_continue_print println("CONTINUE KET") end
+        continue 
+      end
   
       eri = eri_batch[μνλσ] 
    
@@ -852,12 +856,6 @@ end
         continue 
       end
 
-      if λλ < σσ && ksh == lsh 
-        #if do_continue_print println("CONTINUE KET") end
-        continue 
-      end
-  
-      
       μ = μμ
       ν = νν 
       if μμ < νν 
