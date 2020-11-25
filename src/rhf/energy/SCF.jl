@@ -798,7 +798,7 @@ end
   λsh::JCModules.Shell, σsh::JCModules.Shell,
   cutoff::Float64, debug::Bool)
 
-  norb = size(D,1)
+  #norb = size(D,1)
   
   #ish = μsh.shell_id
   #jsh = νsh.shell_id
@@ -823,93 +823,80 @@ end
   #amσ = σsh.am
   #am = [ amμ, amν, amλ, amσ ]
 
-  μνλσ = 0
-  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
-    μμ = μsize + pμ
-    νν = νsize + pν
+  for μμ::Int64 in pμ:(pμ+nμ-1) 
+    νmax = ish == jsh ? μμ : (pν+nν-1)
+    for νν::Int64 in pν:νmax
+      for λλ::Int64 in pλ:(pλ+nλ-1) 
+        σmax = ksh == lsh ? λλ : (pσ+nσ-1)
+        for σσ::Int64 in pσ:σmax
+          #if debug
+            #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
+          #end
 
-    if μμ < νν && ish == jsh 
-      #if do_continue_print println("CONTINUE BRA: $μμ, $νν") end
-      continue 
-    end
-
-    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
-    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
-      λλ = λsize + pλ
-      σσ = σsize + pσ
-
-      #if debug
-        #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
-      #end
-
-      #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
-      μνλσ += 1 
-      if λλ < σσ && ksh == lsh 
-        #if do_continue_print println("CONTINUE KET") end
-        continue 
-      end
-  
-      eri = eri_batch[μνλσ] 
+          μνλσ = 1 + (σσ-pσ) + nσ*(λλ-pλ) + nσ*nλ*(νν-pν) + nσ*nλ*nν*(μμ-pμ)
+          eri = eri_batch[μνλσ] 
    
-      if Base.abs_float(eri) < cutoff
-        #if do_continue_print println("CONTINUE SCREEN") end
-        continue 
-      end
+          if Base.abs_float(eri) < cutoff
+            #if do_continue_print println("CONTINUE SCREEN") end
+            continue 
+          end
 
-      μ = μμ
-      ν = νν 
-      if μμ < νν 
-        μ = μ + ν
-        ν  = μ - ν
-        μ = μ - ν
-      end 
+          μ = μμ
+          ν = νν 
+          if μμ < νν 
+            μ = μ + ν
+            ν = μ - ν
+            μ = μ - ν
+          end 
       
-      λ = λλ
-      σ = σσ
-      if λλ < σσ 
-        λ = λ + σ
-        σ = λ - σ
-        λ = λ - σ
-      end 
+          λ = λλ
+          σ = σσ
+          if λλ < σσ 
+            λ = λ + σ
+            σ = λ - σ
+            λ = λ - σ
+          end 
       
-      μν = triangular_index(μ,ν)                                                    
-      λσ = triangular_index(λ,σ)                                                    
+          μν = triangular_index(μ,ν)                                                    
+          λσ = triangular_index(λ,σ)                                                    
        
-      if μν < λσ 
-        if ish == ksh && jsh == lsh 
-          #if do_continue_print println("CONTINUE BRAKET") end
-          continue 
-        else
-          μ = μ + λ
-          λ = μ - λ
-          μ = μ - λ
+          if μν < λσ 
+            if ish == ksh && jsh == lsh 
+              #if do_continue_print println("CONTINUE BRAKET") end
+              continue 
+            else
+              μ = μ + λ
+              λ = μ - λ
+              μ = μ - λ
       
-          ν = ν + σ
-          σ = ν - σ
-          ν = ν - σ
+              ν = ν + σ
+              σ = ν - σ
+              ν = ν - σ
+            end
+          end
+
+          #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
+          #println("ERI($μ, $ν, $λ, $σ) = $eri") 
+      
+          eri *= (μ == ν) ? 0.5 : 1.0 
+          eri *= (λ == σ) ? 0.5 : 1.0
+          eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
+
+          #λσ = λ + norb*(σ-1)
+          #μν = μ + norb*(ν-1)
+          #μλ = μ + norb*(λ-1)
+          #μσ = μ + norb*(σ-1)
+          #νλ = max(ν,λ) + norb*(min(ν,λ)-1)
+          #νσ = max(ν,σ) + norb*(min(ν,σ)-1)
+
+          F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+          F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+          F_priv[μ,λ] -= D[ν,σ] * eri
+          F_priv[μ,σ] -= D[ν,λ] * eri
+          F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
+          F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
         end
       end
-
-      #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
-      #println("ERI($μ, $ν, $λ, $σ) = $eri") 
-      
-      eri *= (μ == ν) ? 0.5 : 1.0 
-      eri *= (λ == σ) ? 0.5 : 1.0
-      eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
-
-      #λσ = λ + norb*(σ-1)
-      #μν = μ + norb*(ν-1)
-      #μλ = μ + norb*(λ-1)
-      #μσ = μ + norb*(σ-1)
-      #νλ = max(ν,λ) + norb*(min(ν,λ)-1)
-      #νσ = max(ν,σ) + norb*(min(ν,σ)-1)
-
-      F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-      F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
-      F_priv[μ,λ] -= D[ν,σ] * eri
-      F_priv[μ,σ] -= D[ν,λ] * eri
-      F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
-      F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
     end
   end
 end
