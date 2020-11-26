@@ -3,7 +3,7 @@
 source /etc/profile.d/modules.sh
 source ~/.bashrc
 #
-export JULIA_NUM_THREADS=56
+export JULIA_NUM_THREADS=112
+export OPENBLAS_NUM_THREADS=1
 #
-cd /home/davpoolechem/shared/projects/Julia/JuliaChem.jl
-mpirun -np 1 julia --check-bounds=no --math-mode=fast --optimize=3 --inline=yes --compiled-modules=yes example_scripts/minimal-rhf-benchmark.jl example_inputs/ARPA-E/6-311/fig1a.json
+mpirun -np 1 /home/davpoolechem/programs/prep/julia-1.5.3/julia --check-bounds=no --math-mode=fast --optimize=3 --inline=yes --compiled-modules=yes /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl example_inputs/ARPA-E/6-311/fig1a.json
