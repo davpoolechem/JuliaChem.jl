@@ -1,0 +1,24 @@
+Base.init_depot_path()
+Base.init_load_path()
+
+using JuliaChem
+
+@eval Module() begin
+    for (pkgid, mod) in Base.loaded_modules
+        if !(pkgid.name in ("Main", "Core", "Base"))
+            eval(@__MODULE__, :(const $(Symbol(mod)) = $mod))
+        end
+    end
+    for statement in readlines("full_rhf_precompile.jl")
+        try
+            Base.include_string(@__MODULE__, statement)
+        catch
+            continue
+            # See julia issue #28808
+            Core.println("failed to compile statement: ", statement)
+        end
+    end
+end # module
+#
+empty!(LOAD_PATH)
+empty!(DEPOT_PATH)
