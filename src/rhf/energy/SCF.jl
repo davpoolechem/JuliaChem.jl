@@ -233,9 +233,9 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64},
   F_array = fill(similar(F), ndiis)
 
   e_array = fill(similar(F), ndiis)
-  e_array_old = fill(similar(F), ndiis-1)
+  e_array_old = fill(similar(F), max(0,ndiis-1))
   
-  F_array_old = fill(similar(F), ndiis-1)
+  F_array_old = fill(similar(F), max(0,ndiis-1))
 
   #FD = similar(F)
   FDS = similar(F)
