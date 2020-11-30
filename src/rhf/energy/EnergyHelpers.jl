@@ -242,9 +242,9 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
     B[i,j] = LinearAlgebra.BLAS.dot(length(e_array[i]), e_array[i], 1, 
       e_array[j], 1)
 
-	  B[i,B_dim+1] = -1
-	  B[B_dim+1,i] = -1
-	  B[B_dim+1,B_dim+1] =  0
+	  B[i,B_dim+1] = -1.0
+	  B[B_dim+1,i] = -1.0
+	  B[B_dim+1,B_dim+1] = 0.0
   end
   #DIIS_coeff::Vector{Float64} = [ fill(0.0,B_dim)..., -1.0 ]
   DIIS_coeff::Vector{Float64} = vcat(zeros(B_dim), [-1.0])

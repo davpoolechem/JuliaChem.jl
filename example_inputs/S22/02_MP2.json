@@ -26,7 +26,7 @@
       "direct":true,
       "debug":false,
       "load":"static",
-      "fdiff":false
+      "fdiff":true
     },
     "prop":{
       "multipole":"dipole"
