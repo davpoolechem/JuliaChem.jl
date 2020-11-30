@@ -246,7 +246,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64},
   ΔF = similar(F) 
   F_cumul = zeros(size(F)) 
  
-  D_old = similar(F)
+  D_old = zeros(size(F))
   ΔD = deepcopy(D) 
   D_input = similar(F)
 
@@ -391,7 +391,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
-      h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F_input)
+      h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", workspace_b)
     end
  
     if fdiff 
@@ -435,6 +435,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
         try
           DIIS(F, e_array, F_array, B_dim)
         catch
+          println("Faulty DIIS!")
           B_dim = 2
           DIIS(F, e_array, F_array, B_dim)
         end
@@ -936,7 +937,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-$iter/F_evec/Sorted", F_mo)
+    h5write("debug.h5","SCF/Iteration-$iter/F_evec/Sorted", F_evec)
   end
 
   #C .= ortho*F_evec
