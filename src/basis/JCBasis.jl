@@ -138,7 +138,7 @@ function run(molecule, model; output="none")
             pretty_table(hcat(collect(1:nprim),new_shell_exp, 
               new_shell_coeff[1:nprim]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.6f", [2,3]) )
+              formatters = ft_printf("%5.15f", [2,3]) )
           end 
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number, 
@@ -161,7 +161,7 @@ function run(molecule, model; output="none")
             pretty_table(hcat(collect(1:nprim),new_shell_exp, 
               new_shell_coeff[(nprim+1):ncoeff]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.6f", [2,3]) )
+              formatters = ft_printf("%5.15f", [2,3]) )
           end 
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
@@ -184,7 +184,7 @@ function run(molecule, model; output="none")
             pretty_table(hcat(collect(1:nprim),new_shell_exp, 
               new_shell_coeff), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.6f", [2,3]) )
+              formatters = ft_printf("%5.15f", [2,3]) )
           end 
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
