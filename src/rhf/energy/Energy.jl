@@ -35,7 +35,7 @@ scf = RHF.run(input_info, basis)
 ```
 """
 function run(mol::Molecule, basis::Basis, 
-  scf_flags; output="none")
+  scf_flags = Dict(); output="none")
   
   comm=MPI.COMM_WORLD
 
