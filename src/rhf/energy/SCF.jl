@@ -10,14 +10,14 @@ const print_eri = false
 function rhf_energy(mol::Molecule, basis::Basis,
   scf_flags::Union{Dict{String,Any},Dict{Any,Any}}; output)
   
-  debug::Bool = scf_flags["debug"]
-  niter::Int = scf_flags["niter"]
+  debug::Bool = haskey(scf_flags, "debug") ? scf_flags["debug"] : false
+  niter::Int = haskey(scf_flags, "niter") ? scf_flags["niter"] : 50
 
-  ndiis::Int = scf_flags["ndiis"]
-  dele::Float64 = scf_flags["dele"]
-  rmsd::Float64 = scf_flags["rmsd"]
-  load::String = scf_flags["load"]
-  fdiff::Bool = scf_flags["fdiff"]
+  ndiis::Int = haskey(scf_flags, "ndiis") ? scf_flags["ndiis"] : 10
+  dele::Float64 = haskey(scf_flags, "dele") ? scf_flags["dele"] : 1E-5
+  rmsd::Float64 = haskey(scf_flags, "rmsd") ? scf_flags["rmsd"] : 1E-5
+  load::String = haskey(scf_flags, "load") ? scf_flags["load"] : "static"
+  fdiff::Bool = haskey(scf_flags, "fdiff") ? scf_flags["fdiff"] : false
 
   return rhf_kernel(mol,basis; output=output, debug=debug, 
     niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, fdiff=fdiff)
