@@ -54,7 +54,7 @@ end
   unnormalize::Bool) where {T<:Number}
 
   #== unnormalize basis functions ==#
-  println("UNNORMALIZE") 
+  #println("UNNORMALIZE") 
   unnorm::Float64 = 0.0 
   if unnormalize 
     for iprim::Int64 in 1:nprim
@@ -76,10 +76,10 @@ end
     end
   end
  
-  for icoef in coef
-    @printf("%5.15f\n",icoef)
-  end
-  println("")
+  #for icoef in coef
+  #  @printf("%5.15f\n",icoef)
+  #end
+  #println("")
 
   #=
   println("RENORMALIZE") 

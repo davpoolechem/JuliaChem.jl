@@ -115,9 +115,9 @@ function run(molecule, model; output="none")
         bsed["$symbol/$basis"])
 
       #== process basis set values into shell objects ==#
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
-        println("ATOM #$atom_idx ($symbol):") 
-      end
+      #if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      #  println("ATOM #$atom_idx ($symbol):") 
+      #end
       
       for shell_num::Int64 in 1:length(shells)
         new_shell_dict::Dict{String,Any} = shells["$shell_num"]
@@ -134,11 +134,12 @@ function run(molecule, model; output="none")
         if new_shell_am == -1
           #== s component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("L (s)")
+            println("Atom $atom_idx ($symbol) Shell $shell_num (L (s))" 
+              * " Exponents and Coefficients:")
             pretty_table(hcat(collect(1:nprim),new_shell_exp, 
               new_shell_coeff[1:nprim]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.15f", [2,3]) )
+              formatters = ft_printf("%5.8f", [2,3]) )
           end 
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number, 
@@ -157,11 +158,12 @@ function run(molecule, model; output="none")
 
           #== p component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("L (p)")
+            println("Atom $atom_idx ($symbol) Shell $shell_num (L (p))" 
+             * " Exponents and Coefficients:")
             pretty_table(hcat(collect(1:nprim),new_shell_exp, 
               new_shell_coeff[(nprim+1):ncoeff]), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.15f", [2,3]) )
+              formatters = ft_printf("%5.8f", [2,3]) )
           end 
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
@@ -180,11 +182,14 @@ function run(molecule, model; output="none")
         #== otherwise accept shell as is ==#
         else 
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println(new_shell_dict["Shell Type"])
+            shell_type = new_shell_dict["Shell Type"]
+            println("Atom $atom_idx ($symbol) Shell $shell_num ($shell_type)"
+              * " Exponents and Coefficients:")
+     
             pretty_table(hcat(collect(1:nprim),new_shell_exp, 
               new_shell_coeff), 
               vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.15f", [2,3]) )
+              formatters = ft_printf("%5.8f", [2,3]) )
           end 
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
