@@ -19,9 +19,15 @@ def minimal_rhf(input_file):
     mol, basis = JuliaChem.JCBasis.run(molecule, model, output="none")
 
     #== perform scf calculation ==#
-    scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"], output="minimal")
+    rhf_energy = {}
+    if "scf" in keywords:
+      rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"],
+        output="verbose")
+    else:
+      rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis,
+        output="verbose")
 
-    return scf
+    return rhf_energy 
   except Exception as e:                                                        
     bt = Base.catch_backtrace()                                                 
     msg = Base.sprint(Base.showerror, e, bt)

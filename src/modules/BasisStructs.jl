@@ -1,4 +1,4 @@
-#using Printf
+using Printf
 
 struct Shell
   shell_id::Int64
@@ -54,6 +54,7 @@ end
   unnormalize::Bool) where {T<:Number}
 
   #== unnormalize basis functions ==#
+  #println("UNNORMALIZE") 
   unnorm::Float64 = 0.0 
   if unnormalize 
     for iprim::Int64 in 1:nprim
@@ -75,7 +76,13 @@ end
     end
   end
  
-  #println("EDITED") 
+  #for icoef in coef
+  #  @printf("%5.15f\n",icoef)
+  #end
+  #println("")
+
+  #=
+  println("RENORMALIZE") 
   #== renormalize basis functions ==#
   fac::Float64 = 0.0  
   unnorm = 0.0 
@@ -106,11 +113,11 @@ end
    # println(coef[icoef])
   end
 
-  #for icoef in coef
-  #  @printf("%5.10f\n",icoef)
-  #end
-  #println("")
-
+  for icoef in coef
+    @printf("%5.15f, %5.15f\n",icoef, unnorm)
+  end
+  println("")
+  =#
   return create_static_vector_large(coef)
 end
 
