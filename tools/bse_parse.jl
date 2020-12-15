@@ -65,6 +65,7 @@ function parse_all()
     #== open HDF5 file for writing ==#
     hdf5name::String = "bsed.h5"
     h5open(hdf5name, "w") do bsed
+        flush(bsed)
 
         #== parse "sto" basis family ==#
         atoms::Array{String,1} = [
@@ -127,7 +128,7 @@ function parse_all()
         end
 
         #== parse polarization-consistent basis family ==#
-        basis_sets = ["PCSeg-0"] #polarization-consistent family
+        basis_sets = ["PCSeg-0", "PCSeg-1". "PCSeg-2"] #polarization-consistent family
         for basis::String in basis_sets
             println("Basis: $basis")
             bs_dict = bse.get_basis(basis,fmt="json", header=false)
