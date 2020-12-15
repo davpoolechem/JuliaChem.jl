@@ -178,7 +178,6 @@ function sad_guess(mol::Molecule, basis::Basis)
     for atom in mol
       atom_symbol = atom.symbol
      
-      println("$atom_symbol/$basis_symbol")
       sadgss_buf = read(sadgss["$atom_symbol/$basis_symbol"])
       #println("$anchor, $atom")
       #display(sadgss_buf); println()
