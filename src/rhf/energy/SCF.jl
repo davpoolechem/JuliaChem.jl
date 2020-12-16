@@ -134,7 +134,7 @@ function rhf_kernel(mol::Molecule,
 
   F_old = deepcopy(F)
   
-  E = E_elec + E_nuc
+  E = 0.0 
   E_old = E
 
   #if MPI.Comm_rank(comm) == 0 && output == "verbose"
