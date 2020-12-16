@@ -173,7 +173,7 @@ function sad_guess(mol::Molecule, basis::Basis)
   basis_symbol = basis.model
 
   sad_guess = zeros(Float64, (basis.norb, basis.norb))
-  h5open("records/sadgss.h5", "r") do sadgss
+  h5open(joinpath(@__DIR__, "../../../records/sadgss.h5"),"r") do sadgss 
     anchor = 1
     for atom in mol
       atom_symbol = atom.symbol
