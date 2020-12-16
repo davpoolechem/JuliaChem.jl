@@ -42,15 +42,7 @@
   },
   "keywords": {
     "scf":{
-      "niter":200,
-      "ndiis":8,
-      "dele":1E-8,
-      "rmsd":1E-6,
-      "prec":"Float64",
-      "direct":true,
-      "debug":false,
-      "load":"static",
-      "fdiff":false
+      "guess":"hcore"
     },
     "prop":{
       "multipole":"dipole"
