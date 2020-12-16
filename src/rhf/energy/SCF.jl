@@ -15,8 +15,8 @@ function rhf_energy(mol::Molecule, basis::Basis,
   guess::String = haskey(scf_flags, "guess") ? scf_flags["guess"] : "sad" 
   
   ndiis::Int = haskey(scf_flags, "ndiis") ? scf_flags["ndiis"] : 10
-  dele::Float64 = haskey(scf_flags, "dele") ? scf_flags["dele"] : 1E-5
-  rmsd::Float64 = haskey(scf_flags, "rmsd") ? scf_flags["rmsd"] : 1E-5
+  dele::Float64 = haskey(scf_flags, "dele") ? scf_flags["dele"] : 1E-6
+  rmsd::Float64 = haskey(scf_flags, "rmsd") ? scf_flags["rmsd"] : 1E-6
   load::String = haskey(scf_flags, "load") ? scf_flags["load"] : "static"
   fdiff::Bool = haskey(scf_flags, "fdiff") ? scf_flags["fdiff"] : false
 
