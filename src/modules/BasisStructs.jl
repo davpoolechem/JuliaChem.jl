@@ -81,7 +81,7 @@ end
   #end
   #println("")
 
-  println("RENORMALIZE") 
+  #println("RENORMALIZE") 
   #== renormalize basis functions ==#
   coef_factor = 0.0 
   for iprim::Int64 in 1:nprim, jprim::Int64 in 1:iprim
@@ -101,9 +101,9 @@ end
 
   for icoef in coef
     icoef *= coef_factor 
-    @printf("%5.15f\n",icoef)
+  #  @printf("%5.15f\n",icoef)
   end
-  println("")
+  #println("")
   
   return create_static_vector_large(coef)
 end
