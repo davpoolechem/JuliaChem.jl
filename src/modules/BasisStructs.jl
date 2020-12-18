@@ -55,23 +55,23 @@ end
 
   #== unnormalize basis functions ==#
   #println("UNNORMALIZE") 
-  unnorm::Float64 = 0.0 
+  coef_factor::Float64 = 0.0 
   if unnormalize 
     for iprim::Int64 in 1:nprim
-      ee::Float64 = 2*exp[iprim]
-      unnorm = (pi/ee)^1.5
-      unnorm *= am == 2 ? 0.5/ee : 1.0
-      unnorm *= am == 3 ? 0.75/(ee^2) : 1.0
-      unnorm *= am == 4 ? 1.875/(ee^3) : 1.0
-      coef[iprim] /= sqrt(unnorm)
+      two_exp::Float64 = 2*exp[iprim]
+      coef_factor = (pi/two_exp)^1.5
+      coef_factor *= am == 2 ? 0.5/two_exp : 1.0
+      coef_factor *= am == 3 ? 0.75/(two_exp^2) : 1.0
+      coef_factor *= am == 4 ? 1.875/(two_exp^3) : 1.0
+      coef[iprim] /= sqrt(coef_factor)
     end
   
     if nbas == 4  #account for sp shells
       for iprim::Int64 in (nprim+1):(2*nprim)
-        ee::Float64 = 2*exp[iprim-nprim]
-        unnorm = (pi/ee)^1.5
-        unnorm *=  0.5/ee 
-        coef[iprim] /= sqrt(unnorm)
+        two_exp::Float64 = 2*exp[iprim-nprim]
+        unnorm = (pi/two_exp)^1.5
+        unnorm *=  0.5/two_exp 
+        coef[iprim] /= sqrt(coef_factor)
       end
     end
   end
@@ -81,43 +81,30 @@ end
   #end
   #println("")
 
-  #=
   println("RENORMALIZE") 
   #== renormalize basis functions ==#
-  fac::Float64 = 0.0  
-  unnorm = 0.0 
-  dummy_unnorm::Float64 = 0.0
-
-  for ig::Int64 in 1:nprim, jg::Int64 in 1:ig
-    ee = exp[ig] + exp[jg]
-    fac = ee^1.5
-    dummy_unnorm = coef[ig] * coef[jg]/fac
-  #  println("DUMS STAGE 1: $dummy_unnorm")
-    dummy_unnorm *= am == 2 ? 0.5/ee : 1.0
-    dummy_unnorm *= am == 3 ? 0.75/(ee^2) : 1.0
-    dummy_unnorm *= am == 4 ? 1.875/(ee^3) : 1.0
-    if ig != jg 
-      dummy_unnorm *= 2.0 
-      #println("DUMS STAGE 2: $dummy_unnorm")
+  coef_factor = 0.0 
+  for iprim::Int64 in 1:nprim, jprim::Int64 in 1:iprim
+    exp_j = exp[iprim] + exp[jprim]
+    fac_j = exp_j^1.5
+    dummy_coef_factor = coef[iprim] * coef[jprim]/fac_j
+    dummy_coef_factor *= am == 2 ? 0.5/exp_j : 1.0
+    dummy_coef_factor *= am == 3 ? 0.75/(exp_j^2.0) : 1.0
+    dummy_coef_factor *= am == 4 ? 1.875/(exp_j^3.0) : 1.0
+    if iprim != jprim
+      dummy_coef_factor *= 2.0 
     end     
-    unnorm += dummy_unnorm 
+    coef_factor += dummy_coef_factor
   end 
   
-  #println("FACS STAGE 3: $unnorm")
-  if unnorm > 1E-10 unnorm = 1.0/sqrt(unnorm*(pi^1.5)) end 
-  #println("FACS STAGE 4: $unnorm")
-
-  for icoef in 1:length(coef)
-   # println(coef[icoef], ", ", unnorm)  
-    coef[icoef] *= unnorm
-   # println(coef[icoef])
-  end
+  if coef_factor > 1E-10 coef_factor = 1.0/sqrt(coef_factor*(pi^1.5)) end 
 
   for icoef in coef
-    @printf("%5.15f, %5.15f\n",icoef, unnorm)
+    icoef *= coef_factor 
+    @printf("%5.15f\n",icoef)
   end
   println("")
-  =#
+  
   return create_static_vector_large(coef)
 end
 
