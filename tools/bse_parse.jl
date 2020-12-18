@@ -31,7 +31,7 @@ function parse_individual(atom::Dict{String,Any}, atomid::String, basis::String,
       if shell_type_string == "L"
         s_coeff = parse.(Float64,shell["coefficients"][1])
         p_coeff = parse.(Float64,shell["coefficients"][2])
-        hcat(s_coeff,p_coeff)
+        vcat(s_coeff,p_coeff)
       else
         parse.(Float64,shell["coefficients"][1])
       end
