@@ -936,7 +936,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","RHF/Iteration-$iter/F_evec/Sorted", F_evec)
+    h5write("debug.h5","RHF/Iteration-$iter/F_evec", F_evec)
   end
 
   #C .= ortho*F_evec
