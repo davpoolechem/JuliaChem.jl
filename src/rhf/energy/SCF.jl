@@ -545,30 +545,28 @@ H = One-electron Hamiltonian Matrix
     thread_index_counter = Threads.Atomic{Int64}(top_index)
     
     #== execute kernel of calculation ==#
-    wait.([ 
+    @sync for thread in 1:ntasks
       Threads.@spawn begin 
         eri_quartet_batch_priv = eri_quartet_batch_thread[thread]
         jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
-
         F_priv = F_thread[thread] 
-        while true 
+        
+        ijkl_index = top_index - stride*batch_size*(thread-1) 
+        while ijkl_index > 1 
           ijkl_index = Threads.atomic_sub!(thread_index_counter, stride*batch_size) 
 
-          if ijkl_index < 0 break end
- 
           for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
-            #println("IJKL: $ijkl")
-
             fock_build_thread_kernel(F_priv, D,
               H, basis, eri_quartet_batch_priv, #mutex,
               ijkl, jeri_tei_engine_priv,
               schwarz_bounds, Dsh,
               cutoff, debug)
           end
+
+          ijkl_index -= ntasks*stride*batch_size 
         end
       end
-      for thread in 1:ntasks
-    ])
+    end
  
     #== reduce into Fock matrix ==#
     for ithread_fock in F_thread 
