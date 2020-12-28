@@ -77,9 +77,7 @@ function rhf_kernel(mol::Molecule,
   H = T .+ V
  
   #== compute initial guess ==# 
-  guess_matrix = guess == "sad" ? sad_guess(mol, basis) : deepcopy(H)
-  D = guess == "sad" ? sad_guess(mol, basis) : zer 
-  F = guess == "hcore" ? deepcopy(H) : zeros(size(H)) 
+  guess_matrix = guess == "sad" ? sad_guess(mol, basis) : deepcopy(H) 
   
   if debug && MPI.Comm_rank(comm) == 0
     h5write("debug.h5","RHF/Iteration-None/E_nuc", E_nuc)
@@ -91,9 +89,9 @@ function rhf_kernel(mol::Molecule,
   end
 
   #== build the initial matrices ==#
-  D = guess == "sad" ? deepcopy(guess_matrix) : zeros(size(H)) 
-  F = guess == "hcore" ? deepcopy(guess_matrix) : zeros(size(H)) 
-
+  D = guess == "sad" ? guess_matrix : zeros(size(H)) 
+  F = guess == "hcore" ? guess_matrix : zeros(size(H)) 
+ 
   F_eval = Vector{Float64}(undef,basis.norb)
   F_evec = similar(F)
 
