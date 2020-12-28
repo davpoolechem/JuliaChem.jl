@@ -542,7 +542,6 @@ H = One-electron Hamiltonian Matrix
     #== set up initial indices ==# 
     top_index = nindices - (MPI.Comm_rank(comm))
     stride = MPI.Comm_size(comm) 
-    thread_index_counter = Threads.Atomic{Int64}(top_index)
     
     #== execute kernel of calculation ==#
     @sync for thread in 1:ntasks
@@ -550,11 +549,11 @@ H = One-electron Hamiltonian Matrix
         eri_quartet_batch_priv = eri_quartet_batch_thread[thread]
         jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
         F_priv = F_thread[thread] 
+ 
+        thread_top_index = top_index - stride*batch_size*(thread-1) 
+        thread_stride = -ntasks*stride*batch_size 
         
-        ijkl_index = top_index - stride*batch_size*(thread-1) 
-        while ijkl_index > 1 
-          ijkl_index = Threads.atomic_sub!(thread_index_counter, stride*batch_size) 
-
+        for ijkl_index in thread_top_index:thread_stride:1 
           for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
             fock_build_thread_kernel(F_priv, D,
               H, basis, eri_quartet_batch_priv, #mutex,
@@ -562,8 +561,6 @@ H = One-electron Hamiltonian Matrix
               schwarz_bounds, Dsh,
               cutoff, debug)
           end
-
-          ijkl_index -= ntasks*stride*batch_size 
         end
       end
     end
