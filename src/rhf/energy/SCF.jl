@@ -539,34 +539,32 @@ H = One-electron Hamiltonian Matrix
   nsh = length(basis)
   nindices = (muladd(nsh,nsh,nsh)*(muladd(nsh,nsh,nsh) + 2)) >> 3
   batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-    Threads.nthreads()*nsh*10))
+    Threads.nthreads()*nsh))
 
   #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
     #== set up initial indices ==#                                              
-    stride = MPI.Comm_size(comm)                                                
-    thread_batch_size = stride*batch_size                                       
-    mutices = [ Threads.ReentrantLock() for i in 1:Threads.nthreads() ]         
+    stride = MPI.Comm_size(comm)*batch_size                                       
+    top_index = nindices - (MPI.Comm_rank(comm)*batch_size)
+    #mutices = [ Threads.ReentrantLock() for i in 1:Threads.nthreads() ]         
                                                                                 
     #== execute kernel of calculation ==#                                       
-    @sync for ijkl_index in nindices:(-thread_batch_size):1                     
-      Threads.@spawn begin                                                      
+    @threads for ijkl_index in top_index:-stride:1                     
+      #Threads.@spawn begin                                                      
         thread = Threads.threadid()                                             
-                                                                                
+      
         eri_quartet_batch_priv = eri_quartet_batch_thread[thread]               
         jeri_tei_engine_priv = jeri_engine_thread[thread]                       
         F_priv = F_thread[thread]                                               
                                                                                 
-        lock(mutices[thread]) do                                              
-          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))              
-            fock_build_thread_kernel(F_priv, D,                                 
-              H, basis, eri_quartet_batch_priv,                                 
-              ijkl, jeri_tei_engine_priv,                                       
-              schwarz_bounds, Dsh,                                              
-              cutoff, debug)                                                    
-          end
-        end                                                                     
-      end                                                                       
+        for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))              
+          fock_build_thread_kernel(F_priv, D,                                 
+            H, basis, eri_quartet_batch_priv,                                 
+            ijkl, jeri_tei_engine_priv,                                       
+            schwarz_bounds, Dsh,                                              
+            cutoff, debug)                                                    
+        end
+      #end                                                                       
     end      
 
     #== reduce into Fock matrix ==#
