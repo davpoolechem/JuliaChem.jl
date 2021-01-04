@@ -1,25 +1,25 @@
-Jobid: 308608
+Jobid: 309466
 qsub -O example_inputs/ARPA-E/6-311/fig1e_1thread -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/ARPA-E/6-311/fig1e_1thread.sh
-Tue Dec 29 15:35:11 2020 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
-jobid 308608 submitted from terminal /dev/pts/8
-Tue Dec 29 15:36:27 2020 +0000 (UTC) 
-Tue Dec 29 15:36:27 2020 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake02' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.308608' '--jobid' '308608' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=308608' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_1thread.sh'
-Tue Dec 29 15:36:27 2020 +0000 (UTC) 
-Tue Dec 29 15:36:27 2020 +0000 (UTC) Environment:
-Tue Dec 29 15:36:27 2020 +0000 (UTC) SHELL=/bin/bash
-Tue Dec 29 15:36:27 2020 +0000 (UTC) COBALT_NODEFILE=/tmp/tmphuRV1p
-Tue Dec 29 15:36:27 2020 +0000 (UTC) COBALT_PARTNAME=skylake02
-Tue Dec 29 15:36:27 2020 +0000 (UTC) COBALT_JOBID=308608
-Tue Dec 29 15:36:27 2020 +0000 (UTC) COBALT_STARTTIME=1609256173
-Tue Dec 29 15:36:27 2020 +0000 (UTC) LOGNAME=davpoolechem
-Tue Dec 29 15:36:27 2020 +0000 (UTC) USER=davpoolechem
-Tue Dec 29 15:36:27 2020 +0000 (UTC) COBALT_ENDTIME=1609277773
-Tue Dec 29 15:36:27 2020 +0000 (UTC) COBALT_PARTSIZE=1
-Tue Dec 29 15:36:27 2020 +0000 (UTC) HOME=/home/davpoolechem
-Tue Dec 29 15:36:27 2020 +0000 (UTC) COBALT_JOBSIZE=1
-Tue Dec 29 15:36:27 2020 +0000 (UTC) 
-Tue Dec 29 15:36:27 2020 +0000 (UTC) Info: stdin received from /dev/null
-Tue Dec 29 15:36:27 2020 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_1thread.output
-Tue Dec 29 15:36:27 2020 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_1thread.error
-Tue Dec 29 15:36:27 2020 +0000 (UTC) 
-Tue Dec 29 21:36:28 2020 +0000 (UTC) Info: maximum execution time exceeded; initiating job termination
+Mon Jan 04 19:09:08 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
+jobid 309466 submitted from terminal /dev/pts/103
+Mon Jan 04 19:10:15 2021 +0000 (UTC) 
+Mon Jan 04 19:10:15 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake02' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.309466' '--jobid' '309466' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=309466' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_1thread.sh'
+Mon Jan 04 19:10:15 2021 +0000 (UTC) 
+Mon Jan 04 19:10:15 2021 +0000 (UTC) Environment:
+Mon Jan 04 19:10:15 2021 +0000 (UTC) SHELL=/bin/bash
+Mon Jan 04 19:10:15 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp70VIDr
+Mon Jan 04 19:10:15 2021 +0000 (UTC) COBALT_PARTNAME=skylake02
+Mon Jan 04 19:10:15 2021 +0000 (UTC) COBALT_JOBID=309466
+Mon Jan 04 19:10:15 2021 +0000 (UTC) COBALT_STARTTIME=1609787403
+Mon Jan 04 19:10:15 2021 +0000 (UTC) LOGNAME=davpoolechem
+Mon Jan 04 19:10:15 2021 +0000 (UTC) USER=davpoolechem
+Mon Jan 04 19:10:15 2021 +0000 (UTC) COBALT_ENDTIME=1609809003
+Mon Jan 04 19:10:15 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Mon Jan 04 19:10:15 2021 +0000 (UTC) HOME=/home/davpoolechem
+Mon Jan 04 19:10:15 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Mon Jan 04 19:10:15 2021 +0000 (UTC) 
+Mon Jan 04 19:10:15 2021 +0000 (UTC) Info: stdin received from /dev/null
+Mon Jan 04 19:10:15 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_1thread.output
+Mon Jan 04 19:10:15 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_1thread.error
+Mon Jan 04 19:10:15 2021 +0000 (UTC) 
+Mon Jan 04 20:18:01 2021 +0000 (UTC) Info: user delete requested with signal SIGTERM by user davpoolechem
