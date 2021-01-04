@@ -538,15 +538,16 @@ H = One-electron Hamiltonian Matrix
 
   nsh = length(basis)
   nindices = (muladd(nsh,nsh,nsh)*(muladd(nsh,nsh,nsh) + 2)) >> 3
+  
+  batches_per_thread = nsh 
   batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-    Threads.nthreads()*nsh))
+    Threads.nthreads()*batches_per_thread))
 
   #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
     #== set up initial indices ==#                                              
     stride = MPI.Comm_size(comm)*batch_size                                       
     top_index = nindices - (MPI.Comm_rank(comm)*batch_size)
-    #mutices = [ Threads.ReentrantLock() for i in 1:Threads.nthreads() ]         
                                                                                 
     #== execute kernel of calculation ==#                                       
     @threads for ijkl_index in top_index:-stride:1                     
