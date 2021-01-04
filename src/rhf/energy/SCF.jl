@@ -550,8 +550,8 @@ H = One-electron Hamiltonian Matrix
     top_index = nindices - (MPI.Comm_rank(comm)*batch_size)
                                                                                 
     #== execute kernel of calculation ==#                                       
-    @threads for ijkl_index in top_index:-stride:1                     
-      #Threads.@spawn begin                                                      
+    @sync for ijkl_index in top_index:-stride:1                     
+      Threads.@spawn begin                                                      
         thread = Threads.threadid()                                             
       
         eri_quartet_batch_priv = eri_quartet_batch_thread[thread]               
@@ -565,7 +565,7 @@ H = One-electron Hamiltonian Matrix
             schwarz_bounds, Dsh,                                              
             cutoff, debug)                                                    
         end
-      #end                                                                       
+      end                                                                       
     end      
 
     #== reduce into Fock matrix ==#
