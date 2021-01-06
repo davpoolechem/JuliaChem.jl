@@ -12,15 +12,17 @@ function rhf_energy(mol::Molecule, basis::Basis,
   
   debug::Bool = haskey(scf_flags, "debug") ? scf_flags["debug"] : false
   niter::Int = haskey(scf_flags, "niter") ? scf_flags["niter"] : 50
-
+  guess::String = haskey(scf_flags, "guess") ? scf_flags["guess"] : "sad" 
+  
   ndiis::Int = haskey(scf_flags, "ndiis") ? scf_flags["ndiis"] : 10
-  dele::Float64 = haskey(scf_flags, "dele") ? scf_flags["dele"] : 1E-5
-  rmsd::Float64 = haskey(scf_flags, "rmsd") ? scf_flags["rmsd"] : 1E-5
+  dele::Float64 = haskey(scf_flags, "dele") ? scf_flags["dele"] : 1E-6
+  rmsd::Float64 = haskey(scf_flags, "rmsd") ? scf_flags["rmsd"] : 1E-6
   load::String = haskey(scf_flags, "load") ? scf_flags["load"] : "static"
   fdiff::Bool = haskey(scf_flags, "fdiff") ? scf_flags["fdiff"] : false
 
   return rhf_kernel(mol,basis; output=output, debug=debug, 
-    niter=niter, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, fdiff=fdiff)
+    niter=niter, guess=guess, ndiis=ndiis, dele=dele, rmsd=rmsd, load=load, 
+    fdiff=fdiff)
 end
 
 
@@ -43,7 +45,7 @@ type = Precision of variables in calculation
 """
 function rhf_kernel(mol::Molecule, 
   basis::Basis; 
-  output::String, debug::Bool, niter::Int, ndiis::Int, 
+  output::String, debug::Bool, niter::Int, guess::String, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
   comm=MPI.COMM_WORLD
@@ -73,25 +75,26 @@ function rhf_kernel(mol::Molecule,
   compute_nah(V, mol, basis, jeri_oei_engine)
 
   H = T .+ V
-  
-  #for i in 1:basis.norb, j in 1:i
-  #  println("HAMIL($i,$j): ", H[i,j])
-  #end
  
+  #== compute initial guess ==# 
+  guess_matrix = guess == "sad" ? sad_guess(mol, basis) : deepcopy(H) 
+  
   if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-None/E_nuc", E_nuc)
-    h5write("debug.h5","SCF/Iteration-None/S", S)
-    h5write("debug.h5","SCF/Iteration-None/T", T)
-    h5write("debug.h5","SCF/Iteration-None/V", V)
-    h5write("debug.h5","SCF/Iteration-None/H", H)
+    h5write("debug.h5","RHF/Iteration-None/E_nuc", E_nuc)
+    h5write("debug.h5","RHF/Iteration-None/S", S)
+    h5write("debug.h5","RHF/Iteration-None/T", T)
+    h5write("debug.h5","RHF/Iteration-None/V", V)
+    h5write("debug.h5","RHF/Iteration-None/H", H)
+    h5write("debug.h5","RHF/Iteration-None/Guess", guess_matrix)
   end
 
   #== build the initial matrices ==#
-  F = deepcopy(H)
+  D = guess == "sad" ? guess_matrix : zeros(size(H)) 
+  F = guess == "hcore" ? guess_matrix : zeros(size(H)) 
+ 
   F_eval = Vector{Float64}(undef,basis.norb)
   F_evec = similar(F)
 
-  D = similar(F)
   W = similar(F)
   
   C = similar(F)
@@ -113,7 +116,7 @@ function rhf_kernel(mol::Molecule,
   ortho = workspace_a*(LinearAlgebra.Diagonal(workspace_b)^-0.5)*transpose(workspace_a)
   
   if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-None/Ortho", ortho)
+    h5write("debug.h5","RHF/Iteration-None/X", ortho)
   end
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -125,18 +128,20 @@ function rhf_kernel(mol::Molecule,
   end
 
   E_elec = 0.0
-  E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
-    workspace_b, ortho, basis, 0, debug)
-  
+  F_eval = zeros(size(F)[1])
+  if guess == "hcore"
+    E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
+      workspace_b, ortho, basis, 0, debug)
+  end
+
   F_old = deepcopy(F)
   
-  E = E_elec + E_nuc
+  E = 0.0 
   E_old = E
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
-    #println(0,"     ", E)
-    @printf("0     %.10f\n", E)
-  end
+  #if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  #  @printf("0     %.10f\n", E)
+  #end
 
   #=============================#
   #== start scf cycles: #7-10 ==#
@@ -276,11 +281,11 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64},
 
   #== we are done! ==#
   if debug
-    h5write("debug.h5","SCF/Iteration-Final/F", F)
-    h5write("debug.h5","SCF/Iteration-Final/D", D)
-    h5write("debug.h5","SCF/Iteration-Final/C", C)
-    h5write("debug.h5","SCF/Iteration-Final/E", E)
-    h5write("debug.h5","SCF/Iteration-Final/converged", scf_converged)
+    h5write("debug.h5","RHF/Iteration-Final/F", F)
+    h5write("debug.h5","RHF/Iteration-Final/D", D)
+    h5write("debug.h5","RHF/Iteration-Final/C", C)
+    h5write("debug.h5","RHF/Iteration-Final/E", E)
+    h5write("debug.h5","RHF/Iteration-Final/converged", scf_converged)
   end
 
   return F, D, W, C, E, scf_converged
@@ -365,13 +370,13 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     workspace_a .= fock_build(workspace_b, F_thread, D_input, H, basis, 
-      schwarz_bounds, Dsh, eri_quartet_batch_thread, cutoff, debug, load)
+      schwarz_bounds, Dsh, eri_quartet_batch_thread, iter, cutoff, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
 
     if debug && MPI.Comm_rank(comm) == 0
-      h5write("debug.h5","SCF/Iteration-$iter/F/Skeleton", F_input)
+      h5write("debug.h5","RHF/Iteration-$iter/F/Skeleton", workspace_b)
     end
  
     if fdiff 
@@ -383,7 +388,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
 
     if debug && MPI.Comm_rank(comm) == 0
-      h5write("debug.h5","SCF/Iteration-$iter/F/Total", F)
+      h5write("debug.h5","RHF/Iteration-$iter/F/Total", F)
     end
 
     #== do DIIS ==#
@@ -415,7 +420,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     end
 
     #== dynamic damping of Fock matrix ==#
-    x = ΔE >= 1.0 ? 0.9/log(50,50*ΔE) : 0.9
+    x = ΔE >= 1.0 ? 1.0/log(50,50*ΔE) : 1.0 
     F .= x.*F .+ (1.0-x).*F_old
 
     F_old .= F
@@ -485,7 +490,7 @@ H = One-electron Hamiltonian Matrix
   F_thread::Vector{Matrix{Float64}}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  eri_quartet_batch_thread::Vector{Vector{Float64}}, cutoff::Float64, 
+  eri_quartet_batch_thread::Vector{Vector{Float64}}, iter, cutoff::Float64, 
   debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
@@ -506,7 +511,7 @@ H = One-electron Hamiltonian Matrix
     thread_index_counter = Threads.Atomic{Int64}(top_index)
 
     #== execute kernel of calculation ==#
-    wait.([ 
+    @sync for thread in 1:Threads.nthreads()  
       Threads.@spawn begin 
         eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread])
         jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
@@ -528,11 +533,13 @@ H = One-electron Hamiltonian Matrix
           end
         end
       end
-      for thread in 1:Threads.nthreads()
-    ])
-     
+    end
+ 
     #== reduce into Fock matrix ==# 
-    for ithread_fock in F_thread 
+    for (thread,ithread_fock) in enumerate(F_thread)
+      if debug && MPI.Comm_rank(comm) == 0
+        h5write("debug.h5","RHF/Iteration-$iter/F/Thread-$thread", ithread_fock)
+      end
       F += ithread_fock
     end
   #== ..else use dynamic task distribution ==# 
@@ -927,14 +934,14 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
   if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-$iter/F_evec/Sorted", F_mo)
+    h5write("debug.h5","RHF/Iteration-$iter/F_evec", F_evec)
   end
 
   #C .= ortho*F_evec
   BLAS.symm!('L', 'U', 1.0, ortho, F_evec, 0.0, C)
   
   if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-$iter/C", C)
+    h5write("debug.h5","RHF/Iteration-$iter/C", C)
   end
 
   #== build new density matrix ==#
@@ -954,10 +961,10 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   E_elec = (EHF1 + EHF2)/2.0
   
   if debug && MPI.Comm_rank(comm) == 0
-    h5write("debug.h5","SCF/Iteration-$iter/D", D)
-    h5write("debug.h5","SCF/Iteration-$iter/E/EHF1", EHF1)
-    h5write("debug.h5","SCF/Iteration-$iter/E/EHF2", EHF2)
-    h5write("debug.h5","SCF/Iteration-$iter/E/EHF", E_elec)
+    h5write("debug.h5","RHF/Iteration-$iter/D", D)
+    h5write("debug.h5","RHF/Iteration-$iter/E/EHF1", EHF1)
+    h5write("debug.h5","RHF/Iteration-$iter/E/EHF2", EHF2)
+    h5write("debug.h5","RHF/Iteration-$iter/E/EHF", E_elec)
   end
 
   return E_elec, F_eval
