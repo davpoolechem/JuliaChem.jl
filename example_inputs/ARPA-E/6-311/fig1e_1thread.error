@@ -21,4 +21,3 @@
     Activate the base conda environment doing:
     $ source $IDPROOT/bin/activate 
     
-Killed by signal 15.

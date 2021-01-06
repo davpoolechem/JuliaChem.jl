@@ -1,25 +1,25 @@
-Jobid: 309470
+Jobid: 309868
 qsub -O example_inputs/ARPA-E/6-311/fig1e_56thread -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/ARPA-E/6-311/fig1e_56thread.sh
-Mon Jan 04 19:09:08 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
-jobid 309470 submitted from terminal /dev/pts/103
-Mon Jan 04 19:09:54 2021 +0000 (UTC) 
-Mon Jan 04 19:09:54 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake12' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.309470' '--jobid' '309470' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=309470' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_56thread.sh'
-Mon Jan 04 19:09:54 2021 +0000 (UTC) 
-Mon Jan 04 19:09:54 2021 +0000 (UTC) Environment:
-Mon Jan 04 19:09:54 2021 +0000 (UTC) SHELL=/bin/bash
-Mon Jan 04 19:09:54 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp5UH5MA
-Mon Jan 04 19:09:54 2021 +0000 (UTC) COBALT_PARTNAME=skylake12
-Mon Jan 04 19:09:54 2021 +0000 (UTC) COBALT_JOBID=309470
-Mon Jan 04 19:09:54 2021 +0000 (UTC) COBALT_STARTTIME=1609787381
-Mon Jan 04 19:09:54 2021 +0000 (UTC) LOGNAME=davpoolechem
-Mon Jan 04 19:09:54 2021 +0000 (UTC) USER=davpoolechem
-Mon Jan 04 19:09:54 2021 +0000 (UTC) COBALT_ENDTIME=1609808981
-Mon Jan 04 19:09:54 2021 +0000 (UTC) COBALT_PARTSIZE=1
-Mon Jan 04 19:09:54 2021 +0000 (UTC) HOME=/home/davpoolechem
-Mon Jan 04 19:09:54 2021 +0000 (UTC) COBALT_JOBSIZE=1
-Mon Jan 04 19:09:54 2021 +0000 (UTC) 
-Mon Jan 04 19:09:54 2021 +0000 (UTC) Info: stdin received from /dev/null
-Mon Jan 04 19:09:54 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_56thread.output
-Mon Jan 04 19:09:54 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_56thread.error
-Mon Jan 04 19:09:54 2021 +0000 (UTC) 
-Mon Jan 04 19:20:34 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
+Wed Jan 06 03:57:40 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
+jobid 309868 submitted from terminal /dev/pts/17
+Wed Jan 06 03:58:46 2021 +0000 (UTC) 
+Wed Jan 06 03:58:46 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake02' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.309868' '--jobid' '309868' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=309868' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_56thread.sh'
+Wed Jan 06 03:58:46 2021 +0000 (UTC) 
+Wed Jan 06 03:58:46 2021 +0000 (UTC) Environment:
+Wed Jan 06 03:58:46 2021 +0000 (UTC) SHELL=/bin/bash
+Wed Jan 06 03:58:46 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmprzC0gR
+Wed Jan 06 03:58:46 2021 +0000 (UTC) COBALT_PARTNAME=skylake02
+Wed Jan 06 03:58:46 2021 +0000 (UTC) COBALT_JOBID=309868
+Wed Jan 06 03:58:46 2021 +0000 (UTC) COBALT_STARTTIME=1609905516
+Wed Jan 06 03:58:46 2021 +0000 (UTC) LOGNAME=davpoolechem
+Wed Jan 06 03:58:46 2021 +0000 (UTC) USER=davpoolechem
+Wed Jan 06 03:58:46 2021 +0000 (UTC) COBALT_ENDTIME=1609927116
+Wed Jan 06 03:58:46 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Wed Jan 06 03:58:46 2021 +0000 (UTC) HOME=/home/davpoolechem
+Wed Jan 06 03:58:46 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Wed Jan 06 03:58:46 2021 +0000 (UTC) 
+Wed Jan 06 03:58:46 2021 +0000 (UTC) Info: stdin received from /dev/null
+Wed Jan 06 03:58:46 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_56thread.output
+Wed Jan 06 03:58:46 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_56thread.error
+Wed Jan 06 03:58:46 2021 +0000 (UTC) 
+Wed Jan 06 04:05:56 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
