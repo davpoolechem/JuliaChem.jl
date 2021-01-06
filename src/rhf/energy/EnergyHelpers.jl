@@ -173,6 +173,36 @@ function compute_nah(V::Matrix{Float64}, mol::Molecule,
   end
 end
 
+function sad_guess(mol::Molecule, basis::Basis)
+  basis_symbol = basis.model
+
+  sad_guess = zeros(Float64, (basis.norb, basis.norb))
+  h5open(joinpath(@__DIR__, "../../../records/sadgss.h5"),"r") do sadgss 
+    anchor = 1
+    for atom in mol
+      atom_symbol = atom.symbol
+     
+      sadgss_buf = read(sadgss["$atom_symbol/$basis_symbol"])
+      #println("$anchor, $atom")
+      #display(sadgss_buf); println()
+
+      sqrt_nbas_guess = trunc(Int,sqrt(length(sadgss_buf)))
+
+      sadgss_idx = 1
+      for i in anchor:(anchor+sqrt_nbas_guess-1) 
+        for j in anchor:(anchor+sqrt_nbas_guess-1)
+          sad_guess[i,j] = sadgss_buf[sadgss_idx]
+          sadgss_idx += 1 
+        end  
+      end
+      anchor += sqrt_nbas_guess
+    end  
+  end
+ 
+  #display(sad_guess) 
+  return sad_guess  
+end
+
 function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64}, 
   basis::Basis, nsh::Int64)
 
