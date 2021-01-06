@@ -23,8 +23,15 @@
   },
   "keywords": {
     "scf":{
-      "dele":1.0,
-      "rmsd":2E-6,
+      "niter":100,
+      "ndiis":10,
+      "dele":1E-8,
+      "rmsd":1E-5,
+      "prec":"Float64",
+      "direct":true,
+      "debug":false,
+      "load":"static",
+      "fdiff":true
     }
   }
 }
