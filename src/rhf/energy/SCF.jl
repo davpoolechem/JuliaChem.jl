@@ -612,10 +612,10 @@ H = One-electron Hamiltonian Matrix
       while task[1] > 0 
         status = MPI.Probe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, 
           comm) 
-        rreq = MPI.Recv!(recv_mesg_master, status.source, status.tag, 
-          comm)  
+        #rreq = MPI.Recv!(recv_mesg_master, status.source, status.tag, 
+        #  comm)  
         #println("Sending task $task to rank ", status.source)
-        sreq = MPI.Send(task, status.source, status.tag, comm)  
+        sreq = MPI.Isend(task, status.source, status.tag, comm)  
         #println("Task $task sent to rank ", status.source)
         task[1] -= batch_size 
       end
