@@ -598,7 +598,7 @@ H = One-electron Hamiltonian Matrix
       while initial_task < MPI.Comm_size(comm)
         for thread in 1:Threads.nthreads()
           #println("Sending task $task to rank $initial_task")
-          sreq = MPI.Send(task, initial_task, thread, comm)
+          sreq = MPI.Isend(task, initial_task, thread, comm)
           #println("Task $task sent to rank $initial_task") 
         
           task[1] -= batch_size 
@@ -625,63 +625,60 @@ H = One-electron Hamiltonian Matrix
       #println("Start sending out enders") 
       for rank in 1:(MPI.Comm_size(comm)-1)
         for thread in 1:Threads.nthreads()
-          sreq = MPI.Send([ -1 ], rank, thread, comm)                           
+          sreq = MPI.Isend([ -1 ], rank, thread, comm)                           
         end
       end      
       #println("Done sending out enders") 
     #== worker ranks perform actual computations on quartets ==#
     elseif MPI.Comm_rank(comm) > 0
       #== create needed mutices ==#
-      mutex_mpi_send = Base.Threads.ReentrantLock()
-      mutex_mpi_recv = Base.Threads.ReentrantLock()
+      mutex_mpi_worker = Base.Threads.ReentrantLock()
      
       #== execute kernel ==# 
-      wait.([ 
+      @sync for thread in 1:Threads.nthreads()
         Threads.@spawn begin 
+          #== initial set up ==#
           recv_mesg = [ 0 ] 
-          send_mesg = [ 0 ] 
+          send_mesg = [ MPI.Comm_rank(comm) ] 
  
-          eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread]) 
-          jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
-            basis.shpdata_cxx) 
-    
-          F_priv = $(F_thread[thread]) 
-          while true
-            lock($mutex_mpi_recv)
-              status = MPI.Probe(0, $thread, comm)
-              rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+          eri_quartet_batch_priv = eri_quartet_batch_thread[thread] 
+          jeri_tei_engine_priv = jeri_engine_thread[thread] 
+          F_priv = F_thread[thread] 
+          
+          #== complete first task ==#
+          lock(mutex_mpi_worker)
+            status = MPI.Probe(0, $thread, comm)
+            rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+            ijkl_index = recv_mesg[1]
+          unlock(mutex_mpi_worker)
+          
+          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+            fock_build_thread_kernel(F_priv, D,
+              H, basis, eri_quartet_batch_priv, #mutex,
+              ijkl, jeri_tei_engine_priv,
+              schwarz_bounds, Dsh,
+              cutoff, debug)
+          end
+  
+          #== complete rest of tasks ==#
+          while ijkl_index >= 1 
+            lock(mutex_mpi_worker)
+              status = MPI.Sendrecv!(send_mesg, 0, $thread, recv_mesg, 0, 
+                $thread, comm)
               ijkl_index = recv_mesg[1]
-            unlock($mutex_mpi_recv)
-
-            #println(ijkl_index)
-            if ijkl_index < 0 break end
+            unlock(mutex_mpi_worker)
             #println("Thread $thread ecieved task $ijkl_index from master")
 
-            #for rank in 1:MPI.Comm_size(comm)
-            #  if MPI.Comm_rank(comm) == rank
-            #    #println("NEW BATCH")
-            #    println("IJKL_INDEX: ", ijkl_index)
-            #  end
-            #end
-            #prinitln("NEW BATCH")
             for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
-              #println("IJKL: $ijkl")
-
               fock_build_thread_kernel(F_priv, D,
                 H, basis, eri_quartet_batch_priv, #mutex,
-                ijkl, jeri_tei_engine_priv,
-                schwarz_bounds, Dsh,
-                cutoff, debug)
+               ijkl, jeri_tei_engine_priv,
+               schwarz_bounds, Dsh,
+               cutoff, debug)
             end
-
-            lock($mutex_mpi_send)
-              send_mesg[1] = MPI.Comm_rank(comm)
-              MPI.Send(send_mesg, 0, $thread, comm)
-            unlock($mutex_mpi_send)
           end
         end
-        for thread in 1:Threads.nthreads()
-      ])
+      end
 
       #== reduce into Fock matrix ==#
       for ithread_fock in F_thread 
