@@ -223,9 +223,10 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     axial_normalization_factor(eri_quartet_batch, basis[ash], basis[bsh], 
       basis[ash], basis[bsh], abas, bbas, abas, bbas)
 
-    #== compute schwarz bound ==# 
-    schwarz_bounds[ash, bsh] = sqrt(BLAS.asum(abas*bbas*abas*bbas, 
-      eri_quartet_batch, 1))
+    #== compute schwarz bound ==#
+    max_index = BLAS.iamax(abas*bbas*abas*bbas, 
+      eri_quartet_batch, 1)
+    schwarz_bounds[ash, bsh] = sqrt(abs(eri_quartet_batch[max_index]))
   end
 
   for ash in 1:nsh, bsh in 1:ash

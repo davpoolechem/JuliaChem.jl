@@ -739,7 +739,9 @@ end
 
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
-
+  
+  println("SCHWARZ($ish, $jsh): $(schwarz_bounds[ish, jsh])")
+  
   dijmax = 4.0*Dsh[ish, jsh]
   dklmax = 4.0*Dsh[ksh, lsh]
   
