@@ -214,7 +214,7 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
     abshp = triangular_index(ash, bsh)
- 
+
     eri_quartet_batch = JERI.compute_eri_block(jeri_schwarz_engine, 
       ash, bsh, ash, bsh, abshp, abshp, abas*bbas, abas*bbas)
 
