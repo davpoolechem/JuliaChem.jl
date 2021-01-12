@@ -5,7 +5,7 @@
 #include <jlcxx/jlcxx.hpp>
 //#include <jlcxx/stl.hpp>
 
-#include <cassert>
+//#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -24,7 +24,7 @@ class TEIEngine {
   libint2::Engine m_coulomb_eng;
 
 public:
-  //-- ctors and dtors --//
+ //-- ctors and dtors --//
   TEIEngine(const libint2::BasisSet& t_basis_set, 
     const std::vector<libint2::ShellPair>& t_shellpair_data)
     : m_basis_set(&t_basis_set),
@@ -41,7 +41,7 @@ public:
   ~TEIEngine() { };
 
   //-- member functions --//
-  inline jlcxx::ArrayRef<double> compute_eri_block(
+  inline bool compute_eri_block(jlcxx::ArrayRef<double> eri_block, 
     julia_int ash, julia_int bsh, julia_int csh, julia_int dsh, 
     julia_int bra_idx, julia_int ket_idx,
     julia_int absize, julia_int cdsize) 
@@ -66,18 +66,18 @@ public:
       libint2::BraKet::xx_xx, 0>((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1],
       (*m_basis_set)[csh-1], (*m_basis_set)[dsh-1],
       &m_shellpair_data[bra_idx-1], &m_shellpair_data[ket_idx-1]);
-    
-    bool iszero = m_coulomb_eng.results()[0] == 0;
-    if (!iszero) {
-      return jlcxx::make_julia_array( 
-        const_cast<double*>(&(m_coulomb_eng.results()[0][0])),
-        absize*cdsize); 
+      
+    //assert(m_coulomb_eng.results()[0] != nullptr); 
+    if (m_coulomb_eng.results()[0] != nullptr) {
+      memcpy(eri_block.data(), m_coulomb_eng.results()[0],
+        absize*cdsize*sizeof(double));
+      
+      return false;
     } else {
-      return jlcxx::make_julia_array<double>( 
-        nullptr, 
-        0); 
-    }                      
-  };                           
+      //memset(eri_block.data(), 0.0, absize*cdsize*sizeof(double)); 
+      return true;
+    }
+  }
 };
 
 #endif /* JERI_TEI_H */

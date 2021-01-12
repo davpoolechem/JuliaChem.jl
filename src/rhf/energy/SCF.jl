@@ -567,7 +567,7 @@ H = One-electron Hamiltonian Matrix
                                                                                 
         for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))              
           fock_build_thread_kernel(F_priv, D,                                 
-            H, basis, 
+            H, basis, eri_quartet_batch_priv,                                 
             ijkl, jeri_tei_engine_priv,                                       
             schwarz_bounds, Dsh,                                              
             cutoff, debug)                                                    
@@ -654,7 +654,7 @@ H = One-electron Hamiltonian Matrix
           
           for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
             fock_build_thread_kernel(F_priv, D,
-              H, basis, 
+              H, basis, eri_quartet_batch_priv, #mutex,
               ijkl, jeri_tei_engine_priv,
               schwarz_bounds, Dsh,
               cutoff, debug)
@@ -671,7 +671,7 @@ H = One-electron Hamiltonian Matrix
 
             for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
               fock_build_thread_kernel(F_priv, D,
-                H, basis, 
+                H, basis, eri_quartet_batch_priv, #mutex,
                ijkl, jeri_tei_engine_priv,
                schwarz_bounds, Dsh,
                cutoff, debug)
@@ -700,6 +700,7 @@ end
 
 @inline function fock_build_thread_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   H::Matrix{Float64}, basis::Basis, 
+  eri_quartet_batch::Vector{Float64}, 
   ijkl_index::Int64, 
   jeri_tei_engine, schwarz_bounds::Matrix{Float64}, 
   Dsh::Matrix{Float64}, cutoff::Float64, debug::Bool)
@@ -761,10 +762,10 @@ end
     nσ = σsh.nbas
 
     #== compute electron repulsion integrals ==#
-    eri_quartet_batch = compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ, nν, 
-      nλ, nσ, jeri_tei_engine)
+    screened = compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ, nν, 
+      nλ, nσ, eri_quartet_batch, jeri_tei_engine)
   
-    if !isempty(eri_quartet_batch)
+    if !screened
       #= axial normalization =#
       axial_normalization_factor(eri_quartet_batch, μsh, νsh, λsh, σsh,
         nμ, nν, nλ, nσ)
@@ -781,10 +782,11 @@ end
   bra_pair::Int64, ket_pair::Int64, 
   nμ::Int64, nν::Int64,
   nλ::Int64, nσ::Int64,
+  eri_quartet_batch::Vector{Float64},
   jeri_tei_engine)
 
   #= actually compute integrals =#
-  return JERI.compute_eri_block(jeri_tei_engine, 
+  return JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
     ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ*nν, nλ*nσ)
   
   #=
