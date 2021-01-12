@@ -22,9 +22,6 @@ class TEIEngine {
   const libint2::ShellPair* m_shellpair_data;
   
   libint2::Engine m_coulomb_eng;
-  
-  jl_array_t* m_julia_array;
-  jlcxx::ArrayRef<double> m_screened_array;
 
 public:
   //-- ctors and dtors --//
@@ -35,13 +32,7 @@ public:
       m_coulomb_eng(libint2::Operator::coulomb,
         m_basis_set->max_nprim(),
         m_basis_set->max_l(),
-        0),
-      m_julia_array(                                                            
-        jlcxx::wrap_array(false,                                                
-          const_cast<double*>(&(m_coulomb_eng.results()[0][0])),
-          10000)                                                                  
-      ),
-      m_screened_array(jlcxx::make_julia_array<double>(nullptr, 0))  
+        0)
   {
     //-- no screening done in engine --// 
     m_coulomb_eng.set_precision(0.0); 
@@ -75,17 +66,17 @@ public:
       libint2::BraKet::xx_xx, 0>((*m_basis_set)[ash-1], (*m_basis_set)[bsh-1],
       (*m_basis_set)[csh-1], (*m_basis_set)[dsh-1],
       &m_shellpair_data[bra_idx-1], &m_shellpair_data[ket_idx-1]);
- 
+    
     bool iszero = m_coulomb_eng.results()[0] == 0;
-    if (iszero) {
-      return m_screened_array; 
-    } else { 
-      m_julia_array = jlcxx::wrap_array(false,  
+    if (!iszero) {
+      return jlcxx::make_julia_array( 
         const_cast<double*>(&(m_coulomb_eng.results()[0][0])),
-        absize*cdsize);
-                                                           
-      return std::move(jlcxx::ArrayRef<double>(m_julia_array)); 
-    }
+        absize*cdsize); 
+    } else {
+      return jlcxx::make_julia_array<double>( 
+        nullptr, 
+        0); 
+    }                      
   };                           
 };
 
