@@ -207,7 +207,6 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
   basis::Basis, nsh::Int64)
 
   max_am = max_ang_mom(basis) 
-  eri_quartet_batch = Vector{Float64}(undef,eri_quartet_batch_size(max_am))
   jeri_schwarz_engine = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
   for ash in 1:nsh, bsh in 1:ash
@@ -216,17 +215,19 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     bbas = basis[bsh].nbas
     abshp = triangular_index(ash, bsh)
  
-    JERI.compute_eri_block(jeri_schwarz_engine, eri_quartet_batch, 
+    eri_quartet_batch = JERI.compute_eri_block(jeri_schwarz_engine, 
       ash, bsh, ash, bsh, abshp, abshp, abas*bbas, abas*bbas)
- 
-    #= axial normalization =#
-    axial_normalization_factor(eri_quartet_batch, basis[ash], basis[bsh], 
-      basis[ash], basis[bsh], abas, bbas, abas, bbas)
 
-    #== compute schwarz bound ==#
-    max_index = BLAS.iamax(abas*bbas*abas*bbas, 
-      eri_quartet_batch, 1)
-    schwarz_bounds[ash, bsh] = sqrt(abs(eri_quartet_batch[max_index]))
+    if !isempty(eri_quartet_batch)
+      #= axial normalization =#
+      axial_normalization_factor(eri_quartet_batch, basis[ash], basis[bsh], 
+        basis[ash], basis[bsh], abas, bbas, abas, bbas)
+
+      #== compute schwarz bound ==#
+      max_index = BLAS.iamax(abas*bbas*abas*bbas, 
+        eri_quartet_batch, 1)
+      schwarz_bounds[ash, bsh] = sqrt(abs(eri_quartet_batch[max_index]))
+    end
   end
 
   for ash in 1:nsh, bsh in 1:ash
