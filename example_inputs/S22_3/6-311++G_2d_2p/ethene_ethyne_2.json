@@ -30,6 +30,8 @@
   },
   "keywords": {
     "scf": {
+      "dele": 1.0,
+      "rmsd": 2E-5
     }
   }
 }

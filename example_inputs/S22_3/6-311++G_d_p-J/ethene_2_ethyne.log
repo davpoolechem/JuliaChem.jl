@@ -1,0 +1,6 @@
+--------------------------------------------------------------------------
+orterun noticed that process rank 0 with PID 19473 on node compute-2-2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+orterun noticed that process rank 0 with PID 25374 on node compute-2-3 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------

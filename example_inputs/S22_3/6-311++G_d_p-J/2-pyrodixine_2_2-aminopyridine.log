@@ -1,0 +1,3 @@
+--------------------------------------------------------------------------
+orterun noticed that process rank 0 with PID 27831 on node compute-2-1 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------

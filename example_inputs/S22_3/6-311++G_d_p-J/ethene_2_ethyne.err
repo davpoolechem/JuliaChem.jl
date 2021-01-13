@@ -1,0 +1,50 @@
+[compute-2-3.local:25374] MCW rank 0 is not bound (or bound to all available processors)
+
+signal (11): Segmentation fault
+in expression starting at /home/david/projects/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:109
+jl_gc_pool_alloc at /buildworker/worker/package_linux64/build/src/gc.c:1148
+jl_gc_alloc_ at /buildworker/worker/package_linux64/build/src/julia_internal.h:277 [inlined]
+jl_gc_alloc at /buildworker/worker/package_linux64/build/src/gc.c:3150
+_new_array_ at /buildworker/worker/package_linux64/build/src/array.c:94 [inlined]
+_new_array at /buildworker/worker/package_linux64/build/src/array.c:162 [inlined]
+jl_alloc_array_1d at /buildworker/worker/package_linux64/build/src/array.c:433
+Array at ./boot.jl:406 [inlined]
+create_static_vector_small at /export/home/david/projects/Julia/JuliaChem.jl/src/modules/BasisStructs.jl:39 [inlined]
+Shell at /export/home/david/projects/Julia/JuliaChem.jl/src/modules/BasisStructs.jl:24
+unknown function (ip: 0x7f51d00c1849)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2214 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2398
+#4 at /export/home/david/projects/Julia/JuliaChem.jl/src/basis/JCBasis.jl:195
+#h5open#10 at /export/home/david/.julia/packages/HDF5/d0V7K/src/HDF5.jl:507
+h5open at /export/home/david/.julia/packages/HDF5/d0V7K/src/HDF5.jl:505 [inlined]
+#run#1 at /export/home/david/projects/Julia/JuliaChem.jl/src/basis/JCBasis.jl:99
+run##kw at /export/home/david/projects/Julia/JuliaChem.jl/src/basis/JCBasis.jl:40
+unknown function (ip: 0x7f51d00ab8c3)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2231 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2398
+script at /home/david/projects/Julia/JuliaChem.jl/example_scripts/minimal-rhf-benchmark.jl:37
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2231 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2398
+jl_apply at /buildworker/worker/package_linux64/build/src/julia.h:1690 [inlined]
+do_call at /buildworker/worker/package_linux64/build/src/interpreter.c:117
+eval_value at /buildworker/worker/package_linux64/build/src/interpreter.c:206
+eval_stmt_value at /buildworker/worker/package_linux64/build/src/interpreter.c:157 [inlined]
+eval_body at /buildworker/worker/package_linux64/build/src/interpreter.c:566
+jl_interpret_toplevel_thunk at /buildworker/worker/package_linux64/build/src/interpreter.c:660
+jl_toplevel_eval_flex at /buildworker/worker/package_linux64/build/src/toplevel.c:840
+jl_parse_eval_all at /buildworker/worker/package_linux64/build/src/ast.c:913
+jl_load_rewrite at /buildworker/worker/package_linux64/build/src/toplevel.c:914
+include at ./Base.jl:380
+include at ./Base.jl:368
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2214 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2398
+exec_options at ./client.jl:296
+_start at ./client.jl:506
+jfptr__start_53898.clone_1 at /home/david/programs/install/julia-1.5.3/lib/julia/sys.so (unknown line)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2214 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2398
+unknown function (ip: 0x401931)
+unknown function (ip: 0x401533)
+__libc_start_main at /lib64/libc.so.6 (unknown line)
+unknown function (ip: 0x4015d4)
+Allocations: 44387756 (Pool: 44374201; Big: 13555); GC: 43
