@@ -841,62 +841,29 @@ end
           #if debug
             #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
           #end
-
           μνλσ = 1 + (σσ-pσ) + nσ*(λλ-pλ) + nσ*nλ*(νν-pν) + nσ*nλ*nν*(μμ-pμ)
+          jlswap = (μμ < λλ) || (μμ == λλ && νν < σσ)
+          
           eri = eri_batch[μνλσ] 
-   
+             
           if Base.abs_float(eri) < cutoff
             #if do_continue_print println("CONTINUE SCREEN") end
             continue 
+          elseif jlswap && ish == ksh && jsh == lsh 
+            continue
           end
 
-          μ = μμ
-          ν = νν 
-          if μμ < νν 
-            μ = μ + ν
-            ν = μ - ν
-            μ = μ - ν
-          end 
+          μ = max(μμ, λλ)
+          ν = !jlswap ? νν : σσ
+          λ = min(μμ, λλ)
+          σ = !jlswap ? σσ : νν
       
-          λ = λλ
-          σ = σσ
-          if λλ < σσ 
-            λ = λ + σ
-            σ = λ - σ
-            λ = λ - σ
-          end 
-      
-          μν = triangular_index(μ,ν)                                                    
-          λσ = triangular_index(λ,σ)                                                    
-       
-          if μν < λσ 
-            if ish == ksh && jsh == lsh 
-              #if do_continue_print println("CONTINUE BRAKET") end
-              continue 
-            else
-              μ = μ + λ
-              λ = μ - λ
-              μ = μ - λ
-      
-              ν = ν + σ
-              σ = ν - σ
-              ν = ν - σ
-            end
-          end
-
           #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
           #println("ERI($μ, $ν, $λ, $σ) = $eri") 
       
           eri *= (μ == ν) ? 0.5 : 1.0 
           eri *= (λ == σ) ? 0.5 : 1.0
           eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
-
-          #λσ = λ + norb*(σ-1)
-          #μν = μ + norb*(ν-1)
-          #μλ = μ + norb*(λ-1)
-          #μσ = μ + norb*(σ-1)
-          #νλ = max(ν,λ) + norb*(min(ν,λ)-1)
-          #νσ = max(ν,σ) + norb*(min(ν,σ)-1)
 
           F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
           F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
