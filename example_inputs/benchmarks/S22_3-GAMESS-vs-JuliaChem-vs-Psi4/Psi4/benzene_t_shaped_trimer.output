@@ -1,0 +1,168 @@
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+
+  Memory set to 476.837 MiB by Python driver.
+  Threads set to 112 by Python driver.
+
+*** tstart() called on skylake04
+*** at Sat Jan 23 00:19:21 2021
+
+   => Loading Basis Set <=
+
+    Name: 6-311++G(2D,2P)
+    Role: ORBITAL
+    Keyword: BASIS
+    atoms 1-6, 13-18, 26, 28, 30-31, 34-35 entry C          line    21 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+    atoms 7-12, 19-25, 27, 29, 32-33, 36   entry H          line     5 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+
+  ==> Iterations <==
+
+                        Total Energy        Delta E     RMS |[F,P]|
+
+   @RHF iter   1:  -450.58767120916553   -4.50588e+02   2.88221e-02 DIIS
+   @RHF iter   2:  -141.21958523861099    3.09368e+02   2.16910e-02 DIIS
+   @RHF iter   3:  -275.00855588342057   -1.33789e+02   2.75010e-02 DIIS
+   @RHF iter   4:  -537.63949502430717   -2.62631e+02   1.61774e-02 DIIS
+   @RHF iter   5:  -456.27985895036687    8.13596e+01   1.86849e-02 DIIS
+   @RHF iter   6:  -361.92469350264696    9.43552e+01   2.06757e-02 DIIS
+   @RHF iter   7:  -623.00681006058437   -2.61082e+02   8.34217e-03 DIIS
+   @RHF iter   8:  -227.01292664039653    3.95994e+02   2.46308e-02 DIIS
+   @RHF iter   9:  -246.48065737649267   -1.94677e+01   2.55400e-02 DIIS
+   @RHF iter  10:  -246.58211683675177   -1.01459e-01   2.55320e-02 DIIS
+   @RHF iter  11:  -246.91206975692239   -3.29953e-01   2.55120e-02 DIIS
+   @RHF iter  12:  -245.50561135343156    1.40646e+00   2.50127e-02 DIIS
+   @RHF iter  13:  -260.80815654665969   -1.53025e+01   2.44045e-02 DIIS
+   @RHF iter  14:  -290.72302258536399   -2.99149e+01   2.38716e-02 DIIS
+   @RHF iter  15:  -292.25399502791913   -1.53097e+00   2.38704e-02 DIIS
+   @RHF iter  16:  -291.51991082490258    7.34084e-01   2.38439e-02 DIIS
+   @RHF iter  17:  -292.03407206144061   -5.14161e-01   2.38723e-02 DIIS
+   @RHF iter  18:  -316.25621110645625   -2.42221e+01   2.33568e-02 DIIS
+   @RHF iter  19:  -321.02684233476793   -4.77063e+00   2.24923e-02 DIIS
+   @RHF iter  20:  -322.03255704514561   -1.00571e+00   2.23826e-02 DIIS
+   @RHF iter  21:  -321.72574255622033    3.06814e-01   2.24244e-02 DIIS
+   @RHF iter  22:  -322.54704393443160   -8.21301e-01   2.23181e-02 DIIS
+   @RHF iter  23:  -323.78568916391134   -1.23865e+00   2.21772e-02 DIIS
+   @RHF iter  24:  -324.12446638955589   -3.38777e-01   2.21448e-02 DIIS
+   @RHF iter  25:  -324.19362261058961   -6.91562e-02   2.21378e-02 DIIS
+   @RHF iter  26:  -324.24206203449495   -4.84394e-02   2.21370e-02 DIIS
+   @RHF iter  27:  -324.22275252604061    1.93095e-02   2.21411e-02 DIIS
+   @RHF iter  28:  -324.13055870458209    9.21938e-02   2.21595e-02 DIIS
+   @RHF iter  29:  -324.25987039203278   -1.29312e-01   2.21509e-02 DIIS
+   @RHF iter  30:  -324.06219143104482    1.97679e-01   2.21736e-02 DIIS
+   @RHF iter  31:  -324.32136651255058   -2.59175e-01   2.21439e-02 DIIS
+   @RHF iter  32:  -324.03831518067284    2.83051e-01   2.21763e-02 DIIS
+   @RHF iter  33:  -324.16144429515793   -1.23129e-01   2.21433e-02 DIIS
+   @RHF iter  34:  -323.89791374765065    2.63531e-01   2.21785e-02 DIIS
+   @RHF iter  35:  -324.28979590566973   -3.91882e-01   2.21419e-02 DIIS
+   @RHF iter  36:  -323.81499701999286    4.74799e-01   2.21833e-02 DIIS
+   @RHF iter  37:  -323.95955365459963   -1.44557e-01   2.21767e-02 DIIS
+   @RHF iter  38:  -323.96371652066068   -4.16287e-03   2.21583e-02 DIIS
+   @RHF iter  39:  -323.76198910465530    2.01727e-01   2.21923e-02 DIIS
+   @RHF iter  40:  -324.20853900487248   -4.46550e-01   2.21454e-02 DIIS
+   @RHF iter  41:  -323.76478615513093    4.43753e-01   2.21925e-02 DIIS
+   @RHF iter  42:  -324.23837419861343   -4.73588e-01   2.21401e-02 DIIS
+   @RHF iter  43:  -323.90943428769083    3.28940e-01   2.21871e-02 DIIS
+   @RHF iter  44:  -324.41477324151106   -5.05339e-01   2.21251e-02 DIIS
+   @RHF iter  45:  -323.89849733628756    5.16276e-01   2.21821e-02 DIIS
+   @RHF iter  46:  -324.31423180311975   -4.15734e-01   2.21243e-02 DIIS
+   @RHF iter  47:  -323.81077645228862    5.03455e-01   2.21740e-02 DIIS
+   @RHF iter  48:  -324.12719461258450   -3.16418e-01   2.21536e-02 DIIS
+   @RHF iter  49:  -324.04615011329008    8.10445e-02   2.21436e-02 DIIS
+   @RHF iter  50:  -323.88576669461349    1.60383e-01   2.21761e-02 DIIS
+   @RHF iter  51:  -324.40734274192755   -5.21576e-01   2.21139e-02 DIIS
+   @RHF iter  52:  -323.78530676410486    6.22036e-01   2.21807e-02 DIIS
+   @RHF iter  53:  -324.21394478866551   -4.28638e-01   2.21366e-02 DIIS
+   @RHF iter  54:  -323.79434082510016    4.19604e-01   2.21791e-02 DIIS
+   @RHF iter  55:  -324.14461981392969   -3.50279e-01   2.21482e-02 DIIS
+   @RHF iter  56:  -323.83221513167666    3.12405e-01   2.21750e-02 DIIS
+   @RHF iter  57:  -324.11032509128808   -2.78110e-01   2.21521e-02 DIIS
+   @RHF iter  58:  -323.89067411418523    2.19651e-01   2.21697e-02 DIIS
+   @RHF iter  59:  -324.08908780740990   -1.98414e-01   2.21538e-02 DIIS
+   @RHF iter  60:  -323.91636202722242    1.72726e-01   2.21686e-02 DIIS
+   @RHF iter  61:  -324.08968529681539   -1.73323e-01   2.21526e-02 DIIS
+   @RHF iter  62:  -323.88238318448981    2.07302e-01   2.21734e-02 DIIS
+   @RHF iter  63:  -324.10103384915516   -2.18651e-01   2.21501e-02 DIIS
+   @RHF iter  64:  -323.84992339593867    2.51110e-01   2.21766e-02 DIIS
+   @RHF iter  65:  -324.11620378731629   -2.66280e-01   2.21486e-02 DIIS
+   @RHF iter  66:  -323.84173291705645    2.74471e-01   2.21771e-02 DIIS
+   @RHF iter  67:  -324.11651183489187   -2.74779e-01   2.21489e-02 DIIS
+   @RHF iter  68:  -323.84564515648128    2.70867e-01   2.21767e-02 DIIS
+   @RHF iter  69:  -324.11028557611138   -2.64640e-01   2.21495e-02 DIIS
+   @RHF iter  70:  -323.84984177783519    2.60444e-01   2.21764e-02 DIIS
+   @RHF iter  71:  -324.10719404286112   -2.57352e-01   2.21496e-02 DIIS
+   @RHF iter  72:  -323.84985870449930    2.57335e-01   2.21765e-02 DIIS
+   @RHF iter  73:  -324.10795850351258   -2.58100e-01   2.21494e-02 DIIS
+   @RHF iter  74:  -323.84820524763256    2.59753e-01   2.21767e-02 DIIS
+   @RHF iter  75:  -324.10942378890161   -2.61219e-01   2.21492e-02 DIIS
+   @RHF iter  76:  -323.84743878069594    2.61985e-01   2.21767e-02 DIIS
+   @RHF iter  77:  -324.10973028582367   -2.62292e-01   2.21492e-02 DIIS
+   @RHF iter  78:  -323.84766734893782    2.62063e-01   2.21767e-02 DIIS
+   @RHF iter  79:  -324.10932416388818   -2.61657e-01   2.21493e-02 DIIS
+   @RHF iter  80:  -323.84802880040888    2.61295e-01   2.21767e-02 DIIS
+   @RHF iter  81:  -324.10903544739460   -2.61007e-01   2.21493e-02 DIIS
+   @RHF iter  82:  -323.84809590637053    2.60940e-01   2.21767e-02 DIIS
+   @RHF iter  83:  -324.10905481045467   -2.60959e-01   2.21493e-02 DIIS
+   @RHF iter  84:  -323.84799189172981    2.61063e-01   2.21767e-02 DIIS
+   @RHF iter  85:  -324.10916544215189   -2.61174e-01   2.21493e-02 DIIS
+   @RHF iter  86:  -323.84792311735487    2.61242e-01   2.21767e-02 DIIS
+   @RHF iter  87:  -324.10920522733903   -2.61282e-01   2.21493e-02 DIIS
+   @RHF iter  88:  -323.84792991870825    2.61275e-01   2.21767e-02 DIIS
+   @RHF iter  89:  -324.10918252818351   -2.61253e-01   2.21493e-02 DIIS
+   @RHF iter  90:  -323.84795772587336    2.61225e-01   2.21767e-02 DIIS
+   @RHF iter  91:  -324.10915797046289   -2.61200e-01   2.21493e-02 DIIS
+   @RHF iter  92:  -323.84796708779544    2.61191e-01   2.21767e-02 DIIS
+   @RHF iter  93:  -324.10915574654990   -2.61189e-01   2.21493e-02 DIIS
+   @RHF iter  94:  -323.84796111092794    2.61195e-01   2.21767e-02 DIIS
+   @RHF iter  95:  -324.10916344173313   -2.61202e-01   2.21493e-02 DIIS
+   @RHF iter  96:  -323.84795471902248    2.61209e-01   2.21767e-02 DIIS
+   @RHF iter  97:  -324.10916818014891   -2.61213e-01   2.21493e-02 DIIS
+   @RHF iter  98:  -323.84795464430988    2.61214e-01   2.21767e-02 DIIS
+   @RHF iter  99:  -324.10916660684114   -2.61212e-01   2.21493e-02 DIIS
+   @RHF iter 100:  -323.84795683094933    2.61210e-01   2.21767e-02 DIIS
+
+PsiException: Could not converge SCF iterations in 100 iterations.
+
+  Failed to converge.

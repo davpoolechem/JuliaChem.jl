@@ -1,0 +1,25 @@
+Jobid: 314601
+qsub -O S22_3/6-311++G_2d_2p/benzene_t_shaped_trimer -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/benzene_t_shaped_trimer.sh
+Sat Jan 23 22:46:18 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 314601 submitted from terminal /dev/pts/114
+Sat Jan 23 22:47:12 2021 +0000 (UTC) 
+Sat Jan 23 22:47:12 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake08' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314601' '--jobid' '314601' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=314601' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_t_shaped_trimer.sh'
+Sat Jan 23 22:47:12 2021 +0000 (UTC) 
+Sat Jan 23 22:47:12 2021 +0000 (UTC) Environment:
+Sat Jan 23 22:47:12 2021 +0000 (UTC) SHELL=/bin/bash
+Sat Jan 23 22:47:12 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpFqmUaW
+Sat Jan 23 22:47:12 2021 +0000 (UTC) COBALT_PARTNAME=skylake08
+Sat Jan 23 22:47:12 2021 +0000 (UTC) COBALT_JOBID=314601
+Sat Jan 23 22:47:12 2021 +0000 (UTC) COBALT_STARTTIME=1611442018
+Sat Jan 23 22:47:12 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jan 23 22:47:12 2021 +0000 (UTC) USER=davpoolechem
+Sat Jan 23 22:47:12 2021 +0000 (UTC) COBALT_ENDTIME=1611463618
+Sat Jan 23 22:47:12 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jan 23 22:47:12 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jan 23 22:47:12 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jan 23 22:47:12 2021 +0000 (UTC) 
+Sat Jan 23 22:47:12 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jan 23 22:47:12 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_t_shaped_trimer.output
+Sat Jan 23 22:47:12 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_t_shaped_trimer.error
+Sat Jan 23 22:47:12 2021 +0000 (UTC) 
+Sat Jan 23 22:56:47 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

@@ -1,0 +1,50 @@
+Jobid: 314369
+qsub -O 6-311++G_2d_2p/adenine_thymine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/adenine_thymine_2.sh
+Sat Jan 23 00:06:48 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314369 submitted from terminal /dev/pts/90
+Sat Jan 23 00:14:37 2021 +0000 (UTC) 
+Sat Jan 23 00:14:37 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake10' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314369' '--jobid' '314369' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=314369' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/adenine_thymine_2.sh'
+Sat Jan 23 00:14:37 2021 +0000 (UTC) 
+Sat Jan 23 00:14:37 2021 +0000 (UTC) Environment:
+Sat Jan 23 00:14:37 2021 +0000 (UTC) SHELL=/bin/bash
+Sat Jan 23 00:14:37 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpVB0jqb
+Sat Jan 23 00:14:37 2021 +0000 (UTC) COBALT_PARTNAME=skylake10
+Sat Jan 23 00:14:37 2021 +0000 (UTC) COBALT_JOBID=314369
+Sat Jan 23 00:14:37 2021 +0000 (UTC) COBALT_STARTTIME=1611360868
+Sat Jan 23 00:14:37 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jan 23 00:14:37 2021 +0000 (UTC) USER=davpoolechem
+Sat Jan 23 00:14:37 2021 +0000 (UTC) COBALT_ENDTIME=1611382468
+Sat Jan 23 00:14:37 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jan 23 00:14:37 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jan 23 00:14:37 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jan 23 00:14:37 2021 +0000 (UTC) 
+Sat Jan 23 00:14:37 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jan 23 00:14:37 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/adenine_thymine_2.output
+Sat Jan 23 00:14:37 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/adenine_thymine_2.error
+Sat Jan 23 00:14:37 2021 +0000 (UTC) 
+Sat Jan 23 00:52:54 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
+Jobid: 314546
+qsub -O 6-311++G_2d_2p/adenine_thymine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/adenine_thymine_2.sh
+Sat Jan 23 22:38:03 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314546 submitted from terminal /dev/pts/114
+Jobid: 314547
+qsub -O 6-311++G_2d_2p/adenine_thymine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/adenine_thymine_2.sh
+Sat Jan 23 22:38:03 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314547 submitted from terminal /dev/pts/114
+Jobid: 314548
+qsub -O 6-311++G_2d_2p/adenine_thymine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/adenine_thymine_2.sh
+Sat Jan 23 22:38:03 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314548 submitted from terminal /dev/pts/114
+Jobid: 314549
+qsub -O 6-311++G_2d_2p/adenine_thymine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/adenine_thymine_2.sh
+Sat Jan 23 22:38:03 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314549 submitted from terminal /dev/pts/114
+Jobid: 314550
+qsub -O 6-311++G_2d_2p/adenine_thymine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/adenine_thymine_2.sh
+Sat Jan 23 22:38:04 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314550 submitted from terminal /dev/pts/114
+Sat Jan 23 22:42:19 2021 +0000 (UTC) Info: user delete requested; removing job from the queue
+Sat Jan 23 22:42:20 2021 +0000 (UTC) Info: user delete requested; removing job from the queue
+Sat Jan 23 22:42:21 2021 +0000 (UTC) Info: user delete requested; removing job from the queue
+Sat Jan 23 22:42:22 2021 +0000 (UTC) Info: user delete requested; removing job from the queue
+Sat Jan 23 22:42:23 2021 +0000 (UTC) Info: user delete requested; removing job from the queue
