@@ -1,0 +1,25 @@
+Jobid: 314665
+qsub -O S22_3/6-311++G_2d_2p/benzene_sandwich_trimer -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/benzene_sandwich_trimer.sh
+Sun Jan 24 01:05:59 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 314665 submitted from terminal /dev/pts/8
+Sun Jan 24 01:35:16 2021 +0000 (UTC) 
+Sun Jan 24 01:35:16 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake01' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314665' '--jobid' '314665' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=314665' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_sandwich_trimer.sh'
+Sun Jan 24 01:35:16 2021 +0000 (UTC) 
+Sun Jan 24 01:35:16 2021 +0000 (UTC) Environment:
+Sun Jan 24 01:35:16 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 24 01:35:16 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpl6sF8W
+Sun Jan 24 01:35:16 2021 +0000 (UTC) COBALT_PARTNAME=skylake01
+Sun Jan 24 01:35:16 2021 +0000 (UTC) COBALT_JOBID=314665
+Sun Jan 24 01:35:16 2021 +0000 (UTC) COBALT_STARTTIME=1611452099
+Sun Jan 24 01:35:16 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 24 01:35:16 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 24 01:35:16 2021 +0000 (UTC) COBALT_ENDTIME=1611473699
+Sun Jan 24 01:35:16 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 24 01:35:16 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 24 01:35:16 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 24 01:35:16 2021 +0000 (UTC) 
+Sun Jan 24 01:35:16 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 24 01:35:16 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_sandwich_trimer.output
+Sun Jan 24 01:35:16 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_sandwich_trimer.error
+Sun Jan 24 01:35:16 2021 +0000 (UTC) 
+Sun Jan 24 01:47:14 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

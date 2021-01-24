@@ -1,0 +1,59 @@
+/home/davpoolechem/.bashrc: line 7: /etc/profile.d/modules.sh: No such file or directory
+/home/davpoolechem/.bashrc: line 9: module: command not found
+/home/davpoolechem/programs/env/gamess-open.sh: line 2: module: command not found
+/home/davpoolechem/programs/env/gamess-open.sh: line 7: module: command not found
+/home/davpoolechem/programs/env/gamess-open.sh: line 18: module: command not found
+/home/davpoolechem/.bashrc: line 52: module: command not found
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    [1;33mThis module is deprecated since September 2020 and will be removed from next SDK update, 
+    [1;33mPlease switch to using [1;34mmodule load oneapi[1;33m [0m
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    
+    Activate the base conda environment doing:
+    $ source $IDPROOT/bin/activate 
+    
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    [1;33mThis module is deprecated since September 2020 and will be removed from next SDK update, 
+    [1;33mPlease switch to using [1;34mmodule load oneapi[1;33m [0m
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    
+    Activate the base conda environment doing:
+    $ source $IDPROOT/bin/activate 
+    
+ERROR: LoadError: PyError ($(Expr(:escape, :(ccall(#= /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:43 =# @pysym(:PyObject_Call), PyPtr, (PyPtr, PyPtr, PyPtr), o, pyargsptr, kw))))) <class 'psi4.driver.p4util.exceptions.SCFConvergenceError'>
+SCFConvergenceError('Could not converge SCF iterations in 100 iterations.',)
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/driver.py", line 508, in energy
+    return driver_cbs._cbs_gufunc(energy, name, ptype='energy', **kwargs)
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/driver_cbs.py", line 1949, in _cbs_gufunc
+    ptype_value, wfn = func(method_name, return_wfn=True, molecule=molecule, **kwargs)
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/driver.py", line 556, in energy
+    wfn = procedures['energy'][lowername](lowername, molecule=molecule, **kwargs)
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/procrouting/proc.py", line 2002, in run_scf
+    scf_wfn = scf_helper(name, post_scf=False, **kwargs)
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/procrouting/proc.py", line 1363, in scf_helper
+    e_scf = scf_wfn.compute_energy()
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/procrouting/scf_proc/scf_iterator.py", line 94, in scf_compute_energy
+    raise e
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/procrouting/scf_proc/scf_iterator.py", line 87, in scf_compute_energy
+    self.iterations()
+  File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/procrouting/scf_proc/scf_iterator.py", line 447, in scf_iterate
+    raise SCFConvergenceError("""SCF iterations""", self.iteration_, self, Ediff, Dnorm)
+
+Stacktrace:
+ [1] pyerr_check at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/exception.jl:62 [inlined]
+ [2] pyerr_check at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/exception.jl:66 [inlined]
+ [3] _handle_error(::String) at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/exception.jl:83
+ [4] macro expansion at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/exception.jl:97 [inlined]
+ [5] #110 at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:43 [inlined]
+ [6] disable_sigint at ./c.jl:446 [inlined]
+ [7] __pycall! at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:42 [inlined]
+ [8] _pycall!(::PyObject, ::PyObject, ::Tuple{String}, ::Int64, ::Ptr{Nothing}) at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:29
+ [9] _pycall! at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:11 [inlined]
+ [10] #_#117 at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:86 [inlined]
+ [11] (::PyObject)(::String) at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:86
+ [12] top-level scope at /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_t_shaped_trimer.jl:33
+ [13] include(::Function, ::Module, ::String) at ./Base.jl:380
+ [14] include(::Module, ::String) at ./Base.jl:368
+ [15] exec_options(::Base.JLOptions) at ./client.jl:296
+ [16] _start() at ./client.jl:506
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_t_shaped_trimer.jl:33

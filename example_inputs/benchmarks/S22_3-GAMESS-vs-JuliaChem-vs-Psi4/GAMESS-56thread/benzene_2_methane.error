@@ -1,0 +1,86 @@
+/home/davpoolechem/.bashrc: line 7: /etc/profile.d/modules.sh: No such file or directory
+/home/davpoolechem/.bashrc: line 9: module: command not found
+/home/davpoolechem/programs/env/gamess-open.sh: line 2: module: command not found
+/home/davpoolechem/programs/env/gamess-open.sh: line 7: module: command not found
+/home/davpoolechem/programs/env/gamess-open.sh: line 18: module: command not found
+/home/davpoolechem/.bashrc: line 52: module: command not found
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    [1;33mThis module is deprecated since September 2020 and will be removed from next SDK update, 
+    [1;33mPlease switch to using [1;34mmodule load oneapi[1;33m [0m
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    
+    Activate the base conda environment doing:
+    $ source $IDPROOT/bin/activate 
+    
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    [1;33mThis module is deprecated since September 2020 and will be removed from next SDK update, 
+    [1;33mPlease switch to using [1;34mmodule load oneapi[1;33m [0m
+   [1;33m----------------------------------------------------------------------------------------------[0m
+    
+    Activate the base conda environment doing:
+    $ source $IDPROOT/bin/activate 
+    
+source /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/install.info
+setenv GMS_PATH /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+setenv GMS_BUILD_DIR /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+setenv GMS_TARGET linux64
+setenv GMS_HPC_SYSTEM_TARGET generic
+setenv GMS_FORTRAN gfortran
+setenv GMS_GFORTRAN_VERNO 7.4
+setenv GMS_MATHLIB mkl
+setenv GMS_MATHLIB_PATH /soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest/lib/intel64
+setenv GMS_MATHLIB_INCLUDE_PATH
+setenv GMS_MKL_VERNO 12
+setenv GMS_DDI_COMM mpi
+setenv GMS_MPI_LIB openmpi
+setenv GMS_MPI_PATH /home/davpoolechem/programs/install/openmpi
+setenv GMS_LIBCCHEM false
+setenv GMS_LIBCCHEM_GPU_SUPPORT
+setenv GMS_LIBCCHEM_LIBS -ldl -lrt
+setenv GMS_HDF5_PATH
+setenv GMS_CUDA_BOARD
+setenv GMS_CUDA_PATH
+setenv GMS_LIBCCHEM_LIBINT
+setenv GMS_LIBINT_PATH
+setenv GMS_EIGEN_PATH
+setenv GMS_BOOST_PATH
+setenv GMS_GA_PATH
+setenv GMS_PHI none
+setenv GMS_SHMTYPE sysv
+setenv GMS_OPENMP true
+setenv GMS_LIBXC false
+setenv GMS_MSUCC false
+setenv GMS_FPE_FLAGS 
+if ( ! 1 ) setenv OMP_NUM_THREADS 30
+if ( ! 0 ) setenv OMP_STACKSIZE 20M
+setenv OMP_STACKSIZE 20M
+unset echo
+rm: No match.
+cp S22_3/6-311++G_2d_2p/benzene_2_methane.inp /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/scratch/314660/benzene_2_methane.F05
+unset echo
+rm -f /home/davpoolechem/restart/benzene_2_methane.casino
+rm -f /home/davpoolechem/restart/benzene_2_methane.dmn
+rm -f /home/davpoolechem/restart/benzene_2_methane.cim
+rm -f /home/davpoolechem/restart/benzene_2_methane.cosmo
+rm -f /home/davpoolechem/restart/benzene_2_methane.pot
+rm -f /home/davpoolechem/restart/benzene_2_methane.gamma
+rm -f /home/davpoolechem/restart/benzene_2_methane.efp
+rm -f /home/davpoolechem/restart/benzene_2_methane.dip
+rm -f /home/davpoolechem/restart/benzene_2_methane.hs1
+rm -f /home/davpoolechem/restart/benzene_2_methane.hs2
+rm -f /home/davpoolechem/restart/benzene_2_methane.dat
+rm -f /home/davpoolechem/restart/benzene_2_methane.qmw
+rm -f /home/davpoolechem/restart/benzene_2_methane.rst
+rm -f /home/davpoolechem/restart/benzene_2_methane.trj
+unset echo
+setenv OMPI_MCA_mpi_yield_when_idle 1
+unset echo
+if ( true == true ) then
+if ( 1 == 1 ) then
+orterun --mca orte_base_help_aggregate 0 --mca orte_tmpdir_base /tmp --mca btl vader,self,tcp -np 2 --bind-to none -map-by ppr:2:socket --report-bindings /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/gamess.00.x
+[skylake08:114164] MCW rank 0 is not bound (or bound to all available processors)
+[skylake08:114165] MCW rank 1 is not bound (or bound to all available processors)
+Note: The following floating-point exceptions are signalling: IEEE_DENORMAL
+else
+else
+unset echo
