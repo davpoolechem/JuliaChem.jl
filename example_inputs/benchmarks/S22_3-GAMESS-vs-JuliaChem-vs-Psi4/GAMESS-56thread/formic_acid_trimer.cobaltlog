@@ -1,25 +1,26 @@
-Jobid: 314672
+Jobid: 314823
 qsub -O S22_3/6-311++G_2d_2p/formic_acid_trimer -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/formic_acid_trimer.sh
-Sun Jan 24 01:06:00 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
-jobid 314672 submitted from terminal /dev/pts/8
-Sun Jan 24 01:35:47 2021 +0000 (UTC) 
-Sun Jan 24 01:35:47 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake11' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314672' '--jobid' '314672' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=314672' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.sh'
-Sun Jan 24 01:35:47 2021 +0000 (UTC) 
-Sun Jan 24 01:35:47 2021 +0000 (UTC) Environment:
-Sun Jan 24 01:35:47 2021 +0000 (UTC) SHELL=/bin/bash
-Sun Jan 24 01:35:47 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpxcUi0H
-Sun Jan 24 01:35:47 2021 +0000 (UTC) COBALT_PARTNAME=skylake11
-Sun Jan 24 01:35:47 2021 +0000 (UTC) COBALT_JOBID=314672
-Sun Jan 24 01:35:47 2021 +0000 (UTC) COBALT_STARTTIME=1611452141
-Sun Jan 24 01:35:47 2021 +0000 (UTC) LOGNAME=davpoolechem
-Sun Jan 24 01:35:47 2021 +0000 (UTC) USER=davpoolechem
-Sun Jan 24 01:35:47 2021 +0000 (UTC) COBALT_ENDTIME=1611473741
-Sun Jan 24 01:35:47 2021 +0000 (UTC) COBALT_PARTSIZE=1
-Sun Jan 24 01:35:47 2021 +0000 (UTC) HOME=/home/davpoolechem
-Sun Jan 24 01:35:47 2021 +0000 (UTC) COBALT_JOBSIZE=1
-Sun Jan 24 01:35:47 2021 +0000 (UTC) 
-Sun Jan 24 01:35:47 2021 +0000 (UTC) Info: stdin received from /dev/null
-Sun Jan 24 01:35:47 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.output
-Sun Jan 24 01:35:47 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.error
-Sun Jan 24 01:35:47 2021 +0000 (UTC) 
-Sun Jan 24 01:36:19 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
+Sun Jan 24 05:42:33 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 314823 submitted from terminal /dev/pts/164
+Sun Jan 24 05:42:40 2021 +0000 (UTC) Info: user delete requested; removing job from the queue
+Sun Jan 24 05:44:52 2021 +0000 (UTC) 
+Sun Jan 24 05:44:52 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake05' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314823' '--jobid' '314823' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=314823' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.sh'
+Sun Jan 24 05:44:52 2021 +0000 (UTC) 
+Sun Jan 24 05:44:52 2021 +0000 (UTC) Environment:
+Sun Jan 24 05:44:52 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 24 05:44:52 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpZjXlFs
+Sun Jan 24 05:44:52 2021 +0000 (UTC) COBALT_PARTNAME=skylake05
+Sun Jan 24 05:44:52 2021 +0000 (UTC) COBALT_JOBID=314823
+Sun Jan 24 05:44:52 2021 +0000 (UTC) COBALT_STARTTIME=1611467077
+Sun Jan 24 05:44:52 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 24 05:44:52 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 24 05:44:52 2021 +0000 (UTC) COBALT_ENDTIME=1611488677
+Sun Jan 24 05:44:52 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 24 05:44:52 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 24 05:44:52 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 24 05:44:52 2021 +0000 (UTC) 
+Sun Jan 24 05:44:52 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 24 05:44:52 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.output
+Sun Jan 24 05:44:52 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.error
+Sun Jan 24 05:44:52 2021 +0000 (UTC) 
+Sun Jan 24 05:45:35 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

@@ -56,7 +56,7 @@ if ( ! 0 ) setenv OMP_STACKSIZE 20M
 setenv OMP_STACKSIZE 20M
 unset echo
 rm: No match.
-cp S22_3/6-311++G_2d_2p/benzene_2_hcn.inp /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/scratch/314659/benzene_2_hcn.F05
+cp S22_3/6-311++G_2d_2p/benzene_2_hcn.inp /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/scratch/314810/benzene_2_hcn.F05
 unset echo
 rm -f /home/davpoolechem/restart/benzene_2_hcn.casino
 rm -f /home/davpoolechem/restart/benzene_2_hcn.dmn
@@ -78,8 +78,8 @@ unset echo
 if ( true == true ) then
 if ( 1 == 1 ) then
 orterun --mca orte_base_help_aggregate 0 --mca orte_tmpdir_base /tmp --mca btl vader,self,tcp -np 2 --bind-to none -map-by ppr:2:socket --report-bindings /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/gamess.00.x
-[skylake10:38916] MCW rank 1 is not bound (or bound to all available processors)
-[skylake10:38915] MCW rank 0 is not bound (or bound to all available processors)
+[skylake02:33501] MCW rank 0 is not bound (or bound to all available processors)
+[skylake02:33502] MCW rank 1 is not bound (or bound to all available processors)
 Note: The following floating-point exceptions are signalling: IEEE_DENORMAL
 else
 else
