@@ -21,7 +21,7 @@
     $ source $IDPROOT/bin/activate 
     
 ERROR: LoadError: PyError ($(Expr(:escape, :(ccall(#= /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:43 =# @pysym(:PyObject_Call), PyPtr, (PyPtr, PyPtr, PyPtr), o, pyargsptr, kw))))) <class 'psi4.driver.p4util.exceptions.SCFConvergenceError'>
-SCFConvergenceError('Could not converge SCF iterations in 100 iterations.',)
+SCFConvergenceError('Could not converge SCF iterations in 200 iterations.',)
   File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/driver.py", line 508, in energy
     return driver_cbs._cbs_gufunc(energy, name, ptype='energy', **kwargs)
   File "/home/davpoolechem/programs/install/psi4conda/lib/python3.6/site-packages/psi4/driver/driver_cbs.py", line 1949, in _cbs_gufunc
@@ -51,9 +51,9 @@ Stacktrace:
  [9] _pycall! at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:11 [inlined]
  [10] #_#117 at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:86 [inlined]
  [11] (::PyObject)(::String) at /home/davpoolechem/.julia/packages/PyCall/BcTLp/src/pyfncall.jl:86
- [12] top-level scope at /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.jl:33
+ [12] top-level scope at /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.jl:34
  [13] include(::Function, ::Module, ::String) at ./Base.jl:380
  [14] include(::Module, ::String) at ./Base.jl:368
  [15] exec_options(::Base.JLOptions) at ./client.jl:296
  [16] _start() at ./client.jl:506
-in expression starting at /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.jl:33
+in expression starting at /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.jl:34

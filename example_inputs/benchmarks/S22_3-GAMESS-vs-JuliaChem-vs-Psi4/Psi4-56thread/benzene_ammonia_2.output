@@ -45,10 +45,10 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
 
   Memory set to 476.837 MiB by Python driver.
-  Threads set to 112 by Python driver.
+  Threads set to 56 by Python driver.
 
-*** tstart() called on skylake10
-*** at Sun Jan 24 01:41:39 2021
+*** tstart() called on skylake08
+*** at Sun Jan 24 16:45:42 2021
 
    => Loading Basis Set <=
 
@@ -63,41 +63,41 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
                         Total Energy        Delta E     RMS |[F,P]|
 
-   @RHF iter   1:  -190.94557764230029   -1.90946e+02   4.33318e-02 DIIS
-   @RHF iter   2:  -149.79789794312819    4.11477e+01   4.13978e-02 DIIS
-   @RHF iter   3:  -297.61770114793148   -1.47820e+02   1.23064e-02 DIIS
-   @RHF iter   4:  -163.48556287456989    1.34132e+02   3.73931e-02 DIIS
-   @RHF iter   5:  -168.05448525488475   -4.56892e+00   3.65125e-02 DIIS
-   @RHF iter   6:  -171.51627562607965   -3.46179e+00   3.83658e-02 DIIS
-   @RHF iter   7:  -187.52086218249889   -1.60046e+01   3.53185e-02 DIIS
-   @RHF iter   8:  -190.01197221264218   -2.49111e+00   3.39790e-02 DIIS
-   @RHF iter   9:  -191.30648129884966   -1.29451e+00   3.35892e-02 DIIS
-   @RHF iter  10:  -191.35827648148302   -5.17952e-02   3.35687e-02 DIIS
-   @RHF iter  11:  -191.37771952713175   -1.94430e-02   3.35680e-02 DIIS
-   @RHF iter  12:  -269.08849728511336   -7.77108e+01   2.45848e-02 DIIS
-   @RHF iter  13:  -287.90676355480514   -1.88183e+01   2.00970e-02 DIIS
-   @RHF iter  14:  -310.00191881047039   -2.20952e+01   1.55913e-02 DIIS
-   @RHF iter  15:  -315.73458542331144   -5.73267e+00   1.33140e-02 DIIS
-   @RHF iter  16:  -340.83424617182948   -2.50997e+01   6.34579e-03 DIIS
-   @RHF iter  17:  -342.23405091848309   -1.39980e+00   3.22702e-03 DIIS
-   @RHF iter  18:  -343.12272439937317   -8.88673e-01   9.92541e-04 DIIS
-   @RHF iter  19:  -343.19014649565293   -6.74221e-02   4.17583e-04 DIIS
-   @RHF iter  20:  -343.20572809640794   -1.55816e-02   8.11284e-05 DIIS
-   @RHF iter  21:  -343.20648570095943   -7.57605e-04   3.54807e-05 DIIS
-   @RHF iter  22:  -343.20657730341094   -9.16025e-05   1.00713e-05 DIIS
+   @RHF iter   1:  -190.94557764230052   -1.90946e+02   4.33318e-02 DIIS
+   @RHF iter   2:  -149.79789794313689    4.11477e+01   4.13978e-02 DIIS
+   @RHF iter   3:  -297.61770115003657   -1.47820e+02   1.23064e-02 DIIS
+   @RHF iter   4:  -163.48556287925280    1.34132e+02   3.73931e-02 DIIS
+   @RHF iter   5:  -168.05448526223537   -4.56892e+00   3.65125e-02 DIIS
+   @RHF iter   6:  -171.51627563469390   -3.46179e+00   3.83658e-02 DIIS
+   @RHF iter   7:  -187.52086218354012   -1.60046e+01   3.53185e-02 DIIS
+   @RHF iter   8:  -190.01197221785799   -2.49111e+00   3.39790e-02 DIIS
+   @RHF iter   9:  -191.30648130492872   -1.29451e+00   3.35892e-02 DIIS
+   @RHF iter  10:  -191.35827648788904   -5.17952e-02   3.35687e-02 DIIS
+   @RHF iter  11:  -191.37771953372550   -1.94430e-02   3.35680e-02 DIIS
+   @RHF iter  12:  -269.08849729602582   -7.77108e+01   2.45848e-02 DIIS
+   @RHF iter  13:  -287.90676356688351   -1.88183e+01   2.00970e-02 DIIS
+   @RHF iter  14:  -310.00191881741523   -2.20952e+01   1.55913e-02 DIIS
+   @RHF iter  15:  -315.73458544495446   -5.73267e+00   1.33140e-02 DIIS
+   @RHF iter  16:  -340.83424616758282   -2.50997e+01   6.34579e-03 DIIS
+   @RHF iter  17:  -342.23405087010758   -1.39980e+00   3.22702e-03 DIIS
+   @RHF iter  18:  -343.12272439525287   -8.88674e-01   9.92541e-04 DIIS
+   @RHF iter  19:  -343.19014649521102   -6.74221e-02   4.17583e-04 DIIS
+   @RHF iter  20:  -343.20572809637588   -1.55816e-02   8.11284e-05 DIIS
+   @RHF iter  21:  -343.20648570095608   -7.57605e-04   3.54807e-05 DIIS
+   @RHF iter  22:  -343.20657730340952   -9.16025e-05   1.00713e-05 DIIS
   Energy and wave function converged.
 
 
   ==> Post-Iterations <==
 
-  @RHF Final Energy:  -343.20657730341094
+  @RHF Final Energy:  -343.20657730340952
 
    => Energetics <=
 
     Nuclear Repulsion Energy =            351.9557121173135670
-    One-Electron Energy =               -1161.4299665180760712
-    Two-Electron Energy =                 466.2676770973515090
-    Total Energy =                       -343.2065773034109384
+    One-Electron Energy =               -1161.4299665191206259
+    Two-Electron Energy =                 466.2676770983974848
+    Total Energy =                       -343.2065773034095173
 
 Computation Completed
 
@@ -119,12 +119,12 @@ Properties computed using the SCF density matrix
      X:     0.8481      Y:     0.1317      Z:     0.4688     Total:     0.9779
 
 
-*** tstop() called on skylake10 at Sun Jan 24 01:43:37 2021
+*** tstop() called on skylake08 at Sun Jan 24 16:48:40 2021
 Module time:
-	user time   =    5830.60 seconds =      97.18 minutes
-	system time =      28.36 seconds =       0.47 minutes
-	total time  =        118 seconds =       1.97 minutes
+	user time   =    8301.00 seconds =     138.35 minutes
+	system time =      21.40 seconds =       0.36 minutes
+	total time  =        178 seconds =       2.97 minutes
 Total time:
-	user time   =    5830.60 seconds =      97.18 minutes
-	system time =      28.36 seconds =       0.47 minutes
-	total time  =        118 seconds =       1.97 minutes
+	user time   =    8301.00 seconds =     138.35 minutes
+	system time =      21.40 seconds =       0.36 minutes
+	total time  =        178 seconds =       2.97 minutes

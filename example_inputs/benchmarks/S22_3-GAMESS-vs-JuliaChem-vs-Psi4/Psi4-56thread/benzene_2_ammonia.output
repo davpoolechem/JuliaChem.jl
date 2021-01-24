@@ -45,10 +45,10 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
 
   Memory set to 476.837 MiB by Python driver.
-  Threads set to 112 by Python driver.
+  Threads set to 56 by Python driver.
 
-*** tstart() called on skylake11
-*** at Sun Jan 24 01:37:03 2021
+*** tstart() called on skylake07
+*** at Sun Jan 24 16:43:39 2021
 
    => Loading Basis Set <=
 
@@ -63,33 +63,33 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
                         Total Energy        Delta E     RMS |[F,P]|
 
-   @RHF iter   1:  -375.08109547809266   -3.75081e+02   3.25429e-02 DIIS
-   @RHF iter   2:  -275.46610578208100    9.96150e+01   2.49901e-02 DIIS
-   @RHF iter   3:  -306.47412227469727   -3.10080e+01   2.37796e-02 DIIS
-   @RHF iter   4:  -211.58071138500586    9.48934e+01   2.68324e-02 DIIS
-   @RHF iter   5:  -414.67572073706350   -2.03095e+02   1.65828e-02 DIIS
-   @RHF iter   6:  -434.24131160778592   -1.95656e+01   1.42840e-02 DIIS
-   @RHF iter   7:  -471.28636762156776   -3.70451e+01   1.09551e-02 DIIS
-   @RHF iter   8:  -515.49371115879092   -4.42073e+01   2.63243e-03 DIIS
-   @RHF iter   9:  -516.79391551464721   -1.30020e+00   2.65444e-03 DIIS
-   @RHF iter  10:  -517.65885723556187   -8.64942e-01   7.55709e-04 DIIS
-   @RHF iter  11:  -517.74322097573065   -8.43637e-02   2.24685e-04 DIIS
-   @RHF iter  12:  -517.75181258226439   -8.59161e-03   1.09520e-04 DIIS
-   @RHF iter  13:  -517.75433311775919   -2.52054e-03   3.66917e-05 DIIS
-   @RHF iter  14:  -517.75477217218577   -4.39054e-04   1.40764e-05 DIIS
+   @RHF iter   1:  -375.08109547809215   -3.75081e+02   3.25429e-02 DIIS
+   @RHF iter   2:  -275.46610614462759    9.96150e+01   2.49901e-02 DIIS
+   @RHF iter   3:  -306.47412207718844   -3.10080e+01   2.37796e-02 DIIS
+   @RHF iter   4:  -211.58071113296285    9.48934e+01   2.68324e-02 DIIS
+   @RHF iter   5:  -414.67572198925285   -2.03095e+02   1.65828e-02 DIIS
+   @RHF iter   6:  -434.24131129644036   -1.95656e+01   1.42840e-02 DIIS
+   @RHF iter   7:  -471.28636798904279   -3.70451e+01   1.09551e-02 DIIS
+   @RHF iter   8:  -515.49371119804346   -4.42073e+01   2.63243e-03 DIIS
+   @RHF iter   9:  -516.79391552223228   -1.30020e+00   2.65444e-03 DIIS
+   @RHF iter  10:  -517.65885723438350   -8.64942e-01   7.55709e-04 DIIS
+   @RHF iter  11:  -517.74322097548873   -8.43637e-02   2.24685e-04 DIIS
+   @RHF iter  12:  -517.75181258221232   -8.59161e-03   1.09520e-04 DIIS
+   @RHF iter  13:  -517.75433311776953   -2.52054e-03   3.66917e-05 DIIS
+   @RHF iter  14:  -517.75477217219009   -4.39054e-04   1.40764e-05 DIIS
   Energy and wave function converged.
 
 
   ==> Post-Iterations <==
 
-  @RHF Final Energy:  -517.75477217218577
+  @RHF Final Energy:  -517.75477217219009
 
    => Energetics <=
 
     Nuclear Repulsion Energy =            708.0361746303468635
-    One-Electron Energy =               -2104.4897127669109977
-    Two-Electron Energy =                 878.6987659643782536
-    Total Energy =                       -517.7547721721857670
+    One-Electron Energy =               -2104.4897127672161332
+    Two-Electron Energy =                 878.6987659646790689
+    Total Energy =                       -517.7547721721900871
 
 Computation Completed
 
@@ -111,12 +111,12 @@ Properties computed using the SCF density matrix
      X:     1.4813      Y:     0.1702      Z:    -0.3902     Total:     1.5412
 
 
-*** tstop() called on skylake11 at Sun Jan 24 01:40:30 2021
+*** tstop() called on skylake07 at Sun Jan 24 16:55:26 2021
 Module time:
-	user time   =   13338.45 seconds =     222.31 minutes
-	system time =      64.18 seconds =       1.07 minutes
-	total time  =        207 seconds =       3.45 minutes
+	user time   =   37251.32 seconds =     620.86 minutes
+	system time =      38.69 seconds =       0.64 minutes
+	total time  =        707 seconds =      11.78 minutes
 Total time:
-	user time   =   13338.45 seconds =     222.31 minutes
-	system time =      64.18 seconds =       1.07 minutes
-	total time  =        207 seconds =       3.45 minutes
+	user time   =   37251.32 seconds =     620.86 minutes
+	system time =      38.69 seconds =       0.64 minutes
+	total time  =        707 seconds =      11.78 minutes

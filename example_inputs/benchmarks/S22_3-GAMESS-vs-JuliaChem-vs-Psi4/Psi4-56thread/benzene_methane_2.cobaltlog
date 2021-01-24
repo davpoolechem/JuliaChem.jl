@@ -1,25 +1,25 @@
-Jobid: 314689
+Jobid: 314978
 qsub -O 6-311++G_2d_2p/benzene_methane_2 -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/benzene_methane_2.sh
-Sun Jan 24 01:06:47 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
-jobid 314689 submitted from terminal /dev/pts/8
-Sun Jan 24 01:45:11 2021 +0000 (UTC) 
-Sun Jan 24 01:45:11 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake06' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314689' '--jobid' '314689' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=314689' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.sh'
-Sun Jan 24 01:45:11 2021 +0000 (UTC) 
-Sun Jan 24 01:45:11 2021 +0000 (UTC) Environment:
-Sun Jan 24 01:45:11 2021 +0000 (UTC) SHELL=/bin/bash
-Sun Jan 24 01:45:11 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpabRFKC
-Sun Jan 24 01:45:11 2021 +0000 (UTC) COBALT_PARTNAME=skylake06
-Sun Jan 24 01:45:11 2021 +0000 (UTC) COBALT_JOBID=314689
-Sun Jan 24 01:45:11 2021 +0000 (UTC) COBALT_STARTTIME=1611452699
-Sun Jan 24 01:45:11 2021 +0000 (UTC) LOGNAME=davpoolechem
-Sun Jan 24 01:45:11 2021 +0000 (UTC) USER=davpoolechem
-Sun Jan 24 01:45:11 2021 +0000 (UTC) COBALT_ENDTIME=1611474299
-Sun Jan 24 01:45:11 2021 +0000 (UTC) COBALT_PARTSIZE=1
-Sun Jan 24 01:45:11 2021 +0000 (UTC) HOME=/home/davpoolechem
-Sun Jan 24 01:45:11 2021 +0000 (UTC) COBALT_JOBSIZE=1
-Sun Jan 24 01:45:11 2021 +0000 (UTC) 
-Sun Jan 24 01:45:11 2021 +0000 (UTC) Info: stdin received from /dev/null
-Sun Jan 24 01:45:11 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.output
-Sun Jan 24 01:45:11 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.error
-Sun Jan 24 01:45:11 2021 +0000 (UTC) 
-Sun Jan 24 01:58:41 2021 +0000 (UTC) Info: task completed normally with an exit code of 1; initiating job cleanup and removal
+Sun Jan 24 16:39:25 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314978 submitted from terminal /dev/pts/66
+Sun Jan 24 16:40:39 2021 +0000 (UTC) 
+Sun Jan 24 16:40:39 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake06' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314978' '--jobid' '314978' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=314978' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.sh'
+Sun Jan 24 16:40:39 2021 +0000 (UTC) 
+Sun Jan 24 16:40:39 2021 +0000 (UTC) Environment:
+Sun Jan 24 16:40:39 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 24 16:40:39 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp7lPnYv
+Sun Jan 24 16:40:39 2021 +0000 (UTC) COBALT_PARTNAME=skylake06
+Sun Jan 24 16:40:39 2021 +0000 (UTC) COBALT_JOBID=314978
+Sun Jan 24 16:40:39 2021 +0000 (UTC) COBALT_STARTTIME=1611506430
+Sun Jan 24 16:40:39 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 24 16:40:39 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 24 16:40:39 2021 +0000 (UTC) COBALT_ENDTIME=1611528030
+Sun Jan 24 16:40:39 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 24 16:40:39 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 24 16:40:39 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 24 16:40:39 2021 +0000 (UTC) 
+Sun Jan 24 16:40:39 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 24 16:40:39 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.output
+Sun Jan 24 16:40:39 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_methane_2.error
+Sun Jan 24 16:40:39 2021 +0000 (UTC) 
+Sun Jan 24 16:56:43 2021 +0000 (UTC) Info: task completed normally with an exit code of 1; initiating job cleanup and removal

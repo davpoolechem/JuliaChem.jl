@@ -24,10 +24,11 @@ options = Dict(
   "PROPERTIES" => [],
   "PRINT" => 0,
   "E_CONVERGENCE" => 1.0,
-  "D_CONVERGENCE" => 2e-5
+  "D_CONVERGENCE" => 2e-5,
+  "MAXITER" => 200
 )
 
 psi4.set_options(options)
-psi4.set_num_threads(112)
+psi4.set_num_threads(56)
 
 psi4.energy("scf/6-311++G(2d,2p)")
