@@ -24,7 +24,8 @@ options = Dict(
   "PROPERTIES" => [],
   "PRINT" => 0,
   "E_CONVERGENCE" => 1.0,
-  "D_CONVERGENCE" => 2e-5
+  "D_CONVERGENCE" => 2e-5,
+  "MAXITER" => 200
 )
 
 psi4.set_options(options)

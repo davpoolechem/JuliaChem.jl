@@ -1,25 +1,25 @@
-Jobid: 314387
+Jobid: 314878
 qsub -O 6-311++G_2d_2p/indole_benzene_2_t_shaped -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/indole_benzene_2_t_shaped.sh
-Sat Jan 23 00:06:52 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
-jobid 314387 submitted from terminal /dev/pts/90
-Sat Jan 23 00:30:32 2021 +0000 (UTC) 
-Sat Jan 23 00:30:32 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake05' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314387' '--jobid' '314387' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=314387' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.sh'
-Sat Jan 23 00:30:32 2021 +0000 (UTC) 
-Sat Jan 23 00:30:32 2021 +0000 (UTC) Environment:
-Sat Jan 23 00:30:32 2021 +0000 (UTC) SHELL=/bin/bash
-Sat Jan 23 00:30:32 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp64dkA3
-Sat Jan 23 00:30:32 2021 +0000 (UTC) COBALT_PARTNAME=skylake05
-Sat Jan 23 00:30:32 2021 +0000 (UTC) COBALT_JOBID=314387
-Sat Jan 23 00:30:32 2021 +0000 (UTC) COBALT_STARTTIME=1611361813
-Sat Jan 23 00:30:32 2021 +0000 (UTC) LOGNAME=davpoolechem
-Sat Jan 23 00:30:32 2021 +0000 (UTC) USER=davpoolechem
-Sat Jan 23 00:30:32 2021 +0000 (UTC) COBALT_ENDTIME=1611383413
-Sat Jan 23 00:30:32 2021 +0000 (UTC) COBALT_PARTSIZE=1
-Sat Jan 23 00:30:32 2021 +0000 (UTC) HOME=/home/davpoolechem
-Sat Jan 23 00:30:32 2021 +0000 (UTC) COBALT_JOBSIZE=1
-Sat Jan 23 00:30:32 2021 +0000 (UTC) 
-Sat Jan 23 00:30:32 2021 +0000 (UTC) Info: stdin received from /dev/null
-Sat Jan 23 00:30:32 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.output
-Sat Jan 23 00:30:32 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.error
-Sat Jan 23 00:30:32 2021 +0000 (UTC) 
-Sat Jan 23 01:42:23 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
+Sun Jan 24 06:37:50 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 314878 submitted from terminal /dev/pts/164
+Sun Jan 24 07:03:03 2021 +0000 (UTC) 
+Sun Jan 24 07:03:03 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake02' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314878' '--jobid' '314878' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=314878' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.sh'
+Sun Jan 24 07:03:03 2021 +0000 (UTC) 
+Sun Jan 24 07:03:03 2021 +0000 (UTC) Environment:
+Sun Jan 24 07:03:03 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 24 07:03:03 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpguiNoQ
+Sun Jan 24 07:03:03 2021 +0000 (UTC) COBALT_PARTNAME=skylake02
+Sun Jan 24 07:03:03 2021 +0000 (UTC) COBALT_JOBID=314878
+Sun Jan 24 07:03:03 2021 +0000 (UTC) COBALT_STARTTIME=1611471767
+Sun Jan 24 07:03:03 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 24 07:03:03 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 24 07:03:03 2021 +0000 (UTC) COBALT_ENDTIME=1611493367
+Sun Jan 24 07:03:03 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 24 07:03:03 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 24 07:03:03 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 24 07:03:03 2021 +0000 (UTC) 
+Sun Jan 24 07:03:03 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 24 07:03:03 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.output
+Sun Jan 24 07:03:03 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.error
+Sun Jan 24 07:03:03 2021 +0000 (UTC) 
+Sun Jan 24 07:33:49 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

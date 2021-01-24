@@ -47,8 +47,8 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
   Memory set to 476.837 MiB by Python driver.
   Threads set to 112 by Python driver.
 
-*** tstart() called on skylake11
-*** at Sat Jan 23 00:17:46 2021
+*** tstart() called on skylake01
+*** at Sun Jan 24 07:15:33 2021
 
    => Loading Basis Set <=
 
@@ -64,36 +64,36 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
                         Total Energy        Delta E     RMS |[F,P]|
 
-   @RHF iter   1:  -678.42341976901525   -6.78423e+02   4.02801e-02 DIIS
-   @RHF iter   2:   -37.18581561240885    6.41238e+02   4.27021e-02 DIIS
-   @RHF iter   3:  -561.93873710073581   -5.24753e+02   3.38804e-02 DIIS
-   @RHF iter   4:  -884.01393961419910   -3.22075e+02   2.06067e-02 DIIS
-   @RHF iter   5:  -478.94767580995148    4.05066e+02   3.60681e-02 DIIS
-   @RHF iter   6:  -932.81066985552343   -4.53863e+02   2.12280e-02 DIIS
-   @RHF iter   7: -1189.68079787980037   -2.56870e+02   7.96010e-03 DIIS
-   @RHF iter   8:  -741.30216247092608    4.48379e+02   2.17025e-02 DIIS
-   @RHF iter   9: -1134.15723250801420   -3.92855e+02   1.11068e-02 DIIS
-   @RHF iter  10: -1209.01532804680483   -7.48581e+01   6.44869e-03 DIIS
-   @RHF iter  11: -1231.24248804926378   -2.22272e+01   3.19173e-03 DIIS
-   @RHF iter  12: -1237.29550366379112   -6.05302e+00   1.26936e-03 DIIS
-   @RHF iter  13: -1237.77869292997002   -4.83189e-01   3.51917e-04 DIIS
-   @RHF iter  14: -1237.82640716351693   -4.77142e-02   1.67831e-04 DIIS
-   @RHF iter  15: -1237.83820303752759   -1.17959e-02   6.66266e-05 DIIS
-   @RHF iter  16: -1237.84080608052727   -2.60304e-03   2.01740e-05 DIIS
-   @RHF iter  17: -1237.84106742275208   -2.61342e-04   8.01629e-06 DIIS
+   @RHF iter   1:  -678.42341976901537   -6.78423e+02   4.02801e-02 DIIS
+   @RHF iter   2:   -37.18581561233785    6.41238e+02   4.27021e-02 DIIS
+   @RHF iter   3:  -561.93873709813488   -5.24753e+02   3.38804e-02 DIIS
+   @RHF iter   4:  -884.01393960203120   -3.22075e+02   2.06067e-02 DIIS
+   @RHF iter   5:  -478.94767587520221    4.05066e+02   3.60681e-02 DIIS
+   @RHF iter   6:  -932.81066977020350   -4.53863e+02   2.12280e-02 DIIS
+   @RHF iter   7: -1189.68079788478690   -2.56870e+02   7.96010e-03 DIIS
+   @RHF iter   8:  -741.30216247375381    4.48379e+02   2.17025e-02 DIIS
+   @RHF iter   9: -1134.15723239884778   -3.92855e+02   1.11068e-02 DIIS
+   @RHF iter  10: -1209.01532820749344   -7.48581e+01   6.44869e-03 DIIS
+   @RHF iter  11: -1231.24248777862772   -2.22272e+01   3.19173e-03 DIIS
+   @RHF iter  12: -1237.29550380408659   -6.05302e+00   1.26936e-03 DIIS
+   @RHF iter  13: -1237.77869293798517   -4.83189e-01   3.51917e-04 DIIS
+   @RHF iter  14: -1237.82640716424612   -4.77142e-02   1.67831e-04 DIIS
+   @RHF iter  15: -1237.83820303781772   -1.17959e-02   6.66266e-05 DIIS
+   @RHF iter  16: -1237.84080608053182   -2.60304e-03   2.01740e-05 DIIS
+   @RHF iter  17: -1237.84106742274730   -2.61342e-04   8.01629e-06 DIIS
   Energy and wave function converged.
 
 
   ==> Post-Iterations <==
 
-  @RHF Final Energy: -1237.84106742275208
+  @RHF Final Energy: -1237.84106742274730
 
    => Energetics <=
 
     Nuclear Repulsion Energy =           1898.2722422868901049
-    One-Electron Energy =               -5465.7096643345757911
-    Two-Electron Energy =                2329.5963546249336105
-    Total Energy =                      -1237.8410674227520758
+    One-Electron Energy =               -5465.7096643375052736
+    Two-Electron Energy =                2329.5963546278680951
+    Total Energy =                      -1237.8410674227470736
 
 Computation Completed
 
@@ -106,21 +106,21 @@ Properties computed using the SCF density matrix
      X:    -3.6711      Y:     0.6951      Z:     0.0000
 
   Electronic Dipole Moment: [e a0]
-     X:     1.9542      Y:     0.2535      Z:     0.0000
+     X:     1.9542      Y:     0.2535      Z:    -0.0000
 
   Dipole Moment: [e a0]
-     X:    -1.7169      Y:     0.9486      Z:     0.0000     Total:     1.9615
+     X:    -1.7169      Y:     0.9486      Z:    -0.0000     Total:     1.9615
 
   Dipole Moment: [D]
-     X:    -4.3639      Y:     2.4112      Z:     0.0000     Total:     4.9857
+     X:    -4.3639      Y:     2.4112      Z:    -0.0000     Total:     4.9857
 
 
-*** tstop() called on skylake11 at Sat Jan 23 00:29:38 2021
+*** tstop() called on skylake01 at Sun Jan 24 07:34:57 2021
 Module time:
-	user time   =   54694.89 seconds =     911.58 minutes
-	system time =      90.21 seconds =       1.50 minutes
-	total time  =        712 seconds =      11.87 minutes
+	user time   =  104985.53 seconds =    1749.76 minutes
+	system time =     210.03 seconds =       3.50 minutes
+	total time  =       1164 seconds =      19.40 minutes
 Total time:
-	user time   =   54694.89 seconds =     911.58 minutes
-	system time =      90.21 seconds =       1.50 minutes
-	total time  =        712 seconds =      11.87 minutes
+	user time   =  104985.53 seconds =    1749.76 minutes
+	system time =     210.03 seconds =       3.50 minutes
+	total time  =       1164 seconds =      19.40 minutes
