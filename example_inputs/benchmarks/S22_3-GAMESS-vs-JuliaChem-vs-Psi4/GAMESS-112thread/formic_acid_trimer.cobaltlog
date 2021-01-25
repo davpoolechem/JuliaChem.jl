@@ -1,0 +1,25 @@
+Jobid: 314851
+qsub -O S22_3/6-311++G_2d_2p/formic_acid_trimer -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/formic_acid_trimer.sh
+Sun Jan 24 06:34:18 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 314851 submitted from terminal /dev/pts/164
+Sun Jan 24 06:35:36 2021 +0000 (UTC) 
+Sun Jan 24 06:35:36 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake01' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314851' '--jobid' '314851' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=314851' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.sh'
+Sun Jan 24 06:35:36 2021 +0000 (UTC) 
+Sun Jan 24 06:35:36 2021 +0000 (UTC) Environment:
+Sun Jan 24 06:35:36 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 24 06:35:36 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpMzze28
+Sun Jan 24 06:35:36 2021 +0000 (UTC) COBALT_PARTNAME=skylake01
+Sun Jan 24 06:35:36 2021 +0000 (UTC) COBALT_JOBID=314851
+Sun Jan 24 06:35:36 2021 +0000 (UTC) COBALT_STARTTIME=1611470123
+Sun Jan 24 06:35:36 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 24 06:35:36 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 24 06:35:36 2021 +0000 (UTC) COBALT_ENDTIME=1611491723
+Sun Jan 24 06:35:36 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 24 06:35:36 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 24 06:35:36 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 24 06:35:36 2021 +0000 (UTC) 
+Sun Jan 24 06:35:36 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 24 06:35:36 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.output
+Sun Jan 24 06:35:36 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.error
+Sun Jan 24 06:35:36 2021 +0000 (UTC) 
+Sun Jan 24 06:37:24 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
