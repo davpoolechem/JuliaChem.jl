@@ -1,0 +1,25 @@
+Jobid: 316320
+qsub -O S22_3/6-311++G_2d_2p/2-pyrodixine_2_2-aminopyridine -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/2-pyrodixine_2_2-aminopyridine.sh
+Thu Jan 28 23:18:13 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 316320 submitted from terminal /dev/pts/33
+Thu Jan 28 23:19:16 2021 +0000 (UTC) 
+Thu Jan 28 23:19:16 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake05' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.316320' '--jobid' '316320' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=316320' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/2-pyrodixine_2_2-aminopyridine.sh'
+Thu Jan 28 23:19:16 2021 +0000 (UTC) 
+Thu Jan 28 23:19:16 2021 +0000 (UTC) Environment:
+Thu Jan 28 23:19:16 2021 +0000 (UTC) SHELL=/bin/bash
+Thu Jan 28 23:19:16 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpvrOmhn
+Thu Jan 28 23:19:16 2021 +0000 (UTC) COBALT_PARTNAME=skylake05
+Thu Jan 28 23:19:16 2021 +0000 (UTC) COBALT_JOBID=316320
+Thu Jan 28 23:19:16 2021 +0000 (UTC) COBALT_STARTTIME=1611875941
+Thu Jan 28 23:19:16 2021 +0000 (UTC) LOGNAME=davpoolechem
+Thu Jan 28 23:19:16 2021 +0000 (UTC) USER=davpoolechem
+Thu Jan 28 23:19:16 2021 +0000 (UTC) COBALT_ENDTIME=1611897541
+Thu Jan 28 23:19:16 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Thu Jan 28 23:19:16 2021 +0000 (UTC) HOME=/home/davpoolechem
+Thu Jan 28 23:19:16 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Thu Jan 28 23:19:16 2021 +0000 (UTC) 
+Thu Jan 28 23:19:16 2021 +0000 (UTC) Info: stdin received from /dev/null
+Thu Jan 28 23:19:16 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/2-pyrodixine_2_2-aminopyridine.output
+Thu Jan 28 23:19:16 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/2-pyrodixine_2_2-aminopyridine.error
+Thu Jan 28 23:19:16 2021 +0000 (UTC) 
+Thu Jan 28 23:26:32 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

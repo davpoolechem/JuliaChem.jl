@@ -1,0 +1,25 @@
+Jobid: 316338
+qsub -O S22_3/6-311++G_2d_2p/formic_acid_trimer -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/formic_acid_trimer.sh
+Thu Jan 28 23:18:16 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 316338 submitted from terminal /dev/pts/33
+Thu Jan 28 23:32:02 2021 +0000 (UTC) 
+Thu Jan 28 23:32:02 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake04' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.316338' '--jobid' '316338' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=316338' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.sh'
+Thu Jan 28 23:32:02 2021 +0000 (UTC) 
+Thu Jan 28 23:32:02 2021 +0000 (UTC) Environment:
+Thu Jan 28 23:32:02 2021 +0000 (UTC) SHELL=/bin/bash
+Thu Jan 28 23:32:02 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpZsH6gd
+Thu Jan 28 23:32:02 2021 +0000 (UTC) COBALT_PARTNAME=skylake04
+Thu Jan 28 23:32:02 2021 +0000 (UTC) COBALT_JOBID=316338
+Thu Jan 28 23:32:02 2021 +0000 (UTC) COBALT_STARTTIME=1611876708
+Thu Jan 28 23:32:02 2021 +0000 (UTC) LOGNAME=davpoolechem
+Thu Jan 28 23:32:02 2021 +0000 (UTC) USER=davpoolechem
+Thu Jan 28 23:32:02 2021 +0000 (UTC) COBALT_ENDTIME=1611898308
+Thu Jan 28 23:32:02 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Thu Jan 28 23:32:02 2021 +0000 (UTC) HOME=/home/davpoolechem
+Thu Jan 28 23:32:02 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Thu Jan 28 23:32:02 2021 +0000 (UTC) 
+Thu Jan 28 23:32:02 2021 +0000 (UTC) Info: stdin received from /dev/null
+Thu Jan 28 23:32:02 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.output
+Thu Jan 28 23:32:02 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/formic_acid_trimer.error
+Thu Jan 28 23:32:02 2021 +0000 (UTC) 
+Thu Jan 28 23:32:34 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
