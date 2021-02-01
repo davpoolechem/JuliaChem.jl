@@ -47,8 +47,8 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
   Memory set to 476.837 MiB by Python driver.
   Threads set to 56 by Python driver.
 
-*** tstart() called on skylake04
-*** at Sun Jan 24 16:43:49 2021
+*** tstart() called on skylake08
+*** at Sat Jan 30 23:46:53 2021
 
    => Loading Basis Set <=
 
@@ -64,37 +64,37 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
                         Total Energy        Delta E     RMS |[F,P]|
 
-   @RHF iter   1:  -501.60054545255264   -5.01601e+02   3.89575e-02 DIIS
-   @RHF iter   2:   -54.01368373118353    4.47587e+02   3.66580e-02 DIIS
-   @RHF iter   3:  -146.27597914847061   -9.22623e+01   4.06668e-02 DIIS
-   @RHF iter   4:  -682.80405894622129   -5.36528e+02   1.94661e-02 DIIS
-   @RHF iter   5:  -151.54121816650738    5.31263e+02   3.60931e-02 DIIS
-   @RHF iter   6:  -770.50195364651802   -6.18961e+02   1.69726e-02 DIIS
-   @RHF iter   7:  -896.47739386013154   -1.25975e+02   9.05792e-03 DIIS
-   @RHF iter   8:  -740.57267932720129    1.55905e+02   1.60285e-02 DIIS
-   @RHF iter   9:  -858.40004021217851   -1.17827e+02   1.18909e-02 DIIS
-   @RHF iter  10:  -934.86461837811646   -7.64646e+01   3.90369e-03 DIIS
-   @RHF iter  11:  -914.49314500999162    2.03715e+01   6.02738e-03 DIIS
-   @RHF iter  12:  -943.41032149819341   -2.89172e+01   1.59449e-03 DIIS
-   @RHF iter  13:  -944.86321649675494   -1.45289e+00   9.46640e-04 DIIS
-   @RHF iter  14:  -945.12953761469203   -2.66321e-01   3.20214e-04 DIIS
-   @RHF iter  15:  -945.15950194167715   -2.99643e-02   1.78709e-04 DIIS
-   @RHF iter  16:  -945.17242440471296   -1.29225e-02   8.68196e-05 DIIS
-   @RHF iter  17:  -945.17513003886074   -2.70563e-03   4.10057e-05 DIIS
-   @RHF iter  18:  -945.17590992283999   -7.79884e-04   1.61779e-05 DIIS
+   @RHF iter   1:  -501.60054545255412   -5.01601e+02   3.89575e-02 DIIS
+   @RHF iter   2:   -54.01368373114468    4.47587e+02   3.66580e-02 DIIS
+   @RHF iter   3:  -146.27597915023401   -9.22623e+01   4.06668e-02 DIIS
+   @RHF iter   4:  -682.80405894197020   -5.36528e+02   1.94661e-02 DIIS
+   @RHF iter   5:  -151.54121816992262    5.31263e+02   3.60931e-02 DIIS
+   @RHF iter   6:  -770.50195365524587   -6.18961e+02   1.69726e-02 DIIS
+   @RHF iter   7:  -896.47739385789953   -1.25975e+02   9.05792e-03 DIIS
+   @RHF iter   8:  -740.57267940476538    1.55905e+02   1.60285e-02 DIIS
+   @RHF iter   9:  -858.40004055186762   -1.17827e+02   1.18909e-02 DIIS
+   @RHF iter  10:  -934.86461905120552   -7.64646e+01   3.90369e-03 DIIS
+   @RHF iter  11:  -914.49314335507211    2.03715e+01   6.02738e-03 DIIS
+   @RHF iter  12:  -943.41032194375532   -2.89172e+01   1.59449e-03 DIIS
+   @RHF iter  13:  -944.86321649096499   -1.45289e+00   9.46640e-04 DIIS
+   @RHF iter  14:  -945.12953761278823   -2.66321e-01   3.20214e-04 DIIS
+   @RHF iter  15:  -945.15950193774370   -2.99643e-02   1.78709e-04 DIIS
+   @RHF iter  16:  -945.17242440375389   -1.29225e-02   8.68197e-05 DIIS
+   @RHF iter  17:  -945.17513003881857   -2.70564e-03   4.10057e-05 DIIS
+   @RHF iter  18:  -945.17590992290548   -7.79884e-04   1.61779e-05 DIIS
   Energy and wave function converged.
 
 
   ==> Post-Iterations <==
 
-  @RHF Final Energy:  -945.17590992283999
+  @RHF Final Energy:  -945.17590992290548
 
    => Energetics <=
 
     Nuclear Repulsion Energy =           1515.1929281651498513
-    One-Electron Energy =               -4297.2631128350139988
-    Two-Electron Energy =                1836.8942747470239283
-    Total Energy =                       -945.1759099228399919
+    One-Electron Energy =               -4297.2631128451930635
+    Two-Electron Energy =                1836.8942747571375094
+    Total Energy =                       -945.1759099229054755
 
 Computation Completed
 
@@ -116,12 +116,12 @@ Properties computed using the SCF density matrix
      X:    -0.8721      Y:     4.9739      Z:     0.8609     Total:     5.1226
 
 
-*** tstop() called on skylake04 at Sun Jan 24 16:53:31 2021
+*** tstop() called on skylake08 at Sat Jan 30 23:56:49 2021
 Module time:
-	user time   =   26614.88 seconds =     443.58 minutes
-	system time =      38.68 seconds =       0.64 minutes
-	total time  =        582 seconds =       9.70 minutes
+	user time   =   27472.86 seconds =     457.88 minutes
+	system time =      40.33 seconds =       0.67 minutes
+	total time  =        596 seconds =       9.93 minutes
 Total time:
-	user time   =   26614.88 seconds =     443.58 minutes
-	system time =      38.68 seconds =       0.64 minutes
-	total time  =        582 seconds =       9.70 minutes
+	user time   =   27472.86 seconds =     457.88 minutes
+	system time =      40.33 seconds =       0.67 minutes
+	total time  =        596 seconds =       9.93 minutes

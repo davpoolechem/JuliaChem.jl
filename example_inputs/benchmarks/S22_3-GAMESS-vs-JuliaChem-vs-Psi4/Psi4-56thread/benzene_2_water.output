@@ -47,8 +47,8 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
   Memory set to 476.837 MiB by Python driver.
   Threads set to 56 by Python driver.
 
-*** tstart() called on skylake01
-*** at Sun Jan 24 16:41:13 2021
+*** tstart() called on skylake12
+*** at Sat Jan 30 23:52:44 2021
 
    => Loading Basis Set <=
 
@@ -63,32 +63,32 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
                         Total Energy        Delta E     RMS |[F,P]|
 
-   @RHF iter   1:  -408.39050576989615   -4.08391e+02   3.48342e-02 DIIS
-   @RHF iter   2:  -362.56429069364799    4.58262e+01   1.99580e-02 DIIS
-   @RHF iter   3:  -436.89512905398590   -7.43308e+01   2.05176e-02 DIIS
-   @RHF iter   4:  -517.44858092292566   -8.05535e+01   1.07664e-02 DIIS
-   @RHF iter   5:  -494.18888619136027    2.32597e+01   1.12762e-02 DIIS
-   @RHF iter   6:  -503.89128704769450   -9.70240e+00   9.31356e-03 DIIS
-   @RHF iter   7:  -531.95050858037916   -2.80592e+01   4.06154e-03 DIIS
-   @RHF iter   8:  -537.31360307470777   -5.36309e+00   1.28280e-03 DIIS
-   @RHF iter   9:  -537.56805365823266   -2.54451e-01   4.08342e-04 DIIS
-   @RHF iter  10:  -537.58912865567311   -2.10750e-02   1.98915e-04 DIIS
-   @RHF iter  11:  -537.59516308950094   -6.03443e-03   1.03623e-04 DIIS
-   @RHF iter  12:  -537.59706134410658   -1.89825e-03   4.35832e-05 DIIS
-   @RHF iter  13:  -537.59741340571964   -3.52062e-04   1.52413e-05 DIIS
+   @RHF iter   1:  -408.39050576989359   -4.08391e+02   3.48342e-02 DIIS
+   @RHF iter   2:  -362.56429102958498    4.58262e+01   1.99580e-02 DIIS
+   @RHF iter   3:  -436.89512927882009   -7.43308e+01   2.05176e-02 DIIS
+   @RHF iter   4:  -517.44858093970379   -8.05535e+01   1.07664e-02 DIIS
+   @RHF iter   5:  -494.18888604092126    2.32597e+01   1.12762e-02 DIIS
+   @RHF iter   6:  -503.89128753394635   -9.70240e+00   9.31356e-03 DIIS
+   @RHF iter   7:  -531.95050869694182   -2.80592e+01   4.06154e-03 DIIS
+   @RHF iter   8:  -537.31360305466501   -5.36309e+00   1.28280e-03 DIIS
+   @RHF iter   9:  -537.56805365369382   -2.54451e-01   4.08342e-04 DIIS
+   @RHF iter  10:  -537.58912865308173   -2.10750e-02   1.98915e-04 DIIS
+   @RHF iter  11:  -537.59516308873640   -6.03444e-03   1.03623e-04 DIIS
+   @RHF iter  12:  -537.59706134404655   -1.89826e-03   4.35832e-05 DIIS
+   @RHF iter  13:  -537.59741340572180   -3.52062e-04   1.52413e-05 DIIS
   Energy and wave function converged.
 
 
   ==> Post-Iterations <==
 
-  @RHF Final Energy:  -537.59741340571964
+  @RHF Final Energy:  -537.59741340572180
 
    => Energetics <=
 
     Nuclear Repulsion Energy =            709.8793489809113453
-    One-Electron Energy =               -2136.8412785957748383
-    Two-Electron Energy =                 889.3645162091438578
-    Total Energy =                       -537.5974134057196352
+    One-Electron Energy =               -2136.8412785955533764
+    Two-Electron Energy =                 889.3645162089202358
+    Total Energy =                       -537.5974134057217952
 
 Computation Completed
 
@@ -110,12 +110,12 @@ Properties computed using the SCF density matrix
      X:     0.4369      Y:    -1.8871      Z:    -0.5853     Total:     2.0235
 
 
-*** tstop() called on skylake01 at Sun Jan 24 16:43:56 2021
+*** tstop() called on skylake12 at Sat Jan 30 23:56:49 2021
 Module time:
-	user time   =    7058.26 seconds =     117.64 minutes
-	system time =      22.85 seconds =       0.38 minutes
-	total time  =        163 seconds =       2.72 minutes
+	user time   =   11695.53 seconds =     194.93 minutes
+	system time =      25.96 seconds =       0.43 minutes
+	total time  =        245 seconds =       4.08 minutes
 Total time:
-	user time   =    7058.26 seconds =     117.64 minutes
-	system time =      22.85 seconds =       0.38 minutes
-	total time  =        163 seconds =       2.72 minutes
+	user time   =   11695.53 seconds =     194.93 minutes
+	system time =      25.96 seconds =       0.43 minutes
+	total time  =        245 seconds =       4.08 minutes

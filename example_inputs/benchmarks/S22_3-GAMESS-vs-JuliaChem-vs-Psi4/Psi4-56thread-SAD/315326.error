@@ -1,0 +1,17 @@
+/home/davpoolechem/.bashrc: line 7: /etc/profile.d/modules.sh: No such file or directory
+/home/davpoolechem/.bashrc: line 9: module: command not found
+/home/davpoolechem/programs/env/cuda.sh: line 2: module: command not found
+/home/davpoolechem/programs/env/cuda.sh: line 4: module: command not found
+/home/davpoolechem/programs/env/cuda.sh: line 7: module: command not found
+/home/davpoolechem/programs/env/cuda.sh: line 33: impl/julia.sh: No such file or directory
+/home/davpoolechem/.bashrc: line 52: module: command not found
+loading depenency gcc module
+
+Loading llvm/master-latest
+  Loading requirement: gcc/7.4.0
+/home/davpoolechem/programs/env/cuda.sh: line 33: impl/julia.sh: No such file or directory
+    
+    Activate the base conda environment doing:
+    $ source $IDPROOT/bin/activate 
+    
+Killed by signal 15.

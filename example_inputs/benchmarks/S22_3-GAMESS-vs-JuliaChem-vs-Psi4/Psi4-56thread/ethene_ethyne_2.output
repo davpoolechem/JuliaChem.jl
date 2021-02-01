@@ -47,8 +47,8 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
   Memory set to 476.837 MiB by Python driver.
   Threads set to 56 by Python driver.
 
-*** tstart() called on skylake10
-*** at Sun Jan 24 16:41:14 2021
+*** tstart() called on skylake04
+*** at Sat Jan 30 23:48:06 2021
 
    => Loading Basis Set <=
 
@@ -62,33 +62,33 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
                         Total Energy        Delta E     RMS |[F,P]|
 
-   @RHF iter   1:  -169.95796075201551   -1.69958e+02   5.02665e-02 DIIS
-   @RHF iter   2:  -168.17899069161791    1.77897e+00   2.62882e-02 DIIS
-   @RHF iter   3:  -158.41261002940280    9.76638e+00   2.79726e-02 DIIS
-   @RHF iter   4:  -213.43360515371032   -5.50210e+01   1.86386e-02 DIIS
-   @RHF iter   5:  -214.36391085807514   -9.30306e-01   1.44725e-02 DIIS
-   @RHF iter   6:  -218.36173690471577   -3.99783e+00   9.47764e-03 DIIS
-   @RHF iter   7:  -204.77890336390266    1.35828e+01   1.47347e-02 DIIS
-   @RHF iter   8:  -231.59961259297069   -2.68207e+01   1.98502e-03 DIIS
-   @RHF iter   9:  -231.73250997105822   -1.32897e-01   7.03118e-04 DIIS
-   @RHF iter  10:  -231.75035794998561   -1.78480e-02   3.60175e-04 DIIS
-   @RHF iter  11:  -231.75474565176125   -4.38770e-03   1.94948e-04 DIIS
-   @RHF iter  12:  -231.75640154032780   -1.65589e-03   8.60575e-05 DIIS
-   @RHF iter  13:  -231.75675725528529   -3.55715e-04   3.57795e-05 DIIS
-   @RHF iter  14:  -231.75682537272237   -6.81174e-05   4.46041e-06 DIIS
+   @RHF iter   1:  -169.95796075201568   -1.69958e+02   5.02665e-02 DIIS
+   @RHF iter   2:  -168.17899069156167    1.77897e+00   2.62882e-02 DIIS
+   @RHF iter   3:  -158.41261002937742    9.76638e+00   2.79726e-02 DIIS
+   @RHF iter   4:  -213.43360515378328   -5.50210e+01   1.86386e-02 DIIS
+   @RHF iter   5:  -214.36391085814887   -9.30306e-01   1.44725e-02 DIIS
+   @RHF iter   6:  -218.36173690468036   -3.99783e+00   9.47764e-03 DIIS
+   @RHF iter   7:  -204.77890336419472    1.35828e+01   1.47347e-02 DIIS
+   @RHF iter   8:  -231.59961259297745   -2.68207e+01   1.98502e-03 DIIS
+   @RHF iter   9:  -231.73250997106160   -1.32897e-01   7.03118e-04 DIIS
+   @RHF iter  10:  -231.75035794998735   -1.78480e-02   3.60175e-04 DIIS
+   @RHF iter  11:  -231.75474565176145   -4.38770e-03   1.94948e-04 DIIS
+   @RHF iter  12:  -231.75640154032789   -1.65589e-03   8.60575e-05 DIIS
+   @RHF iter  13:  -231.75675725528501   -3.55715e-04   3.57795e-05 DIIS
+   @RHF iter  14:  -231.75682537272212   -6.81174e-05   4.46041e-06 DIIS
   Energy and wave function converged.
 
 
   ==> Post-Iterations <==
 
-  @RHF Final Energy:  -231.75682537272237
+  @RHF Final Energy:  -231.75682537272212
 
    => Energetics <=
 
     Nuclear Repulsion Energy =            149.0797272953885511
-    One-Electron Energy =                -605.5292364171697272
-    Two-Electron Energy =                 224.6926837490587729
-    Total Energy =                       -231.7568253727223748
+    One-Electron Energy =                -605.5292364171707504
+    Two-Electron Energy =                 224.6926837490600519
+    Total Energy =                       -231.7568253727221190
 
 Computation Completed
 
@@ -110,12 +110,12 @@ Properties computed using the SCF density matrix
      X:     0.0450      Y:     0.0007      Z:     0.0012     Total:     0.0451
 
 
-*** tstop() called on skylake10 at Sun Jan 24 16:41:52 2021
+*** tstop() called on skylake04 at Sat Jan 30 23:48:29 2021
 Module time:
-	user time   =    1585.08 seconds =      26.42 minutes
-	system time =       6.96 seconds =       0.12 minutes
-	total time  =         38 seconds =       0.63 minutes
+	user time   =     766.19 seconds =      12.77 minutes
+	system time =       5.83 seconds =       0.10 minutes
+	total time  =         23 seconds =       0.38 minutes
 Total time:
-	user time   =    1585.08 seconds =      26.42 minutes
-	system time =       6.96 seconds =       0.12 minutes
-	total time  =         38 seconds =       0.63 minutes
+	user time   =     766.19 seconds =      12.77 minutes
+	system time =       5.83 seconds =       0.10 minutes
+	total time  =         23 seconds =       0.38 minutes

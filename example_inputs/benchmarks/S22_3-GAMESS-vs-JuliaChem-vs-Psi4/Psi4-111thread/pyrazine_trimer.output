@@ -1,0 +1,125 @@
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+
+  Memory set to 476.837 MiB by Python driver.
+  Threads set to 111 by Python driver.
+
+*** tstart() called on skylake09
+*** at Fri Jan 29 01:05:22 2021
+
+   => Loading Basis Set <=
+
+    Name: 6-311++G(2D,2P)
+    Role: ORBITAL
+    Keyword: BASIS
+    atoms 1-2, 4-5, 11-12, 14-15, 21, 25-26, 29 entry C          line    21 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+    atoms 3, 6, 13, 16, 22, 28                  entry N          line    54 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+    atoms 7-10, 17-20, 23-24, 27, 30            entry H          line     5 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+
+  ==> Iterations <==
+
+                        Total Energy        Delta E     RMS |[F,P]|
+
+   @RHF iter   1:  -508.42326794696339   -5.08423e+02   3.51871e-02 DIIS
+   @RHF iter   2:  -278.90873232161300    2.29515e+02   2.87341e-02 DIIS
+   @RHF iter   3:  -541.83931950364922   -2.62931e+02   2.07034e-02 DIIS
+   @RHF iter   4:  -221.70057063389834    3.20139e+02   4.08564e-02 DIIS
+   @RHF iter   5:  -722.19448685052521   -5.00494e+02   1.35703e-02 DIIS
+   @RHF iter   6:  -628.80825954259842    9.33862e+01   1.66277e-02 DIIS
+   @RHF iter   7:  -703.90622511624053   -7.50980e+01   1.26453e-02 DIIS
+   @RHF iter   8:  -709.97622285296188   -6.07000e+00   9.61446e-03 DIIS
+   @RHF iter   9:  -768.10647439961360   -5.81303e+01   5.61080e-03 DIIS
+   @RHF iter  10:  -785.45886019511670   -1.73524e+01   2.73868e-03 DIIS
+   @RHF iter  11:  -788.05917378285403   -2.60031e+00   9.85571e-04 DIIS
+   @RHF iter  12:  -788.24798635905006   -1.88813e-01   2.76317e-04 DIIS
+   @RHF iter  13:  -788.26418167677457   -1.61953e-02   1.46127e-04 DIIS
+   @RHF iter  14:  -788.26865495530183   -4.47328e-03   8.05025e-05 DIIS
+   @RHF iter  15:  -788.27002906232337   -1.37411e-03   4.45315e-05 DIIS
+   @RHF iter  16:  -788.27048303349568   -4.53971e-04   2.31450e-05 DIIS
+   @RHF iter  17:  -788.27062973638897   -1.46703e-04   8.75861e-06 DIIS
+  Energy and wave function converged.
+
+
+  ==> Post-Iterations <==
+
+  @RHF Final Energy:  -788.27062973638897
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =           1213.0309950410182864
+    One-Electron Energy =               -3478.9863079075098540
+    Two-Electron Energy =                1477.6846831301027123
+    Total Energy =                       -788.2706297363888552
+
+Computation Completed
+
+
+Properties will be evaluated at   0.000000,   0.000000,   0.000000 [a0]
+
+Properties computed using the SCF density matrix
+
+  Nuclear Dipole Moment: [e a0]
+     X:    -0.0057      Y:    -0.0089      Z:    -0.0031
+
+  Electronic Dipole Moment: [e a0]
+     X:     0.0817      Y:    -0.0103      Z:     0.0802
+
+  Dipole Moment: [e a0]
+     X:     0.0760      Y:    -0.0192      Z:     0.0771     Total:     0.1099
+
+  Dipole Moment: [D]
+     X:     0.1932      Y:    -0.0488      Z:     0.1959     Total:     0.2794
+
+
+*** tstop() called on skylake09 at Fri Jan 29 01:15:56 2021
+Module time:
+	user time   =   54276.72 seconds =     904.61 minutes
+	system time =      91.68 seconds =       1.53 minutes
+	total time  =        634 seconds =      10.57 minutes
+Total time:
+	user time   =   54276.72 seconds =     904.61 minutes
+	system time =      91.68 seconds =       1.53 minutes
+	total time  =        634 seconds =      10.57 minutes

@@ -47,8 +47,8 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
   Memory set to 476.837 MiB by Python driver.
   Threads set to 56 by Python driver.
 
-*** tstart() called on skylake03
-*** at Sun Jan 24 16:42:06 2021
+*** tstart() called on skylake07
+*** at Sat Jan 30 23:51:22 2021
 
    => Loading Basis Set <=
 
@@ -64,47 +64,47 @@ CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
 
                         Total Energy        Delta E     RMS |[F,P]|
 
-   @RHF iter   1:  -496.92637049546198   -4.96926e+02   3.68278e-02 DIIS
-   @RHF iter   2:   472.90954006664003    9.69836e+02   4.19698e-02 DIIS
-   @RHF iter   3:  -743.62077404667923   -1.21653e+03   2.27161e-02 DIIS
-   @RHF iter   4:  -135.90799744870611    6.07713e+02   3.26090e-02 DIIS
-   @RHF iter   5:  -620.85657619038716   -4.84949e+02   2.46353e-02 DIIS
-   @RHF iter   6:   -14.27840369382429    6.06578e+02   3.14932e-02 DIIS
-   @RHF iter   7: -1071.69340669560756   -1.05742e+03   1.30903e-02 DIIS
-   @RHF iter   8:  -143.14534646579165    9.28548e+02   3.38813e-02 DIIS
-   @RHF iter   9:  -715.84500369289981   -5.72700e+02   2.00323e-02 DIIS
-   @RHF iter  10: -1278.47714961208567   -5.62632e+02   7.37028e-03 DIIS
-   @RHF iter  11:  -555.75437537624066    7.22723e+02   2.69681e-02 DIIS
-   @RHF iter  12:  -856.62412810497131   -3.00870e+02   1.97488e-02 DIIS
-   @RHF iter  13: -1024.49425630664723   -1.67870e+02   1.61174e-02 DIIS
-   @RHF iter  14: -1060.79457660508479   -3.63003e+01   1.47332e-02 DIIS
-   @RHF iter  15:  -952.93838358099242    1.07856e+02   1.68731e-02 DIIS
-   @RHF iter  16:  -999.25383727540668   -4.63155e+01   1.61710e-02 DIIS
-   @RHF iter  17:  -919.63768318105508    7.96162e+01   1.78056e-02 DIIS
-   @RHF iter  18:  -946.95431109245203   -2.73166e+01   1.73326e-02 DIIS
-   @RHF iter  19: -1165.13616578580991   -2.18182e+02   1.10548e-02 DIIS
-   @RHF iter  20: -1340.52799876300037   -1.75392e+02   4.58553e-03 DIIS
-   @RHF iter  21: -1351.29527066847777   -1.07673e+01   3.91369e-03 DIIS
-   @RHF iter  22: -1365.30237869013240   -1.40071e+01   1.42666e-03 DIIS
-   @RHF iter  23: -1367.86574905491852   -2.56337e+00   5.16480e-04 DIIS
-   @RHF iter  24: -1367.96951207724783   -1.03763e-01   1.88938e-04 DIIS
-   @RHF iter  25: -1367.98523385775479   -1.57218e-02   1.10043e-04 DIIS
-   @RHF iter  26: -1367.99145410760934   -6.22025e-03   5.70093e-05 DIIS
-   @RHF iter  27: -1367.99337705537278   -1.92295e-03   2.32401e-05 DIIS
-   @RHF iter  28: -1367.99377984038597   -4.02785e-04   8.38159e-06 DIIS
+   @RHF iter   1:  -496.92637049546636   -4.96926e+02   3.68278e-02 DIIS
+   @RHF iter   2:   472.90954006673576    9.69836e+02   4.19698e-02 DIIS
+   @RHF iter   3:  -743.62077400828844   -1.21653e+03   2.27161e-02 DIIS
+   @RHF iter   4:  -135.90799731728140    6.07713e+02   3.26090e-02 DIIS
+   @RHF iter   5:  -620.85657601903836   -4.84949e+02   2.46353e-02 DIIS
+   @RHF iter   6:   -14.27840236496181    6.06578e+02   3.14932e-02 DIIS
+   @RHF iter   7: -1071.69340623652306   -1.05742e+03   1.30903e-02 DIIS
+   @RHF iter   8:  -143.14534710657657    9.28548e+02   3.38813e-02 DIIS
+   @RHF iter   9:  -715.84500389684683   -5.72700e+02   2.00323e-02 DIIS
+   @RHF iter  10: -1278.47714973456505   -5.62632e+02   7.37028e-03 DIIS
+   @RHF iter  11:  -555.75437491658090    7.22723e+02   2.69681e-02 DIIS
+   @RHF iter  12:  -856.62412754893808   -3.00870e+02   1.97488e-02 DIIS
+   @RHF iter  13: -1024.49422877946586   -1.67870e+02   1.61174e-02 DIIS
+   @RHF iter  14: -1060.79454603328531   -3.63003e+01   1.47332e-02 DIIS
+   @RHF iter  15:  -952.93839140670150    1.07856e+02   1.68731e-02 DIIS
+   @RHF iter  16:  -999.25384393153399   -4.63155e+01   1.61710e-02 DIIS
+   @RHF iter  17:  -919.63769368742408    7.96162e+01   1.78056e-02 DIIS
+   @RHF iter  18:  -946.95431887823770   -2.73166e+01   1.73326e-02 DIIS
+   @RHF iter  19: -1165.13617506635251   -2.18182e+02   1.10548e-02 DIIS
+   @RHF iter  20: -1340.52800151841780   -1.75392e+02   4.58553e-03 DIIS
+   @RHF iter  21: -1351.29526711833341   -1.07673e+01   3.91369e-03 DIIS
+   @RHF iter  22: -1365.30237906548496   -1.40071e+01   1.42666e-03 DIIS
+   @RHF iter  23: -1367.86574901414997   -2.56337e+00   5.16480e-04 DIIS
+   @RHF iter  24: -1367.96951205859182   -1.03763e-01   1.88938e-04 DIIS
+   @RHF iter  25: -1367.98523384969167   -1.57218e-02   1.10043e-04 DIIS
+   @RHF iter  26: -1367.99145410557048   -6.22026e-03   5.70093e-05 DIIS
+   @RHF iter  27: -1367.99337705512266   -1.92295e-03   2.32401e-05 DIIS
+   @RHF iter  28: -1367.99377984037574   -4.02785e-04   8.38159e-06 DIIS
   Energy and wave function converged.
 
 
   ==> Post-Iterations <==
 
-  @RHF Final Energy: -1367.99377984038597
+  @RHF Final Energy: -1367.99377984037574
 
    => Energetics <=
 
     Nuclear Repulsion Energy =           2404.5713991341976907
-    One-Electron Energy =               -6646.8231839409263557
-    Two-Electron Energy =                2874.2580049663429236
-    Total Energy =                      -1367.9937798403861962
+    One-Electron Energy =               -6646.8231839668742396
+    Two-Electron Energy =                2874.2580049923012666
+    Total Energy =                      -1367.9937798403757370
 
 Computation Completed
 
@@ -126,12 +126,12 @@ Properties computed using the SCF density matrix
      X:     0.8505      Y:    -3.4182      Z:     6.2375     Total:     7.1634
 
 
-*** tstop() called on skylake03 at Sun Jan 24 17:10:21 2021
+*** tstop() called on skylake07 at Sun Jan 31 00:22:24 2021
 Module time:
-	user time   =   79862.14 seconds =    1331.04 minutes
-	system time =      87.13 seconds =       1.45 minutes
-	total time  =       1695 seconds =      28.25 minutes
+	user time   =   89166.69 seconds =    1486.11 minutes
+	system time =      81.64 seconds =       1.36 minutes
+	total time  =       1862 seconds =      31.03 minutes
 Total time:
-	user time   =   79862.14 seconds =    1331.04 minutes
-	system time =      87.13 seconds =       1.45 minutes
-	total time  =       1695 seconds =      28.25 minutes
+	user time   =   89166.69 seconds =    1486.11 minutes
+	system time =      81.64 seconds =       1.36 minutes
+	total time  =       1862 seconds =      31.03 minutes
