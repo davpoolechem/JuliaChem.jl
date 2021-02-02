@@ -1,0 +1,25 @@
+Jobid: 317656
+qsub -O /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/w7.6_112thread -A CHM135 -q skylake_8180 -t 360 -n 1 /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/w7.6_112thread.sh
+Tue Feb 02 18:21:15 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
+jobid 317656 submitted from terminal /dev/pts/157
+Tue Feb 02 18:21:56 2021 +0000 (UTC) 
+Tue Feb 02 18:21:56 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake12' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.317656' '--jobid' '317656' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=317656' '/home/davpoolechem/shared/projects/Julia/JuliaChem.jl/w7.6_112thread.sh'
+Tue Feb 02 18:21:56 2021 +0000 (UTC) 
+Tue Feb 02 18:21:56 2021 +0000 (UTC) Environment:
+Tue Feb 02 18:21:56 2021 +0000 (UTC) SHELL=/bin/bash
+Tue Feb 02 18:21:56 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp97EBE0
+Tue Feb 02 18:21:56 2021 +0000 (UTC) COBALT_PARTNAME=skylake12
+Tue Feb 02 18:21:56 2021 +0000 (UTC) COBALT_JOBID=317656
+Tue Feb 02 18:21:56 2021 +0000 (UTC) COBALT_STARTTIME=1612290101
+Tue Feb 02 18:21:56 2021 +0000 (UTC) LOGNAME=davpoolechem
+Tue Feb 02 18:21:56 2021 +0000 (UTC) USER=davpoolechem
+Tue Feb 02 18:21:56 2021 +0000 (UTC) COBALT_ENDTIME=1612311701
+Tue Feb 02 18:21:56 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Tue Feb 02 18:21:56 2021 +0000 (UTC) HOME=/home/davpoolechem
+Tue Feb 02 18:21:56 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Tue Feb 02 18:21:56 2021 +0000 (UTC) 
+Tue Feb 02 18:21:56 2021 +0000 (UTC) Info: stdin received from /dev/null
+Tue Feb 02 18:21:56 2021 +0000 (UTC) Info: stdout sent to /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/w7.6_112thread.output
+Tue Feb 02 18:21:56 2021 +0000 (UTC) Info: stderr sent to /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/w7.6_112thread.error
+Tue Feb 02 18:21:56 2021 +0000 (UTC) 
+Tue Feb 02 19:00:59 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

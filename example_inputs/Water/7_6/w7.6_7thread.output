@@ -1,0 +1,80 @@
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+--------------------------------------------------------------------------------
+                       ========================================                 
+                                RESTRICTED CLOSED-SHELL                         
+                                  HARTREE-FOCK ENERGY                           
+                       ========================================                 
+
+----------------------------------------          
+       Starting RHF iterations...                 
+----------------------------------------          
+ 
+Iter        Energy                ΔE                Drms
+1      -2159.0155487615      -2159.0155487615      1330.4460590475
+2      -3967.3092500613      -1808.2937012998      455.7429168019
+3      -4216.3635698069      -249.0543197456      570.0085276293
+4      -4337.6540288009      -121.2904589940      524.2739164339
+5      -4325.6519910698      12.0020377312      399.1413366268
+6      -4527.0298251281      -201.3778340583      228.9678463304
+7      -4113.7553096155      413.2745155125      83.6554924257
+8      -4088.9284611351      24.8268484804      27.8828476279
+9      -4072.8234670543      16.1049940808      28.8840832549
+10      -4065.4348047784      7.3886622759      19.4504309386
+11      -7525.8049362606      -3460.3701314822      1296.8210207371
+12      -6312.6146100104      1213.1903262502      880.7231062421
+13      -6055.9258639223      256.6887460882      260.3301530072
+14      -5656.5306100224      399.3952538999      205.1403380839
+15      -5419.3005375152      237.2300725072      201.4539526377
+16      -5001.2615707267      418.0389667885      130.3075491887
+17      -4804.8789287494      196.3826419773      26.1794015340
+18      -4796.4923578069      8.3865709425      16.8471744385
+19      -4827.8981575814      -31.4057997745      6.7783437506
+20      -4845.5214916011      -17.6233340197      4.3653628568
+21      -4857.9086002153      -12.3871086142      1.0702004032
+22      -4860.0733680010      -2.1647677857      0.4649949229
+23      -4862.4809924512      -2.4076244502      0.2904301113
+24      -4864.0573648100      -1.5763723588      0.1830600281
