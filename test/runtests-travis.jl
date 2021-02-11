@@ -1,6 +1,6 @@
 import Test
 
-include("../tools/travis-rhf.jl")
+include("../tools/travis/travis-rhf.jl")
 
 #== select input files ==#
 directory = joinpath(@__DIR__, "../example_inputs/S22/")
