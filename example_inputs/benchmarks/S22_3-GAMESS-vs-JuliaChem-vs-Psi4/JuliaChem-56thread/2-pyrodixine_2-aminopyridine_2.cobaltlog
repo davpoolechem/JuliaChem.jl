@@ -1,0 +1,25 @@
+Jobid: 314630
+qsub -O example_inputs/S22_3/6-311++G_2d_2p/2-pyrodixine_2-aminopyridine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/S22_3/6-311++G_2d_2p/2-pyrodixine_2-aminopyridine_2.sh
+Sun Jan 24 01:05:14 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
+jobid 314630 submitted from terminal /dev/pts/8
+Sun Jan 24 01:06:38 2021 +0000 (UTC) 
+Sun Jan 24 01:06:38 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake02' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.314630' '--jobid' '314630' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=314630' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/2-pyrodixine_2-aminopyridine_2.sh'
+Sun Jan 24 01:06:38 2021 +0000 (UTC) 
+Sun Jan 24 01:06:38 2021 +0000 (UTC) Environment:
+Sun Jan 24 01:06:38 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 24 01:06:38 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmphIUitT
+Sun Jan 24 01:06:38 2021 +0000 (UTC) COBALT_PARTNAME=skylake02
+Sun Jan 24 01:06:38 2021 +0000 (UTC) COBALT_JOBID=314630
+Sun Jan 24 01:06:38 2021 +0000 (UTC) COBALT_STARTTIME=1611450387
+Sun Jan 24 01:06:38 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 24 01:06:38 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 24 01:06:38 2021 +0000 (UTC) COBALT_ENDTIME=1611471987
+Sun Jan 24 01:06:38 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 24 01:06:38 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 24 01:06:38 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 24 01:06:38 2021 +0000 (UTC) 
+Sun Jan 24 01:06:38 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 24 01:06:38 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/2-pyrodixine_2-aminopyridine_2.output
+Sun Jan 24 01:06:38 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/2-pyrodixine_2-aminopyridine_2.error
+Sun Jan 24 01:06:38 2021 +0000 (UTC) 
+Sun Jan 24 01:26:04 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

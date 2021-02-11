@@ -1,0 +1,119 @@
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+
+  Memory set to 476.837 MiB by Python driver.
+  Threads set to 56 by Python driver.
+
+*** tstart() called on skylake11
+*** at Sat Jan 30 23:57:10 2021
+
+   => Loading Basis Set <=
+
+    Name: 6-311++G(2D,2P)
+    Role: ORBITAL
+    Keyword: BASIS
+    atoms 1-2, 7-8, 12, 14     entry C          line    21 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+    atoms 3-6, 9-11, 13, 15-16 entry H          line     5 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+
+  ==> Iterations <==
+
+                        Total Energy        Delta E     RMS |[F,P]|
+
+   @RHF iter   1:  -165.96774490474712   -1.65968e+02   4.50540e-02 DIIS
+   @RHF iter   2:  -186.60790325507961   -2.06402e+01   1.69490e-02 DIIS
+   @RHF iter   3:  -175.04452598163667    1.15634e+01   2.26313e-02 DIIS
+   @RHF iter   4:  -222.98685221339630   -4.79423e+01   1.04672e-02 DIIS
+   @RHF iter   5:  -229.82502035523561   -6.83817e+00   6.88864e-03 DIIS
+   @RHF iter   6:  -230.76334777614130   -9.38327e-01   4.47365e-03 DIIS
+   @RHF iter   7:  -232.92760245405555   -2.16425e+00   9.91765e-04 DIIS
+   @RHF iter   8:  -232.96738676713343   -3.97843e-02   2.27290e-04 DIIS
+   @RHF iter   9:  -232.97080781910648   -3.42105e-03   8.42972e-05 DIIS
+   @RHF iter  10:  -232.97124877138128   -4.40952e-04   4.73171e-05 DIIS
+   @RHF iter  11:  -232.97136649905977   -1.17728e-04   2.48743e-05 DIIS
+   @RHF iter  12:  -232.97140680702049   -4.03080e-05   1.00825e-05 DIIS
+  Energy and wave function converged.
+
+
+  ==> Post-Iterations <==
+
+  @RHF Final Energy:  -232.97140680702049
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =            160.7474290404105659
+    One-Electron Energy =                -630.1392750018584366
+    Two-Electron Energy =                 236.4204391544273847
+    Total Energy =                       -232.9714068070204860
+
+Computation Completed
+
+
+Properties will be evaluated at   0.000000,   0.000000,   0.000000 [a0]
+
+Properties computed using the SCF density matrix
+
+  Nuclear Dipole Moment: [e a0]
+     X:     0.0043      Y:    -0.0833      Z:    -0.0070
+
+  Electronic Dipole Moment: [e a0]
+     X:    -0.0042      Y:     0.0763      Z:     0.0080
+
+  Dipole Moment: [e a0]
+     X:     0.0001      Y:    -0.0071      Z:     0.0009     Total:     0.0071
+
+  Dipole Moment: [D]
+     X:     0.0002      Y:    -0.0180      Z:     0.0023     Total:     0.0181
+
+
+*** tstop() called on skylake11 at Sat Jan 30 23:57:53 2021
+Module time:
+	user time   =    1830.22 seconds =      30.50 minutes
+	system time =      10.01 seconds =       0.17 minutes
+	total time  =         43 seconds =       0.72 minutes
+Total time:
+	user time   =    1830.22 seconds =      30.50 minutes
+	system time =      10.01 seconds =       0.17 minutes
+	total time  =         43 seconds =       0.72 minutes

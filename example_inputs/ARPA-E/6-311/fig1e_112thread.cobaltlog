@@ -1,0 +1,25 @@
+Jobid: 309870
+qsub -O example_inputs/ARPA-E/6-311/fig1e_112thread -A CHM135 -q skylake_8180 -t 360 -n 1 example_inputs/ARPA-E/6-311/fig1e_112thread.sh
+Wed Jan 06 03:57:41 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
+jobid 309870 submitted from terminal /dev/pts/17
+Wed Jan 06 03:58:05 2021 +0000 (UTC) 
+Wed Jan 06 03:58:05 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake09' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.309870' '--jobid' '309870' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=309870' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_112thread.sh'
+Wed Jan 06 03:58:05 2021 +0000 (UTC) 
+Wed Jan 06 03:58:05 2021 +0000 (UTC) Environment:
+Wed Jan 06 03:58:05 2021 +0000 (UTC) SHELL=/bin/bash
+Wed Jan 06 03:58:05 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpgwQ_rs
+Wed Jan 06 03:58:05 2021 +0000 (UTC) COBALT_PARTNAME=skylake09
+Wed Jan 06 03:58:05 2021 +0000 (UTC) COBALT_JOBID=309870
+Wed Jan 06 03:58:05 2021 +0000 (UTC) COBALT_STARTTIME=1609905475
+Wed Jan 06 03:58:05 2021 +0000 (UTC) LOGNAME=davpoolechem
+Wed Jan 06 03:58:05 2021 +0000 (UTC) USER=davpoolechem
+Wed Jan 06 03:58:05 2021 +0000 (UTC) COBALT_ENDTIME=1609927075
+Wed Jan 06 03:58:05 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Wed Jan 06 03:58:05 2021 +0000 (UTC) HOME=/home/davpoolechem
+Wed Jan 06 03:58:05 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Wed Jan 06 03:58:05 2021 +0000 (UTC) 
+Wed Jan 06 03:58:05 2021 +0000 (UTC) Info: stdin received from /dev/null
+Wed Jan 06 03:58:05 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_112thread.output
+Wed Jan 06 03:58:05 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/ARPA-E/6-311/fig1e_112thread.error
+Wed Jan 06 03:58:05 2021 +0000 (UTC) 
+Wed Jan 06 04:04:45 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

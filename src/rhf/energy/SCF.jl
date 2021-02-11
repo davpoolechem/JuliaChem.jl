@@ -105,14 +105,22 @@ function rhf_kernel(mol::Molecule,
   workspace_c = [ similar(F) ]
 
   #== build the orthogonalization matrix ==#
-  workspace_b .= S
-  S_eval_diag, workspace_a = eigen!(LinearAlgebra.Hermitian(workspace_b))
+  LinearAlgebra.BLAS.blascopy!(length(S), S, 1, workspace_b, 1)
+  #workspace_b .= S
+  S_eval_diag, workspace_a[:,:] = eigen!(LinearAlgebra.Hermitian(workspace_b))
 
-  fill!(workspace_b, 0.0)
+  #fill!(workspace_b, 0.0)
+  LinearAlgebra.BLAS.scal!(length(workspace_b), 0.0, workspace_b, 1) 
   for i in 1:basis.norb
     workspace_b[i,i] = S_eval_diag[i]
   end
+ 
   
+  #ortho = similar(F)
+  #LinearAlgebra.BLAS.gemm!('N', 'T', 1.0, 
+  #  workspace_b, workspace_a, 0.0, ortho)
+  #LinearAlgebra.BLAS.gemm!('N', 'N', 1.0, workspace_a, ortho, 0.0, ortho) 
+ 
   ortho = workspace_a*(LinearAlgebra.Diagonal(workspace_b)^-0.5)*transpose(workspace_a)
   
   if debug && MPI.Comm_rank(comm) == 0
@@ -130,10 +138,10 @@ function rhf_kernel(mol::Molecule,
   E_elec = 0.0
   F_eval = zeros(size(F)[1])
   if guess == "hcore"
-    E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
+    E_elec, F_eval[:] = iteration(F, D, C, H, F_eval, F_evec, workspace_a, 
       workspace_b, ortho, basis, 0, debug)
   end
-
+  
   F_old = deepcopy(F)
   
   E = 0.0 
@@ -224,15 +232,15 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64},
 
   #== read in some more variables from scf flags input ==#
   nsh = length(basis)
-  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3
+  nindices = (muladd(nsh,nsh,nsh)*(muladd(nsh,nsh,nsh) + 2)) >> 3
 
   #== build DIIS arrays ==#
   F_array = fill(similar(F), ndiis)
 
   e_array = fill(similar(F), ndiis)
-  e_array_old = fill(similar(F), ndiis-1)
+  e_array_old = fill(similar(F), max(0,ndiis-1))
   
-  F_array_old = fill(similar(F), ndiis-1)
+  F_array_old = fill(similar(F), max(0,ndiis-1))
 
   #FD = similar(F)
   FDS = similar(F)
@@ -243,7 +251,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64},
   ΔF = similar(F) 
   F_cumul = zeros(size(F)) 
  
-  D_old = similar(F)
+  D_old = zeros(size(F))
   ΔD = deepcopy(D) 
   D_input = similar(F)
 
@@ -323,13 +331,18 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   #=================================#
   iter = 1
   iter_converged = false
+
+  nthreads = Threads.nthreads()
   
   max_am = max_ang_mom(basis) 
   eri_quartet_batch_thread = [ Vector{Float64}(undef,
     eri_quartet_batch_size(max_am)) 
-    for thread in 1:Threads.nthreads() ]
+    for thread in 1:nthreads ]
  
-  F_thread = [ zeros(size(F)) for thread in 1:Threads.nthreads() ]
+  F_thread = [ zeros(size(F)) for thread in 1:nthreads ]
+  jeri_engine_thread = [ JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx) 
+    for thread in 1:nthreads ]
+  
   while !iter_converged
     #== reset eri arrays ==#
     #if quartet_batch_num_old != 1 && iter != 1
@@ -349,9 +362,18 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     #end
 
     #== determine input D and F ==#
-    D_input .= fdiff ? ΔD : D
-    workspace_b .= fdiff ? ΔF : F
-
+    if fdiff
+      LinearAlgebra.BLAS.blascopy!(length(ΔD), ΔD, 1, D_input, 1)
+      LinearAlgebra.BLAS.blascopy!(length(ΔF), ΔF, 1, workspace_b, 1)
+      #D_input .= fdiff ? ΔD : D
+      #workspace_b .= fdiff ? ΔF : F
+    else
+      LinearAlgebra.BLAS.blascopy!(length(D), D, 1, D_input, 1)
+      LinearAlgebra.BLAS.blascopy!(length(F), F, 1, workspace_b, 1)
+      #D_input .= fdiff ? ΔD : D
+      #workspace_b .= fdiff ? ΔF : F
+    end
+     
     #== compress D into shells in Dsh ==#
     for ish in 1:length(basis), jsh in 1:ish
       ipos = basis[ish].pos
@@ -362,7 +384,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       
       max_value = 0.0
       for i in ipos:(ipos+ibas-1), j in jpos:(jpos+jbas-1) 
-        max_value = max(max_value, abs(D_input[i,j]))
+        max_value = max(max_value, Base.abs_float(D_input[i,j]))
       end
       Dsh[ish, jsh] = max_value
       Dsh[jsh, ish] = Dsh[ish, jsh] 
@@ -370,7 +392,8 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   
     #== build new Fock matrix ==#
     workspace_a .= fock_build(workspace_b, F_thread, D_input, H, basis, 
-      schwarz_bounds, Dsh, eri_quartet_batch_thread, iter, cutoff, debug, load)
+      schwarz_bounds, Dsh, eri_quartet_batch_thread, jeri_engine_thread, 
+      iter, cutoff, debug, load)
 
     workspace_b .= MPI.Allreduce(workspace_a,MPI.SUM,comm)
     MPI.Barrier(comm)
@@ -384,7 +407,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       F_cumul .+= ΔF
       F .= F_cumul .+ H
     else
-      F .= workspace_b .+ H
+      LinearAlgebra.BLAS.axpy!(1.0, H, workspace_b) 
+      LinearAlgebra.BLAS.blascopy!(length(workspace_b), workspace_b, 1, 
+        F, 1) 
+  
+      #F .= workspace_b .+ H
     end
 
     if debug && MPI.Comm_rank(comm) == 0
@@ -397,8 +424,11 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       BLAS.gemm!('N', 'N', 1.0, workspace_a, S, 0.0, FDS)
       
       transpose!(workspace_b, FDS)
-      
-      workspace_a .= FDS .- workspace_b #error matrix 
+    
+      #== compute error vector ==# 
+      LinearAlgebra.BLAS.blascopy!(length(FDS), FDS, 1, 
+        workspace_a, 1) 
+      axpy!(-1.0, workspace_b, workspace_a)  
 
       e_array_old = view(e_array,1:(ndiis-1))                                   
       workspace_c[1] = deepcopy(workspace_a)
@@ -413,6 +443,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
         try
           DIIS(F, e_array, F_array, B_dim)
         catch
+          println("Faulty DIIS!")
           B_dim = 2
           DIIS(F, e_array, F_array, B_dim)
         end
@@ -421,21 +452,29 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
 
     #== dynamic damping of Fock matrix ==#
     x = ΔE >= 1.0 ? 1.0/log(50,50*ΔE) : 1.0 
-    F .= x.*F .+ (1.0-x).*F_old
+    LinearAlgebra.BLAS.axpby!(1.0-x, F_old, x, F)
 
     F_old .= F
 
+    LinearAlgebra.BLAS.blascopy!(length(F), F, 1, 
+      F_old, 1) 
+  
     #== obtain new F,D,C matrices ==#
-    D_old .= D
-
-    E_elec, F_eval = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
+    LinearAlgebra.BLAS.blascopy!(length(D), D, 1, 
+      D_old, 1) 
+ 
+    E_elec, F_eval[:] = iteration(F, D, C, H, F_eval, F_evec, workspace_a,
       workspace_b, ortho, basis, iter, debug)
 
     #== check for convergence ==#
-    ΔD .= D .- D_old
-    D_rms = √(LinearAlgebra.dot(ΔD,ΔD))
+    #LinearAlgebra.BLAS.blascopy!(length(FDS), FDS, 1, 
+    #  workspace_a, 1) 
+    #axpy!(-1.0, workspace_b, workspace_a)  
 
-    E = E_elec+E_nuc
+    ΔD .= D .- D_old
+    D_rms = √(LinearAlgebra.BLAS.dot(length(ΔD), ΔD, 1, ΔD, 1))
+
+    E = E_elec + E_nuc
     ΔE = E - E_old
 
     if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -443,7 +482,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
       @printf("%d      %.10f      %.10f      %.10f\n", iter, E, ΔE, D_rms)
     end
 
-    iter_converged = abs(ΔE) <= dele && D_rms <= rmsd
+    iter_converged = Base.abs_float(ΔE) <= dele && D_rms <= rmsd
     iter += 1
     if iter > niter
       scf_converged = false
@@ -455,12 +494,13 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
   end
 
   #== build energy-weighted density matrix ==#
-  fill!(W, 0.0)
+  #fill!(W, 0.0)
+  LinearAlgebra.BLAS.scal!(length(W), 0.0, W, 1) 
   
   nocc = basis.nels >> 1
   for i in 1:basis.norb, j in 1:basis.norb
     for iocc in 1:nocc
-      W[i,j] += 2 * F_eval[iocc] * C[i, iocc] * C[j, iocc]
+      W[i,j] += 2.0 * F_eval[iocc] * C[i, iocc] * C[j, iocc]
     end
   end
  
@@ -490,58 +530,60 @@ H = One-electron Hamiltonian Matrix
   F_thread::Vector{Matrix{Float64}}, D::Matrix{Float64}, 
   H::Matrix{Float64}, basis::Basis, 
   schwarz_bounds::Matrix{Float64}, Dsh::Matrix{Float64},
-  eri_quartet_batch_thread::Vector{Vector{Float64}}, iter, cutoff::Float64, 
-  debug::Bool, load::String)
+  eri_quartet_batch_thread::Vector{Vector{Float64}}, 
+  jeri_engine_thread, iter::Int64,
+  cutoff::Float64, debug::Bool, load::String)
 
   comm = MPI.COMM_WORLD
   
-  fill!(F,zero(Float64))
-  fill!.(F_thread,zero(Float64)) 
+  #fill!(F,zero(Float64))
+  LinearAlgebra.BLAS.scal!(length(F), 0.0, F, 1) 
+  #fill!.(F_thread,zero(Float64)) 
+  for ithread_fock in F_thread
+    LinearAlgebra.BLAS.scal!(length(ithread_fock), 0.0, ithread_fock, 1) 
+  end
 
   nsh = length(basis)
-  nindices = (nsh*(nsh+1)*(nsh^2 + nsh + 2)) >> 3 #bitwise divide by 8
+  nindices = (muladd(nsh,nsh,nsh)*(muladd(nsh,nsh,nsh) + 2)) >> 3
+  
+  batches_per_thread = nsh 
   batch_size = ceil(Int,nindices/(MPI.Comm_size(comm)*
-    Threads.nthreads()*nsh*10))
+    Threads.nthreads()*batches_per_thread))
 
   #== use static task distribution for multirank runs if selected... ==#
   if MPI.Comm_size(comm) == 1  || load == "static"
-    #== set up initial indices ==# 
-    top_index = nindices - (MPI.Comm_rank(comm))
-    stride = MPI.Comm_size(comm) 
-    thread_index_counter = Threads.Atomic{Int64}(top_index)
-
-    #== execute kernel of calculation ==#
-    @sync for thread in 1:Threads.nthreads()  
-      Threads.@spawn begin 
-        eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread])
-        jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
-
-        F_priv = $(F_thread[thread]) 
-        while true 
-          ijkl_index = Threads.atomic_sub!($thread_index_counter, stride*batch_size) 
-
-          if ijkl_index < 0 break end
- 
-          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
-            #println("IJKL: $ijkl")
-
-            fock_build_thread_kernel(F_priv, D,
-              H, basis, eri_quartet_batch_priv, #mutex,
-              ijkl, jeri_tei_engine_priv,
-              schwarz_bounds, Dsh,
-              cutoff, debug)
-          end
+    #== set up initial indices ==#                                              
+    stride = MPI.Comm_size(comm)*batch_size                                       
+    top_index = nindices - (MPI.Comm_rank(comm)*batch_size)
+                                                                                
+    #== execute kernel of calculation ==#                                       
+    @sync for ijkl_index in top_index:-stride:1                     
+      Threads.@spawn begin                                                      
+        thread = Threads.threadid()                                             
+      
+        eri_quartet_batch_priv = eri_quartet_batch_thread[thread]               
+        jeri_tei_engine_priv = jeri_engine_thread[thread]                       
+        F_priv = F_thread[thread]                                               
+                                                                                
+        for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))              
+          fock_build_thread_kernel(F_priv, D,                                 
+            H, basis, eri_quartet_batch_priv,                                 
+            ijkl, jeri_tei_engine_priv,                                       
+            schwarz_bounds, Dsh,                                              
+            cutoff, debug)                                                    
         end
-      end
-    end
- 
-    #== reduce into Fock matrix ==# 
+      end                                                                       
+    end      
+
+    #== reduce into Fock matrix ==#
     for (thread,ithread_fock) in enumerate(F_thread)
       if debug && MPI.Comm_rank(comm) == 0
         h5write("debug.h5","RHF/Iteration-$iter/F/Thread-$thread", ithread_fock)
       end
-      F += ithread_fock
+ 
+      axpy!(1.0, ithread_fock, F) 
     end
+ 
   #== ..else use dynamic task distribution ==# 
   elseif MPI.Comm_size(comm) > 1 && load == "dynamic"
     #== master rank ==#
@@ -556,7 +598,7 @@ H = One-electron Hamiltonian Matrix
       while initial_task < MPI.Comm_size(comm)
         for thread in 1:Threads.nthreads()
           #println("Sending task $task to rank $initial_task")
-          sreq = MPI.Send(task, initial_task, thread, comm)
+          sreq = MPI.Isend(task, initial_task, thread, comm)
           #println("Task $task sent to rank $initial_task") 
         
           task[1] -= batch_size 
@@ -570,10 +612,10 @@ H = One-electron Hamiltonian Matrix
       while task[1] > 0 
         status = MPI.Probe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, 
           comm) 
-        rreq = MPI.Recv!(recv_mesg_master, status.source, status.tag, 
-          comm)  
+        #rreq = MPI.Recv!(recv_mesg_master, status.source, status.tag, 
+        #  comm)  
         #println("Sending task $task to rank ", status.source)
-        sreq = MPI.Send(task, status.source, status.tag, comm)  
+        sreq = MPI.Isend(task, status.source, status.tag, comm)  
         #println("Task $task sent to rank ", status.source)
         task[1] -= batch_size 
       end
@@ -583,67 +625,64 @@ H = One-electron Hamiltonian Matrix
       #println("Start sending out enders") 
       for rank in 1:(MPI.Comm_size(comm)-1)
         for thread in 1:Threads.nthreads()
-          sreq = MPI.Send([ -1 ], rank, thread, comm)                           
+          sreq = MPI.Isend([ -1 ], rank, thread, comm)                           
         end
       end      
       #println("Done sending out enders") 
     #== worker ranks perform actual computations on quartets ==#
     elseif MPI.Comm_rank(comm) > 0
       #== create needed mutices ==#
-      mutex_mpi_send = Base.Threads.ReentrantLock()
-      mutex_mpi_recv = Base.Threads.ReentrantLock()
+      mutex_mpi_worker = Base.Threads.ReentrantLock()
      
       #== execute kernel ==# 
-      wait.([ 
+      @sync for thread in 1:Threads.nthreads()
         Threads.@spawn begin 
+          #== initial set up ==#
           recv_mesg = [ 0 ] 
-          send_mesg = [ 0 ] 
+          send_mesg = [ MPI.Comm_rank(comm) ] 
  
-          eri_quartet_batch_priv = $(eri_quartet_batch_thread[thread]) 
-          jeri_tei_engine_priv = JERI.TEIEngine(basis.basis_cxx, 
-            basis.shpdata_cxx) 
-    
-          F_priv = $(F_thread[thread]) 
-          while true
-            lock($mutex_mpi_recv)
-              status = MPI.Probe(0, $thread, comm)
-              rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+          eri_quartet_batch_priv = eri_quartet_batch_thread[thread] 
+          jeri_tei_engine_priv = jeri_engine_thread[thread] 
+          F_priv = F_thread[thread] 
+          
+          #== complete first task ==#
+          lock(mutex_mpi_worker)
+            status = MPI.Probe(0, $thread, comm)
+            rreq = MPI.Recv!(recv_mesg, status.source, status.tag, comm)
+            ijkl_index = recv_mesg[1]
+          unlock(mutex_mpi_worker)
+          
+          for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
+            fock_build_thread_kernel(F_priv, D,
+              H, basis, eri_quartet_batch_priv, #mutex,
+              ijkl, jeri_tei_engine_priv,
+              schwarz_bounds, Dsh,
+              cutoff, debug)
+          end
+  
+          #== complete rest of tasks ==#
+          while ijkl_index >= 1 
+            lock(mutex_mpi_worker)
+              status = MPI.Sendrecv!(send_mesg, 0, $thread, recv_mesg, 0, 
+                $thread, comm)
               ijkl_index = recv_mesg[1]
-            unlock($mutex_mpi_recv)
-
-            #println(ijkl_index)
-            if ijkl_index < 0 break end
+            unlock(mutex_mpi_worker)
             #println("Thread $thread ecieved task $ijkl_index from master")
 
-            #for rank in 1:MPI.Comm_size(comm)
-            #  if MPI.Comm_rank(comm) == rank
-            #    #println("NEW BATCH")
-            #    println("IJKL_INDEX: ", ijkl_index)
-            #  end
-            #end
-            #prinitln("NEW BATCH")
             for ijkl in ijkl_index:-1:(max(1,ijkl_index-batch_size+1))
-              #println("IJKL: $ijkl")
-
               fock_build_thread_kernel(F_priv, D,
                 H, basis, eri_quartet_batch_priv, #mutex,
-                ijkl, jeri_tei_engine_priv,
-                schwarz_bounds, Dsh,
-                cutoff, debug)
+               ijkl, jeri_tei_engine_priv,
+               schwarz_bounds, Dsh,
+               cutoff, debug)
             end
-
-            lock($mutex_mpi_send)
-              send_mesg[1] = MPI.Comm_rank(comm)
-              MPI.Send(send_mesg, 0, $thread, comm)
-            unlock($mutex_mpi_send)
           end
         end
-        for thread in 1:Threads.nthreads()
-      ])
+      end
 
       #== reduce into Fock matrix ==#
       for ithread_fock in F_thread 
-        F += ithread_fock
+        axpy!(1.0, ithread_fock, F)
       end
     end
   end
@@ -700,7 +739,9 @@ end
 
   #== Cauchy-Schwarz screening ==#
   bound = schwarz_bounds[ish, jsh]*schwarz_bounds[ksh, lsh] 
-
+  
+  #println("SCHWARZ($ish, $jsh): $(schwarz_bounds[ish, jsh])")
+  
   dijmax = 4.0*Dsh[ish, jsh]
   dklmax = 4.0*Dsh[ksh, lsh]
   
@@ -713,75 +754,41 @@ end
   bound *= maxden
 
   #== fock build for significant shell quartets ==# 
-  if abs(bound) >= cutoff 
-    #== compute electron repulsion integrals ==#
-    compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, μsh, νsh, λsh, σsh,
-      eri_quartet_batch, jeri_tei_engine)
+  if Base.abs_float(bound) >= cutoff 
+    #= set up some variables =#
+    nμ = μsh.nbas
+    nν = νsh.nbas
+    nλ = λsh.nbas
+    nσ = σsh.nbas
 
-    #== contract ERIs into Fock matrix ==#
-    contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
-      μsh, νsh, λsh, σsh, cutoff, debug)
+    #== compute electron repulsion integrals ==#
+    screened = compute_eris(ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ, nν, 
+      nλ, nσ, eri_quartet_batch, jeri_tei_engine)
+  
+    if !screened
+      #= axial normalization =#
+      axial_normalization_factor(eri_quartet_batch, μsh, νsh, λsh, σsh,
+        nμ, nν, nλ, nσ)
+ 
+      #== contract ERIs into Fock matrix ==#
+      contract_eris(F, D, eri_quartet_batch, ish, jsh, ksh, lsh,
+        μsh, νsh, λsh, σsh, cutoff, debug)
+    end
   end
-    #if debug println("END TWO-ELECTRON INTEGRALS") end
+  #if debug println("END TWO-ELECTRON INTEGRALS") end
 end
 
-@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64, 
+@inline function compute_eris(ish::Int64, jsh::Int64, ksh::Int64, lsh::Int64,
   bra_pair::Int64, ket_pair::Int64, 
-  μsh::JCModules.Shell, νsh::JCModules.Shell, 
-  λsh::JCModules.Shell, σsh::JCModules.Shell,
+  nμ::Int64, nν::Int64,
+  nλ::Int64, nσ::Int64,
   eri_quartet_batch::Vector{Float64},
   jeri_tei_engine)
 
-  #eri_quartet_batch_simint = similar(eri_quartet_batch)
-  #println(ish, ",", jsh, ",", ksh, ",", lsh)
-  amμ = μsh.am
-  amν = νsh.am
-  amλ = λsh.am
-  amσ = σsh.am
-
-  nμ = μsh.nbas
-  nν = νsh.nbas
-  nλ = λsh.nbas
-  nσ = σsh.nbas
-
-  #fill!(eri_quartet_batch, 0.0)
-  #ish = μsh.shell_id
-  #jsh = νsh.shell_id
-  #ksh = λsh.shell_id
-  #lsh = σsh.shell_id
-
   #= actually compute integrals =#
-  JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
+  return JERI.compute_eri_block(jeri_tei_engine, eri_quartet_batch, 
     ish, jsh, ksh, lsh, bra_pair, ket_pair, nμ*nν, nλ*nσ)
   
-  μνλσ = 0 
-  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
-    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
-      
-    μnorm = axial_norm_fact[μsize+1,amμ]
-    νnorm = axial_norm_fact[νsize+1,amν]
-
-    μνnorm = μnorm*νnorm
-
-    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
-      μνλσ += 1 
-   
-      λnorm = axial_norm_fact[λsize+1,amλ]
-      σnorm = axial_norm_fact[σsize+1,amσ]
-    
-      λσnorm = λnorm*σnorm 
-      
-      #if ish == 40 && jsh == 26 && ksh == 8 && lsh == 8
-      #  println(eri_quartet_batch[μνλσ],",", eri_quartet_batch_simint[μνλσ])
-      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
-      #else 
-      #  @assert isapprox(eri_quartet_batch[μνλσ], eri_quartet_batch_simint[μνλσ], atol=1E-10)
-      #end
-
-      eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
-    end 
-  end
-
   #=
   if am[1] == 3 || am[2] == 3 || am[3] == 3 || am[4] == 3
     for idx in 1:nμ*nν*nλ*nσ 
@@ -793,7 +800,6 @@ end
   =#
 end
 
-
 @inline function contract_eris(F_priv::Matrix{Float64}, D::Matrix{Float64},
   eri_batch::Vector{Float64}, ish::Int64, jsh::Int64,
   ksh::Int64, lsh::Int64, 
@@ -801,7 +807,7 @@ end
   λsh::JCModules.Shell, σsh::JCModules.Shell,
   cutoff::Float64, debug::Bool)
 
-  norb = size(D,1)
+  #norb = size(D,1)
   
   #ish = μsh.shell_id
   #jsh = νsh.shell_id
@@ -826,75 +832,47 @@ end
   #amσ = σsh.am
   #am = [ amμ, amν, amλ, amσ ]
 
-  μνλσ = 0
-  for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
-    μμ = μsize + pμ
-    νν = νsize + pν
+  for μμ::Int64 in pμ:(pμ+nμ-1) 
+    νmax = ish == jsh ? μμ : (pν+nν-1)
+    for νν::Int64 in pν:νmax
+      for λλ::Int64 in pλ:(pλ+nλ-1) 
+        σmax = ksh == lsh ? λλ : (pσ+nσ-1)
+        for σσ::Int64 in pσ:σmax
+          #if debug
+            #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
+          #end
+          μνλσ = 1 + (σσ-pσ) + nσ*(λλ-pλ) + nσ*nλ*(νν-pν) + nσ*nλ*nν*(μμ-pμ)
+          jlswap = (μμ < λλ) || (μμ == λλ && νν < σσ)
+          
+          eri = eri_batch[μνλσ] 
+             
+          if Base.abs_float(eri) < cutoff
+            #if do_continue_print println("CONTINUE SCREEN") end
+            continue 
+          elseif jlswap && ish == ksh && jsh == lsh 
+            continue
+          end
 
-    if μμ < νν && ish == jsh 
-      #if do_continue_print println("CONTINUE BRA: $μμ, $νν") end
-      continue 
-    end
+          μ = max(μμ, λλ)
+          ν = !jlswap ? νν : σσ
+          λ = min(μμ, λλ)
+          σ = !jlswap ? σσ : νν
+      
+          #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
+          #println("ERI($μ, $ν, $λ, $σ) = $eri") 
+      
+          eri *= (μ == ν) ? 0.5 : 1.0 
+          eri *= (λ == σ) ? 0.5 : 1.0
+          eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
 
-    μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
-    for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
-      λλ = λsize + pλ
-      σσ = σsize + pσ
-
-      #if debug
-        #if do_continue_print print("$μμ, $νν, $λλ, $σσ => ") end
-      #end
-
-      #μνλσ = 1 + σsize + nσ*λsize + nσ*nλ*νsize + nσ*nλ*nν*μsize
-      μνλσ += 1 
-  
-      eri = eri_batch[μνλσ] 
-   
-      if abs(eri) < cutoff
-        #if do_continue_print println("CONTINUE SCREEN") end
-        continue 
-      end
-
-      if λλ < σσ && ksh == lsh 
-        #if do_continue_print println("CONTINUE KET") end
-        continue 
-      end
-  
-      μ, ν = (μμ > νν) ? (μμ, νν) : (νν, μμ)
-      λ, σ = (λλ > σσ) ? (λλ, σσ) : (σσ, λλ)
-
-      μν = triangular_index(μ,ν)                                                    
-      λσ = triangular_index(λ,σ)                                                    
-       
-      if μν < λσ 
-        if ish == ksh && jsh == lsh 
-          #if do_continue_print println("CONTINUE BRAKET") end
-          continue 
-        else
-          μ, ν, λ, σ = λ, σ, μ, ν
+          F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
+          F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
+          F_priv[μ,λ] -= D[ν,σ] * eri
+          F_priv[μ,σ] -= D[ν,λ] * eri
+          F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
+          F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
         end
       end
-
-      #println("QUARTET($ish, $jsh, $ksh, $lsh): $eri")
-      #println("ERI($μ, $ν, $λ, $σ) = $eri") 
-      
-      eri *= (μ == ν) ? 0.5 : 1.0 
-      eri *= (λ == σ) ? 0.5 : 1.0
-      eri *= ((μ == λ) && (ν == σ)) ? 0.5 : 1.0
-
-      #λσ = λ + norb*(σ-1)
-      #μν = μ + norb*(ν-1)
-      #μλ = μ + norb*(λ-1)
-      #μσ = μ + norb*(σ-1)
-      #νλ = max(ν,λ) + norb*(min(ν,λ)-1)
-      #νσ = max(ν,σ) + norb*(min(ν,σ)-1)
-
-      F_priv[λ,σ] += 4.0 * D[μ,ν] * eri
-      F_priv[μ,ν] += 4.0 * D[λ,σ] * eri
-      F_priv[μ,λ] -= D[ν,σ] * eri
-      F_priv[μ,σ] -= D[ν,λ] * eri
-      F_priv[max(ν,λ), min(ν,λ)] -= D[μ,σ] * eri
-      F_priv[max(ν,σ), min(ν,σ)] -= D[μ,λ] * eri
     end
   end
 end
@@ -929,7 +907,7 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   BLAS.symm!('L', 'U', 1.0, workspace_b, F_μν, 0.0, workspace_a)
   BLAS.gemm!('N', 'N', 1.0, workspace_a, ortho, 0.0, workspace_b)
  
-  F_eval, F_evec = eigen!(LinearAlgebra.Hermitian(workspace_b)) 
+  F_eval[:], F_evec[:,:] = eigen!(LinearAlgebra.Hermitian(workspace_b)) 
   
   #@views F_evec .= F_evec[:,sortperm(F_eval)] #sort evecs according to sorted evals
 
@@ -948,16 +926,16 @@ function iteration(F_μν::Matrix{Float64}, D::Matrix{Float64},
   nocc = basis.nels >> 1
   norb = basis.norb
 
-  fill!(D, 0.0)
+  #fill!(D, 0.0)
   for i in 1:basis.norb, j in 1:basis.norb
-    for iocc in 1:nocc
-      D[i,j] += 2 * C[i, iocc] * C[j, iocc]
-    end
+    D[i,j] = 2.0*BLAS.dot(nocc,pointer(C,i),norb,pointer(C,j),norb)
   end
  
   #== compute new SCF energy ==#
-  EHF1 = LinearAlgebra.dot(D, F_μν)
-  EHF2 = LinearAlgebra.dot(D, H)
+  #EHF1 = LinearAlgebra.dot(D, F_μν)
+  #EHF2 = LinearAlgebra.dot(D, H)
+  EHF1 = LinearAlgebra.BLAS.dot(length(D), D, 1, F_μν, 1)
+  EHF2 = LinearAlgebra.BLAS.dot(length(D), D, 1, H, 1)
   E_elec = (EHF1 + EHF2)/2.0
   
   if debug && MPI.Comm_rank(comm) == 0

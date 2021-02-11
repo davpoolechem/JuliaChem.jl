@@ -41,7 +41,7 @@ public:
   ~TEIEngine() { };
 
   //-- member functions --//
-  void compute_eri_block(jlcxx::ArrayRef<double> eri_block, 
+  inline bool compute_eri_block(jlcxx::ArrayRef<double> eri_block, 
     julia_int ash, julia_int bsh, julia_int csh, julia_int dsh, 
     julia_int bra_idx, julia_int ket_idx,
     julia_int absize, julia_int cdsize) 
@@ -69,13 +69,13 @@ public:
       
     //assert(m_coulomb_eng.results()[0] != nullptr); 
     if (m_coulomb_eng.results()[0] != nullptr) {
-      for (int i = 0; i != absize*cdsize; ++i) {
-        eri_block[i] = m_coulomb_eng.results()[0][i];
-      }
+      memcpy(eri_block.data(), m_coulomb_eng.results()[0],
+        absize*cdsize*sizeof(double));
+      
+      return false;
     } else {
-      for (int i = 0; i != absize*cdsize; ++i) {
-        eri_block[i] = 0.0; 
-      }
+      //memset(eri_block.data(), 0.0, absize*cdsize*sizeof(double)); 
+      return true;
     }
   }
 };

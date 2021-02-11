@@ -1,0 +1,102 @@
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+--------------------------------------------------------------------------------
+                       ========================================                 
+                                RESTRICTED CLOSED-SHELL                         
+                                  HARTREE-FOCK ENERGY                           
+                       ========================================                 
+
+----------------------------------------          
+       Starting RHF iterations...                 
+----------------------------------------          
+ 
+Iter        Energy                ΔE                Drms
+1      -2159.0155487608      -2159.0155487608      1330.4460590473
+2      -3967.3092500076      -1808.2937012468      455.7429168148
+3      -4216.3635682845      -249.0543182768      570.0085274650
+4      -4337.6540390966      -121.2904708121      524.2739148049
+5      -4325.6519680987      12.0020709979      399.1413428429
+6      -4527.0299737900      -201.3780056912      228.9678366769
+7      -4113.7579972512      413.2719765387      83.6547990962
+8      -4088.9288297732      24.8291674781      27.8831188217
+9      -4072.8235444636      16.1052853096      28.8843921025
+10      -4065.4356378690      7.3879065945      19.4494840325
+11      -7525.8351822570      -3460.3995443880      1296.8365380309
+12      -6312.5699150853      1213.2652671717      880.7793430574
+13      -6055.8770468005      256.6928682848      260.2850274082
+14      -5656.5030209606      399.3740258399      205.1302795377
+15      -5419.2744206896      237.2286002710      201.4611778413
+16      -5001.2413376890      418.0330830006      130.2969673565
+17      -4804.8536028464      196.3877348427      26.1799712006
+18      -4796.4031179952      8.4504848512      16.8489685526
+19      -4828.1658368468      -31.7627188516      6.7842888608
+20      -4845.4407165492      -17.2748797025      4.3498341795
+21      -4857.9669893348      -12.5262727856      1.0646130458
+22      -4860.0255536095      -2.0585642747      0.4611821654
+23      -4862.4757643115      -2.4502107021      0.2913366625
+24      -4864.0477349795      -1.5719706679      0.1826838980
+25      -4864.8633797379      -0.8156447585      0.0961672100
+26      -4864.8911625384      -0.0277828004      0.0262616414
+27      -4864.9921458645      -0.1009833261      0.0127466401
+28      -4865.0005838857      -0.0084380212      0.0043392751
+29      -4864.9960576471      0.0045262386      0.0009489835
+30      -4864.9949783953      0.0010792518      0.0003065059
+31      -4864.9954049154      -0.0004265200      0.0001254739
+32      -4864.9953260325      0.0000788829      0.0000397640
+33      -4864.9953486955      -0.0000226630      0.0000130442
+ 
+----------------------------------------
+   The SCF calculation has converged!   
+----------------------------------------
+Total SCF Energy: -4864.9953486955 h
+ 
+                       ========================================                 
+                              END RESTRICTED CLOSED-SHELL                       
+                                  HARTREE-FOCK ENERGY                           
+                       ========================================                 
+--------------------------------------------------------------------------------
+1-element Array{Float64,1}:
+ 5194.650816402001

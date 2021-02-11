@@ -1,0 +1,25 @@
+Jobid: 315031
+qsub -O S22_3/6-311++G_2d_2p/adenine_thymine_2 -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/adenine_thymine_2.sh
+Sun Jan 24 18:51:16 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 315031 submitted from terminal /dev/pts/136
+Sun Jan 24 18:54:18 2021 +0000 (UTC) 
+Sun Jan 24 18:54:18 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake03' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.315031' '--jobid' '315031' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=315031' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/adenine_thymine_2.sh'
+Sun Jan 24 18:54:18 2021 +0000 (UTC) 
+Sun Jan 24 18:54:18 2021 +0000 (UTC) Environment:
+Sun Jan 24 18:54:18 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 24 18:54:18 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmppWapre
+Sun Jan 24 18:54:18 2021 +0000 (UTC) COBALT_PARTNAME=skylake03
+Sun Jan 24 18:54:18 2021 +0000 (UTC) COBALT_JOBID=315031
+Sun Jan 24 18:54:18 2021 +0000 (UTC) COBALT_STARTTIME=1611514440
+Sun Jan 24 18:54:18 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 24 18:54:18 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 24 18:54:18 2021 +0000 (UTC) COBALT_ENDTIME=1611536040
+Sun Jan 24 18:54:18 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 24 18:54:18 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 24 18:54:18 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 24 18:54:18 2021 +0000 (UTC) 
+Sun Jan 24 18:54:18 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 24 18:54:18 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/adenine_thymine_2.output
+Sun Jan 24 18:54:18 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/adenine_thymine_2.error
+Sun Jan 24 18:54:18 2021 +0000 (UTC) 
+Sun Jan 24 18:59:58 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

@@ -1,0 +1,25 @@
+Jobid: 316986
+qsub -O 6-311++G_2d_2p/indole_benzene_2_t_shaped -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/indole_benzene_2_t_shaped.sh
+Sat Jan 30 23:46:07 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 316986 submitted from terminal /dev/pts/14
+Sat Jan 30 23:48:13 2021 +0000 (UTC) 
+Sat Jan 30 23:48:13 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake03' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.316986' '--jobid' '316986' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=316986' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.sh'
+Sat Jan 30 23:48:13 2021 +0000 (UTC) 
+Sat Jan 30 23:48:13 2021 +0000 (UTC) Environment:
+Sat Jan 30 23:48:13 2021 +0000 (UTC) SHELL=/bin/bash
+Sat Jan 30 23:48:13 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpa7gT5Z
+Sat Jan 30 23:48:13 2021 +0000 (UTC) COBALT_PARTNAME=skylake03
+Sat Jan 30 23:48:13 2021 +0000 (UTC) COBALT_JOBID=316986
+Sat Jan 30 23:48:13 2021 +0000 (UTC) COBALT_STARTTIME=1612050479
+Sat Jan 30 23:48:13 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jan 30 23:48:13 2021 +0000 (UTC) USER=davpoolechem
+Sat Jan 30 23:48:13 2021 +0000 (UTC) COBALT_ENDTIME=1612072079
+Sat Jan 30 23:48:13 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jan 30 23:48:13 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jan 30 23:48:13 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jan 30 23:48:13 2021 +0000 (UTC) 
+Sat Jan 30 23:48:13 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jan 30 23:48:13 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.output
+Sat Jan 30 23:48:13 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_t_shaped.error
+Sat Jan 30 23:48:13 2021 +0000 (UTC) 
+Sun Jan 31 00:05:11 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

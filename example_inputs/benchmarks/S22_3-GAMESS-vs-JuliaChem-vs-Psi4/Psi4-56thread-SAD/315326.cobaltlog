@@ -1,0 +1,26 @@
+Jobid: 315326
+qsub -I -q gpu_v100_smx2 -t 01:00:00 -n 1
+Mon Jan 25 19:02:16 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/Psi4-56thread-SAD
+jobid 315326 submitted from terminal /dev/pts/219
+Mon Jan 25 19:02:32 2021 +0000 (UTC) 
+Mon Jan 25 19:02:32 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'gpu01' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.315326' '--jobid' '315326' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/Psi4-56thread-SAD' '--env' 'COBALT_JOBID=315326' '/bin/sleep' '3600'
+Mon Jan 25 19:02:32 2021 +0000 (UTC) 
+Mon Jan 25 19:02:32 2021 +0000 (UTC) Environment:
+Mon Jan 25 19:02:32 2021 +0000 (UTC) SHELL=/bin/bash
+Mon Jan 25 19:02:32 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpDXDoQb
+Mon Jan 25 19:02:32 2021 +0000 (UTC) COBALT_PARTNAME=gpu01
+Mon Jan 25 19:02:32 2021 +0000 (UTC) COBALT_JOBID=315326
+Mon Jan 25 19:02:32 2021 +0000 (UTC) COBALT_STARTTIME=1611601341
+Mon Jan 25 19:02:32 2021 +0000 (UTC) LOGNAME=davpoolechem
+Mon Jan 25 19:02:32 2021 +0000 (UTC) USER=davpoolechem
+Mon Jan 25 19:02:32 2021 +0000 (UTC) COBALT_ENDTIME=1611604941
+Mon Jan 25 19:02:32 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Mon Jan 25 19:02:32 2021 +0000 (UTC) HOME=/home/davpoolechem
+Mon Jan 25 19:02:32 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Mon Jan 25 19:02:32 2021 +0000 (UTC) 
+Mon Jan 25 19:02:32 2021 +0000 (UTC) Info: stdin received from /dev/null
+Mon Jan 25 19:02:32 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/Psi4-56thread-SAD/315326.output
+Mon Jan 25 19:02:32 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/Psi4-56thread-SAD/315326.error
+Mon Jan 25 19:02:32 2021 +0000 (UTC) 
+Mon Jan 25 20:02:26 2021 +0000 (UTC) Info: maximum execution time exceeded; initiating job termination
+Mon Jan 25 20:02:42 2021 +0000 (UTC) Info: job is in the process of exiting; user delete request ignored

@@ -1,0 +1,114 @@
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+
+  Memory set to 476.837 MiB by Python driver.
+  Threads set to 112 by Python driver.
+
+*** tstart() called on skylake04
+*** at Sun Jan 24 07:18:16 2021
+
+   => Loading Basis Set <=
+
+    Name: 6-311++G(2D,2P)
+    Role: ORBITAL
+    Keyword: BASIS
+    atoms 1, 6, 12         entry C          line    21 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+    atoms 2-5, 7-11, 13-15 entry H          line     5 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+
+  ==> Iterations <==
+
+                        Total Energy        Delta E     RMS |[F,P]|
+
+   @RHF iter   1:   -81.04941061394044   -8.10494e+01   5.34874e-02 DIIS
+   @RHF iter   2:   -89.13887468460211   -8.08946e+00   1.97993e-02 DIIS
+   @RHF iter   3:  -114.82942644648772   -2.56906e+01   1.67335e-02 DIIS
+   @RHF iter   4:  -119.95082981850140   -5.12140e+00   5.01216e-03 DIIS
+   @RHF iter   5:  -120.62727264321386   -6.76443e-01   4.82582e-04 DIIS
+   @RHF iter   6:  -120.63468152450196   -7.40888e-03   1.23627e-04 DIIS
+   @RHF iter   7:  -120.63509174020487   -4.10216e-04   1.96733e-05 DIIS
+  Energy and wave function converged.
+
+
+  ==> Post-Iterations <==
+
+  @RHF Final Energy:  -120.63509174020487
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =             81.6540817359411761
+    One-Electron Energy =                -321.8751944266591636
+    Two-Electron Energy =                 119.5860209505131024
+    Total Energy =                       -120.6350917402048708
+
+Computation Completed
+
+
+Properties will be evaluated at   0.000000,   0.000000,   0.000000 [a0]
+
+Properties computed using the SCF density matrix
+
+  Nuclear Dipole Moment: [e a0]
+     X:    -0.0017      Y:     0.0013      Z:    -0.0025
+
+  Electronic Dipole Moment: [e a0]
+     X:     0.0034      Y:    -0.0042      Z:     0.0025
+
+  Dipole Moment: [e a0]
+     X:     0.0017      Y:    -0.0029      Z:    -0.0001     Total:     0.0034
+
+  Dipole Moment: [D]
+     X:     0.0044      Y:    -0.0074      Z:    -0.0002     Total:     0.0086
+
+
+*** tstop() called on skylake04 at Sun Jan 24 07:18:32 2021
+Module time:
+	user time   =     621.91 seconds =      10.37 minutes
+	system time =       7.58 seconds =       0.13 minutes
+	total time  =         16 seconds =       0.27 minutes
+Total time:
+	user time   =     621.91 seconds =      10.37 minutes
+	system time =       7.58 seconds =       0.13 minutes
+	total time  =         16 seconds =       0.27 minutes

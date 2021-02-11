@@ -1,0 +1,25 @@
+Jobid: 317904
+qsub -I -q skylake_8180 -t 01:00:00 -n 1
+Wed Feb 03 03:00:23 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/JuliaChem-111thread
+jobid 317904 submitted from terminal /dev/pts/208
+Wed Feb 03 03:00:45 2021 +0000 (UTC) 
+Wed Feb 03 03:00:45 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake10' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.317904' '--jobid' '317904' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/JuliaChem-111thread' '--env' 'COBALT_JOBID=317904' '/bin/sleep' '3600'
+Wed Feb 03 03:00:45 2021 +0000 (UTC) 
+Wed Feb 03 03:00:45 2021 +0000 (UTC) Environment:
+Wed Feb 03 03:00:45 2021 +0000 (UTC) SHELL=/bin/bash
+Wed Feb 03 03:00:45 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpeFAYaH
+Wed Feb 03 03:00:45 2021 +0000 (UTC) COBALT_PARTNAME=skylake10
+Wed Feb 03 03:00:45 2021 +0000 (UTC) COBALT_JOBID=317904
+Wed Feb 03 03:00:45 2021 +0000 (UTC) COBALT_STARTTIME=1612321227
+Wed Feb 03 03:00:45 2021 +0000 (UTC) LOGNAME=davpoolechem
+Wed Feb 03 03:00:45 2021 +0000 (UTC) USER=davpoolechem
+Wed Feb 03 03:00:45 2021 +0000 (UTC) COBALT_ENDTIME=1612324827
+Wed Feb 03 03:00:45 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Wed Feb 03 03:00:45 2021 +0000 (UTC) HOME=/home/davpoolechem
+Wed Feb 03 03:00:45 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Wed Feb 03 03:00:45 2021 +0000 (UTC) 
+Wed Feb 03 03:00:45 2021 +0000 (UTC) Info: stdin received from /dev/null
+Wed Feb 03 03:00:45 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/JuliaChem-111thread/317904.output
+Wed Feb 03 03:00:45 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl/example_inputs/benchmarks/S22_3-GAMESS-vs-JuliaChem-vs-Psi4/JuliaChem-111thread/317904.error
+Wed Feb 03 03:00:45 2021 +0000 (UTC) 
+Wed Feb 03 03:09:02 2021 +0000 (UTC) Info: user delete requested with signal SIGTERM by user davpoolechem

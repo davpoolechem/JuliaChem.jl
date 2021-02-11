@@ -15,21 +15,25 @@ b = column index
 """
 =#
 @inline function triangular_index(a::Int,b::Int)
-  index = (a*(a-1)) >> 1 #bitwise divide by 2
-  index += b
-  return index
+  return (muladd(a,a,-a) >> 1) + b
 end
 
 @inline function triangular_index(a::Int)
-  return (a*(a-1)) >> 1
+  return muladd(a,a,-a) >> 1
 end
 
 @inline function decompose(input::Int)
   #return ceil(Int,(-1.0+√(1+8*input))/2.0)
-  return Base.fptosi(Int, Base.ceil_llvm((-1.0 + 
-    Base.Math.sqrt_llvm(float(1+8*input)))/2.0))
-    #return ccall((:decompose, "/export/home/david/projects/Julia/JuliaChem.jl/src/eri/libjeri.so"),
-  #  Int64, (Int64,), input)
+  return Base.fptosi(
+    Int, 
+    Base.ceil_llvm(
+      0.5*( 
+        Base.Math.sqrt_llvm(
+          Base.sitofp(Float64, muladd(8,input,1))
+        ) - 1.0
+      )
+    )
+  )
 end
 
 function compute_enuc(mol::Molecule)
@@ -207,8 +211,7 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
   jeri_schwarz_engine = JERI.TEIEngine(basis.basis_cxx, basis.shpdata_cxx)
 
   for ash in 1:nsh, bsh in 1:ash
-    fill!(eri_quartet_batch, 0.0)
-    
+    #fill!(eri_quartet_batch, 0.0)
     abas = basis[ash].nbas
     bbas = basis[bsh].nbas
     abshp = triangular_index(ash, bsh)
@@ -216,7 +219,14 @@ function compute_schwarz_bounds(schwarz_bounds::Matrix{Float64},
     JERI.compute_eri_block(jeri_schwarz_engine, eri_quartet_batch, 
       ash, bsh, ash, bsh, abshp, abshp, abas*bbas, abas*bbas)
  
-    schwarz_bounds[ash, bsh] = sqrt(maximum(abs.(eri_quartet_batch)) )
+    #= axial normalization =#
+    axial_normalization_factor(eri_quartet_batch, basis[ash], basis[bsh], 
+      basis[ash], basis[bsh], abas, bbas, abas, bbas)
+
+    #== compute schwarz bound ==#
+    max_index = BLAS.iamax(abas*bbas*abas*bbas, 
+      eri_quartet_batch, 1)
+    schwarz_bounds[ash, bsh] = sqrt(abs(eri_quartet_batch[max_index]))
   end
 
   for ash in 1:nsh, bsh in 1:ash
@@ -260,11 +270,12 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   
   B = Matrix{Float64}(undef,B_dim+1,B_dim+1)
   for i in 1:B_dim, j in 1:B_dim
-    B[i,j] = LinearAlgebra.dot(e_array[i], e_array[j])
+    B[i,j] = LinearAlgebra.BLAS.dot(length(e_array[i]), e_array[i], 1, 
+      e_array[j], 1)
 
-	  B[i,B_dim+1] = -1
-	  B[B_dim+1,i] = -1
-	  B[B_dim+1,B_dim+1] =  0
+	  B[i,B_dim+1] = -1.0
+	  B[B_dim+1,i] = -1.0
+	  B[B_dim+1,B_dim+1] = 0.0
   end
   #DIIS_coeff::Vector{Float64} = [ fill(0.0,B_dim)..., -1.0 ]
   DIIS_coeff::Vector{Float64} = vcat(zeros(B_dim), [-1.0])
@@ -272,8 +283,10 @@ function DIIS(F::Matrix{Float64}, e_array::Vector{Matrix{Float64}},
   #DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.gesv!(B, DIIS_coeff)
   DIIS_coeff[:], B[:,:], ipiv = LinearAlgebra.LAPACK.sysv!('U', B, DIIS_coeff)
   
-  fill!(F, zero(Float64))
+  #fill!(F, zero(Float64))
+  LinearAlgebra.BLAS.scal!(length(F), 0.0, F, 1) 
   for index in 1:B_dim
+    #F .+= DIIS_coeff[index] .* F_array[index]
     F .+= DIIS_coeff[index] .* F_array[index]
   end
 end
@@ -294,6 +307,44 @@ function axial_normalization_factor(oei, ash, bsh)
     
     abnorm = anorm*bnorm 
     oei[ab] *= abnorm
+  end
+end
+
+@inline function axial_normalization_factor(eri_quartet_batch::Vector{Float64},
+  μsh::JCModules.Shell, νsh::JCModules.Shell, 
+  λsh::JCModules.Shell, σsh::JCModules.Shell,
+  nμ::Int, nν::Int, nλ::Int, nσ::Int) 
+
+  #eri_quartet_batch_simint = similar(eri_quartet_batch)
+  #println(ish, ",", jsh, ",", ksh, ",", lsh)
+  amμ = μsh.am
+  amν = νsh.am
+  amλ = λsh.am
+  amσ = σsh.am
+
+  if amμ < 3 && amν < 3 && amλ < 3 && amσ < 3
+    return
+  else
+    μνλσ = 0 
+    for μsize::Int64 in 0:(nμ-1), νsize::Int64 in 0:(nν-1)
+      μνλσ = nσ*nλ*νsize + nσ*nλ*nν*μsize
+      
+      μnorm = axial_norm_fact[μsize+1,amμ]
+      νnorm = axial_norm_fact[νsize+1,amν]
+
+      μνnorm = μnorm*νnorm
+
+      for λsize::Int64 in 0:(nλ-1), σsize::Int64 in 0:(nσ-1)
+        μνλσ += 1 
+   
+        λnorm = axial_norm_fact[λsize+1,amλ]
+        σnorm = axial_norm_fact[σsize+1,amσ]
+    
+        λσnorm = λnorm*σnorm 
+      
+        eri_quartet_batch[μνλσ] *= μνnorm*λσnorm
+      end
+    end 
   end
 end
 

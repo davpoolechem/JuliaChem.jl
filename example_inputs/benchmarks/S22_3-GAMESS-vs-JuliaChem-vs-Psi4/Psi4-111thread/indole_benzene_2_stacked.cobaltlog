@@ -1,0 +1,25 @@
+Jobid: 316389
+qsub -O 6-311++G_2d_2p/indole_benzene_2_stacked -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/indole_benzene_2_stacked.sh
+Thu Jan 28 23:18:50 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 316389 submitted from terminal /dev/pts/33
+Fri Jan 29 00:47:12 2021 +0000 (UTC) 
+Fri Jan 29 00:47:12 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake06' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.316389' '--jobid' '316389' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=316389' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_stacked.sh'
+Fri Jan 29 00:47:12 2021 +0000 (UTC) 
+Fri Jan 29 00:47:12 2021 +0000 (UTC) Environment:
+Fri Jan 29 00:47:12 2021 +0000 (UTC) SHELL=/bin/bash
+Fri Jan 29 00:47:12 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpTAXj0G
+Fri Jan 29 00:47:12 2021 +0000 (UTC) COBALT_PARTNAME=skylake06
+Fri Jan 29 00:47:12 2021 +0000 (UTC) COBALT_JOBID=316389
+Fri Jan 29 00:47:12 2021 +0000 (UTC) COBALT_STARTTIME=1611881225
+Fri Jan 29 00:47:12 2021 +0000 (UTC) LOGNAME=davpoolechem
+Fri Jan 29 00:47:12 2021 +0000 (UTC) USER=davpoolechem
+Fri Jan 29 00:47:12 2021 +0000 (UTC) COBALT_ENDTIME=1611902825
+Fri Jan 29 00:47:12 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Fri Jan 29 00:47:12 2021 +0000 (UTC) HOME=/home/davpoolechem
+Fri Jan 29 00:47:12 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Fri Jan 29 00:47:12 2021 +0000 (UTC) 
+Fri Jan 29 00:47:12 2021 +0000 (UTC) Info: stdin received from /dev/null
+Fri Jan 29 00:47:12 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_stacked.output
+Fri Jan 29 00:47:12 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/indole_benzene_2_stacked.error
+Fri Jan 29 00:47:12 2021 +0000 (UTC) 
+Fri Jan 29 05:05:00 2021 +0000 (UTC) Info: task completed normally with an exit code of 1; initiating job cleanup and removal

@@ -56,25 +56,21 @@ function script(input_file)
         #  output="verbose") 
         #scf_time1_t2 = time_ns()/1e9
         #scf_time1 = scf_time1_t2 - scf_time1_t1 
-
       
-        #for index in 1:3
-        for index in 1:1
-          molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
-            output="none")
-          mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
+        molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
+          output="none")
+        mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
 
-          scf_timeof_t1 = time_ns()/1e9
-          #scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
-          #  output="none")
-          scf = BenchmarkTools.@benchmark begin
-            JuliaChem.JCRHF.Energy.run($mol, $basis, $(keywords["scf"]); 
-              output="none") #initial run
-          end
-          display(scf)
-          scf_timeof_t2 = time_ns()/1e9
-          push!(timeof, scf_timeof_t2 - scf_timeof_t1) 
+        scf_timeof_t1 = time_ns()/1e9
+        #scf = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"]; 
+        #  output="verbose")
+        scf = BenchmarkTools.@benchmark begin
+          JuliaChem.JCRHF.Energy.run($mol, $basis, $(keywords["scf"]); 
+            output="verbose") #initial run
         end
+        display(scf)
+        scf_timeof_t2 = time_ns()/1e9
+        push!(timeof, scf_timeof_t2 - scf_timeof_t1) 
       end
     end
     scf_jit = scf_time1 - Statistics.mean(timeof)

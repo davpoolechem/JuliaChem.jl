@@ -1,0 +1,25 @@
+Jobid: 317129
+qsub -O 6-311++G_2d_2p/benzene_sandwich_trimer -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/benzene_sandwich_trimer.sh
+Sun Jan 31 22:44:21 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 317129 submitted from terminal /dev/pts/173
+Sun Jan 31 22:49:18 2021 +0000 (UTC) 
+Sun Jan 31 22:49:18 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake08' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.317129' '--jobid' '317129' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=317129' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_sandwich_trimer.sh'
+Sun Jan 31 22:49:18 2021 +0000 (UTC) 
+Sun Jan 31 22:49:18 2021 +0000 (UTC) Environment:
+Sun Jan 31 22:49:18 2021 +0000 (UTC) SHELL=/bin/bash
+Sun Jan 31 22:49:18 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp18Y_jN
+Sun Jan 31 22:49:18 2021 +0000 (UTC) COBALT_PARTNAME=skylake08
+Sun Jan 31 22:49:18 2021 +0000 (UTC) COBALT_JOBID=317129
+Sun Jan 31 22:49:18 2021 +0000 (UTC) COBALT_STARTTIME=1612133349
+Sun Jan 31 22:49:18 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sun Jan 31 22:49:18 2021 +0000 (UTC) USER=davpoolechem
+Sun Jan 31 22:49:18 2021 +0000 (UTC) COBALT_ENDTIME=1612154949
+Sun Jan 31 22:49:18 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sun Jan 31 22:49:18 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sun Jan 31 22:49:18 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sun Jan 31 22:49:18 2021 +0000 (UTC) 
+Sun Jan 31 22:49:18 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sun Jan 31 22:49:18 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_sandwich_trimer.output
+Sun Jan 31 22:49:18 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/benzene_sandwich_trimer.error
+Sun Jan 31 22:49:18 2021 +0000 (UTC) 
+Sun Jan 31 23:03:21 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

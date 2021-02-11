@@ -1,0 +1,136 @@
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+#######################################################################
+FORTRAN=gfortran
+FORTRAN_VERSION=7.4.0
+MATH=mkl
+BLASDIR=/soft/restricted/CNDA/sdk/2020.9.15.1/oneapi/mkl/latest
+MPI_LIB=openmpi
+MPI_HOME=/home/davpoolechem/programs/install/openmpi
+HDF5_PATH=/home/davpoolechem/programs/install/hdf5
+EIGEN_PATH=/home/davpoolechem/programs/install/eigen/include/eigen3
+BOOST_PATH=/home/davpoolechem/programs/install/boost
+GA_PATH=/home/davpoolechem/programs/install/ga
+CUDA_BOARD=volta
+CUDA_PATH=/soft/compilers/cuda/cuda-10.2.89
+#######################################################################
+
+
+  Memory set to 476.837 MiB by Python driver.
+  Threads set to 111 by Python driver.
+
+*** tstart() called on skylake04
+*** at Fri Jan 29 01:01:57 2021
+
+   => Loading Basis Set <=
+
+    Name: 6-311++G(2D,2P)
+    Role: ORBITAL
+    Keyword: BASIS
+    atoms 1, 4-8, 15, 17-21, 29, 31-32, 34, 36, 38   entry C          line    21 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+    atoms 2, 14, 27                                  entry O          line    87 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+    atoms 3, 9-13, 16, 22-26, 28, 30, 33, 35, 37, 39 entry H          line     5 file /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311ppg_2d_2p_.gbs 
+
+  ==> Iterations <==
+
+                        Total Energy        Delta E     RMS |[F,P]|
+
+   @RHF iter   1:  -498.84379248313041   -4.98844e+02   3.66317e-02 DIIS
+   @RHF iter   2:   292.51055318946715    7.91354e+02   4.60074e-02 DIIS
+   @RHF iter   3:  -248.94013489007349   -5.41451e+02   3.06600e-02 DIIS
+   @RHF iter   4:  -453.13214149881412   -2.04192e+02   2.69317e-02 DIIS
+   @RHF iter   5:  -585.33278362754857   -1.32201e+02   1.95471e-02 DIIS
+   @RHF iter   6:  -255.98225176506972    3.29351e+02   2.86606e-02 DIIS
+   @RHF iter   7:  -778.15413557903389   -5.22172e+02   1.08436e-02 DIIS
+   @RHF iter   8:  -169.14939873407144    6.09005e+02   3.25993e-02 DIIS
+   @RHF iter   9:  -378.19401666885614   -2.09045e+02   2.65175e-02 DIIS
+   @RHF iter  10:  -424.43162677822011   -4.62376e+01   2.54257e-02 DIIS
+   @RHF iter  11:  -426.84711166077443   -2.41548e+00   2.56100e-02 DIIS
+   @RHF iter  12:  -471.55603312311018   -4.47089e+01   2.42975e-02 DIIS
+   @RHF iter  13:  -491.83585049360818   -2.02798e+01   2.30855e-02 DIIS
+   @RHF iter  14:  -496.61772932943683   -4.78188e+00   2.28969e-02 DIIS
+   @RHF iter  15:  -329.65359601838361    1.66964e+02   2.83541e-02 DIIS
+   @RHF iter  16:  -592.35487163951757   -2.62701e+02   2.05372e-02 DIIS
+   @RHF iter  17:  -643.39817524356295   -5.10433e+01   1.82057e-02 DIIS
+   @RHF iter  18:  -710.52423735050661   -6.71261e+01   1.35687e-02 DIIS
+   @RHF iter  19:  -841.59942553291012   -1.31075e+02   9.69936e-03 DIIS
+   @RHF iter  20:  -826.60502269747133    1.49944e+01   9.65163e-03 DIIS
+   @RHF iter  21:  -872.44491835352164   -4.58399e+01   6.09616e-03 DIIS
+   @RHF iter  22:  -910.57163813951320   -3.81267e+01   2.89871e-03 DIIS
+   @RHF iter  23:  -916.69414171343522   -6.12250e+00   8.72134e-04 DIIS
+   @RHF iter  24:  -916.94148671053210   -2.47345e-01   3.04439e-04 DIIS
+   @RHF iter  25:  -916.97104616703359   -2.95595e-02   1.32557e-04 DIIS
+   @RHF iter  26:  -916.97846256280184   -7.41640e-03   5.75235e-05 DIIS
+   @RHF iter  27:  -916.97977150395377   -1.30894e-03   2.88973e-05 DIIS
+   @RHF iter  28:  -916.98005825192843   -2.86748e-04   1.59631e-05 DIIS
+  Energy and wave function converged.
+
+
+  ==> Post-Iterations <==
+
+  @RHF Final Energy:  -916.98005825192843
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =           1545.6478246257827323
+    One-Electron Energy =               -4318.9411161107827866
+    Two-Electron Energy =                1856.3132332330712870
+    Total Energy =                       -916.9800582519285399
+
+Computation Completed
+
+
+Properties will be evaluated at   0.000000,   0.000000,   0.000000 [a0]
+
+Properties computed using the SCF density matrix
+
+  Nuclear Dipole Moment: [e a0]
+     X:    -1.6296      Y:    -1.6261      Z:     1.5287
+
+  Electronic Dipole Moment: [e a0]
+     X:     1.3246      Y:     1.1319      Z:    -1.3052
+
+  Dipole Moment: [e a0]
+     X:    -0.3050      Y:    -0.4942      Z:     0.2235     Total:     0.6223
+
+  Dipole Moment: [D]
+     X:    -0.7752      Y:    -1.2562      Z:     0.5681     Total:     1.5817
+
+
+*** tstop() called on skylake04 at Fri Jan 29 01:20:27 2021
+Module time:
+	user time   =   83251.70 seconds =    1387.53 minutes
+	system time =     243.10 seconds =       4.05 minutes
+	total time  =       1110 seconds =      18.50 minutes
+Total time:
+	user time   =   83251.70 seconds =    1387.53 minutes
+	system time =     243.10 seconds =       4.05 minutes
+	total time  =       1110 seconds =      18.50 minutes

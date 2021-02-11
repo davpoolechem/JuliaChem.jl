@@ -1,0 +1,11 @@
+33c33
+< install:: all install_pkgconfig install_cmake install_inc install_data
+---
+> install:: all install_pkgconfig install_inc install_data
+43,48d42
+< endif
+< 
+< ifdef cmakedir
+< install_cmake::
+< 	$(INSTALL) $(INSTALLDIROPT) $(DESTDIR)$(cmakedir)
+< 	$(INSTALL) $(INSTALLLIBOPT) $(SRCTOPDIR)/FindLibint2.cmake $(DESTDIR)$(cmakedir)

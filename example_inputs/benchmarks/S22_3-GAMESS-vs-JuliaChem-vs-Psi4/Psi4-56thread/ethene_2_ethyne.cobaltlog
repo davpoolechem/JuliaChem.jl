@@ -1,0 +1,25 @@
+Jobid: 316980
+qsub -O 6-311++G_2d_2p/ethene_2_ethyne -A CHM135 -q skylake_8180 -t 360 -n 1 6-311++G_2d_2p/ethene_2_ethyne.sh
+Sat Jan 30 23:46:06 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3
+jobid 316980 submitted from terminal /dev/pts/14
+Sat Jan 30 23:57:07 2021 +0000 (UTC) 
+Sat Jan 30 23:57:07 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake11' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.316980' '--jobid' '316980' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3' '--env' 'COBALT_JOBID=316980' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/ethene_2_ethyne.sh'
+Sat Jan 30 23:57:07 2021 +0000 (UTC) 
+Sat Jan 30 23:57:07 2021 +0000 (UTC) Environment:
+Sat Jan 30 23:57:07 2021 +0000 (UTC) SHELL=/bin/bash
+Sat Jan 30 23:57:07 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmp8mbV6K
+Sat Jan 30 23:57:07 2021 +0000 (UTC) COBALT_PARTNAME=skylake11
+Sat Jan 30 23:57:07 2021 +0000 (UTC) COBALT_JOBID=316980
+Sat Jan 30 23:57:07 2021 +0000 (UTC) COBALT_STARTTIME=1612051017
+Sat Jan 30 23:57:07 2021 +0000 (UTC) LOGNAME=davpoolechem
+Sat Jan 30 23:57:07 2021 +0000 (UTC) USER=davpoolechem
+Sat Jan 30 23:57:07 2021 +0000 (UTC) COBALT_ENDTIME=1612072617
+Sat Jan 30 23:57:07 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Sat Jan 30 23:57:07 2021 +0000 (UTC) HOME=/home/davpoolechem
+Sat Jan 30 23:57:07 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Sat Jan 30 23:57:07 2021 +0000 (UTC) 
+Sat Jan 30 23:57:07 2021 +0000 (UTC) Info: stdin received from /dev/null
+Sat Jan 30 23:57:07 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/ethene_2_ethyne.output
+Sat Jan 30 23:57:07 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/Julia-Sandbox/QC-Programs/Psi4/S22_3/6-311++G_2d_2p/ethene_2_ethyne.error
+Sat Jan 30 23:57:07 2021 +0000 (UTC) 
+Sat Jan 30 23:57:59 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal

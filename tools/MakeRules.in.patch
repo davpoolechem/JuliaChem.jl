@@ -1,0 +1,15 @@
+2c2
+< .PHONY: default export install install_inc install_pkgconfig install_cmake install_target clean oclean distclean targetclean realclean
+---
+> .PHONY: default export install install_inc install_pkgconfig install_target clean oclean distclean targetclean realclean
+21c21
+< install:: install_inc install_target install_pkgconfig install_cmake install_data
+---
+> install:: install_inc install_target install_pkgconfig install_data
+51,56d50
+< endif
+< 
+< ifdef cmakedir
+< install_cmake::
+< 	$(INSTALL) $(INSTALLDIROPT) $(DESTDIR)$(cmakedir)
+< 	$(INSTALL) $(INSTALLLIBOPT) $(SRCTOPDIR)/FindLibint2.cmake $(DESTDIR)$(cmakedir)

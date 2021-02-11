@@ -1,0 +1,25 @@
+Jobid: 316333
+qsub -O S22_3/6-311++G_2d_2p/benzene_water_2 -A CHM135 -q skylake_8180 -t 360 -n 1 S22_3/6-311++G_2d_2p/benzene_water_2.sh
+Thu Jan 28 23:18:15 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess
+jobid 316333 submitted from terminal /dev/pts/33
+Thu Jan 28 23:41:39 2021 +0000 (UTC) 
+Thu Jan 28 23:41:39 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake01' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.316333' '--jobid' '316333' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess' '--env' 'COBALT_JOBID=316333' '/gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_water_2.sh'
+Thu Jan 28 23:41:39 2021 +0000 (UTC) 
+Thu Jan 28 23:41:39 2021 +0000 (UTC) Environment:
+Thu Jan 28 23:41:39 2021 +0000 (UTC) SHELL=/bin/bash
+Thu Jan 28 23:41:39 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpUp8lwe
+Thu Jan 28 23:41:39 2021 +0000 (UTC) COBALT_PARTNAME=skylake01
+Thu Jan 28 23:41:39 2021 +0000 (UTC) COBALT_JOBID=316333
+Thu Jan 28 23:41:39 2021 +0000 (UTC) COBALT_STARTTIME=1611877284
+Thu Jan 28 23:41:39 2021 +0000 (UTC) LOGNAME=davpoolechem
+Thu Jan 28 23:41:39 2021 +0000 (UTC) USER=davpoolechem
+Thu Jan 28 23:41:39 2021 +0000 (UTC) COBALT_ENDTIME=1611898884
+Thu Jan 28 23:41:39 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Thu Jan 28 23:41:39 2021 +0000 (UTC) HOME=/home/davpoolechem
+Thu Jan 28 23:41:39 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Thu Jan 28 23:41:39 2021 +0000 (UTC) 
+Thu Jan 28 23:41:39 2021 +0000 (UTC) Info: stdin received from /dev/null
+Thu Jan 28 23:41:39 2021 +0000 (UTC) Info: stdout sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_water_2.output
+Thu Jan 28 23:41:39 2021 +0000 (UTC) Info: stderr sent to /gpfs/jlse-fs0/users/davpoolechem/gms-dp/gamess/S22_3/6-311++G_2d_2p/benzene_water_2.error
+Thu Jan 28 23:41:39 2021 +0000 (UTC) 
+Thu Jan 28 23:42:32 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
