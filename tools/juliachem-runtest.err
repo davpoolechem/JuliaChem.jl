@@ -1,0 +1,75 @@
+HDF5-DIAG: Error detected in HDF5 (1.10.4) thread 0:
+  #000: H5O.c line 120 in H5Oopen(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #001: H5Oint.c line 596 in H5O__open_name(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #002: H5Oint.c line 551 in H5O_open_name(): object not found
+    major: Object header
+    minor: Object not found
+  #003: H5Gloc.c line 422 in H5G_loc_find(): can't find object
+    major: Symbol table
+    minor: Object not found
+  #004: H5Gtraverse.c line 851 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #005: H5Gtraverse.c line 741 in H5G__traverse_real(): component not found
+    major: Symbol table
+    minor: Object not found
+    Testing JuliaChem
+Status `/tmp/jl_8p7gyg/Manifest.toml`
+  [9e28174c] BinDeps v1.0.1
+  [b99e7846] BinaryProvider v0.5.8
+  [a74b3585] Blosc v0.6.0
+  [631607c0] CMake v1.2.0
+  [d5fb7624] CMakeWrapper v0.2.3
+  [a8cc5b0e] Crayons v4.0.1
+  [9a962f9c] DataAPI v1.3.0
+  [e2d170a0] DataValueInterfaces v1.0.0
+  [ffbed154] DocStringExtensions v0.8.1
+  [5789e2e9] FileIO v1.2.4
+  [59287772] Formatting v0.4.1
+  [f67ccb44] HDF5 v0.13.1
+  [0234f1f7] HDF5_jll v1.10.5+5
+  [82899510] IteratorInterfaceExtensions v1.0.0
+  [825a225a] JCModules v0.1.0 #master (https://github.com/davpoolechem/JCModules.jl.git)
+  [4138dd39] JLD v0.10.0
+  [682c06a0] JSON v0.21.0
+  [0a8e60a0] JuliaChem v0.1.0 [`/home/david/projects/Julia/JuliaChem.jl`]
+  [175a8a3e] MATH v0.1.0 #master (https://github.com/davpoolechem/MATH.jl.git)
+  [da04e1cc] MPI v0.13.1
+  [bac558e1] OrderedCollections v1.1.0
+  [d96e819e] Parameters v0.12.0
+  [69de0a69] Parsers v1.0.2
+  [08abe8d2] PrettyTables v0.9.0
+  [189a3867] Reexport v0.2.0
+  [ae029012] Requires v1.0.1
+  [90137ffa] StaticArrays v0.12.2
+  [3783bdb8] TableTraits v1.0.0
+  [bd369af6] Tables v1.0.4
+  [30578b45] URIParser v0.4.1
+  [83775a58] Zlib_jll v1.2.11+9
+  [2a0f44e3] Base64 
+  [ade2ca70] Dates 
+  [8ba89e20] Distributed 
+  [b77e0a4c] InteractiveUtils 
+  [76f85450] LibGit2 
+  [8f399da3] Libdl 
+  [37e2e46d] LinearAlgebra 
+  [56ddb016] Logging 
+  [d6f4376e] Markdown 
+  [a63ad114] Mmap 
+  [44cfe95a] Pkg 
+  [de0858da] Printf 
+  [3fa0cd96] REPL 
+  [9a3f8284] Random 
+  [ea8e919c] SHA 
+  [9e88b42a] Serialization 
+  [6462fe0b] Sockets 
+  [2f01184e] SparseArrays 
+  [10745b16] Statistics 
+  [8dfed614] Test 
+  [cf7118a7] UUIDs 
+  [4ec0a83e] Unicode 
+    Testing JuliaChem tests passed 
