@@ -46,8 +46,9 @@
   },
   "keywords": {
     "scf": {
-      "dele": 1.0,
-      "rmsd": 2E-5
+      "guess":"hcore",
+      "dele":1.0, 
+      "rmsd":2.0E-5 
     }
   }
 }
