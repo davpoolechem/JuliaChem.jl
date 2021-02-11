@@ -1,0 +1,25 @@
+Jobid: 319706
+qsub -O /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/at2/at2_28thread -A CHM135 -q skylake_8180 -t 360 -n 1 /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/at2/at2_28thread.sh
+Mon Feb 08 23:36:18 2021 +0000 (UTC) submitted with cwd set to: /gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl
+jobid 319706 submitted from terminal /dev/pts/235
+Mon Feb 08 23:37:11 2021 +0000 (UTC) 
+Mon Feb 08 23:37:11 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'skylake02' '/usr/libexec/cobalt/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.319706' '--jobid' '319706' '--cwd' '/gpfs/jlse-fs0/users/davpoolechem/projects/Julia/JuliaChem.jl' '--env' 'COBALT_JOBID=319706' '/home/davpoolechem/shared/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/at2/at2_28thread.sh'
+Mon Feb 08 23:37:11 2021 +0000 (UTC) 
+Mon Feb 08 23:37:11 2021 +0000 (UTC) Environment:
+Mon Feb 08 23:37:11 2021 +0000 (UTC) SHELL=/bin/bash
+Mon Feb 08 23:37:11 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpAOLAmL
+Mon Feb 08 23:37:11 2021 +0000 (UTC) COBALT_PARTNAME=skylake02
+Mon Feb 08 23:37:11 2021 +0000 (UTC) COBALT_JOBID=319706
+Mon Feb 08 23:37:11 2021 +0000 (UTC) COBALT_STARTTIME=1612827415
+Mon Feb 08 23:37:11 2021 +0000 (UTC) LOGNAME=davpoolechem
+Mon Feb 08 23:37:11 2021 +0000 (UTC) USER=davpoolechem
+Mon Feb 08 23:37:11 2021 +0000 (UTC) COBALT_ENDTIME=1612849015
+Mon Feb 08 23:37:11 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Mon Feb 08 23:37:11 2021 +0000 (UTC) HOME=/home/davpoolechem
+Mon Feb 08 23:37:11 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Mon Feb 08 23:37:11 2021 +0000 (UTC) 
+Mon Feb 08 23:37:11 2021 +0000 (UTC) Info: stdin received from /dev/null
+Mon Feb 08 23:37:11 2021 +0000 (UTC) Info: stdout sent to /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/at2/at2_28thread.output
+Mon Feb 08 23:37:11 2021 +0000 (UTC) Info: stderr sent to /home/davpoolechem/shared/projects/Julia/JuliaChem.jl/example_inputs/S22_3/6-311++G_2d_2p/at2/at2_28thread.error
+Mon Feb 08 23:37:11 2021 +0000 (UTC) 
+Tue Feb 09 00:46:03 2021 +0000 (UTC) Info: task completed normally with an exit code of 0; initiating job cleanup and removal
