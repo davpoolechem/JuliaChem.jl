@@ -33,39 +33,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
   #== create properties dict ==#
   properties = Dict{String, Any}([])
   
-  #== compute dipole is selected ==#
-  if haskey(keywords, "multipole")
-    if keywords["multipole"] == "dipole"
-      #== initial setup ==#
-      jeri_prop_engine = JERI.PropEngine(mol.mol_cxx, 
-        basis.basis_cxx) 
-
-      P = rhf_energy["Density"] 
-
-      #== compute dipole moment ==#
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
-        println("----------------------------------------          ")
-        println("     Computing multiple moments...                ")
-        println("----------------------------------------          ")
-        println(" ")
-        println("Dipole:       X           Y           Z         Tot. (D)        ") 
-      end  
-  
-      dipole = compute_dipole(mol, basis, P, jeri_prop_engine)
-      dipole_moment = sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)
-  
-      @printf("          %.6f   %.6f    %.6f    %.6f     \n", 
-        dipole[1], dipole[2], dipole[3], dipole_moment)
-      println()
- 
-      properties["Dipole"] = (x = dipole[1], y = dipole[2], z = dipole[3], 
-        moment = dipole_moment)  
-    end
-  end
-
   #== compute mulliken charges if selected ==#
   if haskey(keywords, "mulliken")
-    if keywords["mulliken"] == true
+    if false && keywords["mulliken"] == true #disable mulliken charges for now
       #== initial setup ==#
       D = rhf_energy["Density"] 
       S = rhf_energy["Overlap"]
@@ -104,9 +74,9 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
         println(" Computing molecular orbital energies...           ")           
         println("----------------------------------------          ")           
         println(" ")                                                            
-        println("Orbital #     Orbital energy")                                 
+        println("Orbital #     Orbital energy (h)")                                 
         for index::Int64 in 1:size(F_mo)[1] 
-            println("   ",index,"       ",F_mo[index,index])                    
+            @printf("    %d           %.6f    \n", index, F_mo[index,index]) 
         end                                                                     
         println(" ")                                                            
       end
@@ -127,13 +97,13 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
         println("        Computing HOMO-LUMO gap...                ")
         println("----------------------------------------          ")           
         println(" ")                                                            
-        println("The HOMO is located at MO orbital #$homo_pos,")
-        println("  with an energy of $E_homo h.")
+        @printf("The HOMO is located at MO orbital #%d, \n  with an energy of %.6f h. \n", 
+          homo_pos, E_homo)
         println(" ")                                                            
-        println("The LUMO is located at MO orbital #$lumo_pos,")
-        println("  with an energy of $E_lumo h.")
+        @printf("The LUMO is located at MO orbital #%d, \n  with an energy of %.6f h. \n", 
+          lumo_pos, E_lumo)
         println(" ")                                                            
-        println("HOMO-LUMO gap: $homo_lumo_gap h")
+        @printf("HOMO-LUMO gap: %.6f h \n", homo_lumo_gap)
         println(" ")                                                            
       end
 
@@ -141,6 +111,37 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
     end    
   end
 
+  #== compute multipole moments if selected ==#
+  if haskey(keywords, "multipole")
+    if keywords["multipole"] == "dipole"
+      #== initial setup ==#
+      jeri_prop_engine = JERI.PropEngine(mol.mol_cxx, 
+        basis.basis_cxx) 
+
+      P = rhf_energy["Density"] 
+
+      #== compute dipole moment ==#
+      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+        println("----------------------------------------          ")
+        println("     Computing multiple moments...                ")
+        println("----------------------------------------          ")
+        println(" ")
+        println("Dipole:       X           Y           Z         Tot. (D)        ") 
+      end  
+  
+      dipole = compute_dipole(mol, basis, P, jeri_prop_engine)
+      dipole_moment = sqrt(dipole[1]^2 + dipole[2]^2 + dipole[3]^2)
+  
+      @printf("          %.6f   %.6f    %.6f    %.6f     \n", 
+        dipole[1], dipole[2], dipole[3], dipole_moment)
+      println()
+ 
+      properties["Dipole"] = (x = dipole[1], y = dipole[2], z = dipole[3], 
+        moment = dipole_moment)  
+    end
+  end
+
+ 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
