@@ -15,4 +15,8 @@ export Energy
 Base.include(@__MODULE__,"gradient/Gradient.jl")
 export Gradient
 
+#== RHF properties module ==#
+Base.include(@__MODULE__,"properties/Properties.jl")
+export Properties
+
 end
