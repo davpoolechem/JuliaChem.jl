@@ -9,7 +9,7 @@ inputs .= directory .* inputs
 
 display(inputs)
 
-#== establish correct values for energies and dipoles ==#
+#== establish correct values for energies, dipoles, and HOMO-LUMO gaps ==#
 GAMESS_energies = Vector{Float64}([
   -112.4047194144,
   -152.0671593526,
@@ -60,6 +60,31 @@ GAMESS_dipole_moments = Vector{Float64}([
   3.486793 
 ])
 
+GAMESS_HOMO_LUMO_gaps = Vector{Float64}([
+  0.6192,
+  0.6493,
+  0.6283,
+  0.5964,
+  0.4622,
+  0.4068,
+  0.4054,
+  0.7288,
+  0.5424,
+  0.4746,  
+  0.4538,
+  0.4372,
+  0.4447,
+  0.4031,
+  0.4154,
+  0.5441,
+  0.4736,
+  0.4742,
+  0.4757,
+  0.4563,
+  0.3869,
+  0.4226
+])
+
 #== initialize JuliaChem ==#
 JuliaChem.initialize()
 
@@ -86,6 +111,13 @@ Test.@testset "S22 Dipoles" begin
     else
       Test.@test s22_test_results[imol][:Properties]["Dipole"][:moment] ≈ GAMESS_dipole_moments[imol] atol=5.0E-5
     end
+  end
+end
+
+#== check energies ==#
+Test.@testset "S22 HOMO-LUMO Gaps" begin
+  for imol in molecules 
+    Test.@test s22_test_results[imol][:Properties]["MO Energies"][:homo_lumo] ≈ GAMESS_HOMO_LUMO_gaps[imol] atol=5.0E-4
   end
 end
 

@@ -32,6 +32,7 @@
       "guess":"sad"
     },
     "prop":{
+      "mo energies":true,
       "multipole":"dipole"
     }
   }
