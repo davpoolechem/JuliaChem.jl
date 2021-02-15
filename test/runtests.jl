@@ -24,7 +24,7 @@ end
 #== check energies ==#
 Test.@testset "S22 Energy" begin
   for imol in molecules 
-    Test.@test s22_test_results[imol][:Energy]["Energy"] ≈ S22_GAMESS[imol]["Energy"] 
+    Test.@test s22_test_results[imol][:Energy]["Energy"] ≈ S22_GAMESS[imol]["Energy"]
   end
 end
 
