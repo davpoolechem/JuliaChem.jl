@@ -212,6 +212,7 @@ function rhf_kernel(mol::Molecule,
              "Density" => D,                                                    
              "Energy-Weighted Density" => W,                                                    
              "MO Coeff" => C,                                                   
+             "Overlap" => S,                                                   
              "Energy" => E,                                                     
              "Converged?" => converged                                      
             )                                                                   

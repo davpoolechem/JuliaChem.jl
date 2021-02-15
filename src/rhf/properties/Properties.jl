@@ -5,6 +5,7 @@
 """
 module Properties 
 
+include("Mulliken.jl")
 include("Multipole.jl")
 
 using JuliaChem.JCModules
@@ -62,13 +63,10 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
 
   #== compute mulliken charges if selected ==#
   if haskey(keywords, "mulliken")
-    if keywords["mulliken"]
+    if keywords["mulliken"] == true
       #== initial setup ==#
-      #jeri_prop_engine = JERI.PropEngine(mol.mol_cxx, 
-      #  basis.basis_cxx) 
-
+      D = rhf_energy["Density"] 
       S = rhf_energy["Overlap"]
-      P = rhf_energy["Density"] 
 
       #== compute mulliken charges ==# 
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
@@ -79,7 +77,8 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
         #println("Dipole:       X           Y           Z         Tot. (D)        ") 
       end  
   
-      mulliken = compute_mulliken_charges(mol, basis, P, jeri_prop_engine)
+      mulliken = compute_mulliken_charges(mol, basis, D, S)
+      display(mulliken)
   
       #@printf("          %.6f   %.6f    %.6f    %.6f     \n", 
       #  dipole[1], dipole[2], dipole[3], dipole_moment)
