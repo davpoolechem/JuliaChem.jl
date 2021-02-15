@@ -7,6 +7,7 @@ module Properties
 
 include("Mulliken.jl")
 include("Multipole.jl")
+include("OrbitalEnergies.jl")
 
 using JuliaChem.JCModules
 using JuliaChem.JERI
@@ -55,7 +56,8 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
   
       @printf("          %.6f   %.6f    %.6f    %.6f     \n", 
         dipole[1], dipole[2], dipole[3], dipole_moment)
-  
+      println()
+ 
       properties["Dipole"] = (x = dipole[1], y = dipole[2], z = dipole[3], 
         moment = dipole_moment)  
     end
@@ -78,13 +80,65 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
       end  
   
       mulliken = compute_mulliken_charges(mol, basis, D, S)
-      display(mulliken)
+      display(mulliken); println()
   
       #@printf("          %.6f   %.6f    %.6f    %.6f     \n", 
       #  dipole[1], dipole[2], dipole[3], dipole_moment)
   
       properties["Mulliken"] = mulliken
     end
+  end
+  
+  if haskey(keywords, "mo energies")
+    if keywords["mo energies"] == true
+      #== initial setup ==#
+      F = rhf_energy["Fock"]
+      C = rhf_energy["MO Coeff"]
+
+      #== convert Fock matrix to MO basis ==#
+      F_mo = compute_orbital_energies(F, C)
+
+      #== print orbital energies ==#
+      if MPI.Comm_rank(comm) == 0 && output == "verbose" 
+        println("----------------------------------------          ")           
+        println(" Computing molecular orbital energies...           ")           
+        println("----------------------------------------          ")           
+        println(" ")                                                            
+        println("Orbital #     Orbital energy")                                 
+        for index::Int64 in 1:size(F_mo)[1] 
+            println("   ",index,"       ",F_mo[index,index])                    
+        end                                                                     
+        println(" ")                                                            
+      end
+
+      #== compute HOMO-LUMO gap ==#
+      nocc = basis.nels >> 1 
+      
+      homo_pos = nocc
+      E_homo = F_mo[homo_pos, homo_pos]
+      
+      lumo_pos = homo_pos + 1
+      E_lumo = F_mo[lumo_pos, lumo_pos]
+  
+      homo_lumo_gap = abs(E_homo - E_lumo)
+ 
+      if MPI.Comm_rank(comm) == 0 && output == "verbose" 
+        println("----------------------------------------          ")           
+        println("        Computing HOMO-LUMO gap...                ")
+        println("----------------------------------------          ")           
+        println(" ")                                                            
+        println("The HOMO is located at MO orbital #$homo_pos,")
+        println("  with an energy of $E_homo h.")
+        println(" ")                                                            
+        println("The LUMO is located at MO orbital #$lumo_pos,")
+        println("  with an energy of $E_lumo h.")
+        println(" ")                                                            
+        println("HOMO-LUMO gap: $homo_lumo_gap h")
+        println(" ")                                                            
+      end
+
+      properties["MO Energies"] = (energies = F_mo, homo_lumo = homo_lumo_gap)
+    end    
   end
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
