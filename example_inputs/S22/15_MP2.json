@@ -46,6 +46,7 @@
     },
     "prop":{
       "mo energies":true,
+      "mulliken":true,
       "multipole":"dipole"
     }
   }

@@ -14,7 +14,7 @@ display(inputs)
 JuliaChem.initialize()
 
 #== run S22 calculations ==#
-molecules = Vector{Int}([ 2, 3 ]) 
+molecules = collect(2:3) 
 
 s22_test_results = Dict([]) 
 for imol in molecules 
@@ -39,12 +39,21 @@ Test.@testset "S22 Dipoles" begin
   end
 end
 
-#== check energies ==#
+#== check HOMO-LUMO gaps ==#
 Test.@testset "S22 HOMO-LUMO Gaps" begin
   for imol in molecules 
     Test.@test s22_test_results[imol][:Properties]["MO Energies"][:homo_lumo] ≈ S22_GAMESS[imol]["HOMO-LUMO Gap"] atol=5.0E-4
   end
 end
+
+#== check Mulliken charges ==#
+Test.@testset "S22 Mulliken Charges" begin
+  for imol in molecules 
+    Test.@test s22_test_results[imol][:Properties]["Mulliken Population"] ≈ 
+      S22_GAMESS[imol]["Mulliken Population"] atol=5.0E-6
+  end
+end
+
 
 #== finalize JuliaChem ==#
 JuliaChem.finalize()       
