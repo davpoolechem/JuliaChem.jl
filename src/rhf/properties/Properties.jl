@@ -33,32 +33,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
   #== create properties dict ==#
   properties = Dict{String, Any}([])
   
-  #== compute mulliken charges if selected ==#
-  if haskey(keywords, "mulliken")
-    if false && keywords["mulliken"] == true #disable mulliken charges for now
-      #== initial setup ==#
-      D = rhf_energy["Density"] 
-      S = rhf_energy["Overlap"]
-
-      #== compute mulliken charges ==# 
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
-        println("----------------------------------------          ")
-        println("     Computing mulliken charges...                ")
-        println("----------------------------------------          ")
-        println(" ")
-        #println("Dipole:       X           Y           Z         Tot. (D)        ") 
-      end  
-  
-      mulliken = compute_mulliken_charges(mol, basis, D, S)
-      display(mulliken); println()
-  
-      #@printf("          %.6f   %.6f    %.6f    %.6f     \n", 
-      #  dipole[1], dipole[2], dipole[3], dipole_moment)
-  
-      properties["Mulliken"] = mulliken
-    end
-  end
-  
+  #= compute molecular orbital energies if selected ==#
   if haskey(keywords, "mo energies")
     if keywords["mo energies"] == true
       #== initial setup ==#
@@ -111,6 +86,36 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
     end    
   end
 
+  #== compute mulliken charges if selected ==#
+  if haskey(keywords, "mulliken")
+    if keywords["mulliken"] == true 
+      #== initial setup ==#
+      D = rhf_energy["Density"] 
+      S = rhf_energy["Overlap"]
+      
+      #== compute mulliken charges ==# 
+      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+        println("----------------------------------------          ")
+        println("     Computing mulliken charges...                ")
+        println("----------------------------------------          ")
+        println(" ")
+        println("Atom #     Symbol       Mulliken Pop.         Charge        ") 
+      end  
+  
+      mulliken_pop = compute_population_analysis(mol, basis, D, S)
+ 
+      for (iatom, atom) in enumerate(mol) 
+        atom_pop = mulliken_pop[iatom]
+        @printf("  %d           %s           %.6f          %.6f     \n", 
+          iatom, atom.symbol, atom_pop, atom.atom_id - atom_pop) 
+      end
+      println()
+
+      properties["Mulliken Population"] = mulliken_pop
+      #properties["Lowdin Population"] = lowdin_pop
+    end
+  end
+
   #== compute multipole moments if selected ==#
   if haskey(keywords, "multipole")
     if keywords["multipole"] == "dipole"
@@ -140,7 +145,6 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
         moment = dipole_moment)  
     end
   end
-
  
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("                       ========================================                 ")
