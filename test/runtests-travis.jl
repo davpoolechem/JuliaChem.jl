@@ -1,7 +1,8 @@
 import Test
+import JSON
 
 include("../tools/travis/travis-rhf.jl")
-include("s22_gamess_values.jl")
+#include("s22_gamess_values.jl")
 
 #== select input files ==#
 directory = joinpath(@__DIR__, "../example_inputs/S22/")
@@ -12,6 +13,13 @@ display(inputs)
 
 #== initialize JuliaChem ==#
 JuliaChem.initialize()
+
+#== read in GAMESS values for comparison ==#
+S22_GAMESS_file = open(joinpath(@__DIR__, "s22_gamess_values.json"))
+  S22_GAMESS_string = read(S22_GAMESS_file, String)
+close(S22_GAMESS_file)
+
+S22_GAMESS = JSON.parse(S22_GAMESS_string)
 
 #== run S22 calculations ==#
 molecules = collect(2:3) 
@@ -24,17 +32,17 @@ end
 #== check energies ==#
 Test.@testset "S22 Energy" begin
   for imol in molecules 
-    Test.@test s22_test_results[imol][:Energy]["Energy"] ≈ S22_GAMESS[imol]["Energy"]
+    Test.@test s22_test_results[imol][:Energy]["Energy"] ≈ S22_GAMESS["$imol"]["Energy"]
   end
 end
 
 #== check dipole moments ==#
 Test.@testset "S22 Dipoles" begin
   for imol in molecules 
-    if S22_GAMESS[imol]["Dipole"] == 1.0E-6
-      Test.@test abs(s22_test_results[imol][:Properties]["Dipole"][:moment]) <= S22_GAMESS[imol]["Dipole"] #check if approximately zero 
+    if S22_GAMESS["$imol"]["Dipole"] == 1.0E-6
+      Test.@test abs(s22_test_results[imol][:Properties]["Dipole"][:moment]) <= S22_GAMESS["$imol"]["Dipole"] #check if approximately zero 
     else
-      Test.@test s22_test_results[imol][:Properties]["Dipole"][:moment] ≈ S22_GAMESS[imol]["Dipole"] atol=5.0E-5
+      Test.@test s22_test_results[imol][:Properties]["Dipole"][:moment] ≈ S22_GAMESS["$imol"]["Dipole"] atol=5.0E-5
     end
   end
 end
@@ -42,7 +50,7 @@ end
 #== check HOMO-LUMO gaps ==#
 Test.@testset "S22 HOMO-LUMO Gaps" begin
   for imol in molecules 
-    Test.@test s22_test_results[imol][:Properties]["MO Energies"][:homo_lumo] ≈ S22_GAMESS[imol]["HOMO-LUMO Gap"] atol=5.0E-4
+    Test.@test s22_test_results[imol][:Properties]["MO Energies"][:homo_lumo] ≈ S22_GAMESS["$imol"]["HOMO-LUMO Gap"] atol=5.0E-4
   end
 end
 
@@ -50,7 +58,7 @@ end
 Test.@testset "S22 Mulliken Charges" begin
   for imol in molecules 
     Test.@test s22_test_results[imol][:Properties]["Mulliken Population"] ≈ 
-      S22_GAMESS[imol]["Mulliken Population"] atol=5.0E-6
+      S22_GAMESS["$imol"]["Mulliken Population"] atol=5.0E-6
   end
 end
 
