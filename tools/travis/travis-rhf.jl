@@ -23,7 +23,7 @@ function travis_rhf(input_file)
       output="verbose") 
 
     #== compute molecular properties ==# 
-    rhf_properties = JuliaChem.JCProperties.run(mol, basis, rhf_energy, keywords["prop"],
+    rhf_properties = JuliaChem.JCRHF.Properties.run(mol, basis, rhf_energy, keywords["prop"],
       output="verbose")  
 
     return (Energy = rhf_energy, Properties = rhf_properties) 

@@ -54,7 +54,7 @@ function full_rhf(input_file)
         end
     
         #== compute molecular properties such as dipole moment ==#
-        properties = JuliaChem.JCProperties.run(mol, basis, rhf_energy, 
+        properties = JuliaChem.JCRHF.Properties.run(mol, basis, rhf_energy, 
           keywords["prop"]; output="verbose")
       else
         throw("Exception: Methods other than RHF are not supported yet!")
