@@ -111,8 +111,7 @@ function rhf_kernel(mol::Molecule,
   S_eval_diag, workspace_a[:,:] = eigen!(LinearAlgebra.Hermitian(workspace_b))
 
   #fill!(workspace_b, 0.0)
-  #LinearAlgebra.BLAS.scal!(length(workspace_b), 0.0, workspace_b, 1) 
-  
+  LinearAlgebra.BLAS.scal!(length(workspace_b), 0.0, workspace_b, 1) 
   for i in 1:basis.norb
     workspace_b[i,i] = S_eval_diag[i]
   end
