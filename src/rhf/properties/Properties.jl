@@ -86,6 +86,31 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
     end    
   end
 
+  #== compute formation energy if selected ==#
+  if haskey(keywords, "formation")
+    if keywords["formation"] == true 
+      #== initial setup ==#
+      E_tot = rhf_energy["Energy"] 
+      
+      #== compute formation energy ==# 
+      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+        println("----------------------------------------          ")
+        println("     Computing formation energy...                ")
+        println("----------------------------------------          ")
+        println(" ")
+      end  
+  
+      E_form = compute_formation_energy(mol, basis, E_tot)
+ 
+      if MPI.Comm_rank(comm) == 0 && output == "verbose" 
+        @printf("Energy of formation: %.6f h \n", E_form)
+        println(" ")                                                            
+      end
+
+      properties["Formation Energy"] = E_form
+    end
+  end
+
   #== compute mulliken charges if selected ==#
   if haskey(keywords, "mulliken")
     if keywords["mulliken"] == true 
