@@ -216,6 +216,16 @@ function run(molecule, model; output="none")
     end
   end
 
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+    println("----------------------------------------          ")
+    println("     Printing basis set metadata...               ")
+    println("----------------------------------------          ")
+    println()
+    println("Basis set: $basis")
+    println("Number of basis functions: $basis_set_norb")
+    println("Number of electrons: $basis_set_nels")
+  end
+  
   #sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
   #sort!(basis_set_shells, by = x->(x.atomic_number,x.atom_id))
  
