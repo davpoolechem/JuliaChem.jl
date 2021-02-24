@@ -5,6 +5,7 @@
 """
 module Properties 
 
+include("FormationEnergies.jl")
 include("Mulliken.jl")
 include("Multipole.jl")
 include("OrbitalEnergies.jl")
