@@ -21,6 +21,7 @@ function rhf_properties_xyz(input_file)
     )
 
     keywords = Dict(
+      "scf" => Dict(),
       "prop" => Dict(
         "formation" => true,
         "mo energies" => true,
@@ -31,33 +32,17 @@ function rhf_properties_xyz(input_file)
     
     #== generate basis set ==#
     mol, basis = JuliaChem.JCBasis.run(molecule, model; 
-      output=2)          
+      output=0)          
 
     #JuliaChem.JCMolecule.run(mol)
 
     #== perform scf calculation ==#
-    rhf_energy = Dict()
-    if haskey(keywords, "scf")
-      rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"];
-        output=1)
-    else
-      rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis;
-        output=1)
-    end
+    rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"];
+      output=1)
 
     #== perform property calculations ==#
-    rhf_properties = Dict()
-    if haskey(keywords, "prop")
-      rhf_properties = JuliaChem.JCRHF.Properties.run(mol, basis, rhf_energy,
-          keywords["prop"]; output=2)  
-    end
-
-
-    #display(rhf_energy["Density"]); println()
-    #display(rhf_energy["Energy-Weighted Density"]); println()
-
-    #== perform gradient ==#
-    #rhf_gradient = JuliaChem.JCGrad.run(mol, basis; output=2)
+    rhf_properties = JuliaChem.JCRHF.Properties.run(mol, basis, rhf_energy,
+        keywords["prop"]; output=2)  
 
     return rhf_energy, rhf_properties
   catch e                                                                       
