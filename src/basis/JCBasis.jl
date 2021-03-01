@@ -14,7 +14,7 @@ using CxxWrap
 using MPI
 using Base.Threads
 using HDF5
-using PrettyTables
+using Printf
 
 Base.include(@__MODULE__, "BasisHelpers.jl")
 
@@ -66,8 +66,9 @@ function run(molecule, model; output="none")
 
   if MPI.Comm_rank(comm) == 0 && output == "verbose"
     println("----------------------------------------          ")
-    println("        Basis Set Information...                  ")
+    println("          Printing basis set...                   ")
     println("----------------------------------------          ")
+    println()
   end
 
   basis_set_shells = Vector{JCModules.Shell}([])
@@ -115,9 +116,10 @@ function run(molecule, model; output="none")
         bsed["$symbol/$basis"])
 
       #== process basis set values into shell objects ==#
-      #if MPI.Comm_rank(comm) == 0 && output == "verbose"
-      #  println("ATOM #$atom_idx ($symbol):") 
-      #end
+      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+        println("Atom #$atom_idx ($symbol):") 
+        println("  Shell     Ang. Mom.     Prim.       Exp.         Coeff.")
+      end
       
       for shell_num::Int64 in 1:length(shells)
         new_shell_dict::Dict{String,Any} = shells["$shell_num"]
@@ -134,13 +136,11 @@ function run(molecule, model; output="none")
         if new_shell_am == -1
           #== s component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Atom $atom_idx ($symbol) Shell $shell_num (L (s))" 
-              * " Exponents and Coefficients:")
-            pretty_table(hcat(collect(1:nprim),new_shell_exp, 
-              new_shell_coeff[1:nprim]), 
-              vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.8f", [2,3]) )
-          end 
+            for iprim in 1:nprim
+              @printf("    %d        L (s)          %d     %.6f     %.6f\n", 
+                shell_num, iprim, new_shell_exp[iprim], new_shell_coeff[iprim]) 
+            end
+          end
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number, 
             new_shell_exp, new_shell_coeff[1:nprim],
@@ -158,14 +158,13 @@ function run(molecule, model; output="none")
 
           #== p component ==#
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            println("Atom $atom_idx ($symbol) Shell $shell_num (L (p))" 
-             * " Exponents and Coefficients:")
-            pretty_table(hcat(collect(1:nprim),new_shell_exp, 
-              new_shell_coeff[(nprim+1):ncoeff]), 
-              vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.8f", [2,3]) )
-          end 
-
+            for iprim in 1:nprim
+              @printf("    %d        L (p)          %d      %.6f     %.6f\n", 
+                shell_num, iprim, new_shell_exp[iprim], 
+                new_shell_coeff[nprim+iprim]) 
+            end
+          end
+          
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
             new_shell_exp, new_shell_coeff[(nprim+1):ncoeff],
             atom_center, 2, nprim, pos, true)
@@ -182,15 +181,12 @@ function run(molecule, model; output="none")
         #== otherwise accept shell as is ==#
         else 
           if MPI.Comm_rank(comm) == 0 && output == "verbose"
-            shell_type = new_shell_dict["Shell Type"]
-            println("Atom $atom_idx ($symbol) Shell $shell_num ($shell_type)"
-              * " Exponents and Coefficients:")
-     
-            pretty_table(hcat(collect(1:nprim),new_shell_exp, 
-              new_shell_coeff), 
-              vcat( [ "Primitive" "Exponent" "Contraction Coefficient" ] ),
-              formatters = ft_printf("%5.8f", [2,3]) )
-          end 
+            for iprim in 1:nprim
+              @printf("    %d          %s            %d      %.6f     %.6f\n", 
+                shell_num, new_shell_dict["Shell Type"], iprim, 
+                new_shell_exp[iprim], new_shell_coeff[iprim]) 
+            end
+          end
 
           new_shell = JCModules.Shell(shell_id, atom_idx, atomic_number,
             new_shell_exp, deepcopy(new_shell_coeff),
@@ -216,11 +212,20 @@ function run(molecule, model; output="none")
 
       if MPI.Comm_rank(comm) == 0 && output == "verbose"
         println(" ")
-        println(" ")
       end
     end
   end
 
+  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+    println("----------------------------------------          ")
+    println("     Printing basis set metadata...               ")
+    println("----------------------------------------          ")
+    println()
+    println("Basis set: $basis")
+    println("Number of basis functions: $basis_set_norb")
+    println("Number of electrons: $basis_set_nels")
+  end
+  
   #sort!(basis_set_shells, by = x->((x.nbas*x.nprim),x.am))
   #sort!(basis_set_shells, by = x->(x.atomic_number,x.atom_id))
  
