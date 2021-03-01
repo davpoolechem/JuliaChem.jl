@@ -6,6 +6,8 @@ Import this module into the script when you need to process an input file
 """
 module JCInput
 
+include("xyz_to_molecule.jl")
+
 using MPI
 using JSON
 using Base.Threads
