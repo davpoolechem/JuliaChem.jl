@@ -32,11 +32,11 @@ function full_rhf(input_file)
 
     #== read in input file ==#
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file;       
-      output="verbose")       
+      output=2)       
     
     #== generate basis set ==#
     mol, basis = JuliaChem.JCBasis.run(molecule, model; 
-      output="verbose")          
+      output=2)          
 
     #== molecule info ==#
     JuliaChem.JCMolecule.run(mol)
@@ -47,15 +47,15 @@ function full_rhf(input_file)
         #== perform scf calculation ==#
         if haskey(keywords, "scf")
           rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"]; 
-            output="verbose") 
+            output=2) 
         else
           rhf_energy = JuliaChem.JCRHF.Energy.run(mol, basis; 
-            output="verbose") 
+            output=2) 
         end
     
         #== compute molecular properties such as dipole moment ==#
         properties = JuliaChem.JCRHF.Properties.run(mol, basis, rhf_energy, 
-          keywords["prop"]; output="verbose")
+          keywords["prop"]; output=2)
       else
         throw("Exception: Methods other than RHF are not supported yet!")
       end  

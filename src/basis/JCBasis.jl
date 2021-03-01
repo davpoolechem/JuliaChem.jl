@@ -39,7 +39,7 @@ input_info, basis = Input.run(args)
 function run(molecule, model; output="none")
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                GENERATING BASIS SET                            ")
@@ -64,7 +64,7 @@ function run(molecule, model; output="none")
 
   mol = Molecule([], StdVector{JERI.Atom}())
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("----------------------------------------          ")
     println("          Printing basis set...                   ")
     println("----------------------------------------          ")
@@ -116,7 +116,7 @@ function run(molecule, model; output="none")
         bsed["$symbol/$basis"])
 
       #== process basis set values into shell objects ==#
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      if MPI.Comm_rank(comm) == 0 && output >= 2
         println("Atom #$atom_idx ($symbol):") 
         println("  Shell     Ang. Mom.     Prim.       Exp.         Coeff.")
       end
@@ -135,7 +135,7 @@ function run(molecule, model; output="none")
         #== if L shell, divide up ==# 
         if new_shell_am == -1
           #== s component ==#
-          if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          if MPI.Comm_rank(comm) == 0 && output >= 2
             for iprim in 1:nprim
               @printf("    %d        L (s)          %d     %.6f     %.6f\n", 
                 shell_num, iprim, new_shell_exp[iprim], new_shell_coeff[iprim]) 
@@ -157,7 +157,7 @@ function run(molecule, model; output="none")
           pos += new_shell.nbas
 
           #== p component ==#
-          if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          if MPI.Comm_rank(comm) == 0 && output >= 2
             for iprim in 1:nprim
               @printf("    %d        L (p)          %d      %.6f     %.6f\n", 
                 shell_num, iprim, new_shell_exp[iprim], 
@@ -180,7 +180,7 @@ function run(molecule, model; output="none")
           pos += new_shell.nbas
         #== otherwise accept shell as is ==#
         else 
-          if MPI.Comm_rank(comm) == 0 && output == "verbose"
+          if MPI.Comm_rank(comm) == 0 && output >= 2
             for iprim in 1:nprim
               @printf("    %d          %s            %d      %.6f     %.6f\n", 
                 shell_num, new_shell_dict["Shell Type"], iprim, 
@@ -202,7 +202,7 @@ function run(molecule, model; output="none")
           pos += new_shell.nbas
         end
 
-        if MPI.Comm_rank(comm) == 0 && output == "verbose"
+        if MPI.Comm_rank(comm) == 0 && output >= 2
           println(" ")
         end
       end
@@ -210,13 +210,13 @@ function run(molecule, model; output="none")
       shells_cxx_added[atomic_number+1] = true 
       #display(shells_cxx)
 
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      if MPI.Comm_rank(comm) == 0 && output >= 2
         println(" ")
       end
     end
   end
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("----------------------------------------          ")
     println("     Printing basis set metadata...               ")
     println("----------------------------------------          ")
@@ -257,7 +257,7 @@ function run(molecule, model; output="none")
   #delete first row, as it is simply zeroes
   #basis_set.shpair_ordering = basis_set.shpair_ordering[setdiff(1:end, 1),:]
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println(" ")
     println("                       ========================================                 ")
     println("                                       END BASIS                                ")

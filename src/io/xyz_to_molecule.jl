@@ -77,7 +77,6 @@ function xyz_to_molecule(input, charge = 0)
   geom_json *= "}\n"
 
   molecule = JSON.parse(geom_json)
-  display(molecule)
   return molecule
 end 
 export xyz_to_molecule

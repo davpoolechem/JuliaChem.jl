@@ -45,7 +45,7 @@ type = Precision of variables in calculation
 """
 function rhf_kernel(mol::Molecule, 
   basis::Basis; 
-  output::String, debug::Bool, niter::Int, guess::String, ndiis::Int, 
+  output::Int64, debug::Bool, niter::Int, guess::String, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
   comm=MPI.COMM_WORLD
@@ -131,7 +131,7 @@ function rhf_kernel(mol::Molecule,
     h5write("debug.h5","RHF/Iteration-None/X", ortho)
   end
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("----------------------------------------          ")
     println("       Starting RHF iterations...                 ")
     println("----------------------------------------          ")
@@ -151,7 +151,7 @@ function rhf_kernel(mol::Molecule,
   E = 0.0 
   E_old = E
 
-  #if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  #if MPI.Comm_rank(comm) == 0 && output >= 2
   #  @printf("0     %.10f\n", E)
   #end
 
@@ -165,7 +165,7 @@ function rhf_kernel(mol::Molecule,
     rmsd=rmsd, load=load, fdiff=fdiff)
 
   if !converged
-    if MPI.Comm_rank(comm) == 0 && output != "none"
+    if MPI.Comm_rank(comm) == 0 && output >= 1
       println(" ")
       println("----------------------------------------")
       println(" The SCF calculation did not converge.  ")
@@ -186,7 +186,7 @@ function rhf_kernel(mol::Molecule,
     merge!(calculation_status, calculation_fail)
 
   else
-    if MPI.Comm_rank(comm) == 0 && output != "none" 
+    if MPI.Comm_rank(comm) == 0 && output >= 1 
       println(" ")
       println("----------------------------------------")
       println("   The SCF calculation has converged!   ")
@@ -232,7 +232,7 @@ function scf_cycles(F::Matrix{Float64}, D::Matrix{Float64},
   workspace_a::Matrix{Float64}, workspace_b::Matrix{Float64}, 
   workspace_c::Vector{Matrix{Float64}}, E_nuc::Float64, E_elec::Float64, 
   E_old::Float64, basis::Basis;
-  output::String, debug::Bool, niter::Int, ndiis::Int, 
+  output::Int64, debug::Bool, niter::Int, ndiis::Int, 
   dele::Float64, rmsd::Float64, load::String, fdiff::Bool)
 
   #== read in some more variables from scf flags input ==#
@@ -482,7 +482,7 @@ function scf_cycles_kernel(F::Matrix{Float64}, D::Matrix{Float64},
     E = E_elec + E_nuc
     ΔE = E - E_old
 
-    if MPI.Comm_rank(comm) == 0 && output == "verbose"
+    if MPI.Comm_rank(comm) == 0 && output >= 2
       #println(iter,"     ", E,"     ", ΔE,"     ", D_rms)
       @printf("%d      %.10f      %.10f      %.10f\n", iter, E, ΔE, D_rms)
     end
