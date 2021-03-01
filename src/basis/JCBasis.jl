@@ -56,7 +56,7 @@ function run(molecule, model; output="none")
   num_atoms::Int64 = length(geometry_array)/3
   geometry_array_t::Matrix{Float64} = reshape(geometry_array,(3,num_atoms))
   geometry::Matrix{Float64} = transpose(geometry_array_t)
-  geometry .*= 1.0/0.52917724924 #switch from angs to bohr
+  #geometry .*= 1.0/0.52917724924 #switch from angs to bohr
   
   atomic_number_mapping::Dict{String,Int64} = create_atomic_number_mapping()
   atomic_mass_mapping::Dict{String,Float64} = create_atomic_mass_mapping()
