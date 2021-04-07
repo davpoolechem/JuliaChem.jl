@@ -35,11 +35,11 @@ scf = RHF.run(input_info, basis)
 ```
 """
 function run(mol::Molecule, basis::Basis, 
-  scf_flags = Dict(); output="none")
+  scf_flags = Dict(); output=0)
   
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("--------------------------------------------------------------------------------")
     println("                       ========================================                 ")
     println("                                RESTRICTED CLOSED-SHELL                         ")
@@ -51,7 +51,7 @@ function run(mol::Molecule, basis::Basis,
   #== actually perform scf calculation ==#
   rhfenergy = rhf_energy(mol, basis, scf_flags; output=output)
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
     println("                                  HARTREE-FOCK ENERGY                           ")

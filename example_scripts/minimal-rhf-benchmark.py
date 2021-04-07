@@ -20,33 +20,33 @@ def script(input_file):
     #== read in input file ==#
     input_time1_t1 = Base.time_ns()/1e9
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file, 
-      output="verbose")
+      output=2)
     input_time1_t2 = Base.time_ns()/1e9
     input_time1 = input_time1_t2 - input_time1_t1 
 
     input_time2_t1 = Base.time_ns()/1e9
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file, 
-      output="verbose")
+      output=2)
     input_time2_t2 = Base.time_ns()/1e9
     input_time2 = input_time2_t2 - input_time2_t1
   
     input_jit = input_time1 - input_time2
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file, 
-      output="verbose")
+      output=2)
 
     #== generate basis set ==#
     basis_time1_t1 = Base.time_ns()/1e9
-    basis = JuliaChem.JCBasis.run(molecule, model, output="verbose")
+    basis = JuliaChem.JCBasis.run(molecule, model, output=2)
     basis_time1_t2 = Base.time_ns()/1e9
     basis_time1 = basis_time1_t2 - basis_time1_t1 
 
     basis_time2_t1 = Base.time_ns()/1e9
-    mol, basis = JuliaChem.JCBasis.run(molecule, model, output="verbose")
+    mol, basis = JuliaChem.JCBasis.run(molecule, model, output=2)
     basis_time2_t2 = Base.time_ns()/1e9
     basis_time2 = basis_time2_t2 - basis_time2_t1
   
     basis_jit = basis_time1 - basis_time2
-    mol, basis = JuliaChem.JCBasis.run(molecule, model, output="verbose")
+    mol, basis = JuliaChem.JCBasis.run(molecule, model, output=2)
 
     #== perform scf benchmark ==#
     timeof = [] 
@@ -55,7 +55,7 @@ def script(input_file):
       if (model["method"] == "RHF"):
         scf_time1_t1 = Base.time_ns()/1e9
         scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"], 
-          output="verbose") 
+          output=2) 
         scf_time1_t2 = Base.time_ns()/1e9
         scf_time1 = scf_time1_t2 - scf_time1_t1 
 
@@ -63,12 +63,12 @@ def script(input_file):
       
         for index in range(1,5):
           molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file, 
-            output="verbose")
-          mol, basis = JuliaChem.JCBasis.run(molecule, model, output="verbose")
+            output=2)
+          mol, basis = JuliaChem.JCBasis.run(molecule, model, output=2)
 
           scf_timeof_t1 = Base.time_ns()/1e9
           scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"], 
-            output="verbose") #initial run
+            output=2) #initial run
           scf_timeof_t2 = Base.time_ns()/1e9
           timeof.append(scf_timeof_t2 - scf_timeof_t1) 
         

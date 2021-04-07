@@ -18,33 +18,33 @@ function script(input_file)
     #== read in input file ==#
     input_time1_t1 = time_ns()/1e9
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
-      output="none")
+      output=0)
     input_time1_t2 = time_ns()/1e9
     input_time1 = input_time1_t2 - input_time1_t1 
 
     input_time2_t1 = time_ns()/1e9
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
-      output="none")
+      output=0)
     input_time2_t2 = time_ns()/1e9
     input_time2 = input_time2_t2 - input_time2_t1
   
     input_jit = input_time1 - input_time2
     molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
-      output="none")
+      output=0)
 
     #== generate basis set ==#
     basis_time1_t1 = time_ns()/1e9
-    basis = JuliaChem.JCBasis.run(molecule, model; output="none")
+    basis = JuliaChem.JCBasis.run(molecule, model; output=0)
     basis_time1_t2 = time_ns()/1e9
     basis_time1 = basis_time1_t2 - basis_time1_t1 
 
     basis_time2_t1 = time_ns()/1e9
-    basis = JuliaChem.JCBasis.run(molecule, model; output="none")
+    basis = JuliaChem.JCBasis.run(molecule, model; output=0)
     basis_time2_t2 = time_ns()/1e9
     basis_time2 = basis_time2_t2 - basis_time2_t1
   
     basis_jit = basis_time1 - basis_time2
-    mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
+    mol, basis = JuliaChem.JCBasis.run(molecule, model; output=0)
 
     #== perform scf benchmark ==#
     timeof = Vector{Float64}(undef,0)
@@ -53,20 +53,20 @@ function script(input_file)
       if (model["method"] == "RHF")
         #scf_time1_t1 = time_ns()/1e9
         #scf = JuliaChem.JCRHF.run(mol, basis, keywords["scf"]; 
-        #  output="verbose") 
+        #  output=2) 
         #scf_time1_t2 = time_ns()/1e9
         #scf_time1 = scf_time1_t2 - scf_time1_t1 
       
         molecule, driver, model, keywords = JuliaChem.JCInput.run(input_file; 
-          output="none")
-        mol, basis = JuliaChem.JCBasis.run(molecule, model; output="none")
+          output=0)
+        mol, basis = JuliaChem.JCBasis.run(molecule, model; output=0)
 
         scf_timeof_t1 = time_ns()/1e9
         #scf = JuliaChem.JCRHF.Energy.run(mol, basis, keywords["scf"]; 
-        #  output="verbose")
+        #  output=2)
         scf = BenchmarkTools.@benchmark begin
           JuliaChem.JCRHF.Energy.run($mol, $basis, $(keywords["scf"]); 
-            output="verbose") #initial run
+            output=2) #initial run
         end
         display(scf)
         scf_timeof_t2 = time_ns()/1e9

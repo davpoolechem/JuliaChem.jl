@@ -18,7 +18,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
   
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
       println("--------------------------------------------------------------------------------")
       println("                       ========================================                 ")
       println("                                RESTRICTED CLOSED-SHELL                         ")
@@ -79,7 +79,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy;
 
   end
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
     println("                                 HARTREE-FOCK GRADIENT                          ")

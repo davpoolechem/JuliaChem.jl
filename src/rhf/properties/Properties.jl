@@ -5,6 +5,7 @@
 """
 module Properties 
 
+include("FormationEnergies.jl")
 include("Mulliken.jl")
 include("Multipole.jl")
 include("OrbitalEnergies.jl")
@@ -17,11 +18,11 @@ using MPI
 using Printf
 
 function run(mol::Molecule, basis::Basis, rhf_energy, 
-  keywords; output="none")
+  keywords; output=0)
   
   comm=MPI.COMM_WORLD
 
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
       println("--------------------------------------------------------------------------------")
       println("                       ========================================                 ")
       println("                                RESTRICTED CLOSED-SHELL                         ")
@@ -44,7 +45,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
       F_mo = compute_orbital_energies(F, C)
 
       #== print orbital energies ==#
-      if MPI.Comm_rank(comm) == 0 && output == "verbose" 
+      if MPI.Comm_rank(comm) == 0 && output >= 2 
         println("----------------------------------------          ")           
         println(" Computing molecular orbital energies...           ")           
         println("----------------------------------------          ")           
@@ -67,7 +68,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
   
       homo_lumo_gap = abs(E_homo - E_lumo)
  
-      if MPI.Comm_rank(comm) == 0 && output == "verbose" 
+      if MPI.Comm_rank(comm) == 0 && output >= 2 
         println("----------------------------------------          ")           
         println("        Computing HOMO-LUMO gap...                ")
         println("----------------------------------------          ")           
@@ -86,6 +87,31 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
     end    
   end
 
+  #== compute formation energy if selected ==#
+  if haskey(keywords, "formation")
+    if keywords["formation"] == true 
+      #== initial setup ==#
+      E_tot = rhf_energy["Energy"] 
+      
+      #== compute formation energy ==# 
+      if MPI.Comm_rank(comm) == 0 && output >= 2
+        println("----------------------------------------          ")
+        println("     Computing formation energy...                ")
+        println("----------------------------------------          ")
+        println(" ")
+      end  
+  
+      E_form = compute_formation_energy(mol, basis, E_tot)
+ 
+      if MPI.Comm_rank(comm) == 0 && output >= 2 
+        @printf("Energy of formation: %.6f h \n", E_form)
+        println(" ")                                                            
+      end
+
+      properties["Formation Energy"] = E_form
+    end
+  end
+
   #== compute mulliken charges if selected ==#
   if haskey(keywords, "mulliken")
     if keywords["mulliken"] == true 
@@ -94,7 +120,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
       S = rhf_energy["Overlap"]
       
       #== compute mulliken charges ==# 
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      if MPI.Comm_rank(comm) == 0 && output >= 2
         println("----------------------------------------          ")
         println("     Computing mulliken charges...                ")
         println("----------------------------------------          ")
@@ -126,7 +152,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
       P = rhf_energy["Density"] 
 
       #== compute dipole moment ==#
-      if MPI.Comm_rank(comm) == 0 && output == "verbose"
+      if MPI.Comm_rank(comm) == 0 && output >= 2
         println("----------------------------------------          ")
         println("     Computing multiple moments...                ")
         println("----------------------------------------          ")
@@ -146,7 +172,7 @@ function run(mol::Molecule, basis::Basis, rhf_energy,
     end
   end
  
-  if MPI.Comm_rank(comm) == 0 && output == "verbose"
+  if MPI.Comm_rank(comm) == 0 && output >= 2
     println("                       ========================================                 ")
     println("                              END RESTRICTED CLOSED-SHELL                       ")
     println("                                HARTREE-FOCK PROPERTIES                         ")
