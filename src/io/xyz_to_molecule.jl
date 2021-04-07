@@ -20,7 +20,7 @@ function xyz_to_geometry(xyzfile)
     atom_coords_match = map(x -> x.match, atom_coords) 
     append!(coords_vector, parse.(Float64,atom_coords_match[1:3]))
 
-    symbol_match = match(r"[A-Z]{1,2}",geometry_line)
+    symbol_match = match(r"[A-Za-z]{1,2}",geometry_line)
     push!(symbols, symbol_match.match)
   end
   #coords = reshape(coords_vector, (3,length(geometry)))
